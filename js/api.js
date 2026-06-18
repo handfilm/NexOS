@@ -1,7 +1,7 @@
 /* js/api.js - ফাইনাল এবং বুলেটপ্রুফ Spine Bridge */
 window.callSpine = async function(action, payload = null) {
   // আপনার Apps Script এর নতুন Deployment URL টি এখানে বসান
-  const SPINE_URL = "https://script.google.com/macros/s/AKfycbxUq3rIvz60_PzDcTYf2gv3JFcW42Tmwi243BY7P5G4BaaN-VnGV2RioYMSUxlu4vp73g/exec"; 
+  const SPINE_URL = "https://script.google.com/macros/s/AKfycbyqTLd51rCc37NZeRS5sYpR2ax3VpAOKRpHRSoN9ssDiRuojhifKZwefIWlBWqTWslvaQ/exec"; 
   
   try {
     const response = await fetch(SPINE_URL, {
@@ -17,3 +17,4 @@ window.callSpine = async function(action, payload = null) {
     return { status: "failed", error: err };
   }
 };
+
