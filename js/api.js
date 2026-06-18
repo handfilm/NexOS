@@ -5,7 +5,7 @@ window.callSpine = async function(action, payload = null) {
   try {
     const response = await fetch(SPINE_URL, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // text/plain ব্যবহারে ব্রাউজার কোনো CORS Preflight এরর দেবে না
       body: JSON.stringify({ action: action, payload: payload })
     });
     
