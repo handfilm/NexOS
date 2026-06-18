@@ -1,5 +1,5 @@
 /* ===========================================================
-   PWA BOOT & CONFIG
+   PWA BOOT & MANIFEST
    =========================================================== */
 (function(){
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#CBF260'/><stop offset='1' stop-color='#FFD12E'/></linearGradient></defs><rect width='512' height='512' rx='112' fill='url(#g)'/><path d='M168 360 V160 L344 360 V160' fill='none' stroke='#16160E' stroke-width='54' stroke-linecap='square' stroke-linejoin='miter'/></svg>`;
@@ -26,37 +26,51 @@ window.addEventListener("online",  () => { setOffline(false); render(); });
 window.addEventListener("offline", () => setOffline(true));
 
 /* ===========================================================
-   THE LIVE BRIDGE: Dashboard Link
+   THE LIVE BRIDGE: Omnichannel Spine Link
    =========================================================== */
 async function spine(action, payload={}) {
   if (typeof window.callSpine === "function") {
     try {
-      if (action === "placeOrder") {
-        await window.callSpine("createOrder", {
-          OrderID: "NX-" + Math.floor(Math.random() * 9000 + 1000),
-          Customer: payload.phone || "Walk-in",
-          Total: payload.price || 0,
-          Items: payload.item || "Quick Sale"
+      if (action === "placeOrder" || action === "createOrder") {
+        const response = await window.callSpine("createOrder", {
+          OrderID: payload.OrderID || "NX-" + Math.floor(Math.random() * 9000 + 1000),
+          Customer: payload.Customer || payload.phone || "Walk-in",
+          Total: payload.Total || payload.price || 0,
+          Items: payload.Items || payload.item || "Quick Sale"
         });
-        return { ok: true, status: "NEW" };
+        return response || { status: "success" };
       }
-      if (action === "listOrders") {
+      if (action === "createCustomer") {
+        const response = await window.callSpine("createCustomer", {
+          ID: payload.ID || "C-" + Date.now().toString().slice(-4),
+          Name: payload.Name || "Unknown", LastName: payload.LastName || "",
+          Email: payload.Email || "", Phone: payload.Phone || "", Address: payload.Address || ""
+        });
+        return response || { status: "success" };
+      }
+      if (action === "createProduct") {
+        const response = await window.callSpine("createProduct", payload);
+        return response || { status: "success" };
+      }
+      if (action === "listOrders" || action === "getOrders") {
         const liveOrders = await window.callSpine("getOrders");
         if (!liveOrders.error && Array.isArray(liveOrders)) {
           return { items: liveOrders.map(o => ({ id: o.OrderID || "NX-00", t: o.Items || "Live Order", s: o.Customer + " • ৳" + o.Total, st: [o.Status || "NEW", "ok"] })).reverse() };
         }
       }
       if (action === "getStats") {
-        const orders = LS.get("orders") || [];
-        return { salesToday: orders.reduce((acc, curr) => acc + parseInt(curr.Total || 0), 0), ordersToday: orders.length, pending: 0 };
+        const ordersFresh = await window.callSpine("getOrders");
+        const oList = Array.isArray(ordersFresh) ? ordersFresh : [];
+        const sales = oList.reduce((acc, curr) => acc + parseInt(curr.Total || 0), 0);
+        return { salesToday: sales, ordersToday: oList.length, pending: 0, catalog: 0 };
       }
-      if (action === "getFeed") {
+      if (action === "getFeed" || action === "getProducts") {
         const liveProds = await window.callSpine("getProducts");
         if (!liveProds.error && Array.isArray(liveProds)) {
-          return { items: liveProds.map(p => ({ id: p.ID || "1", t: p.Name, cat: "Live", price: p.Price || 0, ini: "PRD", img: p.Image || "" }))};
+          return { items: liveProds.map(p => ({ id: p.ID || "1", t: p.Name, cat: p.Vendor || "Live", price: p.Price || 0, ini: p.SKU || "PRD", img: p.Image || "" }))};
         }
       }
-    } catch(e) { console.error("Spine Engine Fallback:", e); }
+    } catch(e) { console.error("Spine Engine Fallback Loop:", e); }
   }
   return demoSpine(action, payload);
 }
@@ -121,31 +135,26 @@ async function renderLiteHome(b) {
     <div class="pgrid" style="margin-top:20px; gap:12px;">
       <button class="pcard" onclick="startCamera()" style="background:var(--surface); border:1px solid var(--line); padding:20px; border-radius:24px; text-align:center;">
         <div style="width:50px; height:50px; background:var(--grad); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 10px;">${I.cam}</div>
-        <div style="font-weight:900; font-size:13px; color:var(--text);">One-Tap Capture</div>
+        <div style="font-weight:900; font-size:13px; color:var(--text); text-align:center; width:100%;">One-Tap Capture</div>
       </button>
-
       <button class="pcard" onclick="window.openAppModule('Products')" style="background:var(--surface); border:1px solid var(--line); padding:20px; border-radius:24px; text-align:center;">
         <div style="width:50px; height:50px; background:var(--grad); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 10px;">${I.tag}</div>
-        <div style="font-weight:900; font-size:13px; color:var(--text);">Create Products</div>
+        <div style="font-weight:900; font-size:13px; color:var(--text); text-align:center; width:100%;">Create Products</div>
       </button>
-
       <button class="pcard" onclick="window.openAppModule('MetaFeed')" style="background:var(--surface); border:1px solid var(--line); padding:20px; border-radius:24px; text-align:center;">
         <div style="width:50px; height:50px; background:var(--grad); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 10px;">${I.store}</div>
-        <div style="font-weight:900; font-size:13px; color:var(--text);">Go FB Live</div>
+        <div style="font-weight:900; font-size:13px; color:var(--text); text-align:center; width:100%;">Go FB Live</div>
       </button>
-
       <button class="pcard" onclick="window.openAppModule('SocialPost')" style="background:var(--surface); border:1px solid var(--line); padding:20px; border-radius:24px; text-align:center;">
         <div style="width:50px; height:50px; background:var(--grad); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 10px;">${I.spark}</div>
-        <div style="font-weight:900; font-size:13px; color:var(--text);">NexAI</div>
+        <div style="font-weight:900; font-size:13px; color:var(--text); text-align:center; width:100%;">NexAI</div>
       </button>
     </div>
-
     <div class="counters" id="counters" style="margin-top:10px;">
       <div class="stat hero"><div class="lab">Sales Today</div><div class="val">৳${s.salesToday}</div></div>
       <div class="stat"><div class="lab">Pending</div><div class="val">${s.pending || 0}</div></div>
       <div class="stat"><div class="lab">Orders</div><div class="val">${s.ordersToday || 0}</div></div>
     </div>
-
     <div class="sec-h"><h2>Quick Order</h2></div>
     <div class="card">
       <div class="field"><input id="q_item" placeholder="Product / SKU"></div>
@@ -153,7 +162,6 @@ async function renderLiteHome(b) {
       <div class="seg" id="q_seg" style="margin-bottom:14px;"><button class="on" data-m="whatsapp">WhatsApp</button><button data-m="bkash">bKash</button><button data-m="nagad">Nagad</button></div>
       <button class="btn btn-grad" id="q_go">Log Order</button>
     </div>
-
     <div class="sec-h"><h2>Recent Orders</h2><span class="more" onclick="openAllOrders()">All →</span></div>
     <div class="card" id="recentList" style="padding:0 16px">${ordersListHtml(o.slice(0,5))}</div>
   `;
@@ -167,27 +175,33 @@ async function renderLiteHome(b) {
 
 function setupQuickOrderLogic() {
   let qMethod = "whatsapp";
-  document.querySelectorAll("#q_seg button").forEach(x => {
-    x.onclick = () => { document.querySelectorAll("#q_seg button").forEach(y => y.classList.remove("on")); x.classList.add("on"); qMethod = x.dataset.m; };
-  });
-  document.getElementById("q_go").onclick = async () => {
-    const item = document.getElementById("q_item").value.trim(); if (!item) return;
-    const btn = document.getElementById("q_go"); btn.innerText = "Logging...";
-    await spine("placeOrder", { item, price: document.getElementById("q_price").value, phone: document.getElementById("q_phone").value, method: qMethod });
-    toast("Order Logged ✓"); const oFresh = await spine("listOrders"); LS.set("orders", oFresh.items); render();
-  };
+  const segs = document.querySelectorAll("#q_seg button");
+  if(segs.length) {
+    segs.forEach(x => {
+      x.onclick = () => { document.querySelectorAll("#q_seg button").forEach(y => y.classList.remove("on")); x.classList.add("on"); qMethod = x.dataset.m; };
+    });
+  }
+  const goBtn = document.getElementById("q_go");
+  if(goBtn) {
+    goBtn.onclick = async () => {
+      const item = document.getElementById("q_item").value.trim(); if (!item) return;
+      goBtn.innerText = "Logging...";
+      await spine("placeOrder", { item, price: document.getElementById("q_price").value, phone: document.getElementById("q_phone").value, method: qMethod });
+      toast("Order Logged ✓"); const oFresh = await spine("listOrders"); LS.set("orders", oFresh.items); render();
+    };
+  }
 }
 
 function openAllOrders() { const o = LS.get("orders") || []; openSheet(`<div class="sec-h"><h2>All Orders</h2></div><div style="padding:16px;">${ordersListHtml(o)}</div>`); }
-function renderExpertBody(b) { if (expScreen === "dashboard") renderExpertDash(b); else navToModuleDirectly(expScreen, b); }
-function renderExpertDash(b) { renderLiteHome(b); }
-function ordersListHtml(o) { if(!o.length) return `<div class="empty">No orders logged yet</div>`; return o.map(d => `<div class="orow"><div class="othumb">NX</div><div class="om"><div class="ot">${d.t}</div><div class="os">${d.s}</div></div><div class="pill ok">${d.st[0]}</div></div>`).join(""); }
+function renderExpertBody(b) { renderLiteHome(b); }
+function ordersListHtml(o) { if(!o || !o.length) return `<div class="empty">No orders logged yet</div>`; return o.map(d => `<div class="orow"><div class="othumb">NX</div><div class="om"><div class="ot">${d.t}</div><div class="os">${d.s}</div></div><div class="pill ok">${d.st[0]}</div></div>`).join(""); }
 
 /* ===========================================================
-   TABBAR & DRAwer INTERFACES
+   TABBAR & DRAWER ROUTER INTERFACES
    =========================================================== */
 function renderTabbar() {
   const bar = document.getElementById("tabbar");
+  if(!bar) return;
   if (mode === "lite") { bar.innerHTML = `<button class="tb on">${I.home}</button><button class="tb cam-fab" onclick="startCamera()">${I.cam}</button><button class="tb" onclick="openGate()">${I.lock}</button>`; } 
   else { bar.innerHTML = `<button class="tb" onclick="expScreen='dashboard';render()">${I.home}</button><button class="tb" onclick="navTo('Products')">${I.tag}</button><button class="tb cam-fab" onclick="startCamera()">${I.cam}</button><button class="tb" onclick="openDrawer()"><svg viewBox="0 0 24 24" style="width:22px;height:22px;"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2"/></svg></button><button class="tb exit-btn" onclick="exitExpert()">${I.exit}</button>`; }
 }
@@ -216,10 +230,9 @@ function closeDrawer() { document.getElementById("drawer").classList.remove("on"
 
 function navTo(label) { closeDrawer(); if (label === "Home") { expScreen = "dashboard"; render(); return; } if (window.render && window.render[label]) { openSheet(`<div id="modMount"></div>`); window.render[label](document.getElementById("modMount")); } }
 function openAppModule(appName) { if (window.render && window.render[appName]) { openSheet(`<div id="modMount"></div>`); window.render[appName](document.getElementById("modMount")); } }
-function openStub(label) { openSheet(`<div class="sec-h"><h2>${label}</h2></div><div class="card">Module operational on next sync pipeline.</div>`); }
 
 /* ===========================================================
-   PHYSICS, TOAST, CAM & UTILS
+   DOM MECHANICS
    =========================================================== */
 function openSheet(html) { document.getElementById("sheet").innerHTML = `<div class="grab"></div>` + html; document.getElementById("sheet").classList.add("on"); document.getElementById("scrim").classList.add("on"); }
 function closeSheet() { document.getElementById("sheet").classList.remove("on"); document.getElementById("scrim").classList.remove("on"); }
@@ -227,8 +240,8 @@ function openGate() { document.getElementById("gate").classList.add("on"); docum
 function closeGate() { document.getElementById("gate").classList.remove("on"); document.getElementById("gateScrim").classList.remove("on"); }
 function tryGate() { if (document.getElementById("gatePin").value.trim() === OPERATOR_PIN) { mode = "expert"; expScreen = "dashboard"; closeGate(); applyTheme("expert"); render(); toast("Expert OS Unlocked ✓"); } else { toast("Access Denied"); } }
 function exitExpert() { mode = "lite"; applyTheme("lite"); render(); toast("Returned to Lite Mode"); }
-function toast(m) { const t = document.getElementById("toast"); t.innerText = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 2500); }
-function startCamera() { openSheet(`<div class="sec-h"><h2>Camera Engine</h2></div><div class="cam-stage"><div style="color:var(--muted); font-family:var(--mono);">Camera operational on deployment.</div></div>`); }
+function toast(m) { const t = document.getElementById("toast"); if(t) { t.innerText = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 2500); } }
+function startCamera() { openSheet(`<div class="sec-h"><h2>Camera Engine</h2></div><div class="cam-stage"><div style="color:var(--muted); font-family:var(--mono);">Camera active on native app deployment.</div></div>`); }
 
 window.openGate = openGate; window.closeGate = closeGate; window.tryGate = tryGate; window.startCamera = startCamera; window.exitExpert = exitExpert; window.openAllOrders = openAllOrders; window.closeSheet = closeSheet; window.render = render; window.openDrawer = openDrawer; window.closeDrawer = closeDrawer; window.navTo = navTo; window.openAppModule = openAppModule;
 
