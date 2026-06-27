@@ -840,4 +840,135 @@
   window.render.Marketing   = stub("Marketing","Campaign analytics pipeline — connect Meta Ads.");
   window.render.OnlineStore = stub("Online Store","Theme configs. Go to Shopify Admin for full control.");
 
+
+  /* ═══════════════════════════════════════════════════════════
+     MODULE 13 — ARUTEMIKA EU LEATHER PORTAL
+     ═══════════════════════════════════════════════════════════ */
+  window.render.PortalArutemika = function(container) {
+    container.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px 12px;">
+        <div>
+          <h3 style="font-family:var(--display);font-size:22px;letter-spacing:3px;color:var(--ink);">ARUTEMIKA</h3>
+          <p class="hint" style="margin:2px 0 0;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--gold-dim);">LEATHER GOODS · EU EXPORT PORTAL</p>
+        </div>
+        <button onclick="openPortalOverlay('https://handfilm.github.io/arutemika-eu/','ARUTEMIKA','Genuine Leather · EU Export Portal')"
+          style="padding:8px 16px;font-size:10px;border:1px solid var(--gold);background:var(--gold);color:#000;font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;cursor:pointer;border-radius:6px;">
+          Open Full Portal ↗
+        </button>
+      </div>
+
+      <div style="margin:0 16px 12px;background:var(--surface-2);border:1px solid var(--wire);border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center;">
+        <div><div style="font-family:var(--display);font-size:26px;color:var(--gold);letter-spacing:2px;">28+</div><div style="font-family:var(--mono);font-size:8px;color:var(--ink-3);letter-spacing:1.5px;text-transform:uppercase;">Years</div></div>
+        <div><div style="font-family:var(--display);font-size:26px;color:var(--gold);letter-spacing:2px;">200</div><div style="font-family:var(--mono);font-size:8px;color:var(--ink-3);letter-spacing:1.5px;text-transform:uppercase;">MOQ pcs</div></div>
+        <div><div style="font-family:var(--display);font-size:26px;color:var(--gold);letter-spacing:2px;">5</div><div style="font-family:var(--mono);font-size:8px;color:var(--ink-3);letter-spacing:1.5px;text-transform:uppercase;">Languages</div></div>
+      </div>
+
+      <div style="margin:0 16px 8px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--wire);">Product Categories</div>
+        ${[
+          {cat:"Laptop Bags",spec:"Full grain · PU · 13\"–17\""},
+          {cat:"Tote Bags",spec:"S · M · L sizes"},
+          {cat:"File Bags",spec:"Slim · Expandable"},
+          {cat:"Wallets",spec:"Bifold · Trifold · Card"},
+          {cat:"Handbags",spec:"Gold · Silver hardware"},
+          {cat:"Crossbody",spec:"Adjustable strap"},
+          {cat:"Backpacks",spec:"18L · 24L · 32L"},
+          {cat:"Footwear",spec:"Full grain · Rubber sole"}
+        ].map(p=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--wire-soft);">
+            <span style="font-family:var(--sans);font-size:12px;color:var(--ink);">${p.cat}</span>
+            <span style="font-family:var(--mono);font-size:9px;color:var(--ink-3);">${p.spec}</span>
+          </div>`).join('')}
+      </div>
+
+      <div style="margin:8px 16px;background:var(--surface-2);border:1px solid var(--wire);border-radius:10px;padding:12px 14px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px;">Active Markets</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${['🇳🇱 Netherlands','🇩🇪 Germany','🇬🇧 United Kingdom','🇪🇸 Spain','🇯🇵 Japan'].map(m=>`
+            <span style="font-family:var(--mono);font-size:10px;padding:4px 10px;border:1px solid var(--wire);border-radius:20px;color:var(--ink-2);">${m}</span>`).join('')}
+        </div>
+      </div>
+
+      <div style="margin:8px 16px;background:var(--surface-2);border:1px solid var(--wire);border-radius:10px;padding:12px 14px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px;">Compliance</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${['BSCI ✓','REACH ✓','SEDEX ✓','EUDR ✓','LWG 🔄'].map(c=>`
+            <span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border:1px solid var(--wire);border-radius:20px;color:var(--ok);">${c}</span>`).join('')}
+        </div>
+      </div>
+
+      <div style="padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button class="btn btn-gold" onclick="openPortalOverlay('https://handfilm.github.io/arutemika-eu/','ARUTEMIKA','Genuine Leather · EU Export Portal')">Open Full Portal ↗</button>
+        <button class="btn btn-dark" onclick="openPortalOverlay('https://handfilm.github.io/arutemika-eu/#rfq','ARUTEMIKA — RFQ','Request Quote')">Request Quote →</button>
+      </div>
+    `;
+  };
+
+  /* ═══════════════════════════════════════════════════════════
+     MODULE 14 — HANDS & HEAD RMG PORTAL
+     ═══════════════════════════════════════════════════════════ */
+  window.render.PortalRMG = function(container) {
+    container.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px 12px;">
+        <div>
+          <h3 style="font-family:var(--display);font-size:22px;letter-spacing:3px;color:var(--ink);">HANDS & HEAD</h3>
+          <p class="hint" style="margin:2px 0 0;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--gold-dim);">RMG APPAREL · EU & US EXPORT PORTAL</p>
+        </div>
+        <button onclick="openPortalOverlay('https://handfilm.github.io/rmg/','HANDS & HEAD','RMG Apparel · EU & US Export')"
+          style="padding:8px 16px;font-size:10px;border:1px solid var(--gold);background:var(--gold);color:#000;font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;cursor:pointer;border-radius:6px;">
+          Open Full Portal ↗
+        </button>
+      </div>
+
+      <div style="margin:0 16px 12px;background:var(--surface-2);border:1px solid var(--wire);border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
+        <div><div style="font-family:var(--display);font-size:22px;color:var(--gold);letter-spacing:2px;">26+</div><div style="font-family:var(--mono);font-size:8px;color:var(--ink-3);letter-spacing:1px;text-transform:uppercase;">Years</div></div>
+        <div><div style="font-family:var(--display);font-size:22px;color:var(--gold);letter-spacing:2px;">200</div><div style="font-family:var(--mono);font-size:8px;color:var(--ink-3);letter-spacing:1px;text-transform:uppercase;">MOQ pcs</div></div>
+        <div><div style="font-family:var(--display);font-size:22px;color:var(--gold);letter-spacing:2px;">30d</div><div style="font-family:var(--mono);font-size:8px;color:var(--ink-3);letter-spacing:1px;text-transform:uppercase;">Lead</div></div>
+        <div><div style="font-family:var(--display);font-size:22px;color:var(--gold);letter-spacing:2px;">24h</div><div style="font-family:var(--mono);font-size:8px;color:var(--ink-3);letter-spacing:1px;text-transform:uppercase;">Response</div></div>
+      </div>
+
+      <div style="margin:0 16px 8px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--wire);">Product Categories</div>
+        ${[
+          {cat:"Knitwear",items:"T-shirt · Polo · Hoodie · Sweatpants · Boxers"},
+          {cat:"Woven",items:"Cargo · Shirts (formal/casual) · Shorts"},
+          {cat:"Activewear",items:"Leggings · Sports Bra · Active Shorts"},
+          {cat:"Lingerie",items:"Essentials · Lace · Intimate · Swimwear"}
+        ].map(p=>`
+          <div style="padding:9px 0;border-bottom:1px solid var(--wire-soft);">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-family:var(--sans);font-size:12px;font-weight:500;color:var(--ink);">${p.cat}</span>
+              <span style="font-family:var(--mono);font-size:8px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;">→</span>
+            </div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--ink-3);margin-top:2px;">${p.items}</div>
+          </div>`).join('')}
+      </div>
+
+      <div style="margin:8px 16px;background:var(--surface-2);border:1px solid var(--wire);border-radius:10px;padding:12px 14px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px;">Active Markets</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${['🇳🇱 Netherlands','🇩🇪 Germany','🇬🇧 UK','🇺🇸 United States','🇪🇸 Spain','🇯🇵 Japan'].map(m=>`
+            <span style="font-family:var(--mono);font-size:10px;padding:4px 10px;border:1px solid var(--wire);border-radius:20px;color:var(--ink-2);">${m}</span>`).join('')}
+        </div>
+      </div>
+
+      <div style="margin:8px 16px;background:var(--surface-2);border:1px solid var(--wire);border-radius:10px;padding:12px 14px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px;">Compliance</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${['BSCI ✓','SEDEX ✓','OEKO-TEX ✓','REACH ✓','GOTS 🔄'].map(c=>`
+            <span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border:1px solid var(--wire);border-radius:20px;color:var(--ok);">${c}</span>`).join('')}
+        </div>
+      </div>
+
+      <div style="margin:8px 16px;background:var(--surface-2);border:1px solid var(--wire);border-radius:10px;padding:12px 14px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px;">Languages</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--ink-2);letter-spacing:1px;">EN · NL · DE · বাংলা · 日本語</div>
+      </div>
+
+      <div style="padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button class="btn btn-gold" onclick="openPortalOverlay('https://handfilm.github.io/rmg/','HANDS & HEAD','RMG Apparel · EU & US Export')">Open Full Portal ↗</button>
+        <button class="btn btn-dark" onclick="openPortalOverlay('https://handfilm.github.io/rmg/#rfq','HANDS & HEAD — RFQ','Request Quote')">Request Quote →</button>
+      </div>
+    `;
+  };
+
 })();
