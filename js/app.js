@@ -138,7 +138,9 @@ const I = {
   box:'<svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
   ai:'<svg viewBox="0 0 24 24"><path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/></svg>',
   fx:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M6 10h12M8 6l2 2M16 6l-2 2"/></svg>',
-  hammer:'<svg viewBox="0 0 24 24"><path d="M15 12l-8.5 8.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 010-3L12 9"/><path d="M17.64 15L22 10.64M20.35 6.35L6.36 20.35M13 6l2-2 4 4-2 2M3 20l7-7"/></svg>'
+  hammer:'<svg viewBox="0 0 24 24"><path d="M15 12l-8.5 8.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 010-3L12 9"/><path d="M17.64 15L22 10.64M20.35 6.35L6.36 20.35M13 6l2-2 4 4-2 2M3 20l7-7"/></svg>',
+  leather:'<svg viewBox="0 0 24 24"><path d="M12 2C8 2 4 5 4 9c0 5 8 13 8 13s8-8 8-13c0-4-3.6-7-8-7z"/><circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none"/></svg>',
+  rmg:'<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
 };
 
 /* ── State ── */
@@ -237,6 +239,12 @@ async function renderLiteHome(b) {
       </button>
       <button class="action-node" onclick="openAppModule('Tracking')">
         <div class="action-icon">${I.truck}</div><div class="action-label">Track</div>
+      </button>
+      <button class="action-node" onclick="openAppModule('PortalArutemika')">
+        <div class="action-icon">${I.leather}</div><div class="action-label">Leather</div>
+      </button>
+      <button class="action-node" onclick="openAppModule('PortalRMG')">
+        <div class="action-icon">${I.rmg}</div><div class="action-label">RMG</div>
       </button>
     </div>
 
@@ -369,6 +377,62 @@ function renderTabbar() {
   }
 }
 
+
+/* ── Inject Portal CSS at runtime ── */
+(function(){
+  const s = document.createElement('style');
+  s.textContent = `
+/* ── Portal Dash Cards ── */
+.portal-dash-card {
+  background: var(--surface-2);
+  border: 1px solid var(--wire);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 80px;
+}
+.portal-dash-card:hover { border-color: var(--gold); background: var(--surface-3); }
+.pdc-eye { font-family: var(--mono); font-size: 8px; letter-spacing: 1.5px; color: var(--gold-dim); text-transform: uppercase; }
+.pdc-name { font-family: var(--display); font-size: 18px; letter-spacing: 2px; color: var(--ink); line-height: 1; }
+.pdc-meta { font-family: var(--mono); font-size: 8px; color: var(--ink-3); letter-spacing: 0.5px; margin-top: 2px; }
+.pdc-open { font-family: var(--mono); font-size: 9px; color: var(--gold); letter-spacing: 1px; margin-top: 4px; }
+/* ── Portal Full Overlay ── */
+#portalOverlay {
+  position: fixed; inset: 0; z-index: 180;
+  background: #080808;
+  display: flex; flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+#portalOverlay.on { transform: translateY(0); }
+.portal-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--wire);
+  background: #0a0a0a;
+  flex-shrink: 0;
+}
+.portal-topbar-name { font-family: var(--display); font-size: 16px; letter-spacing: 3px; color: var(--ink); }
+.portal-topbar-sub { font-family: var(--mono); font-size: 9px; color: var(--gold-dim); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
+.portal-close-btn {
+  background: var(--surface-2); border: 1px solid var(--wire);
+  border-radius: 8px; padding: 7px 14px;
+  font-family: var(--mono); font-size: 10px; color: var(--ink-2);
+  cursor: pointer; letter-spacing: 1px;
+  transition: all 0.15s;
+}
+.portal-close-btn:hover { border-color: var(--gold); color: var(--gold); }
+.portal-frame-wrap { flex: 1; overflow: hidden; position: relative; }
+.portal-frame-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+`;
+  document.head.appendChild(s);
+})();
+
 /* ── Drawer ── */
 const NAV = [
   {label:"Home",icon:I.home},{label:"Orders",icon:I.orders,chev:true},{label:"Products",icon:I.tag,chev:true},{label:"Customers",icon:I.inbox,chev:true},
@@ -376,6 +440,10 @@ const NAV = [
   {label:"EU Buyer Portal",icon:I.eu,app:"EUPortal"},{label:"Quote Builder",icon:I.doc,app:"QuoteBuilder"},{label:"Buyer CRM",icon:I.users,app:"CRM"},{label:"Inventory",icon:I.box,app:"Inventory"},{label:"Shipment Tracking",icon:I.truck,app:"Tracking"},
   {sep:"Intelligence"},
   {label:"Analytics",icon:I.chart,app:"Analytics"},{label:"NexAI Forecast",icon:I.ai,app:"NexAI"},{label:"FX Rates",icon:I.fx,app:"FXRates"},{label:"Compliance Docs",icon:I.doc,app:"Compliance"},{label:"Push Notifications",icon:I.bell,app:"Notifications"},
+  {sep:"Buyer Portals"},
+  {label:"Arutemika — Leather EU",icon:I.leather,app:"PortalArutemika"},
+  {label:"HANDS & HEAD — RMG",icon:I.rmg,app:"PortalRMG"},
+  {label:"H&H Nexus Website",icon:I.globe,url:"https://www.handsandhead.com/"},
   {sep:"Ecosystem"},
   {label:"NexOS HUB",icon:I.link,url:"https://handfilm.github.io/nexus/os/hub/"},{label:"Portal Launcher",icon:I.link,url:"https://handfilm.github.io/portal/"},{label:"FrontEnd (Handsandhead)",icon:I.globe,url:"https://handfilm.myshopify.com/pages/handsandhead"},
   {sep:"Apps"},
@@ -401,6 +469,37 @@ function navTo(label) { closeDrawer(); if(label==="Home"){expScreen="dashboard";
 function openAppModule(appName) { if(window.render&&window.render[appName]){openSheet(`<div id="modMount"></div>`);window.render[appName](document.getElementById("modMount"));} }
 function openSheet(html) { document.getElementById("sheet").innerHTML=`<div class="grab"></div>`+html; document.getElementById("sheet").classList.add("on"); document.getElementById("scrim").classList.add("on"); }
 function closeSheet() { document.getElementById("sheet").classList.remove("on"); document.getElementById("scrim").classList.remove("on"); }
+
+
+/* ── Portal Overlay DOM + Functions ── */
+(function(){
+  const ov = document.createElement('div');
+  ov.id = 'portalOverlay';
+  ov.innerHTML = `
+    <div class="portal-topbar">
+      <div>
+        <div class="portal-topbar-name" id="portalName">PORTAL</div>
+        <div class="portal-topbar-sub" id="portalSub">H&H Nexus</div>
+      </div>
+      <button class="portal-close-btn" onclick="closePortalOverlay()">✕ CLOSE</button>
+    </div>
+    <div class="portal-frame-wrap">
+      <iframe id="portalFrame" src="" title="Portal" allow="fullscreen" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+    </div>
+  `;
+  document.body.appendChild(ov);
+})();
+
+function openPortalOverlay(url, name, sub) {
+  document.getElementById('portalName').textContent = name;
+  document.getElementById('portalSub').textContent = sub || 'H&H Nexus Portal';
+  document.getElementById('portalFrame').src = url;
+  document.getElementById('portalOverlay').classList.add('on');
+}
+function closePortalOverlay() {
+  document.getElementById('portalOverlay').classList.remove('on');
+  setTimeout(() => { document.getElementById('portalFrame').src = ''; }, 400);
+}
 
 /* ── Gate System (Multi-Role) ── */
 let _pendingGateRole = null;
