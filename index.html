@@ -8,6 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
 <meta name="apple-mobile-web-app-title" content="NEXUS"/>
+<meta name="description" content="NexOS — H&H Nexus B2B Seller OS · Leather Export Terminal"/>
 <title>NexOS · Seller OS</title>
 
 <!-- Fonts -->
@@ -20,7 +21,7 @@
 </head>
 <body>
 
-<!-- Radar Canvas (animated by app.js) -->
+<!-- Radar Canvas -->
 <canvas id="radar-canvas"></canvas>
 
 <!-- Atmospheric Overlays -->
@@ -42,12 +43,14 @@
     <span>Leather Export Division</span>
     <span>handsandhead.com</span>
     <span>EU Buyer Channel Active</span>
+    <span>NL · DE · GB · ES Markets</span>
     <span>H&amp;H Nexus · Seller OS</span>
     <span>Authorized Operators Only</span>
     <span>B2B Supply Chain Terminal</span>
     <span>Leather Export Division</span>
     <span>handsandhead.com</span>
     <span>EU Buyer Channel Active</span>
+    <span>NL · DE · GB · ES Markets</span>
   </div>
 </div>
 
@@ -58,6 +61,7 @@
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
     </button>
   </div>
+
   <div class="brand" onclick="openDrawer()">
     <div class="brand-emblem">
       <svg viewBox="0 0 32 32" fill="none">
@@ -76,29 +80,31 @@
       <span class="brand-sub">e-Commerce Platform</span>
     </div>
   </div>
+
   <div class="tbar-right">
     <div id="modeTag" class="mode-badge">Lite Seller</div>
-    <button class="tbar-btn" onclick="openAiChat()">
+    <button class="tbar-btn" onclick="openAiChat()" style="position:relative;">
       <svg viewBox="0 0 24 24"><path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/></svg>
+      <div class="notif-dot" id="aiDot" style="display:none;"></div>
     </button>
   </div>
 </div>
 
-<!-- Main Body (rendered by app.js) -->
+<!-- Main Body -->
 <div class="body" id="body"></div>
 
-<!-- Bottom Tab Bar (rendered by app.js) -->
+<!-- Bottom Tab Bar -->
 <div class="tabbar"><div class="pill-bar" id="tabbar"></div></div>
 
-<!-- Bottom Sheet + Scrim -->
+<!-- Sheet + Scrims -->
 <div class="scrim" id="scrim" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet"></div>
-
-<!-- Drawer + Scrim -->
 <div class="scrim" id="drawerScrim" onclick="closeDrawer()"></div>
+
+<!-- App Drawer -->
 <div class="drawer" id="drawer">
   <div class="drawer-header">
-    <div class="drawer-header-label">H&amp;H Nexus · Control</div>
+    <div class="drawer-header-label">H&amp;H Nexus · Command</div>
     <div class="drawer-header-title">NexOS</div>
   </div>
   <nav class="drawer-nav" id="drawerNav"></nav>
@@ -107,7 +113,7 @@
   </div>
 </div>
 
-<!-- Expert Mode PIN Gate -->
+<!-- Expert / Production PIN Gate -->
 <div class="scrim" id="gateScrim" style="z-index:69;" onclick="closeGate()"></div>
 <div class="gate" id="gate">
   <div class="gate-icon">
@@ -117,19 +123,23 @@
       <circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/>
     </svg>
   </div>
-  <h3>Expert Mode</h3>
+  <h3>Access Control</h3>
   <div class="gate-sub">Enter 4-Digit PIN to Unlock</div>
-  <input id="gatePin" type="password" inputmode="numeric" placeholder="····" maxlength="4"/>
-  <div style="display:flex;gap:10px;">
+  <div class="gate-role-hint">Role: Expert Operator</div>
+  <input id="gatePin" type="password" inputmode="numeric" placeholder="····" maxlength="4"
+    onkeydown="if(event.key==='Enter') tryGate()"/>
+  <div style="display:flex;gap:8px;">
     <button class="btn btn-dark" onclick="closeGate()">Cancel</button>
     <button class="btn btn-gold" onclick="tryGate()">Unlock</button>
   </div>
 </div>
 
-<!-- Toast Notification -->
+<!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<!-- ── Scripts (order matters) ── -->
+<!-- ═══════════════════════════════════════════════════════
+     SCRIPTS — load order is critical
+     ═══════════════════════════════════════════════════════ -->
 <script src="js/api.js"></script>
 <script src="js/app.js"></script>
 <script src="js/modules.js"></script>
