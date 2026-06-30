@@ -9,33 +9,26 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
 <meta name="apple-mobile-web-app-title" content="HANDS & HEAD"/>
 <meta name="description" content="Welcome to HANDS & HEAD. Your daily source for fashion trends, style inspiration, and curated e-commerce collections. Explore our unique footwear and apparel right here in Dhaka, Bangladesh."/>
-<title>Hands & Head | Fashion & Style Inspiration Dhaka</title>
+<title>Hands & Head | Headless B2B Platform</title>
 
-
-<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Anton&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-<!-- Theme -->
 <link rel="stylesheet" href="css/theme.css">
 </head>
 <body>
 
-<!-- Radar Canvas -->
 <canvas id="radar-canvas"></canvas>
 
-<!-- Atmospheric Overlays -->
 <div class="noise-overlay"></div>
 <div class="vignette"></div>
 <div class="body-glow"></div>
 
-<!-- Offline Bar -->
 <div class="offbar" id="offBar">
   <span class="od"></span> Offline Cache Mode
 </div>
 
-<!-- Marquee Warning Strip -->
 <div class="marquee-strip">
   <div class="marquee-inner">
     <span>H&amp;H Nexus · Seller OS</span>
@@ -55,7 +48,6 @@
   </div>
 </div>
 
-<!-- Top Bar -->
 <div class="topbar">
   <div class="tbar-left">
     <button class="tbar-btn" onclick="openSearch()">
@@ -64,21 +56,9 @@
   </div>
 
   <div class="brand" onclick="openDrawer()">
-    <div class="brand-emblem">
-      <svg viewBox="0 0 32 32" fill="none">
-        <rect width="32" height="32" rx="8" fill="url(#brandGrad)"/>
-        <path d="M9 24V10L23 24V10" stroke="#000" stroke-width="3.5" stroke-linecap="square" stroke-linejoin="miter"/>
-        <defs>
-          <linearGradient id="brandGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#C9A84C"/>
-            <stop offset="100%" stop-color="#8A6E2A"/>
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
-    <div class="brand-text-block">
-      <span class="brand-main">Nex<span>OS</span></span>
-      <span class="brand-sub">e-Commerce Platform</span>
+    <div class="brand-text-block" style="text-align: center;">
+      <span class="brand-main" style="font-size: 18px; letter-spacing: 2px; color: #ff0000;">HANDS & HEAD</span>
+      <span class="brand-sub" style="display: block; letter-spacing: 2px; color: #888;">Headless B2B Platform</span>
     </div>
   </div>
 
@@ -91,22 +71,18 @@
   </div>
 </div>
 
-<!-- Main Body -->
 <div class="body" id="body"></div>
 
-<!-- Bottom Tab Bar -->
 <div class="tabbar"><div class="pill-bar" id="tabbar"></div></div>
 
-<!-- Sheet + Scrims -->
 <div class="scrim" id="scrim" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet"></div>
 <div class="scrim" id="drawerScrim" onclick="closeDrawer()"></div>
 
-<!-- App Drawer -->
 <div class="drawer" id="drawer">
   <div class="drawer-header">
     <div class="drawer-header-label">H&amp;H Nexus · Command</div>
-    <div class="drawer-header-title">NexOS</div>
+    <div class="drawer-header-title" style="font-size: 20px;">HANDS & HEAD</div>
   </div>
   <nav class="drawer-nav" id="drawerNav"></nav>
   <div class="drawer-footer">
@@ -114,7 +90,6 @@
   </div>
 </div>
 
-<!-- Expert / Production PIN Gate -->
 <div class="scrim" id="gateScrim" style="z-index:69;" onclick="closeGate()"></div>
 <div class="gate" id="gate">
   <div class="gate-icon">
@@ -135,12 +110,8 @@
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<!-- ═══════════════════════════════════════════════════════
-     SCRIPTS — load order is critical
-     ═══════════════════════════════════════════════════════ -->
 <script src="js/api.js"></script>
 <script src="js/app.js"></script>
 <script src="js/modules.js"></script>
