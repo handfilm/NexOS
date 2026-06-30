@@ -839,6 +839,13 @@
   window.render.Accounting  = stub("Accounting Sync","Connect to your accounting software via Spine Bridge.");
   window.render.Marketing   = stub("Marketing","Campaign analytics pipeline — connect Meta Ads.");
   window.render.OnlineStore = stub("Online Store","Theme configs. Go to Shopify Admin for full control.");
+  
+  // Updated Brand App Links
+  window.render.RAWxOS         = () => window.location.href = "https://handfilm.github.io/RAWxOS/";
+  window.render.NexOS          = () => window.location.href = "https://handfilm.github.io/portal/os/2/";
+  window.render.HANDFILM       = () => window.location.href = "https://handfilm.myshopify.com/";
+  window.render.CustomApps     = () => window.location.href = "https://handfilm.github.io/portal/";
+  window.render.EnterpriseApps = () => window.location.href = "https://handfilm.github.io/nexus/os/hub/";
 
 
   /* ═══════════════════════════════════════════════════════════
