@@ -7,7 +7,7 @@
 (function () {
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#C9A84C'/><stop offset='1' stop-color='#8A6E2A'/></linearGradient></defs><rect width='512' height='512' rx='80' fill='url(#g)'/><path d='M136 380V140L376 380V140' fill='none' stroke='#000' stroke-width='54' stroke-linecap='square' stroke-linejoin='miter'/></svg>`;
   const icon = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-  const manifest = { name:"NEXUS Seller OS", short_name:"NEXUS", display:"standalone", background_color:"#080808", theme_color:"#080808", start_url:"/", icons:[{src:icon,sizes:"any",type:"image/svg+xml"}] };
+  const manifest = { name:"HANDS & HEAD B2B", short_name:"H&H B2B", display:"standalone", background_color:"#080808", theme_color:"#080808", start_url:"/", icons:[{src:icon,sizes:"any",type:"image/svg+xml"}] };
   try { const ml = document.createElement("link"); ml.rel = "manifest"; ml.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"})); document.head.appendChild(ml); } catch(e){}
 })();
 
@@ -183,8 +183,8 @@ async function renderLiteHome(b) {
     <div class="hero">
       <div class="hero-label">H&amp;H Nexus · Seller OS · ${mode === 'expert' ? 'Expert Mode' : 'Lite Mode'}</div>
       <div class="hero-display">
-        <div class="hero-word">NEXOS</div>
-        <div class="hero-word-filled">NEXOS</div>
+        <div class="hero-word" style="font-size:clamp(38px,10vw,64px); letter-spacing:-1px;">HANDS & HEAD</div>
+        <div class="hero-word-filled" style="font-size:clamp(38px,10vw,64px); letter-spacing:-1px;">HANDS & HEAD</div>
       </div>
       <div class="hero-meta">
         <div class="hero-meta-line">Leather Export · B2B Terminal</div>
@@ -435,21 +435,28 @@ function renderTabbar() {
 
 /* ── Drawer ── */
 const NAV = [
-  {label:"Home",icon:I.home},{label:"Orders",icon:I.orders,chev:true},{label:"Products",icon:I.tag,chev:true},{label:"Customers",icon:I.inbox,chev:true},
-  {sep:"B2B Operations"},
-  {label:"EU Buyer Portal",icon:I.eu,app:"EUPortal"},{label:"Quote Builder",icon:I.doc,app:"QuoteBuilder"},{label:"Buyer CRM",icon:I.users,app:"CRM"},{label:"Inventory",icon:I.box,app:"Inventory"},{label:"Shipment Tracking",icon:I.truck,app:"Tracking"},
-  {sep:"Intelligence"},
-  {label:"Analytics",icon:I.chart,app:"Analytics"},{label:"NexAI Forecast",icon:I.ai,app:"NexAI"},{label:"FX Rates",icon:I.fx,app:"FXRates"},{label:"Compliance Docs",icon:I.doc,app:"Compliance"},{label:"Push Notifications",icon:I.bell,app:"Notifications"},
+  {label:"Home",icon:I.home}, {label:"Orders",icon:I.orders,chev:true}, {label:"Products",icon:I.tag,chev:true}, {label:"Customers",icon:I.inbox,chev:true},
+  {sep:"Headless B2B"},
+  {label:"RAWxOS", icon:I.spark, url:"https://handfilm.github.io/RAWxOS/"},
+  {label:"NexOS", icon:I.gear, url:"https://handfilm.github.io/portal/os/2/"},
+  {label:"HANDFILM", icon:I.cam, url:"https://handfilm.myshopify.com/"},
+  {sep:"Ecosystem"},
+  {label:"NexOS HUB",icon:I.link,url:"https://handfilm.github.io/nexus/os/hub/"}, {label:"Portal Launcher",icon:I.link,url:"https://handfilm.github.io/portal/"}, {label:"FrontEnd (Handsandhead)",icon:I.globe,url:"https://handfilm.myshopify.com/pages/handsandhead"},
+  {sep:"Portals HUB"},
+  {label:"Custom Apps",icon:I.box,app:"CustomApps"}, {label:"Enterprise Apps",icon:I.store,app:"EnterpriseApps"},
   {sep:"Buyer Portals"},
   {label:"Arutemika — Leather EU",icon:I.leather,app:"PortalArutemika"},
   {label:"HANDS & HEAD — RMG",icon:I.rmg,app:"PortalRMG"},
   {label:"H&H Nexus Website",icon:I.globe,url:"https://www.handsandhead.com/"},
-  {sep:"Ecosystem"},
-  {label:"NexOS HUB",icon:I.link,url:"https://handfilm.github.io/nexus/os/hub/"},{label:"Portal Launcher",icon:I.link,url:"https://handfilm.github.io/portal/"},{label:"FrontEnd (Handsandhead)",icon:I.globe,url:"https://handfilm.myshopify.com/pages/handsandhead"},
+  {sep:"B2B Operations"},
+  {label:"EU Buyer Portal",icon:I.eu,app:"EUPortal"}, {label:"Quote Builder",icon:I.doc,app:"QuoteBuilder"}, {label:"Buyer CRM",icon:I.users,app:"CRM"}, {label:"Inventory",icon:I.box,app:"Inventory"}, {label:"Shipment Tracking",icon:I.truck,app:"Tracking"},
+  {sep:"Intelligence"},
+  {label:"Analytics",icon:I.chart,app:"Analytics"}, {label:"NexAI Forecast",icon:I.ai,app:"NexAI"}, {label:"FX Rates",icon:I.fx,app:"FXRates"}, {label:"Compliance Docs",icon:I.doc,app:"Compliance"}, {label:"Push Notifications",icon:I.bell,app:"Notifications"},
   {sep:"Apps"},
-  {label:"Accounting Sync",icon:I.wallet,app:"Accounting"},{label:"Auto Social Post",icon:I.megaphone,app:"SocialPost"},{label:"Meta Live Feed",icon:I.spark,app:"MetaFeed"},{label:"Daraz Sync",icon:I.chart,app:"DarazSync"},
+  {label:"Accounting Sync",icon:I.wallet,app:"Accounting"}, {label:"Auto Social Post",icon:I.megaphone,app:"SocialPost"}, {label:"Meta Live Feed",icon:I.spark,app:"MetaFeed"}, {label:"Daraz Sync",icon:I.chart,app:"DarazSync"},
   {sep:"Roles"},
   {label:"Production View (Hiron)",icon:I.hammer,gate:"production"}
+
 ];
 
 function renderDrawerNav() {
