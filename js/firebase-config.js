@@ -4,17 +4,27 @@
    ফেজ ১ — এই ফাইলটি সবার আগে লোড হবে (api.js / app.js এর আগে)
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── ১. আপনার Firebase কনফিগ এখানে বসান ──
-   Firebase Console → Project Settings → General → Your apps → SDK setup
-   এখান থেকে কপি করে নিচের অবজেক্টে বসিয়ে দিন। */
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBBDQc5CIzjuKDVVYX87oPGry-tVQys6k4",
+  authDomain: "nexos-hh.firebaseapp.com",
+  projectId: "nexos-hh",
+  storageBucket: "nexos-hh.firebasestorage.app",
+  messagingSenderId: "382637524347",
+  appId: "1:382637524347:web:c81a6cdc4834bd79f4e9de",
+  measurementId: "G-LD289VX0FH"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 /* ── ২. Firebase App চালু করা ── */
 firebase.initializeApp(firebaseConfig);
