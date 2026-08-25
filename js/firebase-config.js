@@ -4,12 +4,6 @@
    ফেজ ১ — এই ফাইলটি সবার আগে লোড হবে (api.js / app.js এর আগে)
    ═══════════════════════════════════════════════════════════════ */
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
@@ -22,12 +16,12 @@ const firebaseConfig = {
   measurementId: "G-LD289VX0FH"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
 /* ── ২. Firebase App চালু করা ── */
-firebase.initializeApp(firebaseConfig);
+if (typeof firebase !== "undefined") {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+}
 
 /* ── ৩. গ্লোবাল রেফারেন্স (পুরো অ্যাপে window.db / window.auth / window.storage দিয়ে ব্যবহার হবে) ── */
 window.db      = firebase.firestore();

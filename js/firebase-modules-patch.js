@@ -1,352 +1,1100 @@
 /* ═══════════════════════════════════════════════════════════════
-   NexOS v5 — js/firebase-modules-patch.js
-   এই ফাইলটি js/modules.js এর পরে লোড হবে।
-   এটা mock ডেটার window.render.Products / CRM / Orders কে
-   আসল Firestore সার্ভিস (ProductsService / CustomersService / OrdersService)
-   দিয়ে override করে — পুরনো js/modules.js ফাইলে হাত না দিয়েই।
+   Hands & Head — js/firebase-modules-patch.js
+   Live Firestore Integration Layer for Products, Customers, Orders,
+   Inventory Movements, Dashboard Analytics & Activity Feed.
    ═══════════════════════════════════════════════════════════════ */
 
 (function () {
-
-  function modHeader(title, tag, actions = []) {
-    const btns = actions.map(a => `<button onclick="${a.fn}" style="padding:6px 11px;font-size:9px;border:1px solid var(--wire-hard);background:transparent;color:var(--gold-dim);font-family:var(--sans);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:6px;">${a.label}</button>`).join('');
-    return `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px 8px;"><div><h3>${title}</h3>${tag ? `<p class="hint" style="margin:2px 0 0;">${tag}</p>` : ""}</div><div style="display:flex;gap:6px;margin-top:4px;">${btns}</div></div>`;
-  }
-  function loading(msg = "লোড হচ্ছে…") { return `<div style="padding:20px;font-family:var(--mono);color:var(--ink-3);font-size:10px;letter-spacing:2px;text-transform:uppercase;">${msg}</div>`; }
-
-  /* ═══════════════════════════════════════════════════════════
-     PRODUCTS — Firestore-backed
-     ═══════════════════════════════════════════════════════════ */
-  window.render.Products = async function (container) {
-    container.innerHTML = loading("ক্যাটালগ লোড হচ্ছে…");
-    const { items } = await window.ProductsService.list({ status: null });
-    window._lastProductsCache = items; // এডিট ফর্মে prefill করার জন্য
-
-    container.innerHTML = modHeader("Products", `${items.length}টা প্রোডাক্ট`, [
-      { label: "Import CSV", fn: "window.openImportModal('Products')" },
-      { label: "+ Add", fn: "window.openAdvancedProductForm()" }
-    ]) + `<div class="pgrid">${items.length ? items.map(p => `
-      <div class="pcard" style="position:relative;">
-        <div class="pim" onclick="window.openAdvancedProductForm('${p.id}')">${p.images?.[0]?.url ? `<img src="${p.images[0].url}">` : (p.title || '').slice(0, 3).toUpperCase()}</div>
-        <div class="pt">${p.title}</div>
-        <div class="pc">SKU: ${p.variants?.[0]?.sku || 'N/A'} · <span class="pill ${p.status === 'active' ? 'ok' : p.status === 'draft' ? 'amber' : 'warn'}" style="font-size:8px;">${p.status}</span></div>
-        <div class="pp">৳${p.pricing?.price || 0}</div>
-        <div class="p-stock">▪ ${p.totalInventory || 0} in stock</div>
-        <div style="display:flex;gap:6px;margin-top:8px;">
-          <button class="btn btn-dark btn-sm" onclick="window.openAdvancedProductForm('${p.id}')">Edit</button>
-          <button class="btn btn-dark btn-sm" onclick="window.archiveProduct('${p.id}')">Archive</button>
-        </div>
-      </div>`).join('') : `<div class="empty" style="grid-column:1/3;">কোনো প্রোডাক্ট নেই — "+ Add" চেপে প্রথমটা যোগ করুন</div>`}</div>`;
+  // State for search and filtering across views
+  window._viewState = {
+    products: { search: "", status: "all", sortBy: "updatedAt", sortDir: "desc" },
+    customers: { search: "", country: "all", sortBy: "updatedAt", sortDir: "desc" },
+    orders: { search: "", status: "all", paymentStatus: "all", fulfillmentStatus: "all" }
   };
 
-  /* ── + Add / Edit একই ফর্ম, productId থাকলে Edit মোড ── */
+  function modHeader(title, subtitle, actions = []) {
+    const btns = actions.map(a => `<button class="btn btn-sm ${a.primary ? 'btn-gold' : 'btn-dark'}" onclick="${a.fn}">${a.label}</button>`).join('');
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px 10px;">
+        <div>
+          <h3 style="margin:0;font-size:18px;letter-spacing:1px;">${title}</h3>
+          ${subtitle ? `<p class="hint" style="margin:3px 0 0;font-size:11px;">${subtitle}</p>` : ""}
+        </div>
+        <div style="display:flex;gap:6px;margin-top:2px;">${btns}</div>
+      </div>
+    `;
+  }
+
+  function loading(msg = "Loading…") {
+    return `<div style="padding:40px 20px;text-align:center;font-family:var(--mono);color:var(--ink-3);font-size:11px;letter-spacing:2px;text-transform:uppercase;">
+      <div style="display:inline-block;width:18px;height:18px;border:2px solid var(--wire-hard);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;"></div>
+      <div>${msg}</div>
+    </div>`;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     PRODUCTS MODULE (Catalog & Inventory)
+     ═══════════════════════════════════════════════════════════ */
+  window.render.Products = async function (container) {
+    const target = container || document.getElementById("mod-Products") || document.getElementById("body");
+    if (!target) return;
+    target.innerHTML = loading("Loading Product Catalog…");
+    const state = window._viewState.products;
+
+    try {
+      const { items } = await window.ProductsService.list({
+        status: state.status,
+        search: state.search,
+        sortBy: state.sortBy,
+        sortDir: state.sortDir
+      });
+      window._lastProductsCache = items;
+
+      const activeCount = items.filter(p => p.status === 'active').length;
+      const totalUnits = items.reduce((s, p) => s + (p.totalInventory || 0), 0);
+
+      target.innerHTML = modHeader("Products", `${items.length} total · ${activeCount} active · ${totalUnits} units in stock`, [
+        { label: "+ Add Product", fn: "window.openAdvancedProductForm()", primary: true }
+      ]) + `
+        <!-- Filter and Search Toolbar -->
+        <div style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <input type="text" placeholder="Search title, SKU, vendor, tags…" 
+                 value="${state.search || ''}" 
+                 oninput="window._viewState.products.search = this.value; window.debounceProductSearch();" 
+                 style="flex:1;min-width:180px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
+          
+          <select onchange="window._viewState.products.status = this.value; window.render.Products(document.getElementById('mod-Products'));" 
+                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+            <option value="all" ${state.status === 'all' ? 'selected' : ''}>All Status</option>
+            <option value="active" ${state.status === 'active' ? 'selected' : ''}>Active</option>
+            <option value="draft" ${state.status === 'draft' ? 'selected' : ''}>Draft</option>
+            <option value="archived" ${state.status === 'archived' ? 'selected' : ''}>Archived</option>
+          </select>
+
+          <select onchange="window._viewState.products.sortBy = this.value; window.render.Products(document.getElementById('mod-Products'));" 
+                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+            <option value="updatedAt" ${state.sortBy === 'updatedAt' ? 'selected' : ''}>Sort: Recent</option>
+            <option value="title" ${state.sortBy === 'title' ? 'selected' : ''}>Sort: Title</option>
+            <option value="price" ${state.sortBy === 'price' ? 'selected' : ''}>Sort: Price</option>
+            <option value="inventory" ${state.sortBy === 'inventory' ? 'selected' : ''}>Sort: Stock</option>
+          </select>
+        </div>
+
+        <div class="pgrid" style="padding:0 20px 20px;">
+          ${items.length ? items.map(p => `
+            <div class="pcard" style="position:relative;display:flex;flex-direction:column;">
+              <div class="pim" onclick="window.openAdvancedProductForm('${p.id}')" style="cursor:pointer;overflow:hidden;position:relative;">
+                ${p.images?.[0]?.url
+                  ? `<img src="${p.images[0].url}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' fill=\'%23333\'><rect width=\'100\' height=\'100\'/><text x=\'50\' y=\'55\' fill=\'%23888\' font-size=\'14\' text-anchor=\'middle\'>NO IMAGE</text></svg>'">`
+                  : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--gold-dim);font-family:var(--mono);font-size:16px;">${(p.title || 'PRD').slice(0, 3).toUpperCase()}</div>`
+                }
+              </div>
+              <div class="pt" style="font-weight:600;margin-top:6px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${p.title}">${p.title}</div>
+              <div class="pc" style="font-size:10px;color:var(--ink-3);display:flex;justify-content:space-between;align-items:center;margin:3px 0;">
+                <span>SKU: ${p.variants?.[0]?.sku || '—'}</span>
+                <span class="pill ${p.status === 'active' ? 'ok' : p.status === 'draft' ? 'amber' : 'warn'}" style="font-size:8px;padding:2px 6px;">${(p.status || 'active').toUpperCase()}</span>
+              </div>
+              <div class="pp" style="font-size:14px;font-weight:700;color:var(--gold);margin:2px 0;">৳${Number(p.pricing?.price || 0).toLocaleString()}</div>
+              <div class="p-stock" style="font-size:10px;color:${(p.totalInventory || 0) <= (p.lowStockThreshold || 5) ? 'var(--warn)' : 'var(--ink-3)'};">
+                ▪ ${p.totalInventory || 0} in stock ${(p.totalInventory || 0) <= (p.lowStockThreshold || 5) ? '(Low)' : ''}
+              </div>
+              <div style="display:flex;gap:4px;margin-top:auto;padding-top:10px;">
+                <button class="btn btn-dark btn-sm" style="flex:1;" onclick="window.openAdvancedProductForm('${p.id}')">Edit</button>
+                <button class="btn btn-dark btn-sm" style="padding:4px 8px;" title="Adjust Stock" onclick="window.openStockModal('${p.id}')">± Stock</button>
+                ${p.status !== 'archived'
+                  ? `<button class="btn btn-dark btn-sm" title="Archive" onclick="window.archiveProduct('${p.id}')">Archive</button>`
+                  : `<button class="btn btn-dark btn-sm" title="Activate" onclick="window.activateProduct('${p.id}')">Activate</button>`
+                }
+              </div>
+            </div>
+          `).join('') : `
+            <div class="empty" style="grid-column:1/-1;padding:40px;text-align:center;">
+              <div style="font-size:24px;margin-bottom:8px;color:var(--gold-dim);">📦</div>
+              <div style="font-size:13px;color:var(--ink);">No products found matching criteria</div>
+              <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">Click "+ Add Product" to create your first catalog item.</div>
+            </div>
+          `}
+        </div>
+      `;
+    } catch (err) {
+      target.innerHTML = `<div style="padding:20px;color:var(--warn);">Failed to load products: ${err.message}</div>`;
+    }
+  };
+
+  let _searchDebounceTimer = null;
+  window.debounceProductSearch = function () {
+    clearTimeout(_searchDebounceTimer);
+    _searchDebounceTimer = setTimeout(() => {
+      const container = document.getElementById("mod-Products");
+      if (container) window.render.Products(container);
+    }, 280);
+  };
+
+  /* ── Product Create / Edit Modal ── */
   window.openAdvancedProductForm = function (productId = null) {
     const p = productId ? (window._lastProductsCache || []).find(x => x.id === productId) : null;
-    openSheet(`<h3>${p ? 'Edit Product' : 'Add Product'}</h3><div style="padding:0 20px 20px;">
-      <input type="hidden" id="p_id" value="${p?.id || ''}"/>
-      <div class="field"><label>Title</label><input id="p_title" placeholder="Full-Grain Leather Wallet" value="${p?.title || ''}"/></div>
-      <div class="field"><label>Description</label><textarea id="p_desc" placeholder="Product description / SEO caption…">${p?.description || ''}</textarea></div>
-      <div class="field"><label>Media URL</label><input id="p_img" placeholder="https://cdn.../image.jpg" value="${p?.images?.[0]?.url || ''}"/></div>
-      <div class="field-row">
-        <div class="field"><label>Price (৳)</label><input id="p_price" type="number" placeholder="0.00" value="${p?.pricing?.price || ''}"/></div>
-        <div class="field"><label>Product Type</label><input id="p_type" placeholder="Wallet" value="${p?.productType || ''}"/></div>
+    const v = p?.variants?.[0] || {};
+    const imgUrl = p?.images?.[0]?.url || "";
+
+    openSheet(`
+      <h3>${p ? 'Edit Product' : 'Add Product'}</h3>
+      <p class="hint">${p ? 'Update product details, pricing, and inventory' : 'Create a new product in the Firestore catalog'}</p>
+      
+      <div style="padding:0 20px 24px;">
+        <input type="hidden" id="p_id" value="${p?.id || ''}"/>
+        
+        <div class="field"><label>Product Title *</label>
+          <input id="p_title" placeholder="e.g. Full-Grain Leather Bi-Fold Wallet" value="${p?.title || ''}"/>
+        </div>
+        
+        <div class="field"><label>Description</label>
+          <textarea id="p_desc" rows="3" placeholder="Product details, leather type, tanning method, and features…">${p?.description || ''}</textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Price (৳) *</label>
+            <input id="p_price" type="number" placeholder="2500" value="${p?.pricing?.price !== undefined ? p.pricing.price : ''}"/>
+          </div>
+          <div class="field"><label>Compare-At Price (৳)</label>
+            <input id="p_comp_price" type="number" placeholder="3000" value="${p?.pricing?.compareAtPrice || ''}"/>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Stock Quantity *</label>
+            <input id="p_stock" type="number" placeholder="50" value="${p?.totalInventory !== undefined ? p.totalInventory : 20}"/>
+          </div>
+          <div class="field"><label>SKU</label>
+            <input id="p_sku" placeholder="HH-WLT-001" value="${v.sku || ''}"/>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Product Type / Category</label>
+            <input id="p_type" placeholder="Wallets / Belts / Bags / Shoes" value="${p?.productType || 'Leather Goods'}"/>
+          </div>
+          <div class="field"><label>Vendor / Brand</label>
+            <input id="p_vendor" placeholder="Hands & Head" value="${p?.vendor || 'Hands & Head'}"/>
+          </div>
+        </div>
+
+        <div class="field"><label>Image URL</label>
+          <input id="p_img" placeholder="https://images.unsplash.com/photo-..." value="${imgUrl}"/>
+          <div style="font-size:10px;color:var(--ink-3);margin-top:4px;">Paste any direct image URL. Multiple URLs can be comma-separated.</div>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Status</label>
+            <select id="p_status">
+              <option value="active" ${p?.status === 'active' || !p ? 'selected' : ''}>Active (Published)</option>
+              <option value="draft" ${p?.status === 'draft' ? 'selected' : ''}>Draft</option>
+              <option value="archived" ${p?.status === 'archived' ? 'selected' : ''}>Archived</option>
+            </select>
+          </div>
+          <div class="field"><label>Tags (Comma-separated)</label>
+            <input id="p_tags" placeholder="leather, handcrafted, premium" value="${(p?.tags || []).join(', ')}"/>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button class="btn btn-gold" id="p_save_btn" style="flex:1;" onclick="window.submitAdvancedProduct()">
+            ${p ? 'Save Changes' : 'Publish Product'}
+          </button>
+          ${p ? `
+            <button class="btn btn-dark" style="color:var(--warn);" onclick="window.deleteProductPrompt('${p.id}')">
+              Delete
+            </button>
+          ` : ''}
+        </div>
       </div>
-      <div class="field-row">
-        <div class="field"><label>SKU</label><input id="p_sku" placeholder="FGW-001" value="${p?.variants?.[0]?.sku || ''}"/></div>
-        <div class="field"><label>Stock Qty</label><input id="p_stock" type="number" placeholder="0" value="${p?.totalInventory ?? ''}"/></div>
-      </div>
-      <div class="field"><label>Vendor</label><input id="p_vendor" value="${p?.vendor || 'HANDFILM'}"/></div>
-      <div class="field"><label>Status</label>
-        <select id="p_status">
-          <option value="draft" ${p?.status === 'draft' ? 'selected' : ''}>Draft</option>
-          <option value="active" ${p?.status === 'active' ? 'selected' : ''}>Active</option>
-          <option value="archived" ${p?.status === 'archived' ? 'selected' : ''}>Archived</option>
-        </select>
-      </div>
-      <button class="btn btn-gold" id="p_save_btn" onclick="window.submitAdvancedProduct()" style="margin-top:8px;">${p ? 'Save Changes' : 'Publish Product'}</button>
-    </div>`);
+    `);
   };
 
   window.submitAdvancedProduct = async function () {
     const id = document.getElementById("p_id").value;
     const title = document.getElementById("p_title").value.trim();
-    const price = document.getElementById("p_price").value.trim();
-    if (!title || !price) { toast("Title এবং Price লাগবে"); return; }
+    const priceStr = document.getElementById("p_price").value.trim();
+    const stockStr = document.getElementById("p_stock").value.trim();
+
+    if (!title) { toast("Please enter a Product Title"); return; }
+    if (priceStr === "" || isNaN(Number(priceStr))) { toast("Please enter a valid Price"); return; }
+
     const btn = document.getElementById("p_save_btn");
     btn.innerText = id ? "Saving…" : "Publishing…";
+    btn.disabled = true;
+
+    const imgInput = document.getElementById("p_img").value.trim();
+    const images = imgInput ? imgInput.split(",").map(u => u.trim()).filter(Boolean).map((u, i) => ({ url: u, alt: title, position: i })) : [];
 
     const payload = {
       title,
       description: document.getElementById("p_desc").value,
       status: document.getElementById("p_status").value,
-      vendor: document.getElementById("p_vendor").value || "HANDFILM",
-      productType: document.getElementById("p_type").value,
-      price: parseFloat(price),
-      sku: document.getElementById("p_sku").value,
-      stock: parseInt(document.getElementById("p_stock").value) || 0,
-      images: document.getElementById("p_img").value ? [{ url: document.getElementById("p_img").value, alt: title, position: 0 }] : []
+      vendor: document.getElementById("p_vendor").value.trim() || "Hands & Head",
+      productType: document.getElementById("p_type").value.trim() || "Leather Goods",
+      price: Number(priceStr),
+      compareAtPrice: document.getElementById("p_comp_price").value ? Number(document.getElementById("p_comp_price").value) : null,
+      sku: document.getElementById("p_sku").value.trim() || ("HH-" + Math.floor(1000 + Math.random() * 9000)),
+      stock: Number(stockStr) || 0,
+      tags: document.getElementById("p_tags").value.split(",").map(t => t.trim()).filter(Boolean),
+      images
     };
 
     try {
       if (id) {
-        await window.ProductsService.update(id, {
-          title: payload.title, description: payload.description, status: payload.status,
-          vendor: payload.vendor, productType: payload.productType,
-          pricing: { price: payload.price, currency: "BDT" },
-          images: payload.images,
-          variants: [{ id: "default", title: "Default", sku: payload.sku, price: payload.price, inventoryQty: payload.stock, availableForSale: true }]
-        });
-        toast("প্রোডাক্ট আপডেট হয়েছে ✓");
+        await window.ProductsService.update(id, payload);
+        toast("Product updated successfully ✓");
       } else {
         await window.ProductsService.create(payload);
-        toast("প্রোডাক্ট পাবলিশ হয়েছে ✓");
+        toast("Product created and published ✓");
       }
       closeSheet();
-      openAppModule('Products');
+      const container = document.getElementById("mod-Products");
+      if (container) window.render.Products(container);
     } catch (e) {
-      toast("সমস্যা হয়েছে: " + e.message);
+      console.error(e);
+      toast("Error: " + e.message);
       btn.innerText = id ? "Save Changes" : "Publish Product";
+      btn.disabled = false;
+    }
+  };
+
+  /* ── Quick Stock Adjustment Modal ── */
+  window.openStockModal = function (productId) {
+    const p = (window._lastProductsCache || []).find(x => x.id === productId);
+    if (!p) return;
+
+    openSheet(`
+      <h3>Adjust Inventory</h3>
+      <p class="hint">${p.title} (Current: ${p.totalInventory || 0} units)</p>
+      <div style="padding:0 20px 20px;">
+        <div class="field"><label>Adjustment Quantity (+ / -)</label>
+          <input id="adj_delta" type="number" placeholder="e.g. +10 or -5" value="10"/>
+        </div>
+        <div class="field"><label>Reason</label>
+          <select id="adj_reason">
+            <option value="restock">New Batch Restock</option>
+            <option value="audit">Inventory Audit Correction</option>
+            <option value="damaged">Damaged / Defect Removal</option>
+            <option value="sample">Showroom / Press Sample</option>
+          </select>
+        </div>
+        <button class="btn btn-gold" id="adj_btn" onclick="window.submitStockAdjustment('${p.id}')" style="margin-top:8px;">
+          Apply Adjustment
+        </button>
+      </div>
+    `);
+  };
+
+  window.submitStockAdjustment = async function (productId) {
+    const delta = parseInt(document.getElementById("adj_delta").value) || 0;
+    const reason = document.getElementById("adj_reason").value;
+    if (delta === 0) { toast("Please enter a non-zero adjustment"); return; }
+
+    const btn = document.getElementById("adj_btn");
+    btn.innerText = "Applying…";
+    btn.disabled = true;
+
+    try {
+      await window.ProductsService.adjustInventory(productId, "default", delta, reason);
+      toast("Stock updated successfully ✓");
+      closeSheet();
+      const container = document.getElementById("mod-Products");
+      if (container) window.render.Products(container);
+    } catch (e) {
+      toast(e.message);
+      btn.innerText = "Apply Adjustment";
+      btn.disabled = false;
     }
   };
 
   window.archiveProduct = async function (productId) {
-    if (!confirm("এই প্রোডাক্টটা আর্কাইভ করবেন?")) return;
     await window.ProductsService.archive(productId);
-    toast("আর্কাইভ হয়েছে ✓");
-    openAppModule('Products');
+    toast("Product archived ✓");
+    const container = document.getElementById("mod-Products");
+    if (container) window.render.Products(container);
+  };
+
+  window.activateProduct = async function (productId) {
+    await window.ProductsService.activate(productId);
+    toast("Product activated ✓");
+    const container = document.getElementById("mod-Products");
+    if (container) window.render.Products(container);
+  };
+
+  window.deleteProductPrompt = async function (productId) {
+    if (!confirm("Are you sure you want to permanently delete this product? This action cannot be undone.")) return;
+    await window.ProductsService.delete(productId);
+    toast("Product deleted ✓");
+    closeSheet();
+    const container = document.getElementById("mod-Products");
+    if (container) window.render.Products(container);
   };
 
   /* ═══════════════════════════════════════════════════════════
-     CRM / CUSTOMERS — Firestore-backed
+     CRM / CUSTOMERS MODULE
      ═══════════════════════════════════════════════════════════ */
   window.render.CRM = async function (container) {
-    container.innerHTML = loading("বায়ার তালিকা লোড হচ্ছে…");
-    const { items } = await window.CustomersService.list();
-    window._lastCustomersCache = items;
+    const target = container || document.getElementById("mod-CRM") || document.getElementById("mod-Customers") || document.getElementById("body");
+    if (!target) return;
+    target.innerHTML = loading("Loading Customer Directory…");
+    const state = window._viewState.customers;
 
-    container.innerHTML = modHeader("Buyer CRM", `${items.length} company profiles`, [
-      { label: "+ Add Company", fn: "window.openAdvancedCustomerForm()" }
-    ]) + (items.length ? items.map(c => `
-      <div class="company-card" onclick="window.openCompanyDetail('${c.id}')">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-          <div style="font-size:22px;">${c.flag || '🏢'}</div>
-          <div>
-            <div class="company-name">${c.companyName || c.name}</div>
-            <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);">${c.country || '—'} · ${c.currency || 'EUR'}</div>
-          </div>
-          <div style="margin-left:auto;"><span class="pill ok">${c.totalOrders || 0} orders</span></div>
+    try {
+      const { items } = await window.CustomersService.list({
+        search: state.search,
+        country: state.country,
+        sortBy: state.sortBy,
+        sortDir: state.sortDir
+      });
+      window._lastCustomersCache = items;
+
+      const totalSpentAll = items.reduce((s, c) => s + (c.totalSpent || 0), 0);
+
+      target.innerHTML = modHeader("Customer Directory", `${items.length} buyer profiles · ৳${totalSpentAll.toLocaleString()} lifetime spend`, [
+        { label: "+ Add Customer", fn: "window.openAdvancedCustomerForm()", primary: true }
+      ]) + `
+        <!-- Filter and Search Toolbar -->
+        <div style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <input type="text" placeholder="Search name, company, email, phone…" 
+                 value="${state.search || ''}" 
+                 oninput="window._viewState.customers.search = this.value; window.debounceCustomerSearch();" 
+                 style="flex:1;min-width:180px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
+          
+          <select onchange="window._viewState.customers.country = this.value; window.render.CRM(document.getElementById('mod-CRM'));" 
+                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+            <option value="all" ${state.country === 'all' ? 'selected' : ''}>All Countries</option>
+            <option value="NL" ${state.country === 'NL' ? 'selected' : ''}>🇳🇱 Netherlands</option>
+            <option value="DE" ${state.country === 'DE' ? 'selected' : ''}>🇩🇪 Germany</option>
+            <option value="GB" ${state.country === 'GB' ? 'selected' : ''}>🇬🇧 United Kingdom</option>
+            <option value="US" ${state.country === 'US' ? 'selected' : ''}>🇺🇸 United States</option>
+            <option value="BD" ${state.country === 'BD' ? 'selected' : ''}>🇧🇩 Bangladesh</option>
+          </select>
+
+          <select onchange="window._viewState.customers.sortBy = this.value; window.render.CRM(document.getElementById('mod-CRM'));" 
+                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+            <option value="updatedAt" ${state.sortBy === 'updatedAt' ? 'selected' : ''}>Sort: Recent</option>
+            <option value="totalSpent" ${state.sortBy === 'totalSpent' ? 'selected' : ''}>Sort: Total Spent</option>
+            <option value="totalOrders" ${state.sortBy === 'totalOrders' ? 'selected' : ''}>Sort: Orders</option>
+            <option value="name" ${state.sortBy === 'name' ? 'selected' : ''}>Sort: Company</option>
+          </select>
         </div>
-        <div class="company-meta">
-          <div class="company-tag">MOQ: ${c.moq || 0} units</div>
-          <div class="company-tag">${c.paymentTerms || 'Net 30'}</div>
-          <div class="company-tag">${c.email || c.contactPerson || '—'}</div>
+
+        <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:8px;">
+          ${items.length ? items.map(c => `
+            <div class="company-card" onclick="window.openCompanyDetail('${c.id}')" style="cursor:pointer;transition:transform 0.15s, border-color 0.15s;">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                <div style="font-size:24px;line-height:1;">${c.flag || '🏢'}</div>
+                <div style="flex:1;min-width:0;">
+                  <div class="company-name" style="font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    ${c.companyName || c.name}
+                  </div>
+                  <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-top:2px;">
+                    ${c.country || '—'} · ${c.contactPerson ? `${c.contactPerson} · ` : ''}${c.currency || 'BDT'}
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <span class="pill ok" style="font-size:9px;">${c.totalOrders || 0} Orders</span>
+                  <div style="font-size:12px;font-weight:700;color:var(--gold);margin-top:4px;font-family:var(--mono);">
+                    ৳${(c.totalSpent || 0).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+              
+              <div class="company-meta" style="display:flex;flex-wrap:wrap;gap:6px;font-size:10px;">
+                <div class="company-tag">${c.paymentTerms || 'Net 30'}</div>
+                <div class="company-tag">MOQ: ${c.moq || 100} units</div>
+                ${c.email ? `<div class="company-tag">✉ ${c.email}</div>` : ''}
+                ${c.phone ? `<div class="company-tag">📞 ${c.phone}</div>` : ''}
+              </div>
+            </div>
+          `).join('') : `
+            <div class="empty" style="padding:40px;text-align:center;">
+              <div style="font-size:24px;margin-bottom:8px;color:var(--gold-dim);">👥</div>
+              <div style="font-size:13px;color:var(--ink);">No customers found</div>
+              <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">Click "+ Add Customer" to create your first buyer profile.</div>
+            </div>
+          `}
         </div>
-      </div>
-    `).join('') : `<div class="empty">কোনো বায়ার নেই — "+ Add Company" চেপে যোগ করুন</div>`) + `<div style="height:8px;"></div>`;
+      `;
+    } catch (err) {
+      target.innerHTML = `<div style="padding:20px;color:var(--warn);">Failed to load CRM: ${err.message}</div>`;
+    }
   };
   window.render.Customers = window.render.CRM;
 
+  let _searchCustomerTimer = null;
+  window.debounceCustomerSearch = function () {
+    clearTimeout(_searchCustomerTimer);
+    _searchCustomerTimer = setTimeout(() => {
+      const container = document.getElementById("mod-CRM") || document.getElementById("mod-Customers");
+      if (container) window.render.CRM(container);
+    }, 280);
+  };
+
+  /* ── Customer Detail Sheet with Real Linked Orders & Notes ── */
   window.openCompanyDetail = async function (customerId) {
-    openSheet(loading("লোড হচ্ছে…"));
-    const { customer: c, orders } = await window.CustomersService.getWithOrders(customerId);
-    if (!c) { toast("পাওয়া যায়নি"); closeSheet(); return; }
-    document.getElementById("sheet").innerHTML = `<div class="grab"></div>
-      <h3>${c.flag || '🏢'} ${c.companyName || c.name}</h3>
-      <p class="hint">${c.country || '—'} · ${c.paymentTerms || 'Net 30'} · ${c.currency || 'EUR'}</p>
-      <div style="padding:0 20px;">
-        <div class="bento-grid" style="padding:0 0 12px;">
-          <div class="bento-card"><div class="bento-label">MOQ</div><div class="bento-value" style="font-size:30px;">${c.moq || 0}</div></div>
-          <div class="bento-card"><div class="bento-label">Orders</div><div class="bento-value" style="font-size:30px;">${c.totalOrders || 0}</div></div>
-          <div class="bento-card"><div class="bento-label">Total Spent</div><div class="bento-value" style="font-size:22px;">৳${(c.totalSpent || 0).toLocaleString()}</div></div>
-        </div>
-        <div class="card" style="margin:0 0 10px;"><div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);margin-bottom:4px;letter-spacing:1px;text-transform:uppercase;">Contact</div><div style="font-size:13px;color:var(--ink);">${c.email || '—'} · ${c.phone || '—'}</div></div>
-        <div class="sec-h" style="padding:6px 0;"><span class="sec-h-label">সাম্প্রতিক অর্ডার</span></div>
-        <div class="orders-container" style="margin-bottom:12px;">${orders.length ? orders.map(o => `<div class="orow"><div class="othumb">NX</div><div class="om"><div class="ot">${o.orderNumber} · ৳${o.total}</div><div class="os">${(o.lineItems || []).map(li => li.title).join(', ')}</div></div><div class="pill ${o.status === 'completed' ? 'ok' : 'amber'}">${o.status}</div></div>`).join('') : `<div class="empty">এখনো কোনো অর্ডার নেই</div>`}</div>
-        <button class="btn btn-gold" style="margin-bottom:8px;" onclick="openAppModule('QuoteBuilder')">Create Quote →</button>
-        <button class="btn btn-dark" onclick="window.open('mailto:${c.email}')">Send Email</button>
-      </div>`;
-  };
-
-  window.openAdvancedCustomerForm = function () {
-    openSheet(`<h3>New Company</h3><div style="padding:0 20px 20px;">
-      <div class="field"><label>Company Name</label><input id="c_company" placeholder="Leder GmbH"/></div>
-      <div class="field-row">
-        <div class="field"><label>Country</label><select id="c_country"><option value="NL">🇳🇱 Netherlands</option><option value="DE">🇩🇪 Germany</option><option value="GB">🇬🇧 UK</option><option value="ES">🇪🇸 Spain</option><option value="JP">🇯🇵 Japan</option></select></div>
-        <div class="field"><label>Currency</label><select id="c_currency"><option>EUR</option><option>GBP</option><option>JPY</option><option>USD</option></select></div>
-      </div>
-      <div class="field"><label>Contact Email</label><input id="c_email" placeholder="buyer@company.eu"/></div>
-      <div class="field"><label>Contact Phone</label><input id="c_phone" placeholder="+31 ..."/></div>
-      <div class="field-row">
-        <div class="field"><label>MOQ (Units)</label><input id="c_moq" type="number" placeholder="100"/></div>
-        <div class="field"><label>Payment Terms</label><select id="c_terms"><option>Net 30</option><option>Net 45</option><option>Net 60</option></select></div>
-      </div>
-      <div class="field"><label>Product Interest</label><input id="c_interest" placeholder="Wallets, Belts…"/></div>
-      <button class="btn btn-gold" id="c_save_btn" onclick="window.submitAdvancedCustomer()" style="margin-top:8px;">Save Company</button>
-    </div>`);
-  };
-
-  window.submitAdvancedCustomer = async function () {
-    const name = document.getElementById("c_company").value.trim();
-    if (!name) { toast("Company name লাগবে"); return; }
-    const btn = document.getElementById("c_save_btn");
-    btn.innerText = "Saving…";
-    const flags = { NL: "🇳🇱", DE: "🇩🇪", GB: "🇬🇧", ES: "🇪🇸", JP: "🇯🇵" };
-    const country = document.getElementById("c_country").value;
+    openSheet(loading("Loading Customer Record…"));
     try {
-      await window.CustomersService.create({
-        companyName: name, name,
-        email: document.getElementById("c_email").value,
-        phone: document.getElementById("c_phone").value,
-        country, flag: flags[country] || "",
-        currency: document.getElementById("c_currency").value,
-        moq: document.getElementById("c_moq").value,
-        paymentTerms: document.getElementById("c_terms").value,
-        tags: document.getElementById("c_interest").value ? [document.getElementById("c_interest").value] : []
-      });
-      toast("Company Saved ✓");
-      closeSheet();
-      openAppModule('CRM');
+      const { customer: c, orders } = await window.CustomersService.getWithOrders(customerId, 20);
+      if (!c) { toast("Customer record not found"); closeSheet(); return; }
+
+      const notes = c.notes || [];
+
+      document.getElementById("sheet").innerHTML = `
+        <div class="grab"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0 20px 8px;">
+          <div>
+            <h3 style="margin:0;font-size:18px;">${c.flag || '🏢'} ${c.companyName || c.name}</h3>
+            <p class="hint" style="margin:2px 0 0;">${c.country || 'Global'} · ${c.paymentTerms || 'Net 30'} · ${c.currency || 'BDT'}</p>
+          </div>
+          <button class="btn btn-dark btn-sm" onclick="window.openAdvancedCustomerForm('${c.id}')">Edit</button>
+        </div>
+
+        <div style="padding:0 20px 24px;">
+          <div class="bento-grid" style="padding:0 0 14px;">
+            <div class="bento-card">
+              <div class="bento-label">Orders</div>
+              <div class="bento-value" style="font-size:26px;">${c.totalOrders || 0}</div>
+            </div>
+            <div class="bento-card">
+              <div class="bento-label">Total Spend</div>
+              <div class="bento-value" style="font-size:20px;color:var(--gold);">৳${(c.totalSpent || 0).toLocaleString()}</div>
+            </div>
+            <div class="bento-card">
+              <div class="bento-label">MOQ</div>
+              <div class="bento-value" style="font-size:26px;">${c.moq || 100}</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:12px;">
+            <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Contact Profile</div>
+            <div style="font-size:13px;font-weight:600;color:var(--ink);">${c.contactPerson || c.name}</div>
+            <div style="font-size:12px;color:var(--ink-2);margin-top:2px;">${c.email || 'No email provided'} · ${c.phone || 'No phone'}</div>
+            ${c.addresses?.[0]?.line1 ? `
+              <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">
+                📍 ${c.addresses[0].line1}, ${c.addresses[0].city || ''} ${c.addresses[0].postalCode || ''}, ${c.country}
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Customer Notes Section -->
+          <div class="card" style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;">Internal Notes (${notes.length})</div>
+            </div>
+            <div id="cust_notes_list" style="display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto;margin-bottom:8px;">
+              ${notes.length ? notes.map(n => `
+                <div style="background:var(--bg-3);padding:6px 10px;border-radius:4px;font-size:11px;border-left:2px solid var(--gold);">
+                  <div style="color:var(--ink);">${n.text}</div>
+                  <div style="font-size:9px;color:var(--ink-3);font-family:var(--mono);margin-top:2px;">${n.by || 'Operator'} · ${new Date(n.createdAt).toLocaleDateString()}</div>
+                </div>
+              `).join('') : '<div style="font-size:11px;color:var(--ink-3);">No notes logged yet.</div>'}
+            </div>
+            <div style="display:flex;gap:6px;">
+              <input id="new_cust_note" placeholder="Log customer interaction or preference…" style="flex:1;height:30px;font-size:11px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;border-radius:4px;"/>
+              <button class="btn btn-dark btn-sm" onclick="window.submitCustomerNote('${c.id}')">Add Note</button>
+            </div>
+          </div>
+
+          <!-- Linked Orders -->
+          <div class="sec-h" style="padding:4px 0 8px;"><span class="sec-h-label">Linked Orders (${orders.length})</span></div>
+          <div class="orders-container" style="margin-bottom:14px;max-height:180px;overflow-y:auto;">
+            ${orders.length ? orders.map(o => `
+              <div class="orow" onclick="window.openOrderDetail('${o.id}')" style="cursor:pointer;padding:8px 10px;">
+                <div class="othumb" style="font-size:10px;">HH</div>
+                <div class="om">
+                  <div class="ot" style="font-size:12px;">${o.orderNumber} · ৳${(o.total || 0).toLocaleString()}</div>
+                  <div class="os" style="font-size:10px;">${(o.lineItems || []).map(li => `${li.title} (${li.quantity})`).join(', ')}</div>
+                </div>
+                <span class="pill ${o.status === 'completed' ? 'ok' : o.status === 'cancelled' ? 'warn' : 'amber'}" style="font-size:8px;">${(o.status || 'open').toUpperCase()}</span>
+              </div>
+            `).join('') : '<div class="empty" style="padding:14px;">No linked orders recorded yet</div>'}
+          </div>
+
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-gold" style="flex:1;" onclick="closeSheet(); window.openAdvancedOrderForm('${c.id}')">Create Order for Buyer →</button>
+            ${c.email ? `<button class="btn btn-dark" onclick="window.open('mailto:${c.email}')">Email Buyer</button>` : ''}
+          </div>
+        </div>
+      `;
     } catch (e) {
-      toast("সমস্যা: " + e.message);
-      btn.innerText = "Save Company";
+      toast("Error loading details: " + e.message);
+      closeSheet();
     }
   };
 
-  /* ═══════════════════════════════════════════════════════════
-     ORDERS — Firestore-backed, Products ও Customers এর সাথে সংযুক্ত
-     ═══════════════════════════════════════════════════════════ */
-  window.render.Orders = async function (container) {
-    container.innerHTML = loading("অর্ডার লোড হচ্ছে…");
-    const { items } = await window.OrdersService.list();
-    container.innerHTML = modHeader("Orders", `${items.length} order${items.length !== 1 ? 's' : ''}`, [
-      { label: "+ Create", fn: "window.openAdvancedOrderForm()" }
-    ]) + `<div class="orders-container" style="margin:0 20px;">${items.length ? items.map(o => `
-      <div class="orow" onclick="window.openOrderDetail('${o.id}')" style="cursor:pointer;">
-        <div class="othumb">NX</div>
-        <div class="om"><div class="ot">${o.orderNumber} · ৳${o.total}</div><div class="os">${o.customerSnapshot?.name || 'Walk-in'} · ${(o.lineItems || []).map(li => li.title).join(', ')}</div></div>
-        <div class="pill ${o.status === 'completed' ? 'ok' : o.status === 'cancelled' ? 'warn' : 'amber'}">${o.status.toUpperCase()}</div>
-      </div>`).join('') : '<div class="empty">No orders in pipeline</div>'}</div><div style="height:8px;"></div>`;
+  window.submitCustomerNote = async function (customerId) {
+    const input = document.getElementById("new_cust_note");
+    const text = input.value.trim();
+    if (!text) return;
+    try {
+      await window.CustomersService.addNote(customerId, text);
+      input.value = "";
+      toast("Note logged ✓");
+      window.openCompanyDetail(customerId);
+    } catch (e) {
+      toast(e.message);
+    }
   };
 
+  /* ── Customer Create / Edit Form ── */
+  window.openAdvancedCustomerForm = function (customerId = null) {
+    const c = customerId ? (window._lastCustomersCache || []).find(x => x.id === customerId) : null;
+    const addr = c?.addresses?.[0] || {};
+
+    openSheet(`
+      <h3>${c ? 'Edit Customer' : 'Add New Customer'}</h3>
+      <p class="hint">${c ? 'Update company details, MOQ, and terms' : 'Register a new wholesale buyer or client'}</p>
+      
+      <div style="padding:0 20px 24px;">
+        <input type="hidden" id="c_id" value="${c?.id || ''}"/>
+        
+        <div class="field"><label>Company / Buyer Name *</label>
+          <input id="c_company" placeholder="e.g. Atelier Vondel GmbH" value="${c?.companyName || c?.name || ''}"/>
+        </div>
+
+        <div class="field"><label>Contact Person</label>
+          <input id="c_contact" placeholder="e.g. Hendrik van Dijk" value="${c?.contactPerson || c?.name || ''}"/>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Email *</label>
+            <input id="c_email" type="email" placeholder="procurement@buyer.com" value="${c?.email || ''}"/>
+          </div>
+          <div class="field"><label>Phone</label>
+            <input id="c_phone" placeholder="+31 20 123 4567" value="${c?.phone || ''}"/>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Country</label>
+            <select id="c_country">
+              <option value="NL" ${c?.country === 'NL' ? 'selected' : ''}>🇳🇱 Netherlands</option>
+              <option value="DE" ${c?.country === 'DE' ? 'selected' : ''}>🇩🇪 Germany</option>
+              <option value="GB" ${c?.country === 'GB' ? 'selected' : ''}>🇬🇧 United Kingdom</option>
+              <option value="ES" ${c?.country === 'ES' ? 'selected' : ''}>🇪🇸 Spain</option>
+              <option value="FR" ${c?.country === 'FR' ? 'selected' : ''}>🇫🇷 France</option>
+              <option value="US" ${c?.country === 'US' ? 'selected' : ''}>🇺🇸 United States</option>
+              <option value="BD" ${c?.country === 'BD' ? 'selected' : ''}>🇧🇩 Bangladesh</option>
+              <option value="JP" ${c?.country === 'JP' ? 'selected' : ''}>🇯🇵 Japan</option>
+            </select>
+          </div>
+          <div class="field"><label>Currency</label>
+            <select id="c_currency">
+              <option value="BDT" ${c?.currency === 'BDT' ? 'selected' : ''}>BDT (৳)</option>
+              <option value="EUR" ${c?.currency === 'EUR' ? 'selected' : ''}>EUR (€)</option>
+              <option value="USD" ${c?.currency === 'USD' ? 'selected' : ''}>USD ($)</option>
+              <option value="GBP" ${c?.currency === 'GBP' ? 'selected' : ''}>GBP (£)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>MOQ Target (Units)</label>
+            <input id="c_moq" type="number" placeholder="100" value="${c?.moq || 100}"/>
+          </div>
+          <div class="field"><label>Payment Terms</label>
+            <select id="c_terms">
+              <option value="Net 30" ${c?.paymentTerms === 'Net 30' ? 'selected' : ''}>Net 30</option>
+              <option value="Net 45" ${c?.paymentTerms === 'Net 45' ? 'selected' : ''}>Net 45</option>
+              <option value="Net 60" ${c?.paymentTerms === 'Net 60' ? 'selected' : ''}>Net 60</option>
+              <option value="50% Advance" ${c?.paymentTerms === '50% Advance' ? 'selected' : ''}>50% Advance, 50% on Delivery</option>
+              <option value="100% Advance" ${c?.paymentTerms === '100% Advance' ? 'selected' : ''}>100% Upfront</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field"><label>Shipping / Billing Address</label>
+          <input id="c_addr" placeholder="Keizersgracht 421, 1016 EK Amsterdam" value="${addr.line1 || ''}"/>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button class="btn btn-gold" id="c_save_btn" style="flex:1;" onclick="window.submitAdvancedCustomer()">
+            ${c ? 'Save Changes' : 'Create Customer'}
+          </button>
+          ${c ? `
+            <button class="btn btn-dark" style="color:var(--warn);" onclick="window.deleteCustomerPrompt('${c.id}')">
+              Delete
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `);
+  };
+
+  window.submitAdvancedCustomer = async function () {
+    const id = document.getElementById("c_id").value;
+    const companyName = document.getElementById("c_company").value.trim();
+    if (!companyName) { toast("Please provide a Company or Buyer name"); return; }
+
+    const btn = document.getElementById("c_save_btn");
+    btn.innerText = id ? "Saving…" : "Creating…";
+    btn.disabled = true;
+
+    const payload = {
+      companyName,
+      name: companyName,
+      contactPerson: document.getElementById("c_contact").value.trim() || companyName,
+      email: document.getElementById("c_email").value.trim(),
+      phone: document.getElementById("c_phone").value.trim(),
+      country: document.getElementById("c_country").value,
+      currency: document.getElementById("c_currency").value,
+      moq: Number(document.getElementById("c_moq").value) || 100,
+      paymentTerms: document.getElementById("c_terms").value,
+      addressLine1: document.getElementById("c_addr").value.trim()
+    };
+
+    try {
+      if (id) {
+        await window.CustomersService.update(id, payload);
+        toast("Customer updated successfully ✓");
+      } else {
+        await window.CustomersService.create(payload);
+        toast("Customer created successfully ✓");
+      }
+      closeSheet();
+      const container = document.getElementById("mod-CRM") || document.getElementById("mod-Customers");
+      if (container) window.render.CRM(container);
+    } catch (e) {
+      toast("Error: " + e.message);
+      btn.innerText = id ? "Save Changes" : "Create Customer";
+      btn.disabled = false;
+    }
+  };
+
+  window.deleteCustomerPrompt = async function (customerId) {
+    if (!confirm("Are you sure you want to delete this customer record?")) return;
+    await window.CustomersService.delete(customerId);
+    toast("Customer record deleted ✓");
+    closeSheet();
+    const container = document.getElementById("mod-CRM") || document.getElementById("mod-Customers");
+    if (container) window.render.CRM(container);
+  };
+
+  /* ═══════════════════════════════════════════════════════════
+     ORDERS MODULE (Commerce Pipeline)
+     ═══════════════════════════════════════════════════════════ */
+  window.render.Orders = async function (container) {
+    const target = container || document.getElementById("mod-Orders") || document.getElementById("body");
+    if (!target) return;
+    target.innerHTML = loading("Loading Commerce Orders…");
+    const state = window._viewState.orders;
+
+    try {
+      const { items } = await window.OrdersService.list({
+        status: state.status,
+        paymentStatus: state.paymentStatus,
+        fulfillmentStatus: state.fulfillmentStatus,
+        search: state.search
+      });
+      window._lastOrdersCache = items;
+
+      const totalRevenue = items.reduce((s, o) => s + (o.status !== 'cancelled' ? (o.total || 0) : 0), 0);
+      const pendingFulfillment = items.filter(o => o.fulfillmentStatus === 'unfulfilled' && o.status !== 'cancelled').length;
+
+      target.innerHTML = modHeader("Orders & Shipments", `${items.length} orders · ৳${totalRevenue.toLocaleString()} volume · ${pendingFulfillment} unfulfilled`, [
+        { label: "+ Create Order", fn: "window.openAdvancedOrderForm()", primary: true }
+      ]) + `
+        <!-- Filter Toolbar -->
+        <div style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <input type="text" placeholder="Search order #, buyer, product SKU…" 
+                 value="${state.search || ''}" 
+                 oninput="window._viewState.orders.search = this.value; window.debounceOrderSearch();" 
+                 style="flex:1;min-width:180px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
+          
+          <select onchange="window._viewState.orders.status = this.value; window.render.Orders(document.getElementById('mod-Orders'));" 
+                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+            <option value="all" ${state.status === 'all' ? 'selected' : ''}>All Status</option>
+            <option value="open" ${state.status === 'open' ? 'selected' : ''}>Open</option>
+            <option value="completed" ${state.status === 'completed' ? 'selected' : ''}>Completed</option>
+            <option value="cancelled" ${state.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+          </select>
+
+          <select onchange="window._viewState.orders.paymentStatus = this.value; window.render.Orders(document.getElementById('mod-Orders'));" 
+                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+            <option value="all" ${state.paymentStatus === 'all' ? 'selected' : ''}>All Payments</option>
+            <option value="paid" ${state.paymentStatus === 'paid' ? 'selected' : ''}>Paid</option>
+            <option value="pending" ${state.paymentStatus === 'pending' ? 'selected' : ''}>Pending</option>
+            <option value="refunded" ${state.paymentStatus === 'refunded' ? 'selected' : ''}>Refunded</option>
+          </select>
+        </div>
+
+        <div class="orders-container" style="margin:0 20px 20px;">
+          ${items.length ? items.map(o => {
+            const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString() : (new Date(o.createdAt || Date.now())).toLocaleDateString();
+            return `
+              <div class="orow" onclick="window.openOrderDetail('${o.id}')" style="cursor:pointer;transition:background 0.15s;">
+                <div class="othumb" style="font-weight:700;color:var(--gold);background:var(--bg-3);border:1px solid var(--wire);">HH</div>
+                <div class="om" style="flex:1;min-width:0;">
+                  <div class="ot" style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-weight:700;color:var(--ink);font-family:var(--mono);">${o.orderNumber}</span>
+                    <span style="color:var(--gold);font-weight:600;">৳${(o.total || 0).toLocaleString()}</span>
+                    <span style="font-size:10px;color:var(--ink-3);font-family:var(--mono);">${dateStr}</span>
+                  </div>
+                  <div class="os" style="font-size:11px;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    ${o.customerSnapshot?.name || 'Walk-in'} · ${(o.lineItems || []).map(li => `${li.title} (${li.quantity})`).join(', ')}
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <span class="pill ${o.paymentStatus === 'paid' ? 'ok' : 'amber'}" style="font-size:8px;">
+                    ${(o.paymentStatus || 'pending').toUpperCase()}
+                  </span>
+                  <span class="pill ${o.status === 'completed' ? 'ok' : o.status === 'cancelled' ? 'warn' : 'amber'}" style="font-size:8px;">
+                    ${(o.status || 'open').toUpperCase()}
+                  </span>
+                </div>
+              </div>
+            `;
+          }).join('') : `
+            <div class="empty" style="padding:40px;text-align:center;">
+              <div style="font-size:24px;margin-bottom:8px;color:var(--gold-dim);">🧾</div>
+              <div style="font-size:13px;color:var(--ink);">No commerce orders found</div>
+              <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">Click "+ Create Order" to initiate a transaction.</div>
+            </div>
+          `}
+        </div>
+      `;
+    } catch (err) {
+      target.innerHTML = `<div style="padding:20px;color:var(--warn);">Failed to load orders: ${err.message}</div>`;
+    }
+  };
+
+  let _searchOrderTimer = null;
+  window.debounceOrderSearch = function () {
+    clearTimeout(_searchOrderTimer);
+    _searchOrderTimer = setTimeout(() => {
+      const container = document.getElementById("mod-Orders");
+      if (container) window.render.Orders(container);
+    }, 280);
+  };
+
+  /* ── Order Detail & Lifecycle Manager ── */
   window.openOrderDetail = async function (orderId) {
-    const o = await window.OrdersService.get(orderId);
-    if (!o) return;
-    openSheet(`<h3>${o.orderNumber}</h3><p class="hint">${o.customerSnapshot?.name || 'Walk-in'} · ৳${o.total}</p>
-      <div style="padding:0 20px 20px;">
-        <div class="card" style="margin-bottom:10px;">
-          ${o.lineItems.map(li => `<div class="spec-row" style="display:flex;justify-content:space-between;padding:4px 0;"><span>${li.title} × ${li.quantity}</span><span>৳${li.lineTotal}</span></div>`).join('')}
+    openSheet(loading("Loading Order Record…"));
+    try {
+      const o = await window.OrdersService.get(orderId);
+      if (!o) { toast("Order not found"); closeSheet(); return; }
+
+      const timeline = o.timeline || [];
+      const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString() : (new Date(o.createdAt || Date.now())).toLocaleString();
+
+      document.getElementById("sheet").innerHTML = `
+        <div class="grab"></div>
+        <div style="padding:0 20px 8px;display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <h3 style="margin:0;font-size:18px;font-family:var(--mono);">${o.orderNumber}</h3>
+            <p class="hint" style="margin:2px 0 0;">Placed ${dateStr} · ${o.customerSnapshot?.name || 'Walk-in'}</p>
+          </div>
+          <span class="pill ${o.status === 'completed' ? 'ok' : o.status === 'cancelled' ? 'warn' : 'amber'}">
+            ${(o.status || 'open').toUpperCase()}
+          </span>
         </div>
-        <div class="field"><label>Payment Status</label>
-          <select id="ord_pay">
-            <option value="pending" ${o.paymentStatus === 'pending' ? 'selected' : ''}>Pending</option>
-            <option value="paid" ${o.paymentStatus === 'paid' ? 'selected' : ''}>Paid</option>
-            <option value="partially_paid" ${o.paymentStatus === 'partially_paid' ? 'selected' : ''}>Partially Paid</option>
-            <option value="refunded" ${o.paymentStatus === 'refunded' ? 'selected' : ''}>Refunded</option>
-          </select>
+
+        <div style="padding:0 20px 24px;">
+          <!-- Line Items List -->
+          <div class="card" style="margin-bottom:12px;">
+            <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Purchased Items</div>
+            ${(o.lineItems || []).map(li => `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--wire);">
+                <div>
+                  <div style="font-size:12px;font-weight:600;color:var(--ink);">${li.title}</div>
+                  <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);">SKU: ${li.sku || '—'} · ৳${(li.price || 0).toLocaleString()} × ${li.quantity}</div>
+                </div>
+                <div style="font-size:13px;font-weight:700;color:var(--gold);font-family:var(--mono);">৳${(li.lineTotal || (li.price * li.quantity)).toLocaleString()}</div>
+              </div>
+            `).join('')}
+            
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:4px;">
+              <span style="font-size:12px;color:var(--ink-3);">Subtotal</span>
+              <span style="font-size:12px;color:var(--ink);font-family:var(--mono);">৳${(o.subtotal || o.total || 0).toLocaleString()}</span>
+            </div>
+            ${o.discountTotal ? `
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
+                <span style="font-size:12px;color:var(--warn);">Discount</span>
+                <span style="font-size:12px;color:var(--warn);font-family:var(--mono);">-৳${o.discountTotal.toLocaleString()}</span>
+              </div>
+            ` : ''}
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--wire-hard);">
+              <span style="font-size:14px;font-weight:700;color:var(--ink);">Grand Total</span>
+              <span style="font-size:16px;font-weight:800;color:var(--gold);font-family:var(--mono);">৳${(o.total || 0).toLocaleString()}</span>
+            </div>
+          </div>
+
+          <!-- Status Controls -->
+          <div class="field-row">
+            <div class="field"><label>Payment Status</label>
+              <select id="ord_pay">
+                <option value="pending" ${o.paymentStatus === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="paid" ${o.paymentStatus === 'paid' ? 'selected' : ''}>Paid</option>
+                <option value="partially_paid" ${o.paymentStatus === 'partially_paid' ? 'selected' : ''}>Partially Paid</option>
+                <option value="refunded" ${o.paymentStatus === 'refunded' ? 'selected' : ''}>Refunded</option>
+              </select>
+            </div>
+            <div class="field"><label>Fulfillment Status</label>
+              <select id="ord_fulfill">
+                <option value="unfulfilled" ${o.fulfillmentStatus === 'unfulfilled' ? 'selected' : ''}>Unfulfilled</option>
+                <option value="fulfilled" ${o.fulfillmentStatus === 'fulfilled' ? 'selected' : ''}>Fulfilled</option>
+                <option value="shipped" ${o.fulfillmentStatus === 'shipped' ? 'selected' : ''}>Shipped</option>
+                <option value="delivered" ${o.fulfillmentStatus === 'delivered' ? 'selected' : ''}>Delivered</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field"><label>Order State</label>
+            <select id="ord_status">
+              <option value="open" ${o.status === 'open' ? 'selected' : ''}>Open</option>
+              <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Completed</option>
+              <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+            </select>
+          </div>
+
+          <!-- Timeline Audit -->
+          <div class="card" style="margin:12px 0;">
+            <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Order Timeline (${timeline.length})</div>
+            <div style="display:flex;flex-direction:column;gap:6px;max-height:100px;overflow-y:auto;">
+              ${timeline.length ? timeline.map(t => `
+                <div style="font-size:11px;color:var(--ink-2);border-left:2px solid var(--wire-hard);padding-left:8px;">
+                  <div>${t.event}</div>
+                  <div style="font-size:9px;color:var(--ink-3);font-family:var(--mono);">${t.by || 'Operator'} · ${new Date(t.at).toLocaleString()}</div>
+                </div>
+              `).join('') : '<div style="font-size:11px;color:var(--ink-3);">No timeline events recorded.</div>'}
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn btn-gold" style="flex:1;" onclick="window.saveOrderStatus('${o.id}')">Save Status Updates</button>
+            ${o.status !== 'cancelled' ? `
+              <button class="btn btn-dark" style="color:var(--warn);" onclick="window.cancelOrderPrompt('${o.id}')">
+                Cancel & Restock
+              </button>
+            ` : ''}
+          </div>
         </div>
-        <div class="field"><label>Fulfillment Status</label>
-          <select id="ord_fulfill">
-            <option value="unfulfilled" ${o.fulfillmentStatus === 'unfulfilled' ? 'selected' : ''}>Unfulfilled</option>
-            <option value="fulfilled" ${o.fulfillmentStatus === 'fulfilled' ? 'selected' : ''}>Fulfilled</option>
-            <option value="shipped" ${o.fulfillmentStatus === 'shipped' ? 'selected' : ''}>Shipped</option>
-            <option value="delivered" ${o.fulfillmentStatus === 'delivered' ? 'selected' : ''}>Delivered</option>
-          </select>
-        </div>
-        <button class="btn btn-gold" style="margin-bottom:8px;" onclick="window.saveOrderStatus('${o.id}')">Update Status</button>
-        ${o.status !== 'cancelled' ? `<button class="btn btn-dark" onclick="window.cancelOrder('${o.id}')">Cancel Order (স্টক ফেরত দেবে)</button>` : ''}
-      </div>`);
+      `;
+    } catch (e) {
+      toast("Error loading order: " + e.message);
+      closeSheet();
+    }
   };
 
   window.saveOrderStatus = async function (orderId) {
+    const pay = document.getElementById("ord_pay").value;
+    const fulfill = document.getElementById("ord_fulfill").value;
+    const st = document.getElementById("ord_status").value;
+
     await window.OrdersService.updateStatus(orderId, {
-      paymentStatus: document.getElementById("ord_pay").value,
-      fulfillmentStatus: document.getElementById("ord_fulfill").value
+      status: st,
+      paymentStatus: pay,
+      fulfillmentStatus: fulfill
     });
-    toast("অর্ডার আপডেট হয়েছে ✓");
+    toast("Order status updated ✓");
     closeSheet();
-    openAppModule('Orders');
+    const container = document.getElementById("mod-Orders");
+    if (container) window.render.Orders(container);
   };
 
-  window.cancelOrder = async function (orderId) {
-    if (!confirm("অর্ডার বাতিল করবেন? স্টক ফেরত যোগ হয়ে যাবে।")) return;
-    await window.OrdersService.cancel(orderId);
-    toast("অর্ডার বাতিল হয়েছে, স্টক ফেরত দেওয়া হয়েছে ✓");
-    closeSheet();
-    openAppModule('Orders');
+  window.cancelOrderPrompt = async function (orderId) {
+    if (!confirm("Are you sure you want to cancel this order? Stock will be automatically restored to the product inventory ledger.")) return;
+    try {
+      await window.OrdersService.cancel(orderId, "Operator cancelled from Order Manager");
+      toast("Order cancelled and inventory restored ✓");
+      closeSheet();
+      const container = document.getElementById("mod-Orders");
+      if (container) window.render.Orders(container);
+    } catch (e) {
+      toast(e.message);
+    }
   };
 
-  /* ── Create Order: প্রোডাক্ট ও কাস্টমার Firestore থেকে ড্রপডাউনে লোড হয় ── */
-  window.openAdvancedOrderForm = async function () {
-    openSheet(loading("প্রোডাক্ট ও বায়ার লোড হচ্ছে…"));
-    const [{ items: products }, { items: customers }] = await Promise.all([
-      window.ProductsService.list({ status: "active" }),
-      window.CustomersService.list()
-    ]);
-    window._orderFormProducts = products;
+  /* ── Interactive Multi-Product Order Creation Modal ── */
+  window.openAdvancedOrderForm = async function (preselectedCustomerId = null) {
+    openSheet(loading("Loading Catalog & Buyers…"));
+    try {
+      const [{ items: products }, { items: customers }] = await Promise.all([
+        window.ProductsService.list({ status: "active" }),
+        window.CustomersService.list()
+      ]);
+      window._orderFormProducts = products;
+      window._orderFormCustomers = customers;
 
-    document.getElementById("sheet").innerHTML = `<div class="grab"></div><h3>Create Order</h3><div style="padding:0 20px 20px;">
-      <div class="field"><label>Product</label>
-        <select id="o_product">
-          <option value="">-- নির্বাচন করুন --</option>
-          ${products.map(p => `<option value="${p.id}" data-price="${p.pricing?.price || 0}" data-sku="${p.variants?.[0]?.sku || ''}" data-title="${p.title}">${p.title} — ৳${p.pricing?.price || 0} (${p.totalInventory || 0} in stock)</option>`).join('')}
-        </select>
-      </div>
-      <div class="field"><label>Quantity</label><input id="o_qty" type="number" value="1" min="1"/></div>
-      <div class="field"><label>Buyer / Company</label>
-        <select id="o_customer">
-          <option value="">Walk-in (নিচে নাম দিন)</option>
-          ${customers.map(c => `<option value="${c.id}" data-name="${c.companyName || c.name}" data-email="${c.email || ''}" data-phone="${c.phone || ''}" data-country="${c.country || ''}" data-currency="${c.currency || 'BDT'}">${c.companyName || c.name}</option>`).join('')}
-        </select>
-      </div>
-      <div class="field"><label>Walk-in Name (যদি উপরে বায়ার সিলেক্ট না করেন)</label><input id="o_walkin_name" placeholder="Walk-in customer name"/></div>
-      <div class="field-row">
-        <div class="field"><label>Discount (৳)</label><input id="o_discount" type="number" value="0"/></div>
-        <div class="field"><label>Shipping (৳)</label><input id="o_shipping" type="number" value="0"/></div>
-      </div>
-      <div class="field"><label>Notes</label><input id="o_notes" placeholder="Order notes…"/></div>
-      <button class="btn btn-gold" id="o_save_btn" onclick="window.submitAdvancedOrder()" style="margin-top:8px;">Confirm & Create</button>
-    </div>`;
+      if (!products.length) {
+        document.getElementById("sheet").innerHTML = `
+          <div class="grab"></div>
+          <h3>Cannot Create Order</h3>
+          <div style="padding:20px;">
+            <p style="color:var(--ink-2);font-size:13px;">No active products are available in the catalog. Please add products first.</p>
+            <button class="btn btn-gold" onclick="closeSheet(); window.openAdvancedProductForm();" style="margin-top:12px;">+ Add Product</button>
+          </div>
+        `;
+        return;
+      }
+
+      document.getElementById("sheet").innerHTML = `
+        <div class="grab"></div>
+        <h3>Create Commerce Order</h3>
+        <p class="hint">Atomic inventory deduction & transaction processing</p>
+        
+        <div style="padding:0 20px 24px;">
+          <!-- Product Selector -->
+          <div class="field"><label>Select Product *</label>
+            <select id="o_product" onchange="window.updateOrderCalc()">
+              <option value="">-- Choose Product --</option>
+              ${products.map(p => `
+                <option value="${p.id}" data-price="${p.pricing?.price || 0}" data-stock="${p.totalInventory || 0}" data-sku="${p.variants?.[0]?.sku || ''}" data-title="${p.title}">
+                  ${p.title} — ৳${(p.pricing?.price || 0).toLocaleString()} (${p.totalInventory || 0} in stock)
+                </option>
+              `).join('')}
+            </select>
+          </div>
+
+          <div class="field-row">
+            <div class="field"><label>Quantity</label>
+              <input id="o_qty" type="number" value="1" min="1" oninput="window.updateOrderCalc()"/>
+            </div>
+            <div class="field"><label>Unit Price (৳)</label>
+              <input id="o_custom_price" type="number" placeholder="Auto" oninput="window.updateOrderCalc()"/>
+            </div>
+          </div>
+
+          <!-- Customer Selector -->
+          <div class="field"><label>Select Registered Buyer (Optional)</label>
+            <select id="o_customer" onchange="window.onOrderCustomerChange(this.value)">
+              <option value="">Walk-in Customer / Direct Buyer</option>
+              ${customers.map(c => `
+                <option value="${c.id}" ${preselectedCustomerId === c.id ? 'selected' : ''} data-name="${c.companyName || c.name}" data-email="${c.email || ''}" data-phone="${c.phone || ''}" data-country="${c.country || 'NL'}">
+                  ${c.flag || '🏢'} ${c.companyName || c.name} (${c.country || 'Global'})
+                </option>
+              `).join('')}
+            </select>
+          </div>
+
+          <div class="field"><label>Buyer Name / Reference *</label>
+            <input id="o_buyer_name" placeholder="Buyer / Client Name" value="${preselectedCustomerId ? (customers.find(c => c.id === preselectedCustomerId)?.companyName || '') : 'Walk-in Customer'}"/>
+          </div>
+
+          <div class="field-row">
+            <div class="field"><label>Discount (৳)</label>
+              <input id="o_discount" type="number" value="0" min="0" oninput="window.updateOrderCalc()"/>
+            </div>
+            <div class="field"><label>Shipping (৳)</label>
+              <input id="o_shipping" type="number" value="0" min="0" oninput="window.updateOrderCalc()"/>
+            </div>
+          </div>
+
+          <div class="field"><label>Order Notes</label>
+            <input id="o_notes" placeholder="e.g. Export batch to Amsterdam depot, Net 30 terms"/>
+          </div>
+
+          <!-- Calculation Summary Box -->
+          <div class="card" style="margin:12px 0;background:var(--bg-3);">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+              <span style="color:var(--ink-3);">Estimated Total:</span>
+              <span id="o_calc_total" style="font-weight:800;color:var(--gold);font-family:var(--mono);font-size:16px;">৳0</span>
+            </div>
+          </div>
+
+          <button class="btn btn-gold" id="o_create_btn" onclick="window.submitAdvancedOrder()" style="width:100%;">
+            Confirm & Execute Order
+          </button>
+        </div>
+      `;
+
+      // Auto calculate on first render if customer is preselected
+      window.updateOrderCalc();
+    } catch (e) {
+      toast("Error opening order form: " + e.message);
+      closeSheet();
+    }
+  };
+
+  window.onOrderCustomerChange = function (custId) {
+    const cust = (window._orderFormCustomers || []).find(c => c.id === custId);
+    const nameInput = document.getElementById("o_buyer_name");
+    if (cust && nameInput) {
+      nameInput.value = cust.companyName || cust.name;
+    } else if (nameInput) {
+      nameInput.value = "Walk-in Customer";
+    }
+  };
+
+  window.updateOrderCalc = function () {
+    const sel = document.getElementById("o_product");
+    if (!sel || !sel.selectedOptions[0]) return;
+    const opt = sel.selectedOptions[0];
+    const basePrice = parseFloat(opt.dataset.price) || 0;
+    const customPrice = parseFloat(document.getElementById("o_custom_price")?.value);
+    const price = !isNaN(customPrice) && customPrice > 0 ? customPrice : basePrice;
+    const qty = parseInt(document.getElementById("o_qty")?.value) || 1;
+    const discount = parseFloat(document.getElementById("o_discount")?.value) || 0;
+    const shipping = parseFloat(document.getElementById("o_shipping")?.value) || 0;
+
+    const subtotal = price * qty;
+    const total = Math.max(0, subtotal - discount + shipping);
+
+    const totalEl = document.getElementById("o_calc_total");
+    if (totalEl) totalEl.innerText = `৳${total.toLocaleString()}`;
   };
 
   window.submitAdvancedOrder = async function () {
     const productSel = document.getElementById("o_product");
     const productId = productSel.value;
-    const qty = parseInt(document.getElementById("o_qty").value) || 1;
-    if (!productId) { toast("একটা প্রোডাক্ট বেছে নিন"); return; }
+    if (!productId) { toast("Please select a product"); return; }
 
     const opt = productSel.selectedOptions[0];
+    const stockAvailable = parseInt(opt.dataset.stock) || 0;
+    const qty = parseInt(document.getElementById("o_qty").value) || 1;
+
+    if (qty > stockAvailable) {
+      toast(`Insufficient stock! Available: ${stockAvailable}, Requested: ${qty}`);
+      return;
+    }
+
     const customerSel = document.getElementById("o_customer");
-    const cOpt = customerSel.selectedOptions[0];
     const customerId = customerSel.value || null;
-    const walkinName = document.getElementById("o_walkin_name").value.trim();
+    const buyerName = document.getElementById("o_buyer_name").value.trim() || "Walk-in Customer";
 
-    if (!customerId && !walkinName) { toast("বায়ার বেছে নিন অথবা Walk-in নাম দিন"); return; }
+    const customPrice = parseFloat(document.getElementById("o_custom_price").value);
+    const basePrice = parseFloat(opt.dataset.price) || 0;
+    const price = !isNaN(customPrice) && customPrice > 0 ? customPrice : basePrice;
 
-    const btn = document.getElementById("o_save_btn");
-    btn.innerText = "Creating…";
+    const btn = document.getElementById("o_create_btn");
+    btn.innerText = "Executing Order…";
+    btn.disabled = true;
+
     try {
       await window.OrdersService.create({
         customerId,
-        customer: customerId
-          ? { name: cOpt.dataset.name, email: cOpt.dataset.email, phone: cOpt.dataset.phone, country: cOpt.dataset.country, currency: cOpt.dataset.currency }
-          : { name: walkinName, currency: "BDT" },
+        customer: {
+          name: buyerName,
+          companyName: buyerName,
+          email: customerId ? customerSel.selectedOptions[0]?.dataset?.email : "",
+          phone: customerId ? customerSel.selectedOptions[0]?.dataset?.phone : "",
+          country: customerId ? customerSel.selectedOptions[0]?.dataset?.country : "BD"
+        },
         lineItems: [{
-          productId, variantId: "default",
-          title: opt.dataset.title, sku: opt.dataset.sku,
-          price: parseFloat(opt.dataset.price), quantity: qty
+          productId,
+          variantId: "default",
+          title: opt.dataset.title,
+          sku: opt.dataset.sku,
+          price,
+          quantity: qty
         }],
         discountTotal: parseFloat(document.getElementById("o_discount").value) || 0,
         shippingTotal: parseFloat(document.getElementById("o_shipping").value) || 0,
-        notes: document.getElementById("o_notes").value
+        notes: document.getElementById("o_notes").value.trim()
       });
-      toast("অর্ডার তৈরি হয়েছে, স্টক আপডেট হয়েছে ✓");
+
+      toast("Order executed & inventory updated ✓");
       closeSheet();
-      openAppModule('Orders');
+      const container = document.getElementById("mod-Orders");
+      if (container) window.render.Orders(container);
     } catch (e) {
       toast(e.message);
-      btn.innerText = "Confirm & Create";
+      btn.innerText = "Confirm & Execute Order";
+      btn.disabled = false;
     }
   };
 
-  console.log("✅ NexOS Firestore মডিউল প্যাচ লোড হয়েছে — Products, CRM, Orders এখন লাইভ ডেটাবেজের সাথে সংযুক্ত।");
+  console.log("✅ Hands & Head Firestore integration layer initialized (Products, CRM, Orders).");
 })();

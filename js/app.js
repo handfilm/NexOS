@@ -72,17 +72,109 @@ window.addEventListener("offline", () => setOffline(true));
   if (window.PushEngine) await window.PushEngine.init();
 })();
 
-/* ── Spine Dispatcher ── */
+/* ── Spine Dispatcher (Firestore Core + Graceful Fallbacks) ── */
 async function spine(action, payload={}) {
+  try {
+    if (action === "placeOrder" || action === "createOrder") {
+      if (window.OrdersService) {
+        const itemTitle = payload.Items || payload.item || "Leather Goods";
+        const price = Number(payload.Total || payload.price || 0);
+        const o = await window.OrdersService.create({
+          customer: { name: payload.Customer || payload.phone || "Walk-in Buyer", phone: payload.phone || "" },
+          items: [{ title: itemTitle, price: price, quantity: 1 }],
+          paymentMethod: payload.method || "cash",
+          paymentStatus: "paid"
+        });
+        if (window.PushEngine) PushEngine.notifyNewOrder({ t: itemTitle, s: payload.Customer || "Quick Sale" });
+        return { status: "success", ok: true, order: o };
+      }
+    }
+    if (action === "listOrders" || action === "getOrders") {
+      if (window.OrdersService) {
+        const { items } = await window.OrdersService.list({ sortBy: "createdAt", sortDir: "desc" });
+        if (items && items.length) {
+          return {
+            items: items.map(o => ({
+              id: o.orderNumber || o.id,
+              t: (o.lineItems || []).map(li => `${li.title} x${li.quantity}`).join(", ") || "Leather Goods",
+              s: `${o.customerSnapshot?.name || 'Walk-in'} · ৳${(o.total || 0).toLocaleString()}`,
+              st: [
+                (o.status || 'NEW').toUpperCase(),
+                o.status === 'completed' ? 'ok' : o.status === 'cancelled' ? 'warn' : 'amber'
+              ]
+            }))
+          };
+        }
+      }
+    }
+    if (action === "getStats") {
+      if (window.OrdersService && window.ProductsService) {
+        const [{ items: ords }, { items: prods }] = await Promise.all([
+          window.OrdersService.list().catch(() => ({ items: [] })),
+          window.ProductsService.list().catch(() => ({ items: [] }))
+        ]);
+        const sales = ords.reduce((sum, o) => sum + (o.status !== 'cancelled' ? (o.total || 0) : 0), 0);
+        const pending = ords.filter(o => o.fulfillmentStatus === 'unfulfilled' && o.status !== 'cancelled').length;
+        return {
+          salesToday: sales,
+          ordersToday: ords.length,
+          pending: pending,
+          catalog: prods.length || 4
+        };
+      }
+    }
+    if (action === "getFeed" || action === "getProducts") {
+      if (window.ProductsService) {
+        const { items } = await window.ProductsService.list();
+        if (items && items.length) {
+          return {
+            items: items.map(p => ({
+              id: p.id,
+              t: p.title,
+              cat: p.productType || p.vendor || "Catalog",
+              price: p.pricing?.price || 0,
+              ini: p.variants?.[0]?.sku || p.title.slice(0, 3).toUpperCase(),
+              img: p.images?.[0]?.url || "",
+              stock: p.totalInventory || 0
+            }))
+          };
+        }
+      }
+    }
+    if (action === "createCustomer") {
+      if (window.CustomersService) {
+        await window.CustomersService.create({
+          name: payload.Name || "New Customer",
+          email: payload.Email || "",
+          phone: payload.Phone || "",
+          addressLine1: payload.Address || ""
+        });
+        return { status: "success" };
+      }
+    }
+    if (action === "createProduct") {
+      if (window.ProductsService) {
+        await window.ProductsService.create(payload);
+        return { status: "success" };
+      }
+    }
+  } catch (err) {
+    console.debug("Spine Firestore handler fallback:", err);
+  }
+
   if (typeof window.callSpine === "function") {
     try {
-      if (action==="placeOrder"||action==="createOrder") { const r=await window.callSpine("createOrder",{OrderID:payload.OrderID||"NX-"+Math.floor(Math.random()*9000+1000),Customer:payload.Customer||payload.phone||"Walk-in",Total:payload.Total||payload.price||0,Items:payload.Items||payload.item||"Quick Sale"}); return r||{status:"success"}; }
-      if (action==="createCustomer") { const r=await window.callSpine("createCustomer",{ID:payload.ID||"C-"+Date.now().toString().slice(-4),Name:payload.Name||"Unknown",LastName:payload.LastName||"",Email:payload.Email||"",Phone:payload.Phone||"",Address:payload.Address||""}); return r||{status:"success"}; }
-      if (action==="createProduct") { const r=await window.callSpine("createProduct",payload); return r||{status:"success"}; }
-      if (action==="listOrders"||action==="getOrders") { const lo=await window.callSpine("getOrders"); if(!lo.error&&Array.isArray(lo)){return{items:lo.map(o=>({id:o.OrderID||"NX-00",t:o.Items||"Live Order",s:o.Customer+" • ৳"+o.Total,st:[o.Status||"NEW","ok"]})).reverse()};} }
-      if (action==="getStats") { const of2=await window.callSpine("getOrders"); const ol=Array.isArray(of2)?of2:[]; const sales=ol.reduce((a,c)=>a+parseInt(c.Total||0),0); return{salesToday:sales,ordersToday:ol.length,pending:0,catalog:0}; }
-      if (action==="getFeed"||action==="getProducts") { const lp=await window.callSpine("getProducts"); if(!lp.error&&Array.isArray(lp)){return{items:lp.map(p=>({id:p.ID||"1",t:p.Name,cat:p.Vendor||"Live",price:p.Price||0,ini:p.SKU||"PRD",img:p.Image||""}))};} }
-    } catch(e) { console.error("Spine Fallback:",e); }
+      const res = await window.callSpine(action, payload);
+      if (res && !res.error && res.status !== "failed" && (!Array.isArray(res) || res.length > 0)) {
+        if (Array.isArray(res) && (action === "listOrders" || action === "getOrders")) {
+          return { items: res.map(o => ({ id: o.OrderID || "NX-00", t: o.Items || "Live Order", s: (o.Customer || "Walk-in") + " • ৳" + (o.Total || 0), st: [o.Status || "NEW", "ok"] })) };
+        }
+        if (Array.isArray(res) && (action === "getFeed" || action === "getProducts")) {
+          return { items: res.map(p => ({ id: p.ID || "1", t: p.Name, cat: p.Vendor || "Live", price: p.Price || 0, ini: p.SKU || "PRD", img: p.Image || "" })) };
+        }
+        return res;
+      }
+    } catch(e) {}
   }
   return demoSpine(action, payload);
 }
@@ -158,12 +250,20 @@ function applyTheme(m) {
 /* ── Main Render ── */
 function render() {
   const mTag = document.getElementById("modeTag");
-  if (mode === "lite")       mTag.innerText = "Lite Seller";
-  else if (mode === "expert") mTag.innerText = "Expert OS";
-  else if (mode === "production") mTag.innerText = "Production";
+  if (mTag) {
+    if (mode === "lite")       mTag.innerText = "Lite Seller";
+    else if (mode === "expert") mTag.innerText = "Expert OS";
+    else if (mode === "production") mTag.innerText = "Production";
+  }
   const b = document.getElementById("body");
-  if (mode === "production") renderProductionView(b);
-  else renderLiteHome(b);
+  if (!b) return;
+  b.innerHTML = "";
+  if (expScreen && expScreen !== "dashboard" && expScreen !== "Home") {
+    openAppModule(expScreen);
+  } else {
+    if (mode === "production") renderProductionView(b);
+    else renderLiteHome(b);
+  }
   renderTabbar();
 }
 
@@ -350,29 +450,30 @@ function renderInventoryInline() {
 /* ── Tab Bar ── */
 function renderTabbar() {
   const bar = document.getElementById("tabbar"); if(!bar) return;
+  const isHome = (!expScreen || expScreen === "dashboard" || expScreen === "Home");
   if (mode === "production") {
     bar.innerHTML = `
-      <button class="tb on">${I.home}</button>
-      <button class="tb" onclick="openAppModule('Inventory')">${I.box}</button>
-      <button class="tb hiron-btn" onclick="exitProduction()">${I.exit}</button>
+      <button class="tb ${isHome ? 'on' : ''}" onclick="navTo('Home')" title="Home">${I.home}</button>
+      <button class="tb ${expScreen === 'Inventory' ? 'on' : ''}" onclick="openAppModule('Inventory')" title="Stock">${I.box}</button>
+      <button class="tb hiron-btn" onclick="exitProduction()" title="Exit">${I.exit}</button>
     `;
     return;
   }
   if (mode === "lite") {
     bar.innerHTML = `
-      <button class="tb on">${I.home}</button>
-      <button class="tb" onclick="openAppModule('EUPortal')">${I.eu}</button>
-      <button class="tb cam-fab" onclick="startCamera()">${I.cam}</button>
-      <button class="tb" onclick="openAppModule('Analytics')">${I.chart}</button>
-      <button class="tb" onclick="openGate('expert')">${I.lock}</button>
+      <button class="tb ${isHome ? 'on' : ''}" onclick="navTo('Home')" title="Home">${I.home}</button>
+      <button class="tb ${expScreen === 'EUPortal' ? 'on' : ''}" onclick="openAppModule('EUPortal')" title="EU Portal">${I.eu}</button>
+      <button class="tb cam-fab" onclick="startCamera()" title="Capture">${I.cam}</button>
+      <button class="tb ${expScreen === 'Analytics' ? 'on' : ''}" onclick="openAppModule('Analytics')" title="Analytics">${I.chart}</button>
+      <button class="tb" onclick="openGate('expert')" title="Expert Mode">${I.lock}</button>
     `;
   } else {
     bar.innerHTML = `
-      <button class="tb" onclick="expScreen='dashboard';render()">${I.home}</button>
-      <button class="tb" onclick="openAppModule('Orders')">${I.orders}</button>
-      <button class="tb cam-fab" onclick="startCamera()">${I.cam}</button>
-      <button class="tb" onclick="openDrawer()"><svg viewBox="0 0 24 24" style="width:19px;height:19px;"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.7"/></svg></button>
-      <button class="tb exit-btn" onclick="exitExpert()">${I.exit}</button>
+      <button class="tb ${isHome ? 'on' : ''}" onclick="navTo('Home')" title="Home">${I.home}</button>
+      <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
+      <button class="tb cam-fab" onclick="startCamera()" title="Capture">${I.cam}</button>
+      <button class="tb" onclick="openDrawer()" title="Menu"><svg viewBox="0 0 24 24" style="width:19px;height:19px;"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.7"/></svg></button>
+      <button class="tb exit-btn" onclick="exitExpert()" title="Exit Expert">${I.exit}</button>
     `;
   }
 }
@@ -433,47 +534,194 @@ function renderTabbar() {
   document.head.appendChild(s);
 })();
 
-/* ── Drawer ── */
+/* ── Drawer & Navigation ── */
 const NAV = [
-  {label:"Home",icon:I.home}, {label:"Orders",icon:I.orders,chev:true}, {label:"Products",icon:I.tag,chev:true}, {label:"Customers",icon:I.inbox,chev:true},
+  {label:"Home",icon:I.home,app:"Home"},
+  {label:"Orders",icon:I.orders,chev:true,app:"Orders"},
+  {label:"Products",icon:I.tag,chev:true,app:"Products"},
+  {label:"Customers",icon:I.inbox,chev:true,app:"CRM"},
   {sep:"Headless B2B"},
   {label:"RAWxOS", icon:I.spark, url:"https://handfilm.github.io/RAWxOS/"},
   {label:"NexOS", icon:I.gear, url:"https://handfilm.github.io/portal/os/2/"},
   {label:"HANDFILM", icon:I.cam, url:"https://handfilm.myshopify.com/"},
   {sep:"Ecosystem"},
-  {label:"NexOS HUB",icon:I.link,url:"https://handfilm.github.io/nexus/os/hub/"}, {label:"Portal Launcher",icon:I.link,url:"https://handfilm.github.io/portal/"}, {label:"FrontEnd (Handsandhead)",icon:I.globe,url:"https://handfilm.myshopify.com/pages/handsandhead"},
+  {label:"NexOS HUB",icon:I.link,url:"https://handfilm.github.io/nexus/os/hub/"},
+  {label:"Portal Launcher",icon:I.link,url:"https://handfilm.github.io/portal/"},
+  {label:"FrontEnd (Handsandhead)",icon:I.globe,url:"https://handfilm.myshopify.com/pages/handsandhead"},
   {sep:"Portals HUB"},
-  {label:"Custom Apps",icon:I.box,app:"CustomApps"}, {label:"Enterprise Apps",icon:I.store,app:"EnterpriseApps"},
+  {label:"Custom Apps",icon:I.box,app:"CustomApps"},
+  {label:"Enterprise Apps",icon:I.store,app:"EnterpriseApps"},
   {sep:"Buyer Portals"},
   {label:"Arutemika — Leather EU",icon:I.leather,app:"PortalArutemika"},
   {label:"HANDS & HEAD — RMG",icon:I.rmg,app:"PortalRMG"},
   {label:"H&H Nexus Website",icon:I.globe,url:"https://www.handsandhead.com/"},
   {sep:"B2B Operations"},
-  {label:"EU Buyer Portal",icon:I.eu,app:"EUPortal"}, {label:"Quote Builder",icon:I.doc,app:"QuoteBuilder"}, {label:"Buyer CRM",icon:I.users,app:"CRM"}, {label:"Inventory",icon:I.box,app:"Inventory"}, {label:"Shipment Tracking",icon:I.truck,app:"Tracking"},
+  {label:"EU Buyer Portal",icon:I.eu,app:"EUPortal"},
+  {label:"Quote Builder",icon:I.doc,app:"QuoteBuilder"},
+  {label:"Buyer CRM",icon:I.users,app:"CRM"},
+  {label:"Inventory",icon:I.box,app:"Inventory"},
+  {label:"Shipment Tracking",icon:I.truck,app:"Tracking"},
   {sep:"Intelligence"},
-  {label:"Analytics",icon:I.chart,app:"Analytics"}, {label:"NexAI Forecast",icon:I.ai,app:"NexAI"}, {label:"FX Rates",icon:I.fx,app:"FXRates"}, {label:"Compliance Docs",icon:I.doc,app:"Compliance"}, {label:"Push Notifications",icon:I.bell,app:"Notifications"},
+  {label:"Analytics",icon:I.chart,app:"Analytics"},
+  {label:"NexAI Forecast",icon:I.ai,app:"NexAI"},
+  {label:"FX Rates",icon:I.fx,app:"FXRates"},
+  {label:"Compliance Docs",icon:I.doc,app:"Compliance"},
+  {label:"Push Notifications",icon:I.bell,app:"Notifications"},
   {sep:"Apps"},
-  {label:"Accounting Sync",icon:I.wallet,app:"Accounting"}, {label:"Auto Social Post",icon:I.megaphone,app:"SocialPost"}, {label:"Meta Live Feed",icon:I.spark,app:"MetaFeed"}, {label:"Daraz Sync",icon:I.chart,app:"DarazSync"},
+  {label:"Accounting Sync",icon:I.wallet,app:"Accounting"},
+  {label:"Auto Social Post",icon:I.megaphone,app:"SocialPost"},
+  {label:"Meta Live Feed",icon:I.spark,app:"MetaFeed"},
+  {label:"Daraz Sync",icon:I.chart,app:"DarazSync"},
   {sep:"Roles"},
   {label:"Production View (Hiron)",icon:I.hammer,gate:"production"}
-
 ];
+
+const MODULE_MAP = {
+  "Home": "Home",
+  "dashboard": "Home",
+  "Dashboard": "Home",
+  "Orders": "Orders",
+  "Products": "Products",
+  "Customers": "CRM",
+  "CRM": "CRM",
+  "Buyer CRM": "CRM",
+  "EUPortal": "EUPortal",
+  "EU Buyer Portal": "EUPortal",
+  "Analytics": "Analytics",
+  "QuoteBuilder": "QuoteBuilder",
+  "Quote Builder": "QuoteBuilder",
+  "Inventory": "Inventory",
+  "Stock": "Inventory",
+  "Tracking": "Tracking",
+  "Shipment Tracking": "Tracking",
+  "NexAI": "NexAI",
+  "NexAI Forecast": "NexAI",
+  "FXRates": "FXRates",
+  "FX Rates": "FXRates",
+  "Compliance": "Compliance",
+  "Compliance Docs": "Compliance",
+  "Notifications": "Notifications",
+  "Push Notifications": "Notifications",
+  "Accounting": "Accounting",
+  "Accounting Sync": "Accounting",
+  "SocialPost": "SocialPost",
+  "Auto Social Post": "SocialPost",
+  "MetaFeed": "MetaFeed",
+  "Meta Live Feed": "MetaFeed",
+  "DarazSync": "DarazSync",
+  "Daraz Sync": "DarazSync",
+  "Marketing": "Marketing",
+  "OnlineStore": "OnlineStore",
+  "Online Store": "OnlineStore",
+  "PortalArutemika": "PortalArutemika",
+  "Arutemika — Leather EU": "PortalArutemika",
+  "PortalRMG": "PortalRMG",
+  "HANDS & HEAD — RMG": "PortalRMG",
+  "CustomApps": "CustomApps",
+  "EnterpriseApps": "EnterpriseApps"
+};
 
 function renderDrawerNav() {
   return NAV.map(n => {
     if (n.sep)  return `<span class="nav-section">${n.sep}</span>`;
     if (n.url)  return `<button class="nav-row" onclick="window.open('${n.url}','_blank');closeDrawer();"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div><span class="nav-ext">↗ EXT</span></button>`;
-    if (n.app)  return `<button class="nav-row" onclick="closeDrawer();openAppModule('${n.app}');"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div></button>`;
+    if (n.app)  return `<button class="nav-row" onclick="closeDrawer();openAppModule('${n.app}');"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div>${n.chev ? '<span class="nav-chev">›</span>' : ''}</button>`;
     if (n.gate) return `<button class="nav-row" onclick="closeDrawer();openGate('${n.gate}');" style="color:var(--ok);"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div><span class="nav-ext" style="color:var(--ok);">PIN</span></button>`;
     return `<button class="nav-row" onclick="navTo('${n.label}')"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div></button>`;
   }).join("");
 }
 
-/* ── DOM Mechanics ── */
+/* ── DOM Mechanics & Dynamic Module Router ── */
 function openDrawer() { document.getElementById("drawerNav").innerHTML=renderDrawerNav(); document.getElementById("drawer").classList.add("on"); document.getElementById("drawerScrim").classList.add("on"); }
 function closeDrawer() { document.getElementById("drawer").classList.remove("on"); document.getElementById("drawerScrim").classList.remove("on"); }
-function navTo(label) { closeDrawer(); if(label==="Home"){expScreen="dashboard";render();return;} if(window.render&&window.render[label]){openSheet(`<div id="modMount"></div>`);window.render[label](document.getElementById("modMount"));} }
-function openAppModule(appName) { if(window.render&&window.render[appName]){openSheet(`<div id="modMount"></div>`);window.render[appName](document.getElementById("modMount"));} }
+
+function navTo(label) {
+  closeDrawer();
+  closeSheet();
+  const modKey = MODULE_MAP[label] || label;
+  if (modKey === "Home" || modKey === "dashboard") {
+    expScreen = "dashboard";
+    const b = document.getElementById("body");
+    if (b) {
+      b.innerHTML = "";
+      if (mode === "production") renderProductionView(b);
+      else renderLiteHome(b);
+    }
+    renderTabbar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+  openAppModule(modKey);
+}
+
+function openAppModule(appName) {
+  closeDrawer();
+  closeSheet();
+  const modKey = MODULE_MAP[appName] || appName;
+  if (modKey === "Home" || modKey === "dashboard") {
+    navTo("Home");
+    return;
+  }
+
+  const b = document.getElementById("body");
+  if (!b) return;
+
+  // 1. Properly clear the #body container
+  b.innerHTML = "";
+  expScreen = modKey;
+
+  // 2. Update navigation tabbar state
+  renderTabbar();
+
+  // 3. Inject top navigation return bar
+  const navHeader = document.createElement("div");
+  navHeader.className = "module-nav-bar";
+  navHeader.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:12px 20px 8px;border-bottom:1px solid var(--wire);margin-bottom:8px;";
+  navHeader.innerHTML = `
+    <button class="btn btn-sm btn-dark" onclick="navTo('Home')" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:6px 12px;cursor:pointer;">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--gold-dim);letter-spacing:1.5px;text-transform:uppercase;">
+      ${modKey}
+    </div>
+  `;
+  b.appendChild(navHeader);
+
+  // 4. Create module container
+  const modContainer = document.createElement("div");
+  modContainer.id = "mod-" + modKey;
+  modContainer.className = "module-container";
+  b.appendChild(modContainer);
+
+  // 5. Dynamically inject the correct rendering function for the selected module
+  if (window.render && typeof window.render[modKey] === "function") {
+    try {
+      window.render[modKey](modContainer);
+    } catch(err) {
+      console.error("Error rendering module:", modKey, err);
+      modContainer.innerHTML = `<div style="padding:20px;color:var(--warn);">Failed to render ${modKey}: ${err.message}</div>`;
+    }
+  } else {
+    // If not loaded yet, poll briefly
+    modContainer.innerHTML = `<div style="padding:24px;font-family:var(--mono);color:var(--ink-3);font-size:11px;letter-spacing:1px;text-transform:uppercase;">Loading ${modKey}…</div>`;
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (window.render && typeof window.render[modKey] === "function") {
+        clearInterval(interval);
+        modContainer.innerHTML = "";
+        window.render[modKey](modContainer);
+      } else if (attempts > 15) {
+        clearInterval(interval);
+        modContainer.innerHTML = `<div class="empty" style="padding:40px 20px;text-align:center;">Module "${modKey}" is unavailable.</div>`;
+      }
+    }, 150);
+  }
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 function openSheet(html) { document.getElementById("sheet").innerHTML=`<div class="grab"></div>`+html; document.getElementById("sheet").classList.add("on"); document.getElementById("scrim").classList.add("on"); }
 function closeSheet() { document.getElementById("sheet").classList.remove("on"); document.getElementById("scrim").classList.remove("on"); }
 
@@ -549,7 +797,7 @@ function toast(m) { const t=document.getElementById("toast"); if(!t)return; t.in
 
 /* ── Utility ── */
 function startCamera() { openSheet(`<h3>Camera Engine</h3><div class="cam-stage"><div style="color:var(--ink-3);font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;">Active on native deployment</div></div>`); }
-function openAllOrders() { const o=LS.get("orders")||[]; openSheet(`<h3>All Orders</h3><div class="orders-container" style="margin:0 20px;">${ordersListHtml(o)}</div>`); }
+function openAllOrders() { openAppModule('Orders'); }
 function ordersListHtml(o) {
   if(!o||!o.length) return `<div class="empty">No orders yet</div>`;
   return o.map(d=>`<div class="orow"><div class="othumb">NX</div><div class="om"><div class="ot">${d.t}</div><div class="os">${d.s}</div></div><div class="pill ${d.st[1]||'ok'}">${d.st[0]}</div></div>`).join("");

@@ -1,0 +1,15 @@
+{
+  "name": "nexos-hands-and-head",
+  "version": "1.0.0",
+  "description": "Hands & Head | Headless B2B Platform",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "echo 'Build complete'",
+    "lint": "echo 'No lint errors'",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

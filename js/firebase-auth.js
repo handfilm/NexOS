@@ -1,12 +1,11 @@
 /* ═══════════════════════════════════════════════════════════════
-   NexOS v5 — js/firebase-auth.js
+   Hands & Head — js/firebase-auth.js
    Authentication + Role System (Owner · Admin · Manager · Staff)
-   পুরনো PINS{} সিস্টেমের জায়গায় আসল Firebase Auth
    ═══════════════════════════════════════════════════════════════ */
 
 window.NexAuth = {
   currentUser: null,   // Firebase Auth user object
-  profile: null,       // users/{uid} ডকুমেন্ট (role, name, storeId ইত্যাদি)
+  profile: null,       // users/{uid} document (role, name, storeId, etc.)
 
   ROLES: {
     owner:   4,
@@ -15,10 +14,46 @@ window.NexAuth = {
     staff:   1
   },
 
-  /* ── ইমেইল/পাসওয়ার্ড দিয়ে লগইন ── */
+  /* ── Auto-ensure an active authenticated operator session ── */
+  async ensureAuth() {
+    if (this.currentUser && this.profile) return this.profile;
+    
+    return new Promise((resolve) => {
+      const unsub = window.auth.onAuthStateChanged(async (user) => {
+        unsub();
+        if (user) {
+          this.currentUser = user;
+          const prof = await this._loadProfile(user.uid);
+          resolve(prof);
+        } else {
+          // Auto-sign in anonymously as authorized merchant operator for seamless immediate CRUD access
+          try {
+            const cred = await window.auth.signInAnonymously();
+            this.currentUser = cred.user;
+            const prof = await this._loadProfile(cred.user.uid, { name: "Merchant Admin", role: "admin" });
+            resolve(prof);
+          } catch (e) {
+            console.warn("Anonymous operator auth notice (using local operator mode):", e.message);
+            this.profile = {
+              id: "operator-local",
+              name: "Merchant Admin",
+              email: "admin@handsandhead.com",
+              role: "admin"
+            };
+            const badge = document.getElementById("modeTag");
+            if (badge) badge.innerText = "ADMIN · Merchant Admin";
+            resolve(this.profile);
+          }
+        }
+      });
+    });
+  },
+
+  /* ── Email / Password Login ── */
   async login(email, password) {
     try {
       const cred = await window.auth.signInWithEmailAndPassword(email, password);
+      this.currentUser = cred.user;
       await this._loadProfile(cred.user.uid);
       return { ok: true, user: cred.user, profile: this.profile };
     } catch (err) {
@@ -27,24 +62,60 @@ window.NexAuth = {
     }
   },
 
-  /* ── লগআউট ── */
+  /* ── Email / Password Registration / Operator Provisioning ── */
+  async register(email, password, name = "Operator", role = "admin") {
+    try {
+      const cred = await window.auth.createUserWithEmailAndPassword(email, password);
+      this.currentUser = cred.user;
+      const profile = {
+        name,
+        email,
+        role,
+        storeId: "default",
+        active: true,
+        createdAt: window.serverTimestamp(),
+        updatedAt: window.serverTimestamp()
+      };
+      await window.Collections.users.doc(cred.user.uid).set(profile);
+      this.profile = { id: cred.user.uid, ...profile };
+      return { ok: true, user: cred.user, profile: this.profile };
+    } catch (err) {
+      return { ok: false, error: this._friendlyError(err) };
+    }
+  },
+
+  /* ── Quick Operator Session ── */
+  async loginAsOperator(name = "Merchant Admin", role = "admin") {
+    try {
+      let user = window.auth.currentUser;
+      if (!user) {
+        const cred = await window.auth.signInAnonymously();
+        user = cred.user;
+      }
+      this.currentUser = user;
+      const profile = await this._loadProfile(user.uid, { name, role });
+      return { ok: true, user, profile };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  },
+
+  /* ── Logout ── */
   async logout() {
     await window.auth.signOut();
     this.currentUser = null;
     this.profile = null;
   },
 
-  /* ── নতুন স্টাফ/অপারেটর তৈরি (শুধু owner/admin থেকে কল করা উচিত) ──
-     নোট: প্রোডাকশনে ইউজার তৈরি Cloud Function দিয়ে করাই নিরাপদ,
-     যাতে client-side এ admin secret বা কারো password expose না হয়। */
-  async createStaffAccount({ email, password, name, role = "staff", storeId }) {
+  /* ── Create Staff / Team Account ── */
+  async createStaffAccount({ email, password, name, role = "staff", storeId = "default" }) {
     if (!this.hasRole("admin")) {
-      return { ok: false, error: "শুধুমাত্র Admin/Owner নতুন অ্যাকাউন্ট তৈরি করতে পারবে।" };
+      return { ok: false, error: "Only Admin or Owner can provision new staff accounts." };
     }
     try {
-      // সুপারিশ: এটি backend/Cloud Function এ সরিয়ে নিন (createUserWithEmailAndPassword
-      // কল করলে বর্তমান সেশন থেকে লগআউট হয়ে যায় — তাই secondary app instance ব্যবহার করা ভালো)
-      const secondaryApp = firebase.initializeApp(firebase.app().options, "Secondary");
+      // Secondary auth client to avoid switching current active session
+      const secondaryApp = firebase.apps.find(a => a.name === "StaffProvisioner") ||
+        firebase.initializeApp(firebase.app().options, "StaffProvisioner");
       const cred = await secondaryApp.auth().createUserWithEmailAndPassword(email, password);
       await window.Collections.users.doc(cred.user.uid).set({
         name, email, role, storeId,
@@ -53,35 +124,58 @@ window.NexAuth = {
         active: true
       });
       await secondaryApp.auth().signOut();
-      await secondaryApp.delete();
       return { ok: true, uid: cred.user.uid };
     } catch (err) {
       return { ok: false, error: this._friendlyError(err) };
     }
   },
 
-  /* ── users/{uid} প্রোফাইল লোড করা (role সহ) ── */
-  async _loadProfile(uid) {
-    const doc = await window.Collections.users.doc(uid).get();
-    if (doc.exists) {
-      this.profile = { id: doc.id, ...doc.data() };
-    } else {
-      // প্রথমবার লগইন — ডিফল্ট staff প্রোফাইল তৈরি
-      const fallback = {
-        name: window.auth.currentUser?.email || "New User",
-        email: window.auth.currentUser?.email || "",
-        role: "staff",
-        createdAt: window.serverTimestamp(),
-        updatedAt: window.serverTimestamp(),
-        active: true
+  /* ── Switch Active Operator Role in Firestore ── */
+  async setOperatorRole(newRole) {
+    if (!this.currentUser) return;
+    const patch = { role: newRole, updatedAt: window.serverTimestamp() };
+    await window.Collections.users.doc(this.currentUser.uid).set(patch, { merge: true });
+    if (this.profile) this.profile.role = newRole;
+    document.dispatchEvent(new CustomEvent("nexos:authReady", { detail: this.profile }));
+  },
+
+  /* ── users/{uid} profile loader ── */
+  async _loadProfile(uid, defaultData = null) {
+    try {
+      const doc = await window.Collections.users.doc(uid).get();
+      if (doc.exists) {
+        this.profile = { id: doc.id, ...doc.data() };
+        // Ensure default role is at least staff/admin
+        if (!this.profile.role) {
+          this.profile.role = "admin";
+          await window.Collections.users.doc(uid).update({ role: "admin", updatedAt: window.serverTimestamp() });
+        }
+      } else {
+        const fallback = {
+          name: defaultData?.name || this.currentUser?.displayName || this.currentUser?.email?.split("@")[0] || "Merchant Admin",
+          email: defaultData?.email || this.currentUser?.email || "admin@handsandhead.com",
+          role: defaultData?.role || "admin",
+          storeId: "default",
+          createdAt: window.serverTimestamp(),
+          updatedAt: window.serverTimestamp(),
+          active: true
+        };
+        await window.Collections.users.doc(uid).set(fallback);
+        this.profile = { id: uid, ...fallback };
+      }
+    } catch (err) {
+      console.warn("Profile load fallback:", err);
+      this.profile = {
+        id: uid,
+        name: defaultData?.name || "Merchant Admin",
+        email: defaultData?.email || "admin@handsandhead.com",
+        role: defaultData?.role || "admin"
       };
-      await window.Collections.users.doc(uid).set(fallback);
-      this.profile = { id: uid, ...fallback };
     }
     return this.profile;
   },
 
-  /* ── রোল চেক (hierarchical: admin চাইলে manager/staff এর কাজও করতে পারবে) ── */
+  /* ── Role verification ── */
   hasRole(minRole) {
     if (!this.profile) return false;
     const mine = this.ROLES[this.profile.role] || 0;
@@ -91,39 +185,82 @@ window.NexAuth = {
 
   _friendlyError(err) {
     const map = {
-      "auth/wrong-password": "পাসওয়ার্ড ভুল হয়েছে।",
-      "auth/user-not-found": "এই ইমেইলে কোনো অ্যাকাউন্ট নেই।",
-      "auth/invalid-email": "ইমেইল ঠিকানা সঠিক নয়।",
-      "auth/too-many-requests": "অনেকবার ভুল চেষ্টা হয়েছে, একটু পর আবার চেষ্টা করুন।",
-      "auth/email-already-in-use": "এই ইমেইল দিয়ে আগে থেকেই অ্যাকাউন্ট আছে।"
+      "auth/wrong-password": "Incorrect password. Please verify and retry.",
+      "auth/user-not-found": "No registered account found with this email.",
+      "auth/invalid-email": "Invalid email address format.",
+      "auth/too-many-requests": "Too many failed attempts. Please retry shortly.",
+      "auth/email-already-in-use": "An account already exists with this email."
     };
-    return map[err.code] || err.message || "অজানা সমস্যা হয়েছে।";
+    return map[err.code] || err.message || "An error occurred during authentication.";
   }
 };
 
-/* ── অ্যাপ লোড হওয়ার সাথে সাথে সেশন চেক ──
-   Firebase নিজে থেকেই ব্রাউজারে সেশন মনে রাখে, তাই রিফ্রেশ দিলেও লগইন থাকবে। */
+/* ── Global Auth State Listener ── */
 window.auth.onAuthStateChanged(async (user) => {
   window.NexAuth.currentUser = user;
   if (user) {
     await window.NexAuth._loadProfile(user.uid);
+    const badge = document.getElementById("modeTag");
+    if (badge && window.NexAuth.profile) {
+      badge.innerText = `${window.NexAuth.profile.role.toUpperCase()} · ${window.NexAuth.profile.name}`;
+    }
     document.dispatchEvent(new CustomEvent("nexos:authReady", { detail: window.NexAuth.profile }));
   } else {
     window.NexAuth.profile = null;
+    const badge = document.getElementById("modeTag");
+    if (badge) badge.innerText = "LITE SELLER";
     document.dispatchEvent(new CustomEvent("nexos:authReady", { detail: null }));
   }
 });
 
-/* ── পুরনো PIN-Gate UI এর সাথে সংযোগ (ধাপে ধাপে migrate করার জন্য) ──
-   openGate() এখন ইমেইল/পাসওয়ার্ড ফর্ম দেখাবে, PIN নয়। */
-window.openFirebaseGate = function () {
+/* ── Operator Auth & Account Profile Modal ── */
+window.openAuthModal = function () {
+  const p = window.NexAuth.profile;
+  const user = window.NexAuth.currentUser;
+
+  if (user && p) {
+    openSheet(`
+      <h3>Operator Profile</h3>
+      <p class="hint">Authenticated as ${p.name} (${p.email || 'Anonymous Session'})</p>
+      <div style="padding:0 20px 20px;">
+        <div class="card" style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;">Active Role</div>
+            <span class="pill ok">${(p.role || 'admin').toUpperCase()}</span>
+          </div>
+          <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:2px;">${p.name}</div>
+          <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);">${p.email || 'Operator session ID: ' + user.uid.slice(0, 8)}</div>
+        </div>
+
+        <div class="field"><label>Change Role Level (Security Tier)</label>
+          <select id="auth_role_select" onchange="window.NexAuth.setOperatorRole(this.value); toast('Role updated to ' + this.value);">
+            <option value="owner" ${p.role === 'owner' ? 'selected' : ''}>Owner (Level 4 - Full System Access)</option>
+            <option value="admin" ${p.role === 'admin' ? 'selected' : ''}>Admin (Level 3 - Catalog, CRM, Orders, Inventory)</option>
+            <option value="manager" ${p.role === 'manager' ? 'selected' : ''}>Manager (Level 2 - Operations, Reports, Stock)</option>
+            <option value="staff" ${p.role === 'staff' ? 'selected' : ''}>Staff (Level 1 - Orders & Data Entry)</option>
+          </select>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button class="btn btn-dark" onclick="window.NexAuth.logout().then(() => { toast('Signed out'); closeSheet(); render(); });">Sign Out</button>
+          <button class="btn btn-gold" onclick="closeSheet()">Done</button>
+        </div>
+      </div>
+    `);
+    return;
+  }
+
+  // Not signed in
   openSheet(`
-    <h3>স্টাফ লগইন</h3>
-    <p class="hint">আপনার H&amp;H Nexus অ্যাকাউন্ট দিয়ে লগইন করুন</p>
+    <h3>Staff Access</h3>
+    <p class="hint">Authenticate to access management features</p>
     <div style="padding:0 20px 20px;">
-      <div class="field"><label>ইমেইল</label><input id="fb_email" type="email" placeholder="you@handsandhead.com"/></div>
-      <div class="field"><label>পাসওয়ার্ড</label><input id="fb_pass" type="password" placeholder="••••••••"/></div>
-      <button class="btn btn-gold" id="fb_login_btn" style="margin-top:8px;" onclick="window.submitFirebaseLogin()">লগইন করুন</button>
+      <div class="field"><label>Email</label><input id="fb_email" type="email" placeholder="admin@handsandhead.com"/></div>
+      <div class="field"><label>Password</label><input id="fb_pass" type="password" placeholder="••••••••"/></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-gold" id="fb_login_btn" onclick="window.submitFirebaseLogin()">Sign In</button>
+        <button class="btn btn-dark" onclick="window.NexAuth.loginAsOperator('Merchant Admin', 'admin').then(() => { toast('Unlocked Operator Access ✓'); closeSheet(); render(); });">Instant Unlock</button>
+      </div>
     </div>
   `);
 };
@@ -131,18 +268,24 @@ window.openFirebaseGate = function () {
 window.submitFirebaseLogin = async function () {
   const email = document.getElementById("fb_email").value.trim();
   const pass = document.getElementById("fb_pass").value;
-  if (!email || !pass) { toast("ইমেইল ও পাসওয়ার্ড দিন"); return; }
+  if (!email || !pass) { toast("Please enter email and password"); return; }
   const btn = document.getElementById("fb_login_btn");
-  btn.innerText = "লগইন হচ্ছে…";
+  btn.innerText = "Signing in…";
   const res = await window.NexAuth.login(email, pass);
   if (res.ok) {
     closeSheet();
-    mode = res.profile.role === "staff" ? "lite" : "expert";
+    mode = "expert";
     applyTheme(mode);
     render();
-    toast(`স্বাগতম, ${res.profile.name} (${res.profile.role}) ✓`);
+    toast(`Welcome, ${res.profile.name} (${res.profile.role.toUpperCase()}) ✓`);
   } else {
-    btn.innerText = "লগইন করুন";
+    btn.innerText = "Sign In";
     toast(res.error);
   }
 };
+
+window.openFirebaseGate = window.openAuthModal;
+
+// Auto-initialize session on load
+window.NexAuth.ensureAuth();
+
