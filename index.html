@@ -112,9 +112,26 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Firebase SDK (compat — বিল্ড টুল ছাড়াই আপনার বর্তমান plain JS স্ট্রাকচারে কাজ করবে) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-storage-compat.js"></script>
+
+<!-- Firebase Foundation (Phase 1) — অবশ্যই api.js/app.js এর আগে লোড হবে -->
+<script src="js/firebase-config.js"></script>
+<script src="js/firebase-auth.js"></script>
+<script src="js/firebase-products.js"></script>
+<script src="js/firebase-customers.js"></script>
+<script src="js/firebase-orders.js"></script>
+
 <script src="js/api.js"></script>
 <script src="js/app.js"></script>
 <script src="js/modules.js"></script>
+
+<!-- এই প্যাচ ফাইলটা modules.js এর পরে লোড হওয়া আবশ্যক —
+     Products/CRM/Orders UI-কে আসল Firestore ডেটার সাথে সংযুক্ত করে -->
+<script src="js/firebase-modules-patch.js"></script>
 
 </body>
 </html>
