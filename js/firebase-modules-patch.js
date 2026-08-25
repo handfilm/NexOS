@@ -50,6 +50,12 @@
       });
       window._lastProductsCache = items;
 
+      // Proactively pre-cache product catalog images into Service Worker for offline viewing
+      if (window.NexServiceWorker && items.length > 0) {
+        const imageUrls = items.flatMap(p => (p.images || []).map(img => typeof img === 'string' ? img : img.url)).filter(Boolean);
+        window.NexServiceWorker.cacheProductImages(imageUrls);
+      }
+
       const activeCount = items.filter(p => p.status === 'active').length;
       const totalUnits = items.reduce((s, p) => s + (p.totalInventory || 0), 0);
 

@@ -239,32 +239,99 @@ window.CourierAPI = {
   }
 };
 
-/* ── 5. PUSH NOTIFICATIONS ── */
+/* ── 5. SERVICE WORKER & PUSH ENGINE (Offline Caching & Notifications) ── */
+window.NexServiceWorker = {
+  _reg: null,
+  _isReady: false,
+
+  async register() {
+    if (!('serviceWorker' in navigator)) {
+      console.log('[SW] Service Worker not supported in this browser environment.');
+      return null;
+    }
+
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      this._reg = reg;
+      reg.update();
+
+      // Handle worker updates
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[SW] New version available, active cache updated.');
+              if (window.toast) window.toast('Offline cache updated to latest version');
+            }
+          });
+        }
+      });
+
+      // Wait until ready
+      navigator.serviceWorker.ready.then((readyReg) => {
+        this._isReady = true;
+        this._reg = readyReg;
+        console.log('[SW] Service Worker active and caching enabled.');
+      });
+
+      // Listen for messages from SW
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        const data = event.data || {};
+        if (data.type === 'SW_READY') {
+          console.log('[SW] Service Worker ready, version:', data.version);
+        }
+      });
+
+      return reg;
+    } catch (e) {
+      console.warn('[SW] Registration failed:', e);
+      return null;
+    }
+  },
+
+  // Pre-cache product catalog images into Service Worker Cache
+  cacheProductImages(imageUrls) {
+    if (!navigator.serviceWorker || !navigator.serviceWorker.controller) return;
+    const urls = Array.isArray(imageUrls) ? imageUrls.filter(u => u && typeof u === 'string') : [];
+    if (urls.length > 0) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'CACHE_CATALOG_IMAGES',
+        payload: urls
+      });
+    }
+  },
+
+  async clearAllCaches() {
+    if (!('caches' in window)) return;
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    if (window.toast) window.toast('Offline cache cleared');
+  }
+};
+
 window.PushEngine = {
   _sw: null,
 
   async init() {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
-    try {
-      this._sw = await navigator.serviceWorker.register('/sw.js');
-      return true;
-    } catch (e) {
-      console.warn("SW registration failed:", e);
-      return false;
-    }
+    this._sw = await window.NexServiceWorker.register();
+    return !!this._sw;
   },
 
   async requestPermission() {
+    if (!('Notification' in window)) return false;
     const result = await Notification.requestPermission();
     return result === 'granted';
   },
 
   async notify(title, body, icon = '/favicon.ico') {
-    if (Notification.permission !== 'granted') return;
-    if (this._sw) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if (this._sw && this._sw.showNotification) {
       this._sw.showNotification(title, { body, icon, badge: '/favicon.ico', vibrate: [100, 50, 100] });
     } else {
-      new Notification(title, { body, icon });
+      try {
+        new Notification(title, { body, icon });
+      } catch (e) {}
     }
   },
 

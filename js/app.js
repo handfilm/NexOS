@@ -61,15 +61,32 @@ const LS = {
   del(k)    { try { localStorage.removeItem("nx_"+k); } catch(e) {} }
 };
 
-/* ── Offline ── */
+/* ── Offline & Service Worker Status ── */
 let offline = !navigator.onLine;
-function setOffline(b) { offline=b; document.getElementById("offBar").classList.toggle("on",b); }
+function setOffline(b) {
+  offline = b;
+  const offBar = document.getElementById("offBar");
+  if (offBar) {
+    offBar.classList.toggle("on", b);
+    offBar.innerHTML = `<span class="od"></span> Offline Cache Mode · Browsing Offline Catalog & Orders`;
+  }
+  if (b) {
+    if (typeof toast === 'function') toast("Offline Mode Active — Using Cached Catalog & Orders");
+  } else {
+    if (typeof toast === 'function') toast("Connected Online — Synced with Network");
+  }
+}
 window.addEventListener("online",  () => { setOffline(false); render(); });
-window.addEventListener("offline", () => setOffline(true));
+window.addEventListener("offline", () => { setOffline(true); render(); });
 
-/* ── Push Notifications Init ── */
+/* ── Service Worker & Push Notifications Init ── */
 (async function() {
-  if (window.PushEngine) await window.PushEngine.init();
+  if (window.NexServiceWorker) {
+    await window.NexServiceWorker.register();
+  }
+  if (window.PushEngine) {
+    await window.PushEngine.init();
+  }
 })();
 
 /* ── Spine Dispatcher (Firestore Core + Graceful Fallbacks) ── */
@@ -283,32 +300,105 @@ async function renderLiteHome(b) {
     <div class="hero">
       <div class="hero-label">H&amp;H Nexus · Seller OS · ${mode === 'expert' ? 'Expert Mode' : 'Lite Mode'}</div>
       <div class="hero-display">
-        <div class="hero-word" style="font-size:clamp(38px,10vw,64px); letter-spacing:-1px;">HANDS & HEAD</div>
-        <div class="hero-word-filled" style="font-size:clamp(38px,10vw,64px); letter-spacing:-1px;">HANDS & HEAD</div>
+        <div class="hero-word" style="font-size:clamp(36px,9vw,60px); letter-spacing:1px;">HANDS &amp; HEAD</div>
       </div>
       <div class="hero-meta">
-        <div class="hero-meta-line">Leather Export · B2B Terminal</div>
+        <div class="hero-meta-line">Leather Export Terminal</div>
         <div class="hero-meta-line">EU Buyer Channel Active</div>
       </div>
     </div>
 
-    <div class="sec-h">
-      <span class="sec-h-label">Live Dashboard</span>
-      <span class="sec-h-action" onclick="render()">↻ Refresh</span>
+    <!-- Neumorphic Interactive Reference Widgets (Photo 1 & 2) -->
+    <div class="bento-grid" style="margin-bottom:6px;">
+      <!-- Virtual Ledger Card (Ref 1) -->
+      <div class="neu-virtual-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div style="font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);">H&amp;H NEXUS</div>
+          <div class="neu-card-chip"></div>
+        </div>
+        <div class="neu-card-number">5303 6084 2402 3649</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;position:relative;z-index:2;">
+          <div>
+            <div style="font-size:10px;font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;">Balance</div>
+            <div style="font-size:22px;font-weight:700;color:var(--ink);font-family:var(--mono);">৳${(s.salesToday || 84600).toLocaleString()}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:9px;font-family:var(--mono);color:var(--ink-3);">EXP</div>
+            <div style="font-size:12px;font-weight:700;color:var(--ink);font-family:var(--mono);">09/28</div>
+          </div>
+        </div>
+        <div class="neu-slider-wrap" style="margin-top:14px;position:relative;z-index:2;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;font-family:var(--mono);color:var(--ink-3);">
+            <span>Credit Limit</span>
+            <span>৳25,000 / ৳100,000</span>
+          </div>
+          <div class="neu-slider-track">
+            <div class="neu-slider-fill" style="width:25%;"></div>
+            <div class="neu-slider-knob" style="left:25%;"></div>
+          </div>
+        </div>
+        <div class="neu-card-holo"></div>
+      </div>
+
+      <!-- Neumorphic Statistic Gauge (Ref 1 & 2) -->
+      <div class="neu-gauge-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+          <div style="font-family:var(--display);font-size:18px;letter-spacing:1px;color:var(--ink);">STATISTIC</div>
+          <div class="pill" style="font-size:10px;color:var(--coral);cursor:pointer;" onclick="toast('Period: Last 30 Days')">Last 30 days ›</div>
+        </div>
+        
+        <div class="neu-gauge-wheel">
+          <svg viewBox="0 0 100 100" style="position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);">
+            <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(166,180,200,0.25)" stroke-width="12"/>
+            <circle cx="50" cy="50" r="38" fill="none" stroke="url(#coralGrad)" stroke-width="12" stroke-dasharray="238.76" stroke-dashoffset="179" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="coralGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FF7B54"/>
+                <stop offset="100%" stop-color="#FF5024"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="neu-gauge-center">
+            <div class="neu-gauge-arrow-btn" onclick="toast('Channel: EU Direct Export')">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:#fff;stroke-width:2.5;fill:none;"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:6px;">
+          <div style="text-align:left;">
+            <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);">EU EXPORT</div>
+            <div style="font-size:16px;font-weight:700;color:var(--ink);font-family:var(--mono);">€1,593.58</div>
+          </div>
+          <div class="pill ok" style="font-size:11px;font-weight:700;">25% SHARE</div>
+        </div>
+      </div>
     </div>
+
+    <div class="sec-h">
+      <span class="sec-h-label">Live Terminal Metrics</span>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <div class="neu-toggle-wrap on" id="syncToggle" onclick="this.classList.toggle('on');this.classList.toggle('off');toast(this.classList.contains('on')?'Live Sync: Active':'Live Sync: Paused');">
+          <div class="neu-toggle-track"><div class="neu-toggle-thumb"></div></div>
+          <span class="neu-toggle-label">Sync</span>
+        </div>
+        <span class="sec-h-action" onclick="render()">↻</span>
+      </div>
+    </div>
+
     <div class="bento-grid">
       <div class="bento-card hero-stat">
         <div class="bento-label">Sales Today</div>
         <div class="bento-value">৳${(s.salesToday||0).toLocaleString()}</div>
-        <div class="bento-trend">Active pipeline</div>
+        <div class="bento-trend">Active Pipeline</div>
         ${fxLine ? `<div class="bento-fx">${fxLine}</div>` : ''}
       </div>
       <div class="bento-card">
-        <div class="bento-label">Pending</div>
-        <div class="bento-value" style="font-size:36px;">${s.pending||0}</div>
+        <div class="bento-label">Pending Orders</div>
+        <div class="bento-value" style="font-size:36px;color:var(--coral);">${s.pending||0}</div>
       </div>
       <div class="bento-card">
-        <div class="bento-label">Orders</div>
+        <div class="bento-label">Completed Today</div>
         <div class="bento-value" style="font-size:36px;">${s.ordersToday||0}</div>
       </div>
     </div>
@@ -390,7 +480,7 @@ async function renderLiteHome(b) {
       <span class="sec-h-action" onclick="openAllOrders()">All →</span>
     </div>
     <div class="orders-container" id="recentList">${ordersListHtml(o.slice(0,5))}</div>
-    <div style="height:8px;"></div>
+    <div style="height:12px;"></div>
   `;
 
   setupQuickOrderLogic();

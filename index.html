@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,viewport-fit=cover"/>
-<meta name="theme-color" content="#080808"/>
+<meta name="theme-color" content="#EBF1F8"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="apple-mobile-web-app-title" content="HANDS & HEAD"/>
 <meta name="description" content="Welcome to HANDS & HEAD. Your daily source for fashion trends, style inspiration, and curated e-commerce collections. Explore our unique footwear and apparel right here in Dhaka, Bangladesh."/>
 <title>Hands & Head | Headless B2B Platform</title>
@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Anton&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/theme.css?v=4.1.0">
 </head>
 <body>
 
@@ -50,22 +50,25 @@
 
 <div class="topbar">
   <div class="tbar-left">
-    <button class="tbar-btn" onclick="openSearch()">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <button class="tbar-btn" onclick="openDrawer()" title="Menu / Terminal Command">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <button class="tbar-btn" onclick="openSearch()" title="Search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
     </button>
   </div>
 
-  <div class="brand" onclick="openDrawer()">
-    <div class="brand-text-block" style="text-align: center;">
-      <span class="brand-main" style="font-size: 18px; letter-spacing: 2px; color: #ff0000;">HANDS & HEAD</span>
-      <span class="brand-sub" style="display: block; letter-spacing: 2px; color: #888;">Headless B2B Platform</span>
+  <div class="brand" onclick="openDrawer()" title="Open Command Menu">
+    <div class="brand-text-block">
+      <span class="brand-main">HANDS &amp; HEAD</span>
+      <span class="brand-sub">Headless B2B Platform</span>
     </div>
   </div>
 
   <div class="tbar-right">
     <div id="modeTag" class="mode-badge" onclick="openAuthModal()" style="cursor:pointer;" title="Click to view Operator Profile / Change Role">Operator</div>
-    <button class="tbar-btn" onclick="openAiChat()" style="position:relative;">
-      <svg viewBox="0 0 24 24"><path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/></svg>
+    <button class="tbar-btn" onclick="openAiChat()" style="position:relative;" title="NexAI Assistant">
+      <svg viewBox="0 0 24 24"><path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
       <div class="notif-dot" id="aiDot" style="display:none;"></div>
     </button>
   </div>
@@ -81,8 +84,15 @@
 
 <div class="drawer" id="drawer">
   <div class="drawer-header">
-    <div class="drawer-header-label">H&amp;H Nexus · Command</div>
-    <div class="drawer-header-title" style="font-size: 20px;">HANDS & HEAD</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div class="drawer-header-label">H&amp;H Nexus · Command</div>
+        <div class="drawer-header-title">HANDS &amp; HEAD</div>
+      </div>
+      <button class="drawer-close-btn" onclick="closeDrawer()" title="Close Menu">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </button>
+    </div>
   </div>
   <nav class="drawer-nav" id="drawerNav"></nav>
   <div class="drawer-footer">
@@ -112,26 +122,23 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase SDK (compat — বিল্ড টুল ছাড়াই আপনার বর্তমান plain JS স্ট্রাকচারে কাজ করবে) -->
+<!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-storage-compat.js"></script>
 
-<!-- Firebase Foundation (Phase 1) — অবশ্যই api.js/app.js এর আগে লোড হবে -->
-<script src="js/firebase-config.js"></script>
-<script src="js/firebase-auth.js"></script>
-<script src="js/firebase-products.js"></script>
-<script src="js/firebase-customers.js"></script>
-<script src="js/firebase-orders.js"></script>
+<!-- Firebase Foundation (Phase 1) -->
+<script src="js/firebase-config.js?v=4.1.0"></script>
+<script src="js/firebase-auth.js?v=4.1.0"></script>
+<script src="js/firebase-products.js?v=4.1.0"></script>
+<script src="js/firebase-customers.js?v=4.1.0"></script>
+<script src="js/firebase-orders.js?v=4.1.0"></script>
 
-<script src="js/api.js"></script>
-<script src="js/app.js"></script>
-<script src="js/modules.js"></script>
-
-<!-- এই প্যাচ ফাইলটা modules.js এর পরে লোড হওয়া আবশ্যক —
-     Products/CRM/Orders UI-কে আসল Firestore ডেটার সাথে সংযুক্ত করে -->
-<script src="js/firebase-modules-patch.js"></script>
+<script src="js/api.js?v=4.1.0"></script>
+<script src="js/app.js?v=4.1.0"></script>
+<script src="js/modules.js?v=4.1.0"></script>
+<script src="js/firebase-modules-patch.js?v=4.1.0"></script>
 
 </body>
 </html>
