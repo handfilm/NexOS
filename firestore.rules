@@ -1,0 +1,110 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════
+// NexOS v5 — firestore.rules
+// রোল: owner > admin > manager > staff
+// নিয়ম: কখনোই শুধু frontend এর উপর ভরসা করবেন না — এই rules-ই আসল দেয়াল।
+// ═══════════════════════════════════════════════════════════════
+
+function isSignedIn() {
+  return request.auth != null;
+}
+
+// users/{uid} ডকুমেন্ট থেকে রোল বের করা
+function myRole() {
+  return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+}
+
+function roleRank(role) {
+  return role == 'owner' ? 4 :
+         role == 'admin' ? 3 :
+         role == 'manager' ? 2 :
+         role == 'staff' ? 1 : 0;
+}
+
+function hasMinRole(minRole) {
+  return isSignedIn() && roleRank(myRole()) >= roleRank(minRole);
+}
+
+function isOwnerOfDoc(uid) {
+  return isSignedIn() && request.auth.uid == uid;
+}
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── users: নিজের প্রোফাইল সবাই পড়তে পারবে, বদলাতে পারবে শুধু admin+ ──
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isOwnerOfDoc(uid); // প্রথমবার লগইনে নিজের ডকুমেন্ট নিজে তৈরি করে (default: staff)
+      allow update: if isOwnerOfDoc(uid) || hasMinRole('admin');
+      allow delete: if hasMinRole('owner');
+    }
+
+    // ── stores: শুধু owner/admin এডিট করতে পারবে ──
+    match /stores/{storeId} {
+      allow read: if isSignedIn();
+      allow write: if hasMinRole('admin');
+    }
+
+    // ── products: staff পড়তে/তৈরি করতে পারবে, ডিলিট শুধু manager+ ──
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow create, update: if hasMinRole('staff');
+      allow delete: if hasMinRole('manager');
+    }
+
+    // ── customers (CRM): staff দেখতে/যোগ করতে পারবে ──
+    match /customers/{customerId} {
+      allow read, create, update: if hasMinRole('staff');
+      allow delete: if hasMinRole('manager');
+    }
+
+    // ── orders: গুরুত্বপূর্ণ মডিউল — staff তৈরি করতে পারবে, স্ট্যাটাস বদলানো manager+ ──
+    match /orders/{orderId} {
+      allow read: if hasMinRole('staff');
+      allow create: if hasMinRole('staff');
+      allow update: if hasMinRole('manager');
+      allow delete: if hasMinRole('owner');
+    }
+
+    // ── collections, discounts: manager+ এডিট করবে ──
+    match /collections/{id} {
+      allow read: if isSignedIn();
+      allow write: if hasMinRole('manager');
+    }
+    match /discounts/{id} {
+      allow read: if hasMinRole('staff');
+      allow write: if hasMinRole('manager');
+    }
+
+    // ── inventory + movements: staff অ্যাডজাস্ট করতে পারবে, ইতিহাস কখনো এডিট/ডিলিট হবে না ──
+    match /inventory/{id} {
+      allow read: if hasMinRole('staff');
+      allow write: if hasMinRole('staff');
+    }
+    match /inventory_movements/{id} {
+      allow read: if hasMinRole('staff');
+      allow create: if hasMinRole('staff');
+      allow update, delete: if false; // ইমিউটেবল অডিট ট্রেইল
+    }
+
+    // ── activities: শুধু সিস্টেম/সার্ভিস থেকে তৈরি হবে, সবাই পড়তে পারবে ──
+    match /activities/{id} {
+      allow read: if hasMinRole('staff');
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    // ── settings: শুধু admin+ ──
+    match /settings/{id} {
+      allow read: if hasMinRole('staff');
+      allow write: if hasMinRole('admin');
+    }
+
+    // ডিফল্ট: বাকি সবকিছু বন্ধ
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

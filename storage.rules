@@ -1,0 +1,30 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════
+// NexOS v5 — storage.rules
+// প্রোডাক্ট ইমেজ, ইনভয়েস, এক্সপোর্ট ডকুমেন্ট ইত্যাদির জন্য
+// ═══════════════════════════════════════════════════════════════
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // প্রোডাক্ট ছবি: সবাই পড়তে পারবে (স্টোরফ্রন্টে দেখানোর জন্য),
+    // আপলোড শুধু লগইন করা স্টাফ, ৫MB পর্যন্ত ও শুধু image ফাইল
+    match /products/{productId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // ইনভয়েস / এক্সপোর্ট ডকুমেন্ট: শুধু লগইন করা ইউজার পড়তে/লিখতে পারবে
+    match /documents/{orderId}/{fileName} {
+      allow read, write: if request.auth != null;
+    }
+
+    // ডিফল্ট বন্ধ
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
