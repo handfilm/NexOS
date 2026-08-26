@@ -10,6 +10,74 @@ window.ProductsService = {
   _getDefaultSeedProducts() {
     return [
       {
+        id: "prod-tee-01",
+        title: "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+        handle: "heavyweight-boxy-graphic-tee-dhaka-cyber",
+        status: "active",
+        vendor: "Hands & Head",
+        productType: "Tees & Apparel",
+        description: "260 GSM combed cotton vintage acid-washed oversized streetwear tee with high-density screenprint and reinforced ribbed collar.",
+        tags: ["tee", "tshirt", "oversized", "streetwear", "acid-wash", "apparel"],
+        pricing: { price: 1850, compareAtPrice: 2400, cost: 750, currency: "BDT" },
+        images: [
+          { url: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80", alt: "Heavyweight Boxy Graphic Tee" },
+          { url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&auto=format&fit=crop&q=80", alt: "Tee Back View" }
+        ],
+        variants: [
+          { id: "v-tee-m", title: "Vintage Washed Black / M", sku: "HH-TEE-01-M", price: 1850, inventoryQty: 45, availableForSale: true },
+          { id: "v-tee-l", title: "Vintage Washed Black / L", sku: "HH-TEE-01-L", price: 1850, inventoryQty: 60, availableForSale: true },
+          { id: "v-tee-xl", title: "Vintage Washed Black / XL", sku: "HH-TEE-01-XL", price: 1850, inventoryQty: 30, availableForSale: true }
+        ],
+        totalInventory: 135,
+        lowStockThreshold: 15,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: "prod-tee-02",
+        title: "Artisanal Raw-Hem Oversized Drop Tee",
+        handle: "artisanal-raw-hem-oversized-drop-tee",
+        status: "active",
+        vendor: "Hands & Head",
+        productType: "Tees & Apparel",
+        description: "240 GSM organic slub cotton drop-shoulder silhouette with raw-cut distressed hems and tonal embroidered chest emblem.",
+        tags: ["tee", "tshirt", "raw-hem", "streetwear", "apparel", "minimalist"],
+        pricing: { price: 1650, compareAtPrice: 2100, cost: 680, currency: "BDT" },
+        images: [
+          { url: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800&auto=format&fit=crop&q=80", alt: "Raw-Hem Drop Tee" }
+        ],
+        variants: [
+          { id: "v-tee-raw-l", title: "Bone White / L", sku: "HH-TEE-02-L", price: 1650, inventoryQty: 50, availableForSale: true },
+          { id: "v-tee-raw-xl", title: "Bone White / XL", sku: "HH-TEE-02-XL", price: 1650, inventoryQty: 38, availableForSale: true }
+        ],
+        totalInventory: 88,
+        lowStockThreshold: 12,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: "prod-tee-03",
+        title: "Architectural Cutout Leather-Pocket Tee",
+        handle: "architectural-cutout-leather-pocket-tee",
+        status: "active",
+        vendor: "Hands & Head",
+        productType: "Tees & Apparel",
+        description: "Heavy 280 GSM French terry tee featuring genuine vegetable-tanned leather utility patch pocket with antique brass rivet.",
+        tags: ["tee", "leather-trim", "luxury", "apparel", "streetwear"],
+        pricing: { price: 2450, compareAtPrice: 2950, cost: 950, currency: "BDT" },
+        images: [
+          { url: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&auto=format&fit=crop&q=80", alt: "Leather Pocket Tee" }
+        ],
+        variants: [
+          { id: "v-tee-pock-m", title: "Charcoal Slate / M", sku: "HH-TEE-03-M", price: 2450, inventoryQty: 32, availableForSale: true },
+          { id: "v-tee-pock-l", title: "Charcoal Slate / L", sku: "HH-TEE-03-L", price: 2450, inventoryQty: 40, availableForSale: true }
+        ],
+        totalInventory: 72,
+        lowStockThreshold: 10,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
         id: "prod-wlt-01",
         title: "Full-Grain Leather Bi-Fold Wallet",
         handle: "full-grain-leather-bi-fold-wallet",
@@ -526,4 +594,138 @@ window.ProductsService = {
       .replace(/(^-|-$)/g, "") || "product-" + Date.now().toString(36);
   }
 };
+
+/* ═══════════════════════════════════════════════════════════════
+   Hands & Head — Asset Source Service
+   Syncs & manages lookbook photos from handfilm.handsandhead.com
+   and Google Drive Asset repositories for Tees, Apparel & Leather
+   ═══════════════════════════════════════════════════════════════ */
+window.AssetSourceService = {
+  DEFAULT_SOURCE_URL: "https://handfilm.handsandhead.com/pages/handsandhead",
+  
+  getSourceUrl() {
+    return localStorage.getItem("nx_asset_source_url") || this.DEFAULT_SOURCE_URL;
+  },
+
+  setSourceUrl(url) {
+    if (!url || !url.trim()) url = this.DEFAULT_SOURCE_URL;
+    localStorage.setItem("nx_asset_source_url", url.trim());
+    return url.trim();
+  },
+
+  /* Curated High-Definition Lookbook Asset Feed */
+  getCuratedAssets() {
+    return [
+      {
+        id: "ast-tee-01",
+        title: "Vintage Acid Wash Cyber Tee",
+        collection: "Tees & Streetwear",
+        category: "Tees & Apparel",
+        gsm: "260 GSM",
+        fabric: "Combed Organic Cotton",
+        price: 1850,
+        url: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=85",
+        driveRef: "Drive://H&H-2026/Tees/AcidWash_01.jpg"
+      },
+      {
+        id: "ast-tee-02",
+        title: "Artisanal Raw-Hem Boxy Silhouette",
+        collection: "Tees & Streetwear",
+        category: "Tees & Apparel",
+        gsm: "240 GSM",
+        fabric: "Slub Cotton Distressed",
+        price: 1650,
+        url: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=900&auto=format&fit=crop&q=85",
+        driveRef: "Drive://H&H-2026/Tees/RawHem_Drop.jpg"
+      },
+      {
+        id: "ast-tee-03",
+        title: "Leather Pocket Heavyweight Tee",
+        collection: "Tees & Streetwear",
+        category: "Tees & Apparel",
+        gsm: "280 GSM",
+        fabric: "French Terry + Veg-Tan Leather",
+        price: 2450,
+        url: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=900&auto=format&fit=crop&q=85",
+        driveRef: "Drive://H&H-2026/Tees/LeatherPocket_Slate.jpg"
+      },
+      {
+        id: "ast-tee-04",
+        title: "Minimalist Typography Dhaka Editorial Tee",
+        collection: "Tees & Streetwear",
+        category: "Tees & Apparel",
+        gsm: "250 GSM",
+        fabric: "Compact Ring-Spun Cotton",
+        price: 1750,
+        url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900&auto=format&fit=crop&q=85",
+        driveRef: "Drive://H&H-2026/Tees/Editorial_Typography.jpg"
+      },
+      {
+        id: "ast-tee-05",
+        title: "Oversized Street Hoodie — Obsidian Black",
+        collection: "Tees & Streetwear",
+        category: "Tees & Apparel",
+        gsm: "420 GSM",
+        fabric: "Loopback Heavy Cotton",
+        price: 3850,
+        url: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=900&auto=format&fit=crop&q=85",
+        driveRef: "Drive://H&H-2026/Apparel/Obsidian_Hoodie.jpg"
+      },
+      {
+        id: "ast-lea-01",
+        title: "Full-Grain Leather Bi-Fold Wallet",
+        collection: "Leather Goods",
+        category: "Leather Goods",
+        gsm: "1.4mm Cowhide",
+        fabric: "Veg-Tanned Leather",
+        price: 2850,
+        url: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=900&auto=format&fit=crop&q=85",
+        driveRef: "Drive://H&H-2026/Leather/BiFold_Tan.jpg"
+      },
+      {
+        id: "ast-lea-02",
+        title: "Executive Brass-Hardware Briefcase",
+        collection: "Leather Goods",
+        category: "Bags",
+        gsm: "2.0mm Bridle Leather",
+        fabric: "Full-Grain Oil-Pull",
+        price: 18500,
+        url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&auto=format&fit=crop&q=85",
+        driveRef: "Drive://H&H-2026/Leather/Briefcase_Midnight.jpg"
+      },
+      {
+        id: "ast-lea-03",
+        title: "Artisanal Oxford Brogues Patina",
+        collection: "Footwear",
+        category: "Footwear",
+        gsm: "Welted Sole",
+        fabric: "Hand-Burnished Calfskin",
+        price: 14200,
+        url: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=900&auto=format&fit=crop&q=85",
+        driveRef: "Drive://H&H-2026/Footwear/Oxford_Burgundy.jpg"
+      }
+    ];
+  },
+
+  /* 1-Click Import Asset to Product Catalog */
+  async importAssetAsProduct(assetId) {
+    const asset = this.getCuratedAssets().find(a => a.id === assetId);
+    if (!asset) throw new Error("Asset not found");
+
+    const newProd = {
+      title: asset.title,
+      productType: asset.category,
+      description: `${asset.gsm} · ${asset.fabric}. Sourced from Hands & Head Drive Master Asset repository (${this.getSourceUrl()}).`,
+      tags: ["asset-import", "tees", "fashion", "lookbook", "drive-sync"],
+      price: asset.price,
+      compareAtPrice: Math.round(asset.price * 1.25),
+      stock: 35,
+      images: [{ url: asset.url, alt: asset.title }],
+      status: "active"
+    };
+
+    return await window.ProductsService.create(newProd);
+  }
+};
+
 

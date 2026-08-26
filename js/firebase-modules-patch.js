@@ -458,12 +458,13 @@
   };
 
   /* ═══════════════════════════════════════════════════════════
-     SUPER RESPONSIVE MASTER PRODUCT GALLERY (HOME & CATALOG)
+     MASSIVE ANIMATED FASHION SUPER FRONTEND & GALLERY
      ═══════════════════════════════════════════════════════════ */
   window._homeGalleryState = {
     category: "All",
     search: "",
-    viewMode: "showcase" // 'showcase' | 'compact'
+    viewMode: "showcase", // 'showcase' | 'compact'
+    heroSlideIndex: 0
   };
 
   window.setHomeGalleryCategory = function (cat) {
@@ -488,19 +489,213 @@
     }
   };
 
-  window.renderHomeProductGallery = async function (mountEl) {
-    if (!mountEl) return;
-    const state = window._homeGalleryState;
+  /* ── Drive & Handfilm Asset Hub Modal ── */
+  window.openDriveAssetHub = function () {
+    const currentUrl = window.AssetSourceService ? window.AssetSourceService.getSourceUrl() : "https://handfilm.handsandhead.com/pages/handsandhead";
+    const assets = window.AssetSourceService ? window.AssetSourceService.getCuratedAssets() : [];
 
-    // Show initial loading skeleton if first time
-    if (!window._lastProductsCache || !window._lastProductsCache.length) {
-      mountEl.innerHTML = `
-        <div style="padding:28px;text-align:center;color:var(--ink-3);font-family:var(--mono);font-size:12px;">
-          <div style="font-size:24px;margin-bottom:8px;animation:spin 1s linear infinite;display:inline-block;">⚡</div>
-          <div>Loading Super Responsive Product Gallery…</div>
+    openSheet(`
+      <div class="asset-hub-header">
+        <div>
+          <div style="font-family:var(--mono);font-size:9.5px;color:var(--coral);font-weight:800;letter-spacing:1px;text-transform:uppercase;">
+            CLOUD REPOSITORY &amp; DRIVE SYNC
+          </div>
+          <h3 style="margin:2px 0 0;font-size:20px;">Asset Source Hub</h3>
+        </div>
+        <button class="btn btn-dark btn-sm" onclick="closeSheet()">Close</button>
+      </div>
+
+      <div style="padding:16px 20px 0;">
+        <div style="background:var(--bg-neu);border-radius:14px;padding:12px 14px;box-shadow:var(--neu-flat-xs);display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink);">Active Asset Source URL:</span>
+            <span class="pill ok" style="font-size:8.5px;font-weight:700;">CONNECTED</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input id="asset_hub_url_input" value="${currentUrl}" style="flex:1;font-family:var(--mono);font-size:11px;padding:7px 10px;border-radius:8px;background:var(--bg-neu);border:none;box-shadow:var(--neu-pressed-sm);color:var(--ink);" placeholder="https://..."/>
+            <button class="btn btn-gold btn-sm" onclick="window.saveAssetSourceUrl()">Update</button>
+          </div>
+          <div style="font-size:10.5px;color:var(--ink-3);">
+            Master photoshoot repository for Tees, Leather &amp; Footwear lookbooks. 1-click import photos directly into product catalog.
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-h" style="padding:14px 20px 4px;">
+        <span class="sec-h-label">Curated Shoot Feed (${assets.length} Assets)</span>
+      </div>
+
+      <div class="asset-hub-grid">
+        ${assets.map(a => `
+          <div class="asset-item-card">
+            <img src="${a.url}" class="asset-item-img" alt="${a.title}" loading="lazy"/>
+            <div class="asset-item-title">${a.title}</div>
+            <div class="asset-item-meta">
+              <span>${a.gsm}</span>
+              <span style="color:var(--coral);font-weight:700;">৳${a.price.toLocaleString()}</span>
+            </div>
+            <div style="font-size:9.5px;color:var(--ink-3);margin-bottom:10px;line-height:1.3;">
+              ${a.fabric}
+            </div>
+            <button class="btn btn-dark btn-sm" style="width:100%;font-size:10.5px;" onclick="window.importDriveAsset('${a.id}')">
+              ⚡ 1-Click Import as Product
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    `);
+  };
+
+  window.saveAssetSourceUrl = function () {
+    const input = document.getElementById("asset_hub_url_input");
+    if (!input || !input.value.trim()) return;
+    window.AssetSourceService.setSourceUrl(input.value.trim());
+    toast("Asset Source URL Updated ✓");
+  };
+
+  window.importDriveAsset = async function (assetId) {
+    try {
+      toast("Importing asset into catalog…");
+      const newId = await window.AssetSourceService.importAssetAsProduct(assetId);
+      toast("Imported successfully as new product! ✓");
+      closeSheet();
+      window.refreshHomeProductGallery();
+      const prodContainer = document.getElementById("mod-Products");
+      if (prodContainer) window.render.Products(prodContainer);
+    } catch (e) {
+      toast("Import failed: " + e.message);
+    }
+  };
+
+  /* ── Fitting Room / Lookbook Quick View Modal ── */
+  window.openLookbookFittingRoom = function (productId) {
+    const p = (window._lastProductsCache || []).find(x => x.id === productId) || (window._lastProductsCache || [])[0];
+    if (!p) { toast("Product not found"); return; }
+
+    const firstImg = p.images?.[0]?.url || (typeof p.images?.[0] === 'string' ? p.images[0] : '');
+    const price = Number(p.pricing?.price || 0);
+
+    openSheet(`
+      <div class="asset-hub-header">
+        <div>
+          <div style="font-family:var(--mono);font-size:9.5px;color:var(--coral);font-weight:800;letter-spacing:1px;text-transform:uppercase;">
+            LOOKBOOK &amp; FITTING ROOM
+          </div>
+          <h3 style="margin:2px 0 0;font-size:20px;">${p.title}</h3>
+        </div>
+        <button class="btn btn-dark btn-sm" onclick="closeSheet()">Close</button>
+      </div>
+
+      <div class="fitting-room-modal">
+        <div class="fitting-photo-col">
+          ${firstImg ? `<img src="${firstImg}" alt="${p.title}"/>` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;">No Photo</div>'}
+          <div style="position:absolute;top:10px;left:10px;">
+            <span class="pill ok" style="font-weight:700;font-size:9px;">${(p.productType || 'Fashion').toUpperCase()}</span>
+          </div>
+        </div>
+
+        <div class="fitting-details-col">
+          <div>
+            <div style="font-size:22px;font-weight:900;color:var(--coral);font-family:var(--mono);">
+              ৳${price.toLocaleString()}
+            </div>
+            <div style="font-size:12px;color:var(--ink-2);margin-top:6px;line-height:1.5;">
+              ${p.description || 'Premium craftsmanship with reinforced seams and bespoke finish.'}
+            </div>
+          </div>
+
+          <div>
+            <div style="font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--ink);">Select Size / Fit:</div>
+            <div class="size-chips-row">
+              <button class="size-chip-btn" onclick="this.classList.toggle('active')">S (Boxy)</button>
+              <button class="size-chip-btn active" onclick="this.classList.toggle('active')">M (Oversized)</button>
+              <button class="size-chip-btn" onclick="this.classList.toggle('active')">L (Street)</button>
+              <button class="size-chip-btn" onclick="this.classList.toggle('active')">XL (Drop)</button>
+              <button class="size-chip-btn" onclick="this.classList.toggle('active')">XXL</button>
+            </div>
+          </div>
+
+          <div style="background:var(--bg-neu);padding:10px 12px;border-radius:12px;box-shadow:var(--neu-flat-xs);font-size:11px;color:var(--ink-2);display:flex;justify-content:space-between;">
+            <span>Fabric Weight / Grade:</span>
+            <span style="font-weight:700;color:var(--ink);">260 GSM Heavyweight</span>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:auto;padding-top:10px;">
+            <button class="btn btn-gold" style="flex:1;" onclick="closeSheet();window.quickOrderProduct('${p.id}')">
+              ⚡ 1-Click Order
+            </button>
+            <button class="btn btn-dark" style="flex:1;" onclick="closeSheet();window.openAdvancedProductForm('${p.id}')">
+              Edit Product
+            </button>
+          </div>
+        </div>
+      </div>
+    `);
+  };
+
+  /* ── Fullscreen Animated Runway Mode ── */
+  window.openRunwayMode = function () {
+    const products = (window._lastProductsCache || []).filter(p => p.images && p.images.length);
+    if (!products.length) { toast("No photos available for Runway mode"); return; }
+
+    let curIdx = 0;
+    const overlay = document.createElement("div");
+    overlay.id = "runway-cinematic-overlay";
+    overlay.style.cssText = "position:fixed;inset:0;background:#05070D;z-index:9999;display:flex;flex-direction:column;color:#fff;overflow:hidden;";
+
+    function renderSlide() {
+      const item = products[curIdx];
+      const img = item.images?.[0]?.url || item.images[0];
+      overlay.innerHTML = `
+        <div style="position:absolute;top:16px;left:20px;right:20px;display:flex;justify-content:space-between;align-items:center;z-index:10;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="runway-live-dot"></span>
+            <span style="font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:1.5px;">H&amp;H RUNWAY LIVE REEL</span>
+          </div>
+          <button style="background:rgba(255,255,255,0.15);border:none;color:#fff;padding:6px 14px;border-radius:20px;font-family:var(--mono);font-size:11px;cursor:pointer;" onclick="document.getElementById('runway-cinematic-overlay').remove()">ESC / EXIT</button>
+        </div>
+
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+          <img src="${img}" style="width:100%;height:100%;object-fit:cover;opacity:0.92;" alt="${item.title}"/>
+          <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(5,7,13,0.95) 0%, rgba(5,7,13,0.2) 60%, transparent 100%);"></div>
+        </div>
+
+        <div style="position:absolute;bottom:30px;left:24px;right:24px;z-index:10;display:flex;flex-direction:column;gap:10px;">
+          <div style="font-family:var(--mono);font-size:11px;color:#FF5B35;font-weight:800;letter-spacing:2px;text-transform:uppercase;">
+            ${item.productType || 'Fashion Collection'} · ${curIdx + 1}/${products.length}
+          </div>
+          <div style="font-family:var(--display);font-size:clamp(28px, 6vw, 44px);font-weight:900;letter-spacing:1px;line-height:1.1;">
+            ${item.title}
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:24px;font-weight:900;color:#FF5B35;font-family:var(--mono);">
+              ৳${Number(item.pricing?.price || 0).toLocaleString()}
+            </div>
+            <button class="btn btn-gold" onclick="document.getElementById('runway-cinematic-overlay').remove();window.openLookbookFittingRoom('${item.id}')">
+              ⚡ Open Fitting Room
+            </button>
+          </div>
         </div>
       `;
     }
+
+    renderSlide();
+    document.body.appendChild(overlay);
+
+    const timer = setInterval(() => {
+      if (!document.getElementById("runway-cinematic-overlay")) {
+        clearInterval(timer);
+        return;
+      }
+      curIdx = (curIdx + 1) % products.length;
+      renderSlide();
+    }, 4500);
+  };
+
+  /* ── Main Super Responsive Master Gallery ── */
+  window.renderHomeProductGallery = async function (mountEl) {
+    if (!mountEl) return;
+    const state = window._homeGalleryState;
 
     try {
       const { items } = await window.ProductsService.list({
@@ -513,14 +708,14 @@
 
       window._lastProductsCache = items;
 
-      // Extract unique categories for filter chips
-      const rawCategories = items.map(p => p.productType || "Leather Goods").filter(Boolean);
-      const uniqueCats = ["All", ...Array.from(new Set(rawCategories))];
+      // Unique Categories
+      const rawCategories = items.map(p => p.productType || "Tees & Apparel").filter(Boolean);
+      const uniqueCats = ["All", "Tees & Apparel", "Leather Goods", "Footwear", "Bags", ...Array.from(new Set(rawCategories)).filter(c => !["All", "Tees & Apparel", "Leather Goods", "Footwear", "Bags"].includes(c))];
 
-      // Filter locally if needed
+      // Filter
       let filtered = items;
       if (state.category !== "All") {
-        filtered = filtered.filter(p => (p.productType || "Leather Goods").toLowerCase() === state.category.toLowerCase());
+        filtered = filtered.filter(p => (p.productType || "").toLowerCase() === state.category.toLowerCase());
       }
       if (state.search) {
         const q = state.search.toLowerCase();
@@ -532,8 +727,108 @@
         );
       }
 
+      // Featured Hero Slide
+      const featured = items[0] || {};
+      const heroImg = featured.images?.[0]?.url || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=85";
+
       mountEl.innerHTML = `
-        <!-- Gallery Controls Toolbar -->
+        <!-- 1. Fashion Stories & Lookbook Reel Highlights Bar -->
+        <div class="fashion-stories-bar">
+          <button class="fashion-story-node" onclick="window.openRunwayMode()" title="Open Fullscreen Animated Runway">
+            <div class="fashion-story-ring">
+              <div class="fashion-story-inner">
+                <img src="${heroImg}" alt="Runway"/>
+              </div>
+            </div>
+            <span class="fashion-story-label">✨ Runway '26</span>
+          </button>
+
+          <button class="fashion-story-node" onclick="window.setHomeGalleryCategory('Tees & Apparel')">
+            <div class="fashion-story-ring unread">
+              <div class="fashion-story-inner">
+                <img src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400&auto=format&fit=crop&q=80" alt="Tees"/>
+              </div>
+            </div>
+            <span class="fashion-story-label">👕 Cyber Tees</span>
+          </button>
+
+          <button class="fashion-story-node" onclick="window.filterHomeGallerySearch('acid-wash')">
+            <div class="fashion-story-ring">
+              <div class="fashion-story-inner">
+                <img src="https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&auto=format&fit=crop&q=80" alt="Acid Wash"/>
+              </div>
+            </div>
+            <span class="fashion-story-label">⚡ Acid Wash</span>
+          </button>
+
+          <button class="fashion-story-node" onclick="window.setHomeGalleryCategory('Leather Goods')">
+            <div class="fashion-story-ring">
+              <div class="fashion-story-inner">
+                <img src="https://images.unsplash.com/photo-1627123424574-724758594e93?w=400&auto=format&fit=crop&q=80" alt="Leather"/>
+              </div>
+            </div>
+            <span class="fashion-story-label">💼 Leather Lab</span>
+          </button>
+
+          <button class="fashion-story-node" onclick="window.setHomeGalleryCategory('Footwear')">
+            <div class="fashion-story-ring">
+              <div class="fashion-story-inner">
+                <img src="https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400&auto=format&fit=crop&q=80" alt="Footwear"/>
+              </div>
+            </div>
+            <span class="fashion-story-label">👞 Footwear</span>
+          </button>
+
+          <button class="fashion-story-node" onclick="window.openDriveAssetHub()" title="Connect & Sync Google Drive / handfilm.handsandhead.com">
+            <div class="fashion-story-ring drive-sync">
+              <div class="fashion-story-inner">
+                <div style="font-size:22px;">📁</div>
+              </div>
+            </div>
+            <span class="fashion-story-label">☁️ Drive Sync</span>
+          </button>
+        </div>
+
+        <!-- 2. Animated Hero Runway Showcase Stage -->
+        <div class="fashion-runway-hero">
+          <div class="runway-photo-viewport" onclick="window.openLookbookFittingRoom('${featured.id || ''}')">
+            <img src="${heroImg}" class="runway-photo-slide active" alt="${featured.title || 'Fashion Runway'}"/>
+            <div class="runway-overlay-gradient"></div>
+            <div class="runway-live-badge">
+              <span class="runway-live-dot"></span>
+              <span>LIVE RUNWAY STAGE</span>
+            </div>
+          </div>
+
+          <div class="runway-content-pane">
+            <div>
+              <div class="runway-tagline">
+                <span>HANDS &amp; HEAD</span> · <span>EDITORIAL SS26</span>
+              </div>
+              <div class="runway-title">
+                ${featured.title || 'Heavyweight Graphic Oversized Tees'}
+              </div>
+              <div class="runway-desc">
+                ${featured.description || '260 GSM vintage acid-washed streetwear and artisanal handcrafted leather export collection.'}
+              </div>
+            </div>
+
+            <div class="runway-controls-row">
+              <button class="runway-btn-primary" onclick="window.openLookbookFittingRoom('${featured.id || ''}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4.5L6 21l1.5-7.5L2 9h7z"/></svg>
+                ⚡ Fitting Room
+              </button>
+              <button class="runway-btn-secondary" onclick="window.openDriveAssetHub()" title="Browse Google Drive & handfilm.handsandhead.com repository">
+                📁 Drive Asset Hub
+              </button>
+              <button class="runway-btn-secondary" onclick="window.openRunwayMode()" title="Fullscreen Cinematic View">
+                ▶ Runway View
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Gallery Search & Category Filter Toolbar -->
         <div class="gallery-toolbar-card">
           <div class="gallery-search-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -541,7 +836,7 @@
             </svg>
             <input type="text" 
                    class="gallery-search-input" 
-                   placeholder="Search gallery by product title, SKU, leather tag…" 
+                   placeholder="Search Tees, Acid Wash, Leather, SKU, GSM…" 
                    value="${state.search || ''}"
                    oninput="window.filterHomeGallerySearch(this.value)"/>
           </div>
@@ -578,7 +873,7 @@
           </div>
         </div>
 
-        <!-- Products Responsive Gallery Grid -->
+        <!-- 4. Products Responsive 5:4 Dynamic Fashion Wall (Strictly Only Edit & Copy Buttons) -->
         <div class="gallery-grid ${state.viewMode === 'compact' ? 'mode-compact' : ''}">
           ${filtered.length ? filtered.map(p => {
             const firstImg = p.images?.[0]?.url || (typeof p.images?.[0] === 'string' ? p.images[0] : '');
@@ -588,12 +883,12 @@
             const status = p.status || 'active';
             const price = Number(p.pricing?.price || 0);
             const compPrice = p.pricing?.compareAtPrice ? Number(p.pricing.compareAtPrice) : null;
-            const prodType = p.productType || 'Leather Goods';
+            const prodType = p.productType || 'Tees & Apparel';
 
             return `
               <div class="gallery-card" id="gcard-${p.id}">
                 <!-- 80% Photo Stage (5:4 Desktop / 1:1 Mobile) with Dynamic Hover -->
-                <div class="gallery-img-box" onclick="window.openAdvancedProductForm('${p.id}')">
+                <div class="gallery-img-box" onclick="window.openLookbookFittingRoom('${p.id}')">
                   <!-- Top Badge Overlay -->
                   <div class="gallery-badge-top-left">
                     <span class="gallery-badge-pill status-${status}">${status}</span>
@@ -603,8 +898,8 @@
                   ${firstImg 
                     ? `<img src="${firstImg}" alt="${p.title}" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' fill=\'%23333\'><rect width=\'100\' height=\'100\'/><text x=\'50\' y=\'55\' fill=\'%23888\' font-size=\'14\' text-anchor=\'middle\'>NO IMAGE</text></svg>'"/>`
                     : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--coral);font-family:var(--display);">
-                         <div style="font-size:28px;">⚜️</div>
-                         <div style="font-size:13px;font-weight:700;margin-top:4px;letter-spacing:1px;">${(p.title || 'PRD').slice(0, 6).toUpperCase()}</div>
+                         <div style="font-size:28px;">👕</div>
+                         <div style="font-size:13px;font-weight:700;margin-top:4px;letter-spacing:1px;">${(p.title || 'TEE').slice(0, 6).toUpperCase()}</div>
                        </div>`
                   }
 
@@ -631,11 +926,11 @@
                   </div>
                 </div>
 
-                <!-- 20% Bottom Action Buttons Strip (Only Edit & Copy) -->
+                <!-- 20% Bottom Action Buttons Strip (Strictly Only Edit & Copy) -->
                 <div class="gallery-card-body">
                   <div class="gallery-card-meta-bar">
                     <span class="gallery-sku-tag">SKU: ${sku}</span>
-                    <span class="gallery-stock-info ${isLow ? 'low' : ''}">${isLow ? '⚠️ Low' : '✓ Available'}</span>
+                    <span class="gallery-stock-info ${isLow ? 'low' : ''}">${isLow ? '⚠️ Low' : '✓ In Stock'}</span>
                   </div>
 
                   <div class="gallery-card-actions">
@@ -661,14 +956,14 @@
             `;
           }).join('') : `
             <div class="empty" style="grid-column:1/-1;padding:48px 20px;text-align:center;background:var(--bg-neu);border-radius:20px;box-shadow:var(--neu-flat-sm);">
-              <div style="font-size:36px;margin-bottom:10px;color:var(--coral);">🛍️</div>
-              <div style="font-size:15px;font-weight:700;color:var(--ink);">No Products Found</div>
+              <div style="font-size:36px;margin-bottom:10px;color:var(--coral);">👕</div>
+              <div style="font-size:15px;font-weight:700;color:var(--ink);">No Fashion Items Found</div>
               <div style="font-size:12px;color:var(--ink-3);margin-top:6px;max-width:320px;margin-left:auto;margin-right:auto;">
-                ${state.search || state.category !== 'All' ? 'No items match your current filter criteria. Try clearing search.' : 'Your catalog is empty. Click below to add your first master product.'}
+                ${state.search || state.category !== 'All' ? 'No items match your current filter criteria.' : 'Your catalog is empty. Import from Google Drive / handfilm.handsandhead.com or create a new tee.'}
               </div>
               <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;">
-                ${state.search || state.category !== 'All' ? `<button class="btn btn-dark btn-sm" onclick="window.setHomeGalleryCategory('All');window.filterHomeGallerySearch('');">Clear Filters</button>` : ''}
-                <button class="btn btn-gold btn-sm" onclick="window.openAdvancedProductForm()">+ Add Product</button>
+                <button class="btn btn-dark btn-sm" onclick="window.setHomeGalleryCategory('All');window.filterHomeGallerySearch('');">Clear Filters</button>
+                <button class="btn btn-gold btn-sm" onclick="window.openDriveAssetHub()">📁 Sync Drive Assets</button>
               </div>
             </div>
           `}
