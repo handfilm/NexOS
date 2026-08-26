@@ -1682,12 +1682,12 @@ a { color:var(--coral); text-decoration:none; }
 }
 .gallery-stock-info.low { color:var(--warn); }
 
-/* Bottom Action Buttons (20% Allocation) */
+/* Bottom Action Buttons (Sleek Compact Dual Action) */
 .gallery-card-actions {
-  display:flex; align-items:center; gap:5px;
+  display:flex; align-items:center; gap:5px; margin-top:2px;
 }
 .gallery-action-btn {
-  flex:1; min-height:34px; padding:6px 8px; border-radius:var(--r-pill);
+  flex:1; min-height:28px; padding:4px 8px; border-radius:var(--r-pill);
   font-size:10.5px; font-weight:700; font-family:var(--mono);
   background:var(--bg-neu); color:var(--ink-2); border:none;
   box-shadow:var(--neu-flat-xs); cursor:pointer;
@@ -1696,7 +1696,7 @@ a { color:var(--coral); text-decoration:none; }
   touch-action:manipulation;
 }
 .gallery-action-btn:hover {
-  color:var(--coral); transform:translateY(-2px);
+  color:var(--coral); transform:translateY(-1.5px);
   box-shadow:var(--neu-hover);
 }
 .gallery-action-btn:active {
@@ -1709,14 +1709,7 @@ a { color:var(--coral); text-decoration:none; }
   background:var(--gold); color:#FFFFFF;
   box-shadow:0 4px 12px rgba(217,119,6,0.35);
 }
-.gallery-action-btn.order-btn {
-  background:var(--coral-gradient); color:#FFFFFF;
-  box-shadow:var(--coral-shadow); flex:1.25;
-}
-.gallery-action-btn.order-btn:hover {
-  transform:translateY(-2px); box-shadow:0 6px 18px rgba(255,91,53,0.55);
-}
-.gallery-action-btn svg { width:12px; height:12px; }
+.gallery-action-btn svg { width:11px; height:11px; }
 
 
 

@@ -94,24 +94,33 @@
                   ? `<img src="${p.images[0].url}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' fill=\'%23333\'><rect width=\'100\' height=\'100\'/><text x=\'50\' y=\'55\' fill=\'%23888\' font-size=\'14\' text-anchor=\'middle\'>NO IMAGE</text></svg>'">`
                   : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--gold-dim);font-family:var(--display);font-size:18px;">${(p.title || 'PRD').slice(0, 3).toUpperCase()}</div>`
                 }
+                <div style="position:absolute;top:6px;left:6px;display:flex;gap:3px;z-index:2;">
+                  <span class="pill ${p.status === 'active' ? 'ok' : p.status === 'draft' ? 'amber' : 'warn'}" style="font-size:7.5px;padding:2px 5px;font-weight:700;">${(p.status || 'active').toUpperCase()}</span>
+                </div>
               </div>
-              <div class="pt" style="font-weight:600;margin-top:6px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${p.title}">${p.title}</div>
-              <div class="pc" style="font-size:10px;color:var(--ink-3);display:flex;justify-content:space-between;align-items:center;margin:3px 0;">
+              <div class="pt" style="font-weight:700;margin-top:4px;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${p.title}">${p.title}</div>
+              <div class="pc" style="font-size:9.5px;color:var(--ink-3);display:flex;justify-content:space-between;align-items:center;margin:2px 0;">
                 <span>SKU: ${p.variants?.[0]?.sku || '—'}</span>
-                <span class="pill ${p.status === 'active' ? 'ok' : p.status === 'draft' ? 'amber' : 'warn'}" style="font-size:8px;padding:2px 6px;">${(p.status || 'active').toUpperCase()}</span>
+                <span style="font-size:9.5px;color:${(p.totalInventory || 0) <= (p.lowStockThreshold || 5) ? 'var(--warn)' : 'var(--ok)'};font-weight:600;">
+                  ▪ ${p.totalInventory || 0} in stock
+                </span>
               </div>
-              <div class="pp" style="font-size:14px;font-weight:700;color:var(--gold);margin:2px 0;">৳${Number(p.pricing?.price || 0).toLocaleString()}</div>
-              <div class="p-stock" style="font-size:10px;color:${(p.totalInventory || 0) <= (p.lowStockThreshold || 5) ? 'var(--warn)' : 'var(--ink-3)'};">
-                ▪ ${p.totalInventory || 0} in stock ${(p.totalInventory || 0) <= (p.lowStockThreshold || 5) ? '(Low)' : ''}
-              </div>
-              <div style="display:flex;gap:4px;margin-top:auto;padding-top:10px;flex-wrap:wrap;">
-                <button class="btn btn-dark btn-sm" style="flex:1;min-width:44px;" onclick="window.openAdvancedProductForm('${p.id}')">Edit</button>
-                <button class="btn btn-dark btn-sm" style="padding:4px 7px;color:var(--gold);" title="Duplicate Product" onclick="event.stopPropagation();window.duplicateProduct('${p.id}')">📋 Copy</button>
-                <button class="btn btn-dark btn-sm" style="padding:4px 7px;" title="Adjust Stock" onclick="window.openStockModal('${p.id}')">± Stock</button>
-                ${p.status !== 'archived'
-                  ? `<button class="btn btn-dark btn-sm" title="Archive" onclick="window.archiveProduct('${p.id}')">Archive</button>`
-                  : `<button class="btn btn-dark btn-sm" title="Activate" onclick="window.activateProduct('${p.id}')">Activate</button>`
-                }
+              <div class="pp" style="font-size:14.5px;font-weight:800;color:var(--coral);margin:2px 0 6px;">৳${Number(p.pricing?.price || 0).toLocaleString()}</div>
+              
+              <!-- Only Edit and Copy Buttons (Sleek, Compact, Maximizes Photo) -->
+              <div style="display:flex;gap:5px;margin-top:auto;padding-top:4px;">
+                <button class="gallery-action-btn" style="flex:1;min-height:30px;padding:4px 8px;font-size:10.5px;" onclick="event.stopPropagation();window.openAdvancedProductForm('${p.id}')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Edit
+                </button>
+                <button class="gallery-action-btn duplicate-btn" style="flex:1;min-height:30px;padding:4px 8px;font-size:10.5px;" title="Duplicate Product" onclick="event.stopPropagation();window.duplicateProduct('${p.id}')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;">
+                    <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                  </svg>
+                  Copy
+                </button>
               </div>
             </div>
           `).join('') : `
@@ -601,11 +610,13 @@
 
                   <!-- Dynamic Floating Quick-Action Pills on Image Hover -->
                   <div class="gallery-img-overlay">
-                    <button class="gallery-overlay-btn" onclick="event.stopPropagation();window.quickOrderProduct('${p.id}')">
-                      ⚡ Quick Order
+                    <button class="gallery-overlay-btn" onclick="event.stopPropagation();window.openAdvancedProductForm('${p.id}')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      Edit
                     </button>
                     <button class="gallery-overlay-btn" onclick="event.stopPropagation();window.duplicateProduct('${p.id}')" title="1-Click Duplicate">
-                      📋 Duplicate
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                      Copy
                     </button>
                   </div>
 
@@ -620,7 +631,7 @@
                   </div>
                 </div>
 
-                <!-- 20% Bottom Action Buttons Strip -->
+                <!-- 20% Bottom Action Buttons Strip (Only Edit & Copy) -->
                 <div class="gallery-card-body">
                   <div class="gallery-card-meta-bar">
                     <span class="gallery-sku-tag">SKU: ${sku}</span>
@@ -628,6 +639,14 @@
                   </div>
 
                   <div class="gallery-card-actions">
+                    <button class="gallery-action-btn" 
+                            onclick="event.stopPropagation();window.openAdvancedProductForm('${p.id}')" 
+                            title="Edit Product Details">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                      Edit
+                    </button>
                     <button class="gallery-action-btn duplicate-btn" 
                             onclick="event.stopPropagation();window.duplicateProduct('${p.id}')" 
                             title="Duplicate this product with all settings">
@@ -635,16 +654,6 @@
                         <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
                       </svg>
                       Copy
-                    </button>
-                    <button class="gallery-action-btn" 
-                            onclick="event.stopPropagation();window.openAdvancedProductForm('${p.id}')" 
-                            title="Edit Product Details">
-                      Edit
-                    </button>
-                    <button class="gallery-action-btn order-btn" 
-                            onclick="event.stopPropagation();window.quickOrderProduct('${p.id}')" 
-                            title="Quick Sale / Order for this item">
-                      ⚡ Order
                     </button>
                   </div>
                 </div>
