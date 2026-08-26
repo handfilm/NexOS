@@ -269,16 +269,55 @@
       return;
     }
 
-    // 4. Products / Catalog Trigger
+    // 4. Products / Catalog / Gallery Trigger
     if (
+      clean.includes('gallery') ||
+      clean.includes('product gallery') ||
+      clean.includes('show gallery') ||
+      clean.includes('open gallery') ||
       clean.includes('products') ||
       clean.includes('product catalog') ||
       clean.includes('open catalog') ||
       clean.includes('inventory')
     ) {
       lastCommandTime = now;
-      executeCommand('Products Catalog', () => {
-        if (typeof window.openAppModule === 'function') window.openAppModule('Products');
+      executeCommand('Product Gallery', () => {
+        const mount = document.getElementById("home-product-gallery-mount");
+        if (mount) {
+          mount.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (typeof window.openAppModule === 'function') {
+          window.openAppModule('Products');
+        }
+      });
+      return;
+    }
+
+    // 4b. Duplicate Product / Add Product Voice Commands
+    if (
+      clean.includes('duplicate product') ||
+      clean.includes('duplicate') ||
+      clean.includes('copy product')
+    ) {
+      lastCommandTime = now;
+      executeCommand('Duplicate Product', () => {
+        const firstProd = window._lastProductsCache?.[0];
+        if (firstProd && typeof window.duplicateProduct === 'function') {
+          window.duplicateProduct(firstProd.id);
+        } else {
+          toast('Select a product to duplicate');
+        }
+      });
+      return;
+    }
+
+    if (
+      clean.includes('add product') ||
+      clean.includes('new product') ||
+      clean.includes('create product')
+    ) {
+      lastCommandTime = now;
+      executeCommand('New Product', () => {
+        if (typeof window.openAdvancedProductForm === 'function') window.openAdvancedProductForm();
       });
       return;
     }

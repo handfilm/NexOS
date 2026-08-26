@@ -76,6 +76,40 @@ window.ProductsService = {
         lowStockThreshold: 20,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
+      },
+      {
+        id: "prod-dfl-04",
+        title: "Voyager Handcrafted Leather Duffel",
+        handle: "voyager-handcrafted-leather-duffel",
+        status: "active",
+        vendor: "Hands & Head",
+        productType: "Bags",
+        description: "Full-grain weekend travel bag with antique brass fittings and detachable canvas-leather strap.",
+        tags: ["duffel", "travel", "leather", "weekend"],
+        pricing: { price: 21500, compareAtPrice: 24900, cost: 12500, currency: "BDT" },
+        images: [{ url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80", alt: "Leather Duffel" }],
+        variants: [{ id: "v-dfl-cognac", title: "Cognac Tan", sku: "HH-DFL-04", price: 21500, inventoryQty: 18, availableForSale: true }],
+        totalInventory: 18,
+        lowStockThreshold: 4,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: "prod-oxf-05",
+        title: "Artisanal Leather Oxford Brogues",
+        handle: "artisanal-leather-oxford-brogues",
+        status: "active",
+        vendor: "Hands & Head",
+        productType: "Footwear",
+        description: "Goodyear welted cowhide dress shoes hand-burnished to a rich patina.",
+        tags: ["shoes", "footwear", "oxford", "formal"],
+        pricing: { price: 14200, compareAtPrice: 16500, cost: 8200, currency: "BDT" },
+        images: [{ url: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=600&auto=format&fit=crop&q=80", alt: "Leather Shoes" }],
+        variants: [{ id: "v-oxf-42", title: "Burgundy / EU 42", sku: "HH-OXF-05", price: 14200, inventoryQty: 22, availableForSale: true }],
+        totalInventory: 22,
+        lowStockThreshold: 6,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
     ];
   },
@@ -369,6 +403,47 @@ window.ProductsService = {
     } catch (e) {}
 
     return true;
+  },
+
+  /* ── Duplicate Product ── */
+  async duplicate(productId, customTitle = null) {
+    const original = await this.get(productId);
+    if (!original) throw new Error("Product not found");
+
+    const copyTitle = customTitle || `${original.title} (Copy)`;
+    const copyHandle = this._slugify(copyTitle) + "-" + Math.floor(100 + Math.random() * 900);
+
+    // Duplicate variants with new SKUs/IDs
+    const duplicatedVariants = (original.variants || []).map((v, i) => ({
+      ...v,
+      id: "v-" + Date.now().toString(36) + "-" + i,
+      sku: v.sku ? `${v.sku}-COPY` : ("HH-" + Math.floor(1000 + Math.random() * 9000)),
+      barcode: v.barcode ? `${v.barcode}-CP` : "",
+      inventoryQty: v.inventoryQty !== undefined ? Number(v.inventoryQty) : 0,
+      availableForSale: true
+    }));
+
+    const copyData = {
+      title: copyTitle,
+      handle: copyHandle,
+      description: original.description || "",
+      status: "active",
+      vendor: original.vendor || "Hands & Head",
+      productType: original.productType || "Leather Goods",
+      tags: Array.isArray(original.tags) ? [...original.tags, "duplicate"] : ["duplicate"],
+      collections: Array.isArray(original.collections) ? [...original.collections] : [],
+      pricing: original.pricing ? { ...original.pricing } : { price: 0, currency: "BDT" },
+      images: original.images ? JSON.parse(JSON.stringify(original.images)) : [],
+      variants: duplicatedVariants.length ? duplicatedVariants : undefined,
+      stock: original.totalInventory !== undefined ? original.totalInventory : 20,
+      totalInventory: original.totalInventory !== undefined ? original.totalInventory : 20,
+      lowStockThreshold: original.lowStockThreshold || 5,
+      storeId: original.storeId || "default"
+    };
+
+    const newId = await this.create(copyData);
+    await this._logActivity("product_duplicated", newId, copyTitle);
+    return { id: newId, product: { id: newId, ...copyData } };
   },
 
   /* ── Inventory Adjustment with Ledger Movement ── */

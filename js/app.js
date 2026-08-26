@@ -250,7 +250,9 @@ const I = {
   hammer:'<svg viewBox="0 0 24 24"><path d="M15 12l-8.5 8.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 010-3L12 9"/><path d="M17.64 15L22 10.64M20.35 6.35L6.36 20.35M13 6l2-2 4 4-2 2M3 20l7-7"/></svg>',
   leather:'<svg viewBox="0 0 24 24"><path d="M12 2C8 2 4 5 4 9c0 5 8 13 8 13s8-8 8-13c0-4-3.6-7-8-7z"/><circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none"/></svg>',
   rmg:'<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
-  mic:'<svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="currentColor"/><path d="M19 10v2a7 7 0 01-14 0v-2H3v2a9 9 0 008 8.94V23h2v-2.06A9 9 0 0021 12v-2h-2z" fill="currentColor"/></svg>'
+  mic:'<svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="currentColor"/><path d="M19 10v2a7 7 0 01-14 0v-2H3v2a9 9 0 008 8.94V23h2v-2.06A9 9 0 0021 12v-2h-2z" fill="currentColor"/></svg>',
+  copy:'<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2" fill="none"/></svg>',
+  grid:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'
 };
 
 /* ── State ── */
@@ -479,15 +481,31 @@ async function renderLiteHome(b) {
       </div>
     </div>
 
+    <div class="sec-h" style="padding-top:20px;">
+      <span class="sec-h-label">Product Showcase &amp; Master Gallery</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-sm btn-dark" onclick="window.openAdvancedProductForm()" style="font-size:11px;padding:4px 10px;" title="Add new product">+ New Product</button>
+        <span class="sec-h-action" onclick="openAppModule('Products')">Manage All →</span>
+      </div>
+    </div>
+    <div id="home-product-gallery-mount" class="home-product-gallery-wrap"></div>
+
     <div class="sec-h" style="padding-top:18px;">
       <span class="sec-h-label">Recent Orders</span>
       <span class="sec-h-action" onclick="openAllOrders()">All →</span>
     </div>
     <div class="orders-container" id="recentList">${ordersListHtml(o.slice(0,5))}</div>
-    <div style="height:12px;"></div>
+    <div style="height:16px;"></div>
   `;
 
   setupQuickOrderLogic();
+  
+  // Render Super Responsive Home Product Gallery
+  const galleryMount = document.getElementById("home-product-gallery-mount");
+  if (galleryMount && typeof window.renderHomeProductGallery === "function") {
+    window.renderHomeProductGallery(galleryMount);
+  }
+
   try {
     const [sf, of2] = await Promise.all([spine("getStats"), spine("listOrders")]);
     LS.set("stats", sf); LS.set("orders", of2.items);

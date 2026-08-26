@@ -92,7 +92,7 @@
               <div class="pim" onclick="window.openAdvancedProductForm('${p.id}')" style="cursor:pointer;overflow:hidden;position:relative;">
                 ${p.images?.[0]?.url
                   ? `<img src="${p.images[0].url}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' fill=\'%23333\'><rect width=\'100\' height=\'100\'/><text x=\'50\' y=\'55\' fill=\'%23888\' font-size=\'14\' text-anchor=\'middle\'>NO IMAGE</text></svg>'">`
-                  : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--gold-dim);font-family:var(--mono);font-size:16px;">${(p.title || 'PRD').slice(0, 3).toUpperCase()}</div>`
+                  : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--gold-dim);font-family:var(--display);font-size:18px;">${(p.title || 'PRD').slice(0, 3).toUpperCase()}</div>`
                 }
               </div>
               <div class="pt" style="font-weight:600;margin-top:6px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${p.title}">${p.title}</div>
@@ -104,9 +104,10 @@
               <div class="p-stock" style="font-size:10px;color:${(p.totalInventory || 0) <= (p.lowStockThreshold || 5) ? 'var(--warn)' : 'var(--ink-3)'};">
                 ▪ ${p.totalInventory || 0} in stock ${(p.totalInventory || 0) <= (p.lowStockThreshold || 5) ? '(Low)' : ''}
               </div>
-              <div style="display:flex;gap:4px;margin-top:auto;padding-top:10px;">
-                <button class="btn btn-dark btn-sm" style="flex:1;" onclick="window.openAdvancedProductForm('${p.id}')">Edit</button>
-                <button class="btn btn-dark btn-sm" style="padding:4px 8px;" title="Adjust Stock" onclick="window.openStockModal('${p.id}')">± Stock</button>
+              <div style="display:flex;gap:4px;margin-top:auto;padding-top:10px;flex-wrap:wrap;">
+                <button class="btn btn-dark btn-sm" style="flex:1;min-width:44px;" onclick="window.openAdvancedProductForm('${p.id}')">Edit</button>
+                <button class="btn btn-dark btn-sm" style="padding:4px 7px;color:var(--gold);" title="Duplicate Product" onclick="event.stopPropagation();window.duplicateProduct('${p.id}')">📋 Copy</button>
+                <button class="btn btn-dark btn-sm" style="padding:4px 7px;" title="Adjust Stock" onclick="window.openStockModal('${p.id}')">± Stock</button>
                 ${p.status !== 'archived'
                   ? `<button class="btn btn-dark btn-sm" title="Archive" onclick="window.archiveProduct('${p.id}')">Archive</button>`
                   : `<button class="btn btn-dark btn-sm" title="Activate" onclick="window.activateProduct('${p.id}')">Activate</button>`
@@ -202,11 +203,14 @@
           </div>
         </div>
 
-        <div style="display:flex;gap:8px;margin-top:14px;">
-          <button class="btn btn-gold" id="p_save_btn" style="flex:1;" onclick="window.submitAdvancedProduct()">
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+          <button class="btn btn-gold" id="p_save_btn" style="flex:1;min-width:140px;" onclick="window.submitAdvancedProduct()">
             ${p ? 'Save Changes' : 'Publish Product'}
           </button>
           ${p ? `
+            <button class="btn btn-dark" style="color:var(--gold);" title="Duplicate as new product" onclick="window.duplicateProduct('${p.id}');closeSheet();">
+              📋 Duplicate
+            </button>
             <button class="btn btn-dark" style="color:var(--warn);" onclick="window.deleteProductPrompt('${p.id}')">
               Delete
             </button>
@@ -335,6 +339,361 @@
     closeSheet();
     const container = document.getElementById("mod-Products");
     if (container) window.render.Products(container);
+  };
+
+  window.duplicateProduct = async function (productId, customTitle = null) {
+    try {
+      toast("Duplicating product…");
+      const res = await window.ProductsService.duplicate(productId, customTitle);
+      toast(`✓ Duplicated as "${res.product.title}"`);
+
+      // Refresh Products module if open
+      const prodContainer = document.getElementById("mod-Products");
+      if (prodContainer) window.render.Products(prodContainer);
+
+      // Refresh Home Gallery if present
+      if (typeof window.refreshHomeProductGallery === "function") {
+        window.refreshHomeProductGallery();
+      }
+      return res;
+    } catch (e) {
+      console.error("Duplicate error:", e);
+      toast("Duplicate failed: " + e.message);
+    }
+  };
+
+  window.quickOrderProduct = function (productId) {
+    const p = (window._lastProductsCache || []).find(x => x.id === productId);
+    if (!p) { toast("Product details not available"); return; }
+
+    const itemInput = document.getElementById("q_item");
+    const priceInput = document.getElementById("q_price");
+    const sku = p.variants?.[0]?.sku || p.id.slice(0, 6);
+
+    if (itemInput && priceInput) {
+      itemInput.value = `${p.title} (${sku})`;
+      priceInput.value = p.pricing?.price || 0;
+      toast(`Populated "${p.title}" to Quick Order ⚡`);
+      
+      const orderPanel = document.querySelector(".order-panel");
+      if (orderPanel) {
+        orderPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+        orderPanel.classList.add("highlight-pulse");
+        setTimeout(() => orderPanel.classList.remove("highlight-pulse"), 1600);
+      }
+      const phoneInput = document.getElementById("q_phone");
+      if (phoneInput) phoneInput.focus();
+    } else {
+      // If not on home page, open sheet for instant order
+      openSheet(`
+        <h3>Quick Order — ${p.title}</h3>
+        <p class="hint">SKU: ${sku} · Price: ৳${Number(p.pricing?.price || 0).toLocaleString()}</p>
+        <div style="padding:0 20px 24px;">
+          <div class="field"><label>Customer Phone or Email *</label>
+            <input id="modal_q_phone" placeholder="e.g. +880 1712 345678 or buyer@fashion.eu"/>
+          </div>
+          <div class="field"><label>Quantity</label>
+            <input id="modal_q_qty" type="number" value="1" min="1"/>
+          </div>
+          <div class="field"><label>Payment Channel</label>
+            <select id="modal_q_channel">
+              <option value="whatsapp">WhatsApp Direct</option>
+              <option value="bkash">bKash Merchant</option>
+              <option value="nagad">Nagad</option>
+              <option value="bank">Bank Wire / TT</option>
+            </select>
+          </div>
+          <button class="btn btn-gold" style="margin-top:10px;" onclick="window.submitModalQuickOrder('${p.id}')">
+            Confirm &amp; Log Order
+          </button>
+        </div>
+      `);
+    }
+  };
+
+  window.submitModalQuickOrder = async function (productId) {
+    const p = (window._lastProductsCache || []).find(x => x.id === productId);
+    const phone = document.getElementById("modal_q_phone")?.value.trim();
+    const qty = parseInt(document.getElementById("modal_q_qty")?.value) || 1;
+    const channel = document.getElementById("modal_q_channel")?.value || "whatsapp";
+
+    if (!phone) { toast("Please enter customer contact"); return; }
+
+    try {
+      toast("Logging order…");
+      const price = (p?.pricing?.price || 0) * qty;
+      const orderPayload = {
+        item: `${p?.title || 'Product'} (x${qty})`,
+        price,
+        phone,
+        method: channel
+      };
+
+      if (window.OrdersService) {
+        await window.OrdersService.create({
+          customer: { name: phone, email: phone.includes("@") ? phone : "", phone },
+          items: [{ productId, title: p?.title, quantity: qty, price: p?.pricing?.price || 0 }],
+          pricing: { subtotal: price, total: price, currency: "BDT" },
+          paymentMethod: channel,
+          status: "confirmed",
+          source: "gallery_quick_order"
+        });
+      }
+
+      toast("Order recorded successfully ✓");
+      closeSheet();
+      if (typeof renderTabbar === "function") renderTabbar();
+    } catch (e) {
+      toast("Error: " + e.message);
+    }
+  };
+
+  /* ═══════════════════════════════════════════════════════════
+     SUPER RESPONSIVE MASTER PRODUCT GALLERY (HOME & CATALOG)
+     ═══════════════════════════════════════════════════════════ */
+  window._homeGalleryState = {
+    category: "All",
+    search: "",
+    viewMode: "showcase" // 'showcase' | 'compact'
+  };
+
+  window.setHomeGalleryCategory = function (cat) {
+    window._homeGalleryState.category = cat;
+    window.refreshHomeProductGallery();
+  };
+
+  window.setHomeGalleryViewMode = function (mode) {
+    window._homeGalleryState.viewMode = mode;
+    window.refreshHomeProductGallery();
+  };
+
+  window.filterHomeGallerySearch = function (q) {
+    window._homeGalleryState.search = q || "";
+    window.refreshHomeProductGallery();
+  };
+
+  window.refreshHomeProductGallery = async function () {
+    const mount = document.getElementById("home-product-gallery-mount");
+    if (mount) {
+      await window.renderHomeProductGallery(mount);
+    }
+  };
+
+  window.renderHomeProductGallery = async function (mountEl) {
+    if (!mountEl) return;
+    const state = window._homeGalleryState;
+
+    // Show initial loading skeleton if first time
+    if (!window._lastProductsCache || !window._lastProductsCache.length) {
+      mountEl.innerHTML = `
+        <div style="padding:28px;text-align:center;color:var(--ink-3);font-family:var(--mono);font-size:12px;">
+          <div style="font-size:24px;margin-bottom:8px;animation:spin 1s linear infinite;display:inline-block;">⚡</div>
+          <div>Loading Super Responsive Product Gallery…</div>
+        </div>
+      `;
+    }
+
+    try {
+      const { items } = await window.ProductsService.list({
+        search: state.search,
+        productType: state.category === "All" ? "" : state.category,
+        status: "all",
+        sortBy: "updatedAt",
+        sortDir: "desc"
+      });
+
+      window._lastProductsCache = items;
+
+      // Extract unique categories for filter chips
+      const rawCategories = items.map(p => p.productType || "Leather Goods").filter(Boolean);
+      const uniqueCats = ["All", ...Array.from(new Set(rawCategories))];
+
+      // Filter locally if needed
+      let filtered = items;
+      if (state.category !== "All") {
+        filtered = filtered.filter(p => (p.productType || "Leather Goods").toLowerCase() === state.category.toLowerCase());
+      }
+      if (state.search) {
+        const q = state.search.toLowerCase();
+        filtered = filtered.filter(p =>
+          (p.title || "").toLowerCase().includes(q) ||
+          (p.variants?.[0]?.sku || "").toLowerCase().includes(q) ||
+          (p.productType || "").toLowerCase().includes(q) ||
+          (p.tags || []).some(t => t.toLowerCase().includes(q))
+        );
+      }
+
+      mountEl.innerHTML = `
+        <!-- Gallery Controls Toolbar -->
+        <div class="gallery-toolbar-card">
+          <div class="gallery-search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input type="text" 
+                   class="gallery-search-input" 
+                   placeholder="Search gallery by product title, SKU, leather tag…" 
+                   value="${state.search || ''}"
+                   oninput="window.filterHomeGallerySearch(this.value)"/>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;">
+            <div class="gallery-filter-chips">
+              ${uniqueCats.map(cat => `
+                <button class="gallery-chip ${state.category.toLowerCase() === cat.toLowerCase() ? 'active' : ''}" 
+                        onclick="window.setHomeGalleryCategory('${cat}')">
+                  ${cat}
+                </button>
+              `).join('')}
+            </div>
+
+            <div class="gallery-view-modes">
+              <button class="gallery-view-btn ${state.viewMode === 'showcase' ? 'active' : ''}" 
+                      onclick="window.setHomeGalleryViewMode('showcase')" 
+                      title="Showcase Cards View">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+                </svg>
+              </button>
+              <button class="gallery-view-btn ${state.viewMode === 'compact' ? 'active' : ''}" 
+                      onclick="window.setHomeGalleryViewMode('compact')" 
+                      title="Compact Grid View">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="4" height="4"/><rect x="10" y="3" width="4" height="4"/><rect x="17" y="3" width="4" height="4"/>
+                  <rect x="3" y="10" width="4" height="4"/><rect x="10" y="10" width="4" height="4"/><rect x="17" y="10" width="4" height="4"/>
+                  <rect x="3" y="17" width="4" height="4"/><rect x="10" y="17" width="4" height="4"/><rect x="17" y="17" width="4" height="4"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Responsive Gallery Grid -->
+        <div class="gallery-grid ${state.viewMode === 'compact' ? 'mode-compact' : ''}">
+          ${filtered.length ? filtered.map(p => {
+            const firstImg = p.images?.[0]?.url || (typeof p.images?.[0] === 'string' ? p.images[0] : '');
+            const sku = p.variants?.[0]?.sku || 'HH-' + (p.id ? p.id.slice(0, 4) : 'GEN');
+            const stock = p.totalInventory !== undefined ? p.totalInventory : 20;
+            const isLow = stock <= (p.lowStockThreshold || 5);
+            const status = p.status || 'active';
+            const price = Number(p.pricing?.price || 0);
+            const compPrice = p.pricing?.compareAtPrice ? Number(p.pricing.compareAtPrice) : null;
+            const prodType = p.productType || 'Leather Goods';
+
+            return `
+              <div class="gallery-card" id="gcard-${p.id}">
+                <!-- 80% Photo Stage (5:4 Desktop / 1:1 Mobile) with Dynamic Hover -->
+                <div class="gallery-img-box" onclick="window.openAdvancedProductForm('${p.id}')">
+                  <!-- Top Badge Overlay -->
+                  <div class="gallery-badge-top-left">
+                    <span class="gallery-badge-pill status-${status}">${status}</span>
+                    ${p.tags && p.tags.includes('duplicate') ? '<span class="gallery-badge-pill" style="color:var(--gold);">COPY</span>' : ''}
+                  </div>
+
+                  ${firstImg 
+                    ? `<img src="${firstImg}" alt="${p.title}" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' fill=\'%23333\'><rect width=\'100\' height=\'100\'/><text x=\'50\' y=\'55\' fill=\'%23888\' font-size=\'14\' text-anchor=\'middle\'>NO IMAGE</text></svg>'"/>`
+                    : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--coral);font-family:var(--display);">
+                         <div style="font-size:28px;">⚜️</div>
+                         <div style="font-size:13px;font-weight:700;margin-top:4px;letter-spacing:1px;">${(p.title || 'PRD').slice(0, 6).toUpperCase()}</div>
+                       </div>`
+                  }
+
+                  <!-- Dynamic Floating Quick-Action Pills on Image Hover -->
+                  <div class="gallery-img-overlay">
+                    <button class="gallery-overlay-btn" onclick="event.stopPropagation();window.quickOrderProduct('${p.id}')">
+                      ⚡ Quick Order
+                    </button>
+                    <button class="gallery-overlay-btn" onclick="event.stopPropagation();window.duplicateProduct('${p.id}')" title="1-Click Duplicate">
+                      📋 Duplicate
+                    </button>
+                  </div>
+
+                  <!-- Integrated In-Photo Info Scrim (Maximizes 80% Viewable Photo) -->
+                  <div class="gallery-photo-scrim">
+                    <div class="gallery-scrim-type">${prodType}</div>
+                    <div class="gallery-scrim-title" title="${p.title}">${p.title}</div>
+                    <div class="gallery-scrim-price-row">
+                      <div class="gallery-scrim-price">৳${price.toLocaleString()} ${compPrice ? `<span style="font-size:11px;opacity:0.75;text-decoration:line-through;margin-left:4px;">৳${compPrice.toLocaleString()}</span>` : ''}</div>
+                      <div class="gallery-scrim-stock ${isLow ? 'low' : ''}">● ${stock} in stock</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 20% Bottom Action Buttons Strip -->
+                <div class="gallery-card-body">
+                  <div class="gallery-card-meta-bar">
+                    <span class="gallery-sku-tag">SKU: ${sku}</span>
+                    <span class="gallery-stock-info ${isLow ? 'low' : ''}">${isLow ? '⚠️ Low' : '✓ Available'}</span>
+                  </div>
+
+                  <div class="gallery-card-actions">
+                    <button class="gallery-action-btn duplicate-btn" 
+                            onclick="event.stopPropagation();window.duplicateProduct('${p.id}')" 
+                            title="Duplicate this product with all settings">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                      </svg>
+                      Copy
+                    </button>
+                    <button class="gallery-action-btn" 
+                            onclick="event.stopPropagation();window.openAdvancedProductForm('${p.id}')" 
+                            title="Edit Product Details">
+                      Edit
+                    </button>
+                    <button class="gallery-action-btn order-btn" 
+                            onclick="event.stopPropagation();window.quickOrderProduct('${p.id}')" 
+                            title="Quick Sale / Order for this item">
+                      ⚡ Order
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('') : `
+            <div class="empty" style="grid-column:1/-1;padding:48px 20px;text-align:center;background:var(--bg-neu);border-radius:20px;box-shadow:var(--neu-flat-sm);">
+              <div style="font-size:36px;margin-bottom:10px;color:var(--coral);">🛍️</div>
+              <div style="font-size:15px;font-weight:700;color:var(--ink);">No Products Found</div>
+              <div style="font-size:12px;color:var(--ink-3);margin-top:6px;max-width:320px;margin-left:auto;margin-right:auto;">
+                ${state.search || state.category !== 'All' ? 'No items match your current filter criteria. Try clearing search.' : 'Your catalog is empty. Click below to add your first master product.'}
+              </div>
+              <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;">
+                ${state.search || state.category !== 'All' ? `<button class="btn btn-dark btn-sm" onclick="window.setHomeGalleryCategory('All');window.filterHomeGallerySearch('');">Clear Filters</button>` : ''}
+                <button class="btn btn-gold btn-sm" onclick="window.openAdvancedProductForm()">+ Add Product</button>
+              </div>
+            </div>
+          `}
+        </div>
+      `;
+
+      // Enable horizontal mouse drag-to-scroll for category chips
+      const chipsEl = mountEl.querySelector('.gallery-filter-chips');
+      if (chipsEl) {
+        let isDown = false;
+        let startX, scrollLeft;
+        chipsEl.addEventListener('mousedown', (e) => {
+          isDown = true;
+          startX = e.pageX - chipsEl.offsetLeft;
+          scrollLeft = chipsEl.scrollLeft;
+        });
+        chipsEl.addEventListener('mouseleave', () => { isDown = false; });
+        chipsEl.addEventListener('mouseup', () => { isDown = false; });
+        chipsEl.addEventListener('mousemove', (e) => {
+          if (!isDown) return;
+          e.preventDefault();
+          const x = e.pageX - chipsEl.offsetLeft;
+          const walk = (x - startX) * 1.5;
+          chipsEl.scrollLeft = scrollLeft - walk;
+        });
+      }
+    } catch (err) {
+      console.error("Gallery render error:", err);
+      mountEl.innerHTML = `
+        <div style="padding:20px;color:var(--warn);background:var(--bg-neu);border-radius:14px;box-shadow:var(--neu-flat-sm);">
+          Failed to load product gallery: ${err.message}
+        </div>
+      `;
+    }
   };
 
   /* ═══════════════════════════════════════════════════════════
