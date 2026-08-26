@@ -1,6 +1,8 @@
 {
   "name": "Hands & Head",
   "description": "Headless B2B Platform and Seller OS for leather export, fashion catalog, CRM, and order management.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": [
+    "camera"
+  ],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

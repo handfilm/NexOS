@@ -886,7 +886,13 @@ function exitProduction() { mode="lite"; applyTheme("lite"); render(); toast("Ex
 function toast(m) { const t=document.getElementById("toast"); if(!t)return; t.innerText=m; t.classList.add("on"); setTimeout(()=>t.classList.remove("on"),2500); }
 
 /* ── Utility ── */
-function startCamera() { openSheet(`<h3>Camera Engine</h3><div class="cam-stage"><div style="color:var(--ink-3);font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;">Active on native deployment</div></div>`); }
+function startCamera(mode = 'photo') {
+  if (window.CameraEngine && typeof window.CameraEngine.open === 'function') {
+    window.CameraEngine.open({ mode });
+  } else {
+    openSheet(`<h3>Camera Engine</h3><div class="cam-stage"><div style="color:var(--ink-3);font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;">Initializing camera optics…</div></div>`);
+  }
+}
 function openAllOrders() { openAppModule('Orders'); }
 function ordersListHtml(o) {
   if(!o||!o.length) return `<div class="empty">No orders yet</div>`;
