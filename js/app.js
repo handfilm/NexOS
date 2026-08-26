@@ -249,7 +249,8 @@ const I = {
   fx:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M6 10h12M8 6l2 2M16 6l-2 2"/></svg>',
   hammer:'<svg viewBox="0 0 24 24"><path d="M15 12l-8.5 8.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 010-3L12 9"/><path d="M17.64 15L22 10.64M20.35 6.35L6.36 20.35M13 6l2-2 4 4-2 2M3 20l7-7"/></svg>',
   leather:'<svg viewBox="0 0 24 24"><path d="M12 2C8 2 4 5 4 9c0 5 8 13 8 13s8-8 8-13c0-4-3.6-7-8-7z"/><circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none"/></svg>',
-  rmg:'<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'
+  rmg:'<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
+  mic:'<svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="currentColor"/><path d="M19 10v2a7 7 0 01-14 0v-2H3v2a9 9 0 008 8.94V23h2v-2.06A9 9 0 0021 12v-2h-2z" fill="currentColor"/></svg>'
 };
 
 /* ── State ── */
@@ -405,6 +406,9 @@ async function renderLiteHome(b) {
 
     <div class="sec-h" style="padding-top:14px;"><span class="sec-h-label">Quick Access</span></div>
     <div class="action-rail">
+      <button class="action-node" onclick="window.VoiceEngine.toggle()">
+        <div class="action-icon" style="color:var(--coral);">${I.mic}</div><div class="action-label">Voice</div>
+      </button>
       <button class="action-node" onclick="startCamera()">
         <div class="action-icon">${I.cam}</div><div class="action-label">Capture</div>
       </button>
@@ -652,6 +656,7 @@ const NAV = [
   {label:"Inventory",icon:I.box,app:"Inventory"},
   {label:"Shipment Tracking",icon:I.truck,app:"Tracking"},
   {sep:"Intelligence"},
+  {label:"Voice Commands (Mic)",icon:I.mic,fn:"window.VoiceEngine.toggle()"},
   {label:"Analytics",icon:I.chart,app:"Analytics"},
   {label:"NexAI Forecast",icon:I.ai,app:"NexAI"},
   {label:"FX Rates",icon:I.fx,app:"FXRates"},
@@ -714,6 +719,7 @@ const MODULE_MAP = {
 function renderDrawerNav() {
   return NAV.map(n => {
     if (n.sep)  return `<span class="nav-section">${n.sep}</span>`;
+    if (n.fn)   return `<button class="nav-row" onclick="${n.fn};closeDrawer();" style="color:var(--coral);"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div><span class="nav-ext" style="color:var(--coral);">MIC</span></button>`;
     if (n.url)  return `<button class="nav-row" onclick="window.open('${n.url}','_blank');closeDrawer();"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div><span class="nav-ext">↗ EXT</span></button>`;
     if (n.app)  return `<button class="nav-row" onclick="closeDrawer();openAppModule('${n.app}');"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div>${n.chev ? '<span class="nav-chev">›</span>' : ''}</button>`;
     if (n.gate) return `<button class="nav-row" onclick="closeDrawer();openGate('${n.gate}');" style="color:var(--ok);"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div><span class="nav-ext" style="color:var(--ok);">PIN</span></button>`;
