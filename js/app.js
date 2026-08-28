@@ -481,6 +481,61 @@ async function renderLiteHome(b) {
       </div>
     </div>
 
+    <!-- Neumorphic Apps Shelf (Ref Photos 1 & 2) -->
+    <div class="sec-h" style="padding-top:18px;">
+      <span class="sec-h-label">Apps</span>
+      <span class="sec-h-action" onclick="openDrawer()">All (4) →</span>
+    </div>
+    <div class="neu-apps-list" style="display:flex;flex-direction:column;gap:10px;margin:0 0 16px;">
+      <!-- Accounting Sync App Card -->
+      <div class="neu-app-card" onclick="openAppModule('Accounting')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
+        <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--coral);flex-shrink:0;">
+          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:700;color:var(--ink);">Accounting Sync</div>
+          <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">QBO · Xero · Zoho · Auto-Post</div>
+        </div>
+        <span class="pill ok" style="font-size:8px;">READY</span>
+      </div>
+
+      <!-- Auto Social Post App Card -->
+      <div class="neu-app-card" onclick="openAppModule('SocialPost')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
+        <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;">
+          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:700;color:var(--ink);">Auto Social Post</div>
+          <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">WhatsApp Catalog · Meta Feed · 1-Click</div>
+        </div>
+        <span class="pill ok" style="font-size:8px;">ACTIVE</span>
+      </div>
+
+      <!-- Meta Live Feed App Card -->
+      <div class="neu-app-card" onclick="openAppModule('MetaFeed')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
+        <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;">
+          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:700;color:var(--ink);">Meta Live Feed</div>
+          <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Instagram &amp; Facebook Commerce</div>
+        </div>
+        <span class="pill info" style="font-size:8px;">SYNCED</span>
+      </div>
+
+      <!-- Daraz Sync App Card -->
+      <div class="neu-app-card" onclick="openAppModule('DarazSync')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
+        <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;">
+          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:700;color:var(--ink);">Daraz Sync</div>
+          <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">South Asia Marketplace Bridge</div>
+        </div>
+        <span class="pill amber" style="font-size:8px;">READY</span>
+      </div>
+    </div>
+
     <div class="sec-h" style="padding-top:20px;">
       <span class="sec-h-label">Product Showcase &amp; Master Gallery</span>
       <div style="display:flex;gap:8px;align-items:center;">
@@ -889,14 +944,22 @@ function openGate(role = 'expert') {
   setTimeout(() => document.getElementById("gatePin").focus(), 300);
 }
 function closeGate() { document.getElementById("gate").classList.remove("on"); document.getElementById("gateScrim").classList.remove("on"); document.getElementById("gatePin").value=""; }
-function tryGate() {
+async function tryGate() {
   const pin = document.getElementById("gatePin").value.trim();
   const role = _pendingGateRole || 'expert';
-  if (pin === PINS[role]) {
+  let isValid = false;
+  if (window.NexAuth && typeof window.NexAuth.verifyOperatorPin === 'function') {
+    isValid = await window.NexAuth.verifyOperatorPin(pin);
+  }
+  if (!isValid && typeof PINS !== 'undefined' && PINS[role]) {
+    isValid = (pin === PINS[role]);
+  }
+
+  if (isValid) {
     mode = role; expScreen = "dashboard"; closeGate(); applyTheme(role); render();
-    toast(role === 'production' ? "Production View Active ✓" : "Expert OS Unlocked ✓");
+    toast(role === 'production' ? "Production View Active ✓" : "Operator OS Unlocked ✓");
   } else {
-    toast("Access Denied");
+    toast("Access Denied — Incorrect Operator PIN");
     const g = document.getElementById("gate");
     g.style.animation = "shake 0.45s ease";
     setTimeout(() => g.style.animation="", 450);

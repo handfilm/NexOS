@@ -70,7 +70,7 @@
       <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="currentColor"/><path d="M19 10v2a7 7 0 01-14 0v-2H3v2a9 9 0 008 8.94V23h2v-2.06A9 9 0 0021 12v-2h-2z" fill="currentColor"/></svg>
       <div class="voice-pulse-ring"></div>
     </button>
-    <div id="modeTag" class="mode-badge" onclick="openAuthModal()" style="cursor:pointer;" title="Click to view Operator Profile / Change Role">Operator</div>
+    <div id="modeTag" class="mode-badge" onclick="window.openAccountProfileModal ? window.openAccountProfileModal() : openAuthModal()" style="cursor:pointer;" title="Click to view Account &amp; Workspace Profile">Operator</div>
     <button class="tbar-btn" onclick="openAiChat()" style="position:relative;" title="NexAI Assistant">
       <svg viewBox="0 0 24 24"><path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
       <div class="notif-dot" id="aiDot" style="display:none;"></div>
@@ -132,19 +132,22 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-storage-compat.js"></script>
 
-<!-- Firebase Foundation (Phase 1) -->
-<script src="js/firebase-config.js?v=4.1.0"></script>
-<script src="js/firebase-auth.js?v=4.1.0"></script>
-<script src="js/firebase-products.js?v=4.1.0"></script>
-<script src="js/firebase-customers.js?v=4.1.0"></script>
-<script src="js/firebase-orders.js?v=4.1.0"></script>
+<!-- Firebase Foundation & Event Architecture -->
+<script src="js/firebase-events.js?v=4.2.0"></script>
+<script src="js/firebase-config.js?v=4.2.0"></script>
+<script src="js/firebase-auth.js?v=4.2.0"></script>
+<script src="js/firebase-products.js?v=4.2.0"></script>
+<script src="js/firebase-customers.js?v=4.2.0"></script>
+<script src="js/firebase-orders.js?v=4.2.0"></script>
+<script src="js/firebase-accounting.js?v=4.2.0"></script>
+<script src="js/firebase-social.js?v=4.2.0"></script>
 
-<script src="js/api.js?v=4.1.0"></script>
-<script src="js/camera.js?v=4.1.0"></script>
-<script src="js/voice.js?v=4.1.0"></script>
-<script src="js/app.js?v=4.1.0"></script>
-<script src="js/modules.js?v=4.1.0"></script>
-<script src="js/firebase-modules-patch.js?v=4.1.0"></script>
+<script src="js/api.js?v=4.2.0"></script>
+<script src="js/camera.js?v=4.2.0"></script>
+<script src="js/voice.js?v=4.2.0"></script>
+<script src="js/app.js?v=4.2.0"></script>
+<script src="js/modules.js?v=4.2.0"></script>
+<script src="js/firebase-modules-patch.js?v=4.2.0"></script>
 
 </body>
 </html>
