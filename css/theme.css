@@ -1934,6 +1934,38 @@ a { color:var(--coral); text-decoration:none; }
   box-shadow:0 4px 12px rgba(255, 91, 53, 0.4);
 }
 
+/* ── Accounting Sync Status Indicator & Retry Action Component Styles ── */
+.btn-warn-action {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--warn);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  box-shadow: var(--neu-flat-xs);
+  transition: all 0.22s var(--ease-bouncy);
+  cursor: pointer;
+}
+.btn-warn-action:hover {
+  background: var(--warn);
+  color: #FFFFFF;
+  border-color: var(--warn);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+  transform: translateY(-1.5px);
+}
+.btn-warn-action:active {
+  transform: translateY(1px);
+  box-shadow: var(--neu-pressed-sm);
+}
+
+.sync-status-indicator-wrap {
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+
 
 
 

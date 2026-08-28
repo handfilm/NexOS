@@ -483,10 +483,37 @@ async function renderLiteHome(b) {
 
     <!-- Neumorphic Apps Shelf (Ref Photos 1 & 2) -->
     <div class="sec-h" style="padding-top:18px;">
-      <span class="sec-h-label">Apps</span>
-      <span class="sec-h-action" onclick="openDrawer()">All (4) →</span>
+      <span class="sec-h-label">Apps &amp; Pages</span>
+      <span class="sec-h-action" onclick="openAppModule('CustomApps')">All Apps Studio →</span>
     </div>
     <div class="neu-apps-list" style="display:flex;flex-direction:column;gap:10px;margin:0 0 16px;">
+      <!-- Skyhara Flagship Boutique App Card -->
+      <div class="neu-app-card" onclick="openAppModule('Skyhara')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;border:1px solid var(--gold-dim);transition:all 0.25s var(--ease-bouncy);">
+        <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;">
+          <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;stroke-width:1.8;fill:none;"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="font-size:14px;font-weight:700;color:var(--ink);">Skyhara</div>
+            <span class="pill gold" style="font-size:7.5px;">FLAGSHIP</span>
+          </div>
+          <div style="font-size:10.5px;color:var(--coral);font-family:var(--mono);">handsandhead.com/pages/skyhara</div>
+        </div>
+        <span class="pill ok" style="font-size:8px;">BOUTIQUE</span>
+      </div>
+
+      <!-- Custom Page & App Builder Card -->
+      <div class="neu-app-card" onclick="openAppModule('CustomApps')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
+        <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--coral);flex-shrink:0;">
+          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:700;color:var(--ink);">Create Own App / Page</div>
+          <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Build &amp; publish apps like Skyhara</div>
+        </div>
+        <span class="pill info" style="font-size:8px;">BUILDER</span>
+      </div>
+
       <!-- Accounting Sync App Card -->
       <div class="neu-app-card" onclick="openAppModule('Accounting')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
         <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--coral);flex-shrink:0;">
@@ -716,8 +743,9 @@ const NAV = [
   {label:"Portal Launcher",icon:I.link,url:"https://handfilm.github.io/portal/"},
   {label:"FrontEnd (Handsandhead)",icon:I.globe,url:"https://handfilm.myshopify.com/pages/handsandhead"},
   {sep:"Portals HUB"},
-  {label:"Custom Apps",icon:I.box,app:"CustomApps"},
-  {label:"Enterprise Apps",icon:I.store,app:"EnterpriseApps"},
+  {label:"Skyhara Boutique",icon:I.spark,app:"Skyhara"},
+  {label:"Create Own App",icon:I.box,app:"CustomApps"},
+  {label:"Custom Apps Studio",icon:I.store,app:"EnterpriseApps"},
   {sep:"Buyer Portals"},
   {label:"Arutemika — Leather EU",icon:I.leather,app:"PortalArutemika"},
   {label:"HANDS & HEAD — RMG",icon:I.rmg,app:"PortalRMG"},
@@ -736,6 +764,7 @@ const NAV = [
   {label:"Compliance Docs",icon:I.doc,app:"Compliance"},
   {label:"Push Notifications",icon:I.bell,app:"Notifications"},
   {sep:"Apps"},
+  {label:"Skyhara (Flagship)",icon:I.spark,app:"Skyhara"},
   {label:"Accounting Sync",icon:I.wallet,app:"Accounting"},
   {label:"Auto Social Post",icon:I.megaphone,app:"SocialPost"},
   {label:"Meta Live Feed",icon:I.spark,app:"MetaFeed"},
@@ -785,11 +814,38 @@ const MODULE_MAP = {
   "Arutemika — Leather EU": "PortalArutemika",
   "PortalRMG": "PortalRMG",
   "HANDS & HEAD — RMG": "PortalRMG",
+  "Skyhara": "Skyhara",
+  "skyhara": "Skyhara",
+  "Skyhara Boutique": "Skyhara",
   "CustomApps": "CustomApps",
-  "EnterpriseApps": "EnterpriseApps"
+  "Create Own App": "CustomApps",
+  "EnterpriseApps": "CustomApps",
+  "Custom Apps Studio": "CustomApps"
 };
 
 function renderDrawerNav() {
+  const storeId = window.NexAuth?.getStoreId() || "default";
+  const customAcc = JSON.parse(localStorage.getItem(`hh_custom_accounting_${storeId}`) || "[]");
+  const customSoc = JSON.parse(localStorage.getItem(`hh_custom_social_${storeId}`) || "[]");
+  const customApps = JSON.parse(localStorage.getItem(`hh_custom_apps_registry_${storeId}`) || "[]");
+
+  let customNavItems = "";
+  if (customApps.length) {
+    customNavItems += `<span class="nav-section">Your Custom Pages &amp; Apps</span>`;
+    customApps.forEach(ca => {
+      customNavItems += `<button class="nav-row" onclick="closeDrawer();openAppModule('Skyhara');window.render.Skyhara(document.getElementById('body'), '${ca.slug}');"><div class="nav-row-left"><span class="nav-ic">${I.spark}</span>${ca.name}</div><span class="nav-ext" style="color:var(--gold);">PAGE</span></button>`;
+    });
+  }
+  if (customAcc.length || customSoc.length) {
+    customNavItems += `<span class="nav-section">Connected Custom Apps</span>`;
+    customAcc.forEach(ca => {
+      customNavItems += `<button class="nav-row" onclick="closeDrawer();openAppModule('Accounting');window.openAccountingSettingsModal('${ca.id}');"><div class="nav-row-left"><span class="nav-ic">${I.wallet}</span>${ca.name}</div><span class="nav-ext" style="color:var(--coral);">ERP</span></button>`;
+    });
+    customSoc.forEach(cs => {
+      customNavItems += `<button class="nav-row" onclick="closeDrawer();openAppModule('SocialPost');"><div class="nav-row-left"><span class="nav-ic">${I.megaphone}</span>${cs.name}</div><span class="nav-ext" style="color:var(--coral);">SOC</span></button>`;
+    });
+  }
+
   return NAV.map(n => {
     if (n.sep)  return `<span class="nav-section">${n.sep}</span>`;
     if (n.fn)   return `<button class="nav-row" onclick="${n.fn};closeDrawer();" style="color:var(--coral);"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div><span class="nav-ext" style="color:var(--coral);">MIC</span></button>`;
@@ -797,7 +853,7 @@ function renderDrawerNav() {
     if (n.app)  return `<button class="nav-row" onclick="closeDrawer();openAppModule('${n.app}');"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div>${n.chev ? '<span class="nav-chev">›</span>' : ''}</button>`;
     if (n.gate) return `<button class="nav-row" onclick="closeDrawer();openGate('${n.gate}');" style="color:var(--ok);"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div><span class="nav-ext" style="color:var(--ok);">PIN</span></button>`;
     return `<button class="nav-row" onclick="navTo('${n.label}')"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div></button>`;
-  }).join("");
+  }).join("") + customNavItems;
 }
 
 /* ── DOM Mechanics & Dynamic Module Router ── */
