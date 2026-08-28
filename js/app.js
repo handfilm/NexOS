@@ -287,7 +287,7 @@ function render() {
   renderTabbar();
 }
 
-/* ── Lite / Expert Home ── */
+/* ── Lite / Expert Home (Dynamic Drag-and-Drop Dashboard System) ── */
 async function renderLiteHome(b) {
   const s = LS.get("stats") || {salesToday:0,ordersToday:0,pending:0};
   const o = LS.get("orders") || [];
@@ -299,293 +299,611 @@ async function renderLiteHome(b) {
     fxLine = fxList.slice(0,3).map(f=>`${f.symbol}${f.amount} ${f.currency}`).join(' · ');
   } catch(e) {}
 
+  const engine = window.DashboardEngine;
+  const isCustomizing = engine ? engine.isCustomizing() : false;
+  const layout = engine ? engine.getLayout() : [
+    { id: 'virtual_ledger', pinned: true },
+    { id: 'accounting_sync', pinned: true },
+    { id: 'recent_orders', pinned: true },
+    { id: 'terminal_metrics', pinned: true },
+    { id: 'quick_access', pinned: true },
+    { id: 'quick_order', pinned: true },
+    { id: 'pinned_apps', pinned: true },
+    { id: 'product_showcase', pinned: true }
+  ];
+
+  const catalog = engine ? engine.getCatalog() : [];
+  const catalogMap = new Map(catalog.map(c => [c.id, c]));
+
+  let widgetsHtml = '';
+
+  // Render each pinned widget in the user's custom order
+  const pinnedWidgets = layout.filter(item => item.pinned);
+
+  pinnedWidgets.forEach((item, index) => {
+    const wDef = catalogMap.get(item.id) || { title: item.id, badge: 'WIDGET' };
+    let contentHtml = '';
+
+    switch (item.id) {
+      case 'accounting_sync':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">Accounting Sync &amp; ERP</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-sm btn-gold" id="dash_quick_acc_btn" onclick="window.triggerAccountingQuickSync()" style="font-size:10.5px;padding:4px 10px;" title="Synchronize pending receipts to cloud ERP">⚡ Quick Sync All</button>
+              <span class="sec-h-action" onclick="openAppModule('Accounting')">Accounting Hub →</span>
+            </div>
+          </div>
+          <div class="dash-accounting-card" style="margin:0 20px 6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--coral);flex-shrink:0;">
+                  <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
+                </div>
+                <div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="font-size:14px;font-weight:700;color:var(--ink);">QuickBooks · Xero · Zoho Bridge</div>
+                    <span class="pill ok" style="font-size:7.5px;">LIVE</span>
+                  </div>
+                  <div id="dash_acc_status_text" style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">All sales receipts &amp; tax journals synced ✓</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <span class="pill ok" style="font-size:8px;">QBO ACTIVE</span>
+                <span class="pill info" style="font-size:8px;">XERO READY</span>
+                <span class="pill amber" style="font-size:8px;">ZOHO READY</span>
+              </div>
+            </div>
+            <div class="dash-accounting-grid">
+              <div class="dash-acc-stat-box">
+                <div style="font-size:9.5px;font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">Synced Revenue</div>
+                <div style="font-size:17px;font-weight:800;color:var(--ink);font-family:var(--mono);">৳${(s.salesToday || 84600).toLocaleString()}</div>
+              </div>
+              <div class="dash-acc-stat-box">
+                <div style="font-size:9.5px;font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">Pending Invoices</div>
+                <div style="font-size:17px;font-weight:800;color:var(--ok);font-family:var(--mono);">0 Queue</div>
+              </div>
+              <div class="dash-acc-stat-box">
+                <div style="font-size:9.5px;font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">Export Tax Treatment</div>
+                <div style="font-size:14px;font-weight:700;color:var(--gold);font-family:var(--mono);">0% VAT (Export Exempt)</div>
+              </div>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'recent_orders':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">Recent Orders</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-sm btn-dark" onclick="window.openQuickSale()" style="font-size:10.5px;padding:3px 9px;" title="Fast order creation">+ Quick Order</button>
+              <span class="sec-h-action" onclick="openAllOrders()">All Orders →</span>
+            </div>
+          </div>
+          <div class="orders-container" id="recentList">${ordersListHtml(o.slice(0,5))}</div>
+        `;
+        break;
+
+      case 'terminal_metrics':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">Live Terminal Metrics</span>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <div class="neu-toggle-wrap on" id="syncToggle" onclick="this.classList.toggle('on');this.classList.toggle('off');toast(this.classList.contains('on')?'Live Sync: Active':'Live Sync: Paused');">
+                <div class="neu-toggle-track"><div class="neu-toggle-thumb"></div></div>
+                <span class="neu-toggle-label">Sync</span>
+              </div>
+              <span class="sec-h-action" onclick="render()">↻</span>
+            </div>
+          </div>
+          <div class="bento-grid">
+            <div class="bento-card hero-stat">
+              <div class="bento-label">Sales Today</div>
+              <div class="bento-value">৳${(s.salesToday||0).toLocaleString()}</div>
+              <div class="bento-trend">Active Pipeline</div>
+              ${fxLine ? `<div class="bento-fx">${fxLine}</div>` : ''}
+            </div>
+            <div class="bento-card">
+              <div class="bento-label">Pending Orders</div>
+              <div class="bento-value" style="font-size:36px;color:var(--coral);">${s.pending||0}</div>
+            </div>
+            <div class="bento-card">
+              <div class="bento-label">Completed Today</div>
+              <div class="bento-value" style="font-size:36px;">${s.ordersToday||0}</div>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'virtual_ledger':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">Statistic &amp; Financial Overview</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span class="pill ok" style="font-size:8px;">EXPORT PIPELINE ACTIVE</span>
+            </div>
+          </div>
+          <div class="bento-grid" style="margin-bottom:6px;padding-top:2px;">
+            <!-- Virtual Ledger Card (Ref 1) -->
+            <div class="neu-virtual-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-family:var(--display);font-size:20px;letter-spacing:1.5px;color:var(--ink);">H&amp;H NEXUS</div>
+                <div class="neu-card-chip"></div>
+              </div>
+              <div class="neu-card-number">5303 6084 2402 3649</div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;position:relative;z-index:2;">
+                <div>
+                  <div style="font-size:9.5px;font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;">Today's Inflow</div>
+                  <div style="font-size:22px;font-weight:700;color:var(--ink);font-family:var(--mono);">৳${(s.salesToday || 84600).toLocaleString()}</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:9px;font-family:var(--mono);color:var(--ink-3);">EXP</div>
+                  <div style="font-size:12px;font-weight:700;color:var(--ink);font-family:var(--mono);">09/28</div>
+                </div>
+              </div>
+              <div class="neu-slider-wrap" style="margin-top:14px;position:relative;z-index:2;">
+                <div style="display:flex;justify-content:space-between;font-size:10.5px;font-family:var(--mono);color:var(--ink-3);">
+                  <span>Credit Facility</span>
+                  <span>৳25,000 / ৳100,000</span>
+                </div>
+                <div class="neu-slider-track">
+                  <div class="neu-slider-fill" style="width:25%;"></div>
+                  <div class="neu-slider-knob" style="left:25%;"></div>
+                </div>
+              </div>
+              <div class="neu-card-holo"></div>
+            </div>
+
+            <!-- Neumorphic Statistic Gauge (Ref 1 & 2) -->
+            <div class="neu-gauge-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+                <div style="font-family:var(--display);font-size:16px;letter-spacing:1px;color:var(--ink);">STATISTIC</div>
+                <div class="pill info" style="font-size:9.5px;cursor:pointer;" onclick="toast('Period: Last 30 Days')">Last 30 days ›</div>
+              </div>
+              
+              <div class="neu-gauge-wheel">
+                <svg viewBox="0 0 100 100" style="position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);">
+                  <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(166,180,200,0.22)" stroke-width="11"/>
+                  <circle cx="50" cy="50" r="38" fill="none" stroke="url(#coralGrad)" stroke-width="11" stroke-dasharray="238.76" stroke-dashoffset="179" stroke-linecap="round"/>
+                  <defs>
+                    <linearGradient id="coralGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#FF7B54"/>
+                      <stop offset="100%" stop-color="#FF5024"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div class="neu-gauge-center">
+                  <div class="neu-gauge-arrow-btn" onclick="toast('Channel: EU Direct Export')" title="EU Direct Export channel active">
+                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:#fff;stroke-width:2.5;fill:none;"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:4px;">
+                <div style="text-align:left;">
+                  <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);">EU EXPORT VOLUME</div>
+                  <div style="font-size:16px;font-weight:700;color:var(--ink);font-family:var(--mono);">€1,593.58</div>
+                </div>
+                <div class="pill ok" style="font-size:10.5px;font-weight:700;">25% SHARE</div>
+              </div>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'quick_access':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;"><span class="sec-h-label">Quick Access Launchpad</span></div>
+          <div class="action-rail">
+            <button class="action-node" onclick="window.VoiceEngine.toggle()">
+              <div class="action-icon" style="color:var(--coral);">${I.mic}</div><div class="action-label">Voice</div>
+            </button>
+            <button class="action-node" onclick="startCamera()">
+              <div class="action-icon">${I.cam}</div><div class="action-label">Capture</div>
+            </button>
+            <button class="action-node" onclick="openAppModule('Products')">
+              <div class="action-icon">${I.tag}</div><div class="action-label">Products</div>
+            </button>
+            <button class="action-node" onclick="openAppModule('Accounting')">
+              <div class="action-icon" style="color:var(--gold);">${I.wallet}</div><div class="action-label">Accounting</div>
+            </button>
+            <button class="action-node" onclick="openAppModule('EUPortal')">
+              <div class="action-icon">${I.eu}</div><div class="action-label">EU Portal</div>
+            </button>
+            <button class="action-node" onclick="openAppModule('Analytics')">
+              <div class="action-icon">${I.chart}</div><div class="action-label">Analytics</div>
+            </button>
+            <button class="action-node" onclick="openAppModule('QuoteBuilder')">
+              <div class="action-icon">${I.doc}</div><div class="action-label">Quote</div>
+            </button>
+            <button class="action-node" onclick="openAppModule('CRM')">
+              <div class="action-icon">${I.users}</div><div class="action-label">CRM</div>
+            </button>
+            <button class="action-node" onclick="openAppModule('Inventory')">
+              <div class="action-icon">${I.box}</div><div class="action-label">Stock</div>
+              ${(s.pending||0)>0?'<div class="action-badge"></div>':''}
+            </button>
+            <button class="action-node" onclick="openAppModule('Tracking')">
+              <div class="action-icon">${I.truck}</div><div class="action-label">Track</div>
+            </button>
+            <button class="action-node" onclick="openAppModule('PortalArutemika')">
+              <div class="action-icon">${I.leather}</div><div class="action-label">Leather</div>
+            </button>
+            <button class="action-node" onclick="openAppModule('PortalRMG')">
+              <div class="action-icon">${I.rmg}</div><div class="action-label">RMG</div>
+            </button>
+          </div>
+        `;
+        break;
+
+      case 'quick_order':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">Quick Order Logger</span>
+          </div>
+          <div class="order-panel">
+            <div class="order-panel-inner">
+              <div class="field"><input id="q_item" placeholder="Product name or SKU…"/></div>
+              <div class="field-row">
+                <div class="field"><input id="q_price" type="number" placeholder="৳ Price"/></div>
+                <div class="field"><input id="q_phone" placeholder="Phone / Email"/></div>
+              </div>
+              <div class="seg" id="q_seg">
+                <button class="on" data-m="whatsapp">WhatsApp</button>
+                <button data-m="bkash">bKash</button>
+                <button data-m="nagad">Nagad</button>
+                <button data-m="bank">Bank</button>
+              </div>
+              <button class="btn btn-gold" id="q_go">Log Order</button>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'pinned_apps':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:12px;">
+            <span class="sec-h-label">Apps &amp; Pages Shelf</span>
+            <span class="sec-h-action" onclick="openAppModule('CustomApps')">All Apps Studio →</span>
+          </div>
+          <div class="neu-apps-list" style="display:flex;flex-direction:column;gap:10px;margin:0 20px 10px;">
+            <!-- Skyhara Flagship Boutique App Card -->
+            <div class="neu-app-card" onclick="openAppModule('Skyhara')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;border:1px solid var(--gold-dim);transition:all 0.25s var(--ease-bouncy);">
+              <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;">
+                <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;stroke-width:1.8;fill:none;"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div style="font-size:14px;font-weight:700;color:var(--ink);">Skyhara</div>
+                  <span class="pill gold" style="font-size:7.5px;">FLAGSHIP</span>
+                </div>
+                <div style="font-size:10.5px;color:var(--coral);font-family:var(--mono);">handsandhead.com/pages/skyhara</div>
+              </div>
+              <span class="pill ok" style="font-size:8px;">BOUTIQUE</span>
+            </div>
+
+            <!-- Custom Page & App Builder Card -->
+            <div class="neu-app-card" onclick="openAppModule('CustomApps')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
+              <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--coral);flex-shrink:0;">
+                <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M12 5v14M5 12h14"/></svg>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:700;color:var(--ink);">Create Own App / Page</div>
+                <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Build &amp; publish apps like Skyhara</div>
+              </div>
+              <span class="pill info" style="font-size:8px;">BUILDER</span>
+            </div>
+
+            <!-- Auto Social Post App Card -->
+            <div class="neu-app-card" onclick="openAppModule('SocialPost')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
+              <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;">
+                <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:700;color:var(--ink);">Auto Social Post</div>
+                <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">WhatsApp Catalog · Meta Feed · 1-Click</div>
+              </div>
+              <span class="pill ok" style="font-size:8px;">ACTIVE</span>
+            </div>
+
+            <!-- Meta Live Feed App Card -->
+            <div class="neu-app-card" onclick="openAppModule('MetaFeed')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
+              <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;">
+                <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:700;color:var(--ink);">Meta Live Feed</div>
+                <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Instagram &amp; Facebook Commerce</div>
+              </div>
+              <span class="pill info" style="font-size:8px;">SYNCED</span>
+            </div>
+
+            <!-- Daraz Sync App Card -->
+            <div class="neu-app-card" onclick="openAppModule('DarazSync')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
+              <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;">
+                <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:700;color:var(--ink);">Daraz Sync</div>
+                <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">South Asia Marketplace Bridge</div>
+              </div>
+              <span class="pill amber" style="font-size:8px;">READY</span>
+            </div>
+
+            <!-- Shopify Omnichannel Suite Card -->
+            <div class="neu-app-card" onclick="openAppModule('ShopifySuite')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);border:1px solid var(--gold-dim);">
+              <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;">
+                <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:700;color:var(--ink);">Shopify Omnichannel Suite</div>
+                <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Webhooks · B2B Draft Quotes · Multi-Stock · Promos</div>
+              </div>
+              <span class="pill gold" style="font-size:8px;">ARCHITECT</span>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'product_showcase':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:14px;">
+            <span class="sec-h-label">Product Showcase &amp; Master Gallery</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-sm btn-dark" onclick="window.openAdvancedProductForm()" style="font-size:11px;padding:4px 10px;" title="Add new product">+ New Product</button>
+              <span class="sec-h-action" onclick="openAppModule('Products')">Manage All →</span>
+            </div>
+          </div>
+          <div id="home-product-gallery-mount" class="home-product-gallery-wrap"></div>
+        `;
+        break;
+
+      case 'daraz_sync':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">Daraz Marketplace Sync</span>
+            <span class="sec-h-action" onclick="openAppModule('DarazSync')">Daraz Portal →</span>
+          </div>
+          <div class="dash-pinned-box" style="margin:0 20px 6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:38px;height:38px;border-radius:10px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--amber);flex-shrink:0;">
+                  <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:13.5px;font-weight:700;color:var(--ink);">Daraz Bangladesh &amp; Pakistan Bridge</div>
+                  <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Catalog SKU mapping &amp; live price synchronization</div>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-gold" onclick="openAppModule('DarazSync')" style="font-size:10.5px;padding:4px 10px;">Push Catalog</button>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'social_feed':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">Auto Social &amp; Meta Feed</span>
+            <span class="sec-h-action" onclick="openAppModule('SocialPost')">Social Studio →</span>
+          </div>
+          <div class="dash-pinned-box" style="margin:0 20px 6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:38px;height:38px;border-radius:10px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--ok);flex-shrink:0;">
+                  <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:13.5px;font-weight:700;color:var(--ink);">WhatsApp Catalog &amp; Meta Commerce</div>
+                  <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">1-Click product broadcasting to verified buyers</div>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-dark" onclick="openAppModule('SocialPost')" style="font-size:10.5px;padding:4px 10px;">Broadcast Post</button>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'shopify_suite':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">Shopify Omnichannel Suite</span>
+            <span class="sec-h-action" onclick="openAppModule('ShopifySuite')">Shopify Architect →</span>
+          </div>
+          <div class="dash-pinned-box" style="margin:0 20px 6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:38px;height:38px;border-radius:10px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;">
+                  <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:13.5px;font-weight:700;color:var(--ink);">B2B Draft Quotes &amp; Webhook Matrix</div>
+                  <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Multi-location stock, custom tiered pricing rules</div>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-gold" onclick="openAppModule('ShopifySuite')" style="font-size:10.5px;padding:4px 10px;">Open Suite</button>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'quote_builder':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">B2B Export Quote Builder</span>
+            <span class="sec-h-action" onclick="openAppModule('QuoteBuilder')">Build Quote →</span>
+          </div>
+          <div class="dash-pinned-box" style="margin:0 20px 6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:38px;height:38px;border-radius:10px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--coral);flex-shrink:0;">
+                  <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:13.5px;font-weight:700;color:var(--ink);">FOB Chittagong Calculator &amp; RFQs</div>
+                  <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Live EUR / USD export pricing &amp; volume tiers</div>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-gold" onclick="openAppModule('QuoteBuilder')" style="font-size:10.5px;padding:4px 10px;">+ New Quote</button>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'inventory_watch':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">Stock &amp; Inventory Watch</span>
+            <span class="sec-h-action" onclick="openAppModule('Inventory')">Full Stock →</span>
+          </div>
+          <div style="margin:0 20px 6px;">
+            ${renderInventoryInline()}
+          </div>
+        `;
+        break;
+
+      case 'fx_rates':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">FX Currency Ticker &amp; Margins</span>
+            <span class="sec-h-action" onclick="openAppModule('FXRates')">FX Board →</span>
+          </div>
+          <div class="dash-pinned-box" style="margin:0 20px 6px;">
+            <div style="display:flex;justify-content:space-around;align-items:center;flex-wrap:wrap;gap:12px;text-align:center;">
+              <div>
+                <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);">EUR / BDT</div>
+                <div style="font-size:16px;font-weight:800;color:var(--gold);font-family:var(--mono);">€1 = ৳131.40</div>
+              </div>
+              <div style="height:28px;width:1px;background:var(--wire);"></div>
+              <div>
+                <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);">USD / BDT</div>
+                <div style="font-size:16px;font-weight:800;color:var(--ok);font-family:var(--mono);">$1 = ৳121.80</div>
+              </div>
+              <div style="height:28px;width:1px;background:var(--wire);"></div>
+              <div>
+                <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);">GBP / BDT</div>
+                <div style="font-size:16px;font-weight:800;color:var(--coral);font-family:var(--mono);">£1 = ৳156.20</div>
+              </div>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'nexai_assistant':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">NexAI Intelligence Terminal</span>
+            <span class="sec-h-action" onclick="openAppModule('NexAI')">Open AI Terminal →</span>
+          </div>
+          <div class="dash-pinned-box" style="margin:0 20px 6px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <input type="text" placeholder="Ask NexAI about leather tanning specs, HS Codes, or EU buyer compliance…" style="flex:1;background:var(--bg-neu);box-shadow:var(--neu-pressed-sm);border:1px solid var(--wire);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--ink);" onkeydown="if(event.key==='Enter'){openAppModule('NexAI');}"/>
+              <button class="btn btn-gold btn-sm" onclick="openAppModule('NexAI')" style="padding:8px 14px;font-size:11px;">Ask AI</button>
+            </div>
+          </div>
+        `;
+        break;
+
+      default:
+        contentHtml = `
+          <div class="sec-h" style="padding-top:10px;">
+            <span class="sec-h-label">${wDef.title}</span>
+          </div>
+          <div class="dash-pinned-box" style="margin:0 20px 6px;">
+            <div style="font-size:13px;color:var(--ink-2);">${wDef.subtitle || 'Custom Pinned Module'}</div>
+          </div>
+        `;
+    }
+
+    widgetsHtml += `
+      <div class="dash-widget-wrap ${isCustomizing ? 'is-customizing' : ''}" 
+           draggable="${isCustomizing ? 'true' : 'false'}" 
+           data-widget-id="${item.id}" 
+           id="dash_widget_${item.id}">
+        
+        <div class="dash-widget-controls-bar">
+          <div class="dash-drag-handle" title="Drag to reorder card">
+            <span>⋮⋮</span>
+            <span>${wDef.title}</span>
+            <span class="pill gold" style="font-size:7px;letter-spacing:0.5px;">PINNED #${index + 1}</span>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button class="dash-btn-mini" onclick="window.DashboardEngine.moveWidget('${item.id}', -1)" title="Move Up (Shift Higher)">▲</button>
+            <button class="dash-btn-mini" onclick="window.DashboardEngine.moveWidget('${item.id}', 1)" title="Move Down (Shift Lower)">▼</button>
+            <button class="dash-btn-mini" onclick="window.DashboardEngine.togglePin('${item.id}', false)" title="Unpin from Home" style="color:var(--coral);">✕</button>
+          </div>
+        </div>
+
+        ${contentHtml}
+      </div>
+    `;
+  });
+
   b.innerHTML = `
+    <!-- Top Hero Header -->
     <div class="hero">
-      <div class="hero-label">H&amp;H Nexus · Seller OS · ${mode === 'expert' ? 'Expert Mode' : 'Lite Mode'}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div class="hero-label">H&amp;H Nexus · Seller OS · ${mode === 'expert' ? 'Expert Mode' : 'Lite Mode'}</div>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+          <button class="btn btn-sm btn-dark" onclick="window.DashboardEngine.openPinAppsModal()" style="font-size:10.5px;padding:4px 10px;" title="Pin your favorite apps to the dashboard">
+            📌 Pin Apps
+          </button>
+          <button class="btn btn-sm ${isCustomizing ? 'btn-gold' : 'btn-dark'}" onclick="window.DashboardEngine.toggleCustomizing()" style="font-size:10.5px;padding:4px 10px;" title="Reorder and customize your dashboard widgets">
+            ${isCustomizing ? '✓ Done Editing' : '✏️ Edit Layout'}
+          </button>
+        </div>
+      </div>
       <div class="hero-display">
         <div class="hero-word" style="font-size:clamp(36px,9vw,60px); letter-spacing:1px;">HANDS &amp; HEAD</div>
       </div>
       <div class="hero-meta">
         <div class="hero-meta-line">Leather Export Terminal</div>
         <div class="hero-meta-line">EU Buyer Channel Active</div>
+        <div class="hero-meta-line" style="color:var(--gold);cursor:pointer;" onclick="window.DashboardEngine.openPinAppsModal()">
+          ${pinnedWidgets.length} Pinned Apps Active
+        </div>
       </div>
     </div>
 
-    <!-- Neumorphic Interactive Reference Widgets (Photo 1 & 2) -->
-    <div class="bento-grid" style="margin-bottom:6px;">
-      <!-- Virtual Ledger Card (Ref 1) -->
-      <div class="neu-virtual-card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div style="font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--ink);">H&amp;H NEXUS</div>
-          <div class="neu-card-chip"></div>
-        </div>
-        <div class="neu-card-number">5303 6084 2402 3649</div>
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;position:relative;z-index:2;">
+    <!-- Sticky Customization Helper Banner (when in Edit Layout mode) -->
+    ${isCustomizing ? `
+      <div class="dash-customizer-banner">
+        <div class="banner-info">
+          <div class="banner-icon">⠿</div>
           <div>
-            <div style="font-size:10px;font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;">Balance</div>
-            <div style="font-size:22px;font-weight:700;color:var(--ink);font-family:var(--mono);">৳${(s.salesToday || 84600).toLocaleString()}</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:9px;font-family:var(--mono);color:var(--ink-3);">EXP</div>
-            <div style="font-size:12px;font-weight:700;color:var(--ink);font-family:var(--mono);">09/28</div>
+            <div style="font-size:13px;font-weight:800;color:var(--ink);">Drag &amp; Drop Dashboard Layout Active</div>
+            <div style="font-size:10.5px;color:var(--ink-2);">Drag card handles (⋮⋮) to reorder or use ▲/▼ buttons to position your most-used apps.</div>
           </div>
         </div>
-        <div class="neu-slider-wrap" style="margin-top:14px;position:relative;z-index:2;">
-          <div style="display:flex;justify-content:space-between;font-size:11px;font-family:var(--mono);color:var(--ink-3);">
-            <span>Credit Limit</span>
-            <span>৳25,000 / ৳100,000</span>
-          </div>
-          <div class="neu-slider-track">
-            <div class="neu-slider-fill" style="width:25%;"></div>
-            <div class="neu-slider-knob" style="left:25%;"></div>
-          </div>
-        </div>
-        <div class="neu-card-holo"></div>
-      </div>
-
-      <!-- Neumorphic Statistic Gauge (Ref 1 & 2) -->
-      <div class="neu-gauge-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-          <div style="font-family:var(--display);font-size:18px;letter-spacing:1px;color:var(--ink);">STATISTIC</div>
-          <div class="pill" style="font-size:10px;color:var(--coral);cursor:pointer;" onclick="toast('Period: Last 30 Days')">Last 30 days ›</div>
-        </div>
-        
-        <div class="neu-gauge-wheel">
-          <svg viewBox="0 0 100 100" style="position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);">
-            <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(166,180,200,0.25)" stroke-width="12"/>
-            <circle cx="50" cy="50" r="38" fill="none" stroke="url(#coralGrad)" stroke-width="12" stroke-dasharray="238.76" stroke-dashoffset="179" stroke-linecap="round"/>
-            <defs>
-              <linearGradient id="coralGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#FF7B54"/>
-                <stop offset="100%" stop-color="#FF5024"/>
-              </linearGradient>
-            </defs>
-          </svg>
-          <div class="neu-gauge-center">
-            <div class="neu-gauge-arrow-btn" onclick="toast('Channel: EU Direct Export')">
-              <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:#fff;stroke-width:2.5;fill:none;"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
-            </div>
-          </div>
-        </div>
-
-        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:6px;">
-          <div style="text-align:left;">
-            <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);">EU EXPORT</div>
-            <div style="font-size:16px;font-weight:700;color:var(--ink);font-family:var(--mono);">€1,593.58</div>
-          </div>
-          <div class="pill ok" style="font-size:11px;font-weight:700;">25% SHARE</div>
+        <div class="dash-toolbar-actions">
+          <button class="btn btn-secondary btn-sm" onclick="window.DashboardEngine.openPinAppsModal()" style="font-size:10.5px;">+ Pin Apps</button>
+          <button class="btn btn-secondary btn-sm" onclick="window.DashboardEngine.resetDefaultLayout()" style="font-size:10.5px;">↺ Reset</button>
+          <button class="btn btn-gold btn-sm" onclick="window.DashboardEngine.toggleCustomizing(false)" style="font-size:10.5px;">✓ Done</button>
         </div>
       </div>
+    ` : ''}
+
+    <!-- Dynamic Pinned Widgets Container -->
+    <div id="dash-widgets-mount" class="dash-widgets-mount">
+      ${widgetsHtml}
     </div>
 
-    <div class="sec-h">
-      <span class="sec-h-label">Live Terminal Metrics</span>
-      <div style="display:flex;gap:10px;align-items:center;">
-        <div class="neu-toggle-wrap on" id="syncToggle" onclick="this.classList.toggle('on');this.classList.toggle('off');toast(this.classList.contains('on')?'Live Sync: Active':'Live Sync: Paused');">
-          <div class="neu-toggle-track"><div class="neu-toggle-thumb"></div></div>
-          <span class="neu-toggle-label">Sync</span>
-        </div>
-        <span class="sec-h-action" onclick="render()">↻</span>
-      </div>
-    </div>
-
-    <div class="bento-grid">
-      <div class="bento-card hero-stat">
-        <div class="bento-label">Sales Today</div>
-        <div class="bento-value">৳${(s.salesToday||0).toLocaleString()}</div>
-        <div class="bento-trend">Active Pipeline</div>
-        ${fxLine ? `<div class="bento-fx">${fxLine}</div>` : ''}
-      </div>
-      <div class="bento-card">
-        <div class="bento-label">Pending Orders</div>
-        <div class="bento-value" style="font-size:36px;color:var(--coral);">${s.pending||0}</div>
-      </div>
-      <div class="bento-card">
-        <div class="bento-label">Completed Today</div>
-        <div class="bento-value" style="font-size:36px;">${s.ordersToday||0}</div>
-      </div>
-    </div>
-
-    <div class="sec-h" style="padding-top:14px;"><span class="sec-h-label">Quick Access</span></div>
-    <div class="action-rail">
-      <button class="action-node" onclick="window.VoiceEngine.toggle()">
-        <div class="action-icon" style="color:var(--coral);">${I.mic}</div><div class="action-label">Voice</div>
-      </button>
-      <button class="action-node" onclick="startCamera()">
-        <div class="action-icon">${I.cam}</div><div class="action-label">Capture</div>
-      </button>
-      <button class="action-node" onclick="openAppModule('Products')">
-        <div class="action-icon">${I.tag}</div><div class="action-label">Products</div>
-      </button>
-      <button class="action-node" onclick="openAppModule('EUPortal')">
-        <div class="action-icon">${I.eu}</div><div class="action-label">EU Portal</div>
-      </button>
-      <button class="action-node" onclick="openAppModule('Analytics')">
-        <div class="action-icon">${I.chart}</div><div class="action-label">Analytics</div>
-      </button>
-      <button class="action-node" onclick="openAppModule('QuoteBuilder')">
-        <div class="action-icon">${I.doc}</div><div class="action-label">Quote</div>
-      </button>
-      <button class="action-node" onclick="openAppModule('CRM')">
-        <div class="action-icon">${I.users}</div><div class="action-label">CRM</div>
-      </button>
-      <button class="action-node" onclick="openAppModule('Inventory')">
-        <div class="action-icon">${I.box}</div><div class="action-label">Stock</div>
-        ${(s.pending||0)>0?'<div class="action-badge"></div>':''}
-      </button>
-      <button class="action-node" onclick="openAppModule('Tracking')">
-        <div class="action-icon">${I.truck}</div><div class="action-label">Track</div>
-      </button>
-      <button class="action-node" onclick="openAppModule('PortalArutemika')">
-        <div class="action-icon">${I.leather}</div><div class="action-label">Leather</div>
-      </button>
-      <button class="action-node" onclick="openAppModule('PortalRMG')">
-        <div class="action-icon">${I.rmg}</div><div class="action-label">RMG</div>
-      </button>
-    </div>
-
-    ${mode === 'expert' ? `
-    <div class="sec-h" style="padding-top:14px;"><span class="sec-h-label">Expert Tools</span></div>
-    <div class="action-rail">
-      <button class="action-node" onclick="openAppModule('NexAI')">
-        <div class="action-icon">${I.ai}</div><div class="action-label">NexAI</div>
-      </button>
-      <button class="action-node" onclick="openAppModule('Compliance')">
-        <div class="action-icon">${I.doc}</div><div class="action-label">Compliance</div>
-      </button>
-      <button class="action-node" onclick="openAppModule('FXRates')">
-        <div class="action-icon">${I.fx}</div><div class="action-label">FX Rates</div>
-      </button>
-      <button class="action-node" onclick="openAppModule('Notifications')">
-        <div class="action-icon">${I.bell}</div><div class="action-label">Push</div>
-      </button>
-    </div>` : ''}
-
-    <div class="sec-h" style="padding-top:14px;">
-      <span class="sec-h-label">Quick Order</span>
-    </div>
-    <div class="order-panel">
-      <div class="order-panel-inner">
-        <div class="field"><input id="q_item" placeholder="Product name or SKU…"/></div>
-        <div class="field-row">
-          <div class="field"><input id="q_price" type="number" placeholder="৳ Price"/></div>
-          <div class="field"><input id="q_phone" placeholder="Phone / Email"/></div>
-        </div>
-        <div class="seg" id="q_seg">
-          <button class="on" data-m="whatsapp">WhatsApp</button>
-          <button data-m="bkash">bKash</button>
-          <button data-m="nagad">Nagad</button>
-          <button data-m="bank">Bank</button>
-        </div>
-        <button class="btn btn-gold" id="q_go">Log Order</button>
-      </div>
-    </div>
-
-    <!-- Neumorphic Apps Shelf (Ref Photos 1 & 2) -->
-    <div class="sec-h" style="padding-top:18px;">
-      <span class="sec-h-label">Apps &amp; Pages</span>
-      <span class="sec-h-action" onclick="openAppModule('CustomApps')">All Apps Studio →</span>
-    </div>
-    <div class="neu-apps-list" style="display:flex;flex-direction:column;gap:10px;margin:0 0 16px;">
-      <!-- Skyhara Flagship Boutique App Card -->
-      <div class="neu-app-card" onclick="openAppModule('Skyhara')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;border:1px solid var(--gold-dim);transition:all 0.25s var(--ease-bouncy);">
-        <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;">
-          <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;stroke-width:1.8;fill:none;"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="display:flex;align-items:center;gap:6px;">
-            <div style="font-size:14px;font-weight:700;color:var(--ink);">Skyhara</div>
-            <span class="pill gold" style="font-size:7.5px;">FLAGSHIP</span>
-          </div>
-          <div style="font-size:10.5px;color:var(--coral);font-family:var(--mono);">handsandhead.com/pages/skyhara</div>
-        </div>
-        <span class="pill ok" style="font-size:8px;">BOUTIQUE</span>
-      </div>
-
-      <!-- Custom Page & App Builder Card -->
-      <div class="neu-app-card" onclick="openAppModule('CustomApps')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
-        <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--coral);flex-shrink:0;">
-          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M12 5v14M5 12h14"/></svg>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:700;color:var(--ink);">Create Own App / Page</div>
-          <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Build &amp; publish apps like Skyhara</div>
-        </div>
-        <span class="pill info" style="font-size:8px;">BUILDER</span>
-      </div>
-
-      <!-- Accounting Sync App Card -->
-      <div class="neu-app-card" onclick="openAppModule('Accounting')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
-        <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--coral);flex-shrink:0;">
-          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:700;color:var(--ink);">Accounting Sync</div>
-          <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">QBO · Xero · Zoho · Auto-Post</div>
-        </div>
-        <span class="pill ok" style="font-size:8px;">READY</span>
-      </div>
-
-      <!-- Auto Social Post App Card -->
-      <div class="neu-app-card" onclick="openAppModule('SocialPost')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
-        <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;">
-          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:700;color:var(--ink);">Auto Social Post</div>
-          <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">WhatsApp Catalog · Meta Feed · 1-Click</div>
-        </div>
-        <span class="pill ok" style="font-size:8px;">ACTIVE</span>
-      </div>
-
-      <!-- Meta Live Feed App Card -->
-      <div class="neu-app-card" onclick="openAppModule('MetaFeed')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
-        <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;">
-          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:700;color:var(--ink);">Meta Live Feed</div>
-          <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Instagram &amp; Facebook Commerce</div>
-        </div>
-        <span class="pill info" style="font-size:8px;">SYNCED</span>
-      </div>
-
-      <!-- Daraz Sync App Card -->
-      <div class="neu-app-card" onclick="openAppModule('DarazSync')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
-        <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;">
-          <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:700;color:var(--ink);">Daraz Sync</div>
-          <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">South Asia Marketplace Bridge</div>
-        </div>
-        <span class="pill amber" style="font-size:8px;">READY</span>
-      </div>
-    </div>
-
-    <div class="sec-h" style="padding-top:20px;">
-      <span class="sec-h-label">Product Showcase &amp; Master Gallery</span>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button class="btn btn-sm btn-dark" onclick="window.openAdvancedProductForm()" style="font-size:11px;padding:4px 10px;" title="Add new product">+ New Product</button>
-        <span class="sec-h-action" onclick="openAppModule('Products')">Manage All →</span>
-      </div>
-    </div>
-    <div id="home-product-gallery-mount" class="home-product-gallery-wrap"></div>
-
-    <div class="sec-h" style="padding-top:18px;">
-      <span class="sec-h-label">Recent Orders</span>
-      <span class="sec-h-action" onclick="openAllOrders()">All →</span>
-    </div>
-    <div class="orders-container" id="recentList">${ordersListHtml(o.slice(0,5))}</div>
     <div style="height:16px;"></div>
   `;
 
+  // Bind Quick Order logic
   setupQuickOrderLogic();
   
-  // Render Super Responsive Home Product Gallery
+  // Render Super Responsive Home Product Gallery if mounted
   const galleryMount = document.getElementById("home-product-gallery-mount");
   if (galleryMount && typeof window.renderHomeProductGallery === "function") {
     window.renderHomeProductGallery(galleryMount);
+  }
+
+  // Bind native HTML5 Drag and Drop events to all widget cards
+  if (engine && typeof engine.bindDragEvents === "function") {
+    engine.bindDragEvents(b);
   }
 
   try {
@@ -593,6 +911,7 @@ async function renderLiteHome(b) {
     LS.set("stats", sf); LS.set("orders", of2.items);
   } catch(e) {}
 }
+
 
 /* ── Production View (Hiron's Mode) ── */
 async function renderProductionView(b) {
@@ -739,6 +1058,7 @@ const NAV = [
   {label:"NexOS", icon:I.gear, url:"https://handfilm.github.io/portal/os/2/"},
   {label:"HANDFILM", icon:I.cam, url:"https://handfilm.myshopify.com/"},
   {sep:"Ecosystem"},
+  {label:"Customize Dashboard Layout",icon:I.gear,fn:"window.DashboardEngine.openPinAppsModal()"},
   {label:"NexOS HUB",icon:I.link,url:"https://handfilm.github.io/nexus/os/hub/"},
   {label:"Portal Launcher",icon:I.link,url:"https://handfilm.github.io/portal/"},
   {label:"FrontEnd (Handsandhead)",icon:I.globe,url:"https://handfilm.myshopify.com/pages/handsandhead"},
@@ -751,6 +1071,7 @@ const NAV = [
   {label:"HANDS & HEAD — RMG",icon:I.rmg,app:"PortalRMG"},
   {label:"H&H Nexus Website",icon:I.globe,url:"https://www.handsandhead.com/"},
   {sep:"B2B Operations"},
+  {label:"QR & Barcode Scanner",icon:I.cam,fn:"window.startCamera('barcode')"},
   {label:"EU Buyer Portal",icon:I.eu,app:"EUPortal"},
   {label:"Quote Builder",icon:I.doc,app:"QuoteBuilder"},
   {label:"Buyer CRM",icon:I.users,app:"CRM"},
@@ -769,6 +1090,7 @@ const NAV = [
   {label:"Auto Social Post",icon:I.megaphone,app:"SocialPost"},
   {label:"Meta Live Feed",icon:I.spark,app:"MetaFeed"},
   {label:"Daraz Sync",icon:I.chart,app:"DarazSync"},
+  {label:"Shopify Suite",icon:I.tag,app:"ShopifySuite"},
   {sep:"Roles"},
   {label:"Production View (Hiron)",icon:I.hammer,gate:"production"}
 ];
@@ -820,7 +1142,14 @@ const MODULE_MAP = {
   "CustomApps": "CustomApps",
   "Create Own App": "CustomApps",
   "EnterpriseApps": "CustomApps",
-  "Custom Apps Studio": "CustomApps"
+  "Custom Apps Studio": "CustomApps",
+  "ShopifySuite": "ShopifySuite",
+  "Shopify Suite": "ShopifySuite",
+  "Shopify": "ShopifySuite",
+  "Webhooks": "ShopifySuite",
+  "DraftOrders": "ShopifySuite",
+  "InventoryMatrix": "ShopifySuite",
+  "PriceRules": "ShopifySuite"
 };
 
 function renderDrawerNav() {

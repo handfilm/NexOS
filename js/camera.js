@@ -231,15 +231,18 @@
     const reticleEl = document.getElementById('camera-scanner-reticle');
     const shutterBtn = document.getElementById('camera-shutter-btn');
     const filterBar = document.getElementById('camera-filter-bar');
+    const manualBar = document.getElementById('camera-scanner-manual-bar');
 
     if (mode === 'barcode') {
       if (reticleEl) reticleEl.style.display = 'block';
+      if (manualBar) manualBar.style.display = 'block';
       if (filterBar) filterBar.style.display = 'none';
       if (statusEl) statusEl.textContent = 'Scan Barcode / QR / SKU Code';
       if (shutterBtn) shutterBtn.style.display = 'none';
       startBarcodeScannerLoop();
     } else if (mode === 'doc') {
       if (reticleEl) reticleEl.style.display = 'none';
+      if (manualBar) manualBar.style.display = 'none';
       if (filterBar) filterBar.style.display = 'flex';
       if (statusEl) statusEl.textContent = 'Position Leather Spec / Invoice';
       if (shutterBtn) shutterBtn.style.display = 'flex';
@@ -247,6 +250,7 @@
       if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
     } else {
       if (reticleEl) reticleEl.style.display = 'none';
+      if (manualBar) manualBar.style.display = 'none';
       if (filterBar) filterBar.style.display = 'flex';
       if (statusEl) statusEl.textContent = 'Capture Leather Goods / Product Photo';
       if (shutterBtn) shutterBtn.style.display = 'flex';
@@ -276,32 +280,142 @@
     }, 350);
   }
 
-  // Handle Detected Barcode
-  function handleDetectedBarcode(code, format = 'CODE') {
+  // Handle Detected Barcode or QR Code
+  async function handleDetectedBarcode(code, format = 'QR / BARCODE') {
     playAudioChirp('beep');
     if (scanInterval) {
       clearInterval(scanInterval);
       scanInterval = null;
     }
 
+    // Clean and normalize code
+    const rawCode = String(code || '').trim();
+    let productId = null;
+    let sku = null;
+
+    // Check if code matches HH QR format: "HH:PROD:id", "HH-PRD:id", "PROD:id"
+    if (rawCode.startsWith('HH:PROD:')) {
+      productId = rawCode.replace('HH:PROD:', '').trim();
+    } else if (rawCode.startsWith('HH-PRD:')) {
+      productId = rawCode.replace('HH-PRD:', '').trim();
+    } else if (rawCode.startsWith('PROD:')) {
+      productId = rawCode.replace('PROD:', '').trim();
+    } else if (rawCode.startsWith('{') && rawCode.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(rawCode);
+        if (parsed.id) productId = parsed.id;
+        if (parsed.sku) sku = parsed.sku;
+      } catch (e) {}
+    } else if (rawCode.includes('#product/')) {
+      productId = rawCode.split('#product/')[1]?.split('?')[0];
+    } else if (rawCode.includes('/products/')) {
+      const parts = rawCode.split('/products/')[1]?.split('?')[0];
+      if (parts) productId = parts;
+    }
+
+    // Find product in catalog cache or fetch from service
+    const cache = window._lastProductsCache || [];
+    let product = null;
+
+    if (productId) {
+      product = cache.find(p => p.id === productId || p.handle === productId);
+    }
+    if (!product && (sku || rawCode)) {
+      const matchKey = (sku || rawCode).toLowerCase();
+      product = cache.find(p => 
+        (p.id && p.id.toLowerCase() === matchKey) ||
+        (p.handle && p.handle.toLowerCase() === matchKey) ||
+        (p.variants && p.variants.some(v => v.sku && v.sku.toLowerCase() === matchKey))
+      );
+    }
+
+    // If still not found and we have an ID, attempt async fetch from ProductsService
+    if (!product && productId && window.ProductsService && typeof window.ProductsService.get === 'function') {
+      try {
+        product = await window.ProductsService.get(productId);
+      } catch (e) {}
+    }
+
     const modalBody = document.getElementById('camera-scanner-result-overlay');
     if (modalBody) {
-      modalBody.innerHTML = `
-        <div class="camera-result-card">
-          <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--ok);text-transform:uppercase;">Code Detected ✓</div>
-          <div style="font-family:var(--display);font-size:26px;color:var(--ink);margin:6px 0 2px;">${code}</div>
-          <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-bottom:14px;">Format: ${format}</div>
-          
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <button class="btn btn-gold" onclick="window.CameraEngine.applyBarcodeToQuickSale('${code}')">⚡ Add to Order</button>
-            <button class="btn btn-dark" onclick="window.CameraEngine.searchCatalogByBarcode('${code}')">🔍 Search SKU</button>
+      if (product) {
+        // RICH PRODUCT DETECTED CARD
+        const v = product.variants?.[0] || {};
+        const productSku = v.sku || `HH-${(product.id || 'PRD').toUpperCase()}`;
+        const price = Number(product.pricing?.price || v.price || 0);
+        const imgUrl = product.images?.[0]?.url || 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80';
+        const stock = product.totalInventory !== undefined ? product.totalInventory : (v.inventoryQty || 0);
+
+        modalBody.innerHTML = `
+          <div class="camera-product-detected-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <span class="pill ok" style="font-size:9px;font-weight:800;letter-spacing:1px;">
+                ✓ PRODUCT MATCHED
+              </span>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--ink-3);">
+                Format: ${format}
+              </span>
+            </div>
+
+            <div style="display:flex;gap:12px;align-items:center;background:var(--bg-3);padding:10px;border-radius:10px;border:1px solid var(--wire);margin-bottom:14px;">
+              <img src="${imgUrl}" alt="${product.title}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--wire);" onerror="this.src='https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80'"/>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:9.5px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;">${product.productType || 'Leather Goods'}</div>
+                <div style="font-size:14px;font-weight:800;color:var(--ink);margin:2px 0;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${product.title}">
+                  ${product.title}
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;font-size:11px;font-family:var(--mono);margin-top:4px;">
+                  <span style="font-weight:800;color:var(--ink);font-size:13px;">৳${price.toLocaleString()}</span>
+                  <span style="color:var(--ink-3);">·</span>
+                  <span style="color:var(--ink-2);">${productSku}</span>
+                  <span style="color:var(--ink-3);">·</span>
+                  <span style="color:${stock > 5 ? 'var(--ok)' : 'var(--warn)'};font-weight:700;">${stock} in stock</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-gold" style="font-size:13px;padding:12px;font-weight:800;display:flex;justify-content:center;align-items:center;gap:6px;" onclick="window.openProductFromScanner('${product.id}')">
+                ⚡ Open Product Details
+              </button>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <button class="btn btn-dark" style="font-size:11px;padding:9px;" onclick="window.CameraEngine.applyBarcodeToQuickSale('${productSku}')">
+                  ⚡ Add to Order
+                </button>
+                <button class="btn btn-dark" style="font-size:11px;padding:9px;" onclick="window.openProductQrModal('${product.id}')">
+                  🔲 QR Hangtag
+                </button>
+              </div>
+              <button class="btn btn-secondary" style="margin-top:4px;font-size:11px;" onclick="window.CameraEngine.resumeScanner()">
+                ↻ Scan Next Item
+              </button>
+            </div>
           </div>
-          <button class="btn btn-secondary" style="margin-top:8px;" onclick="window.CameraEngine.resumeScanner()">↻ Scan Next</button>
-        </div>
-      `;
+        `;
+      } else {
+        // UNMATCHED CODE DETECTED CARD
+        modalBody.innerHTML = `
+          <div class="camera-result-card">
+            <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;">Code / QR Detected ✓</div>
+            <div style="font-family:var(--display);font-size:22px;color:var(--ink);margin:6px 0 2px;word-break:break-all;">${rawCode}</div>
+            <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-bottom:14px;">Format: ${format}</div>
+            
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn btn-gold" onclick="window.openNewProductWithSku('${rawCode}')">
+                + Create Product with this Code
+              </button>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <button class="btn btn-dark" onclick="window.CameraEngine.applyBarcodeToQuickSale('${rawCode}')">⚡ Add to Order</button>
+                <button class="btn btn-dark" onclick="window.CameraEngine.searchCatalogByBarcode('${rawCode}')">🔍 Search SKU</button>
+              </div>
+              <button class="btn btn-secondary" style="margin-top:4px;" onclick="window.CameraEngine.resumeScanner()">↻ Scan Next</button>
+            </div>
+          </div>
+        `;
+      }
       modalBody.style.display = 'flex';
     }
-    toast(`Barcode Scanned: ${code}`);
+    toast(`Scanned: ${rawCode}`);
   }
 
   // Snap Snapshot
@@ -513,6 +627,20 @@
             <!-- Barcode Result Overlay -->
             <div class="camera-scanner-result-overlay" id="camera-scanner-result-overlay" style="display:none;"></div>
 
+            <!-- Manual Barcode / QR Direct Tester (Warehouse Simulator) -->
+            <div id="camera-scanner-manual-bar" style="display:none;position:absolute;bottom:78px;left:50%;transform:translateX(-50%);width:92%;max-width:380px;z-index:25;background:rgba(14,18,27,0.88);backdrop-filter:blur(10px);border:1px solid rgba(212,163,89,0.35);border-radius:10px;padding:8px 10px;box-shadow:0 8px 24px rgba(0,0,0,0.6);">
+              <div style="font-size:8.5px;font-family:var(--mono);color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:700;display:flex;justify-content:space-between;">
+                <span>WAREHOUSE QR / BARCODE EMULATOR</span>
+                <span style="color:var(--ink-3);">ENTER SKU OR ID</span>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <input id="camera_manual_qr_input" type="text" placeholder="e.g. HH:PROD:prod-wlt-01 or HH-WLT-01" style="flex:1;height:30px;font-size:11.5px;background:#1F2937;border:1px solid #374151;color:#FFF;border-radius:6px;padding:0 8px;font-family:monospace;" onkeydown="if(event.key==='Enter') window.CameraEngine.testScan(this.value);"/>
+                <button class="btn btn-gold btn-sm" style="height:30px;padding:0 12px;font-size:11px;font-weight:700;" onclick="window.CameraEngine.testScan(document.getElementById('camera_manual_qr_input').value)">
+                  Scan
+                </button>
+              </div>
+            </div>
+
             <!-- Fallback Box (Permission Blocked / No Camera) -->
             <div class="camera-fallback-box" id="camera-fallback-box" style="display:none;">
               <div style="font-size:36px;margin-bottom:8px;">📷</div>
@@ -668,6 +796,44 @@
     }
   }
 
+  function testScan(code) {
+    if (!code || !code.trim()) {
+      toast('Please enter a barcode, SKU, or QR code to test');
+      return;
+    }
+    handleDetectedBarcode(code.trim(), 'WAREHOUSE SIMULATOR');
+  }
+
+  // Global helper to open product form directly from scanner
+  window.openProductFromScanner = function (productId) {
+    closeCameraModal();
+    if (typeof window.openAppModule === 'function') {
+      window.openAppModule('Products');
+    }
+    setTimeout(() => {
+      if (typeof window.openAdvancedProductForm === 'function') {
+        window.openAdvancedProductForm(productId);
+      }
+    }, 200);
+  };
+
+  // Global helper to open new product form with prefilled SKU from scanner
+  window.openNewProductWithSku = function (skuCode) {
+    closeCameraModal();
+    if (typeof window.openAppModule === 'function') {
+      window.openAppModule('Products');
+    }
+    setTimeout(() => {
+      if (typeof window.openAdvancedProductForm === 'function') {
+        window.openAdvancedProductForm(null);
+        setTimeout(() => {
+          const skuInput = document.getElementById('p_sku');
+          if (skuInput) skuInput.value = skuCode;
+        }, 100);
+      }
+    }, 200);
+  };
+
   // Public API
   window.CameraEngine = {
     open: openCamera,
@@ -684,6 +850,7 @@
     handleFile: handleFileSelected,
     handleTap: handleViewfinderTap,
     resumeScanner: resumeScanner,
+    testScan: testScan,
     applyBarcodeToQuickSale: applyBarcodeToQuickSale,
     searchCatalogByBarcode: searchCatalogByBarcode
   };
