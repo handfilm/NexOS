@@ -98,6 +98,11 @@
       </button>
     </div>
   </div>
+  <div class="drawer-search-wrap">
+    <svg class="drawer-search-ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+    <input type="text" id="drawerSearchInput" class="drawer-search-input" placeholder="Search portals, apps, tools…" oninput="window.filterDrawerNav(this.value)"/>
+    <button class="drawer-search-clear" id="drawerSearchClear" onclick="window.clearDrawerSearch()" title="Clear Search">✕</button>
+  </div>
   <nav class="drawer-nav" id="drawerNav"></nav>
   <div class="drawer-footer">
     <button class="tb-qsale" onclick="closeDrawer(); openQuickSale();">⚡ Quick Sale</button>

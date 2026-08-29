@@ -832,13 +832,76 @@
     };r.readAsText(file);
   };
 
-  /* ── App Stubs ── */
-  window.render.SocialPost  = stub("Auto Social Post","Claude Studio Hook armed. Connect Make.com webhook to activate.");
-  window.render.MetaFeed    = stub("Meta Live Feed","Simulated channel active. Connect Meta Graph API.");
-  window.render.DarazSync   = stub("Daraz Pipeline","SKU Mapper pending. Add Daraz seller credentials.");
-  window.render.Accounting  = stub("Accounting Sync","Connect to your accounting software via Spine Bridge.");
-  window.render.Marketing   = stub("Marketing","Campaign analytics pipeline — connect Meta Ads.");
-  window.render.OnlineStore = stub("Online Store","Theme configs. Go to Shopify Admin for full control.");
+  /* ── App Stubs & Live Connectors ── */
+  window.render.SocialPost  = window.render.SocialPost || stub("Auto Social Post","Claude Studio Hook armed. Connect Make.com webhook to activate.");
+  window.render.MetaFeed    = window.render.MetaFeed || stub("Meta Live Feed","Simulated channel active. Connect Meta Graph API.");
+  window.render.DarazSync   = window.render.DarazSync || stub("Daraz Pipeline","SKU Mapper pending. Add Daraz seller credentials.");
+  window.render.Marketing   = window.render.Marketing || stub("Marketing","Campaign analytics pipeline — connect Meta Ads.");
+  window.render.OnlineStore = window.render.OnlineStore || stub("Online Store","Theme configs. Go to Shopify Admin for full control.");
+  
+  /* Front End Storefront Portal */
+  window.render.FrontEnd = function(container) {
+    container.innerHTML = `
+      <div style="padding:16px 20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--coral);text-transform:uppercase;font-weight:700;">D2C Storefront Portal</div>
+            <h3 style="font-family:var(--display);font-size:24px;letter-spacing:1px;color:var(--ink);margin-top:2px;">Shop (Front End)</h3>
+            <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);">Direct to Consumer Online Store</div>
+          </div>
+          <button class="btn btn-gold" onclick="window.open('https://shop.handsandhead.com','_blank')" style="display:inline-flex;align-items:center;gap:6px;font-weight:700;">
+            <span>Launch shop.handsandhead.com</span>
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+          </button>
+        </div>
+        <div class="bento-card" style="box-shadow:var(--neu-flat-sm);padding:24px;text-align:center;">
+          <div style="width:56px;height:56px;border-radius:16px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--gold);margin:0 auto 16px;">
+            <svg viewBox="0 0 24 24" style="width:28px;height:28px;stroke:currentColor;stroke-width:1.8;fill:none;"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 010 20M2 12h20"/></svg>
+          </div>
+          <h4 style="font-size:18px;font-weight:700;color:var(--ink);margin-bottom:6px;">shop.handsandhead.com</h4>
+          <p style="font-size:13px;color:var(--ink-2);max-width:480px;margin:0 auto 20px;">
+            Official global D2C direct storefront for retail buyers. Synchronized live with this seller workspace terminal.
+          </p>
+          <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-gold" onclick="window.open('https://shop.handsandhead.com','_blank')">Open shop.handsandhead.com ↗</button>
+            <button class="btn btn-dark" onclick="openAppModule('Products')">Manage Products</button>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  /* Japan Store Portal */
+  window.render.JapanStore = function(container) {
+    container.innerHTML = `
+      <div style="padding:16px 20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--coral);text-transform:uppercase;font-weight:700;">Japan D2C Retail Portal</div>
+            <h3 style="font-family:var(--display);font-size:24px;letter-spacing:1px;color:var(--ink);margin-top:2px;">Japan Store (Arutemika)</h3>
+            <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);">Tokyo &amp; Nationwide Japan Online Boutique</div>
+          </div>
+          <button class="btn btn-gold" onclick="window.open('https://arutemika.official.ec','_blank')" style="display:inline-flex;align-items:center;gap:6px;font-weight:700;">
+            <span>Launch arutemika.official.ec</span>
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+          </button>
+        </div>
+        <div class="bento-card" style="box-shadow:var(--neu-flat-sm);padding:24px;text-align:center;">
+          <div style="width:56px;height:56px;border-radius:16px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--coral);margin:0 auto 16px;">
+            <svg viewBox="0 0 24 24" style="width:28px;height:28px;stroke:currentColor;stroke-width:1.8;fill:none;"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
+          </div>
+          <h4 style="font-size:18px;font-weight:700;color:var(--ink);margin-bottom:6px;">arutemika.official.ec</h4>
+          <p style="font-size:13px;color:var(--ink-2);max-width:480px;margin:0 auto 20px;">
+            Official direct-to-consumer store for Japan market on BASE platform. JPY localized catalog with domestic Tokyo delivery.
+          </p>
+          <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-gold" onclick="window.open('https://arutemika.official.ec','_blank')">Open arutemika.official.ec ↗</button>
+            <button class="btn btn-dark" onclick="openAppModule('PortalArutemika')">EU / Wholesale Portal</button>
+          </div>
+        </div>
+      </div>
+    `;
+  };
   
   // Updated Brand App Links
   window.render.RAWxOS         = () => window.location.href = "https://handfilm.github.io/RAWxOS/";

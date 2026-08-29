@@ -882,7 +882,10 @@
         <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px 12px;flex-wrap:wrap;gap:10px;">
           <div>
             <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--coral);text-transform:uppercase;font-weight:700;">Financial Integration &amp; Ledger Pipeline</div>
-            <h3 style="font-family:var(--display);font-size:24px;letter-spacing:1px;color:var(--ink);margin-top:2px;">Accounting Sync</h3>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:2px;">
+              <h3 style="font-family:var(--display);font-size:24px;letter-spacing:1px;color:var(--ink);margin:0;">Accounting Sync</h3>
+              <a href="https://account.handsandhead.com" target="_blank" class="pill info" style="font-size:9.5px;text-decoration:none;font-family:var(--mono);display:inline-flex;align-items:center;gap:4px;">🌐 account.handsandhead.com ↗</a>
+            </div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <button class="btn btn-sm btn-dark" onclick="window.AccountingService.exportCsvLedger()" style="display:inline-flex;align-items:center;gap:6px;">
@@ -896,6 +899,28 @@
               ⚙️ Settings
             </button>
           </div>
+        </div>
+
+        <!-- account.handsandhead.com Direct Connect Banner -->
+        <div style="margin:0 20px 16px;padding:16px 18px;border-radius:18px;background:var(--bg-neu);box-shadow:var(--neu-flat-sm);border:1.5px solid rgba(255,123,84,0.35);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:44px;height:44px;border-radius:14px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--coral);flex-shrink:0;">
+              <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:15px;font-weight:700;color:var(--ink);">account.handsandhead.com</span>
+                <span class="pill ok" style="font-size:8px;">CONNECTED</span>
+              </div>
+              <div style="font-size:11.5px;color:var(--ink-2);margin-top:2px;">
+                Primary Cloud Ledger &amp; Accounting Portal for Hands &amp; Head Enterprise.
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-gold" onclick="window.open('https://account.handsandhead.com','_blank')" style="font-size:12px;font-weight:700;padding:8px 16px;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--gold-shadow);">
+            <span>Launch account.handsandhead.com</span>
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+          </button>
         </div>
 
         <!-- Metric Cards Grid -->

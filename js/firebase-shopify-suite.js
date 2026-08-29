@@ -204,7 +204,7 @@
         },
         {
           id: "loc-tky-ginza",
-          name: "Tokyo Skyhara Showroom & Boutique",
+          name: "Tokyo Atelier Showroom & Boutique",
           code: "TKY-GNZ",
           type: "Flagship Boutique",
           address: "Ginza 6-Chome, Chuo-ku, Tokyo, Japan",
@@ -265,15 +265,15 @@
         },
         {
           id: "disc-03",
-          code: "SKYHARA-LUXE",
-          title: "Tokyo Skyhara Concierge Voucher",
+          code: "ATELIER-LUXE",
+          title: "Tokyo Atelier Concierge Voucher",
           type: "fixed_amount",
           value: 2500,
           minRequirement: "Min. spend ৳20,000",
           usageLimit: 50,
           usedCount: 19,
           status: "active",
-          targetType: "skyhara_collection",
+          targetType: "atelier_collection",
           startsAt: "2026-03-01",
           endsAt: "2026-10-31"
         }

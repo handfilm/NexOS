@@ -23,7 +23,7 @@
     {
       id: 'accounting_sync',
       title: 'Accounting Sync',
-      subtitle: 'QBO · Xero · Zoho · Auto-Post',
+      subtitle: 'account.handsandhead.com · QBO · Xero · Zoho',
       category: 'Finance & Integrations',
       icon: `<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>`,
       defaultPinned: true,
@@ -73,7 +73,7 @@
     {
       id: 'pinned_apps',
       title: 'Apps & Pages Shelf',
-      subtitle: 'Skyhara, Custom Pages & Marketplace Suite',
+      subtitle: 'account.handsandhead.com, shop.handsandhead.com & Custom Apps',
       category: 'App Suite',
       icon: `<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`,
       defaultPinned: true,

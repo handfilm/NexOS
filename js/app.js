@@ -331,6 +331,7 @@ async function renderLiteHome(b) {
             <span class="sec-h-label">Accounting Sync &amp; ERP</span>
             <div style="display:flex;gap:8px;align-items:center;">
               <button class="btn btn-sm btn-gold" id="dash_quick_acc_btn" onclick="window.triggerAccountingQuickSync()" style="font-size:10.5px;padding:4px 10px;" title="Synchronize pending receipts to cloud ERP">⚡ Quick Sync All</button>
+              <button class="btn btn-sm btn-dark" onclick="window.open('https://account.handsandhead.com','_blank')" style="font-size:10px;padding:4px 8px;font-family:var(--mono);color:var(--coral);" title="Open account.handsandhead.com portal">account.handsandhead.com ↗</button>
               <span class="sec-h-action" onclick="openAppModule('Accounting')">Accounting Hub →</span>
             </div>
           </div>
@@ -345,7 +346,7 @@ async function renderLiteHome(b) {
                     <div style="font-size:14px;font-weight:700;color:var(--ink);">QuickBooks · Xero · Zoho Bridge</div>
                     <span class="pill ok" style="font-size:7.5px;">LIVE</span>
                   </div>
-                  <div id="dash_acc_status_text" style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">All sales receipts &amp; tax journals synced ✓</div>
+                  <div id="dash_acc_status_text" style="font-size:10.5px;color:var(--coral);font-family:var(--mono);">account.handsandhead.com · All sales synced ✓</div>
                 </div>
               </div>
               <div style="display:flex;gap:6px;align-items:center;">
@@ -568,29 +569,44 @@ async function renderLiteHome(b) {
             <span class="sec-h-action" onclick="openAppModule('CustomApps')">All Apps Studio →</span>
           </div>
           <div class="neu-apps-list" style="display:flex;flex-direction:column;gap:10px;margin:0 20px 10px;">
-            <!-- Skyhara Flagship Boutique App Card -->
-            <div class="neu-app-card" onclick="openAppModule('Skyhara')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;border:1px solid var(--gold-dim);transition:all 0.25s var(--ease-bouncy);">
+            <!-- Front End Storefront App Card -->
+            <div class="neu-app-card" onclick="window.open('https://shop.handsandhead.com', '_blank')" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;border:1px solid var(--gold-dim);transition:all 0.25s var(--ease-bouncy);">
               <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;">
-                <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;stroke-width:1.8;fill:none;"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+                <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;stroke-width:1.8;fill:none;"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 010 20M2 12h20"/></svg>
               </div>
               <div style="flex:1;min-width:0;">
                 <div style="display:flex;align-items:center;gap:6px;">
-                  <div style="font-size:14px;font-weight:700;color:var(--ink);">Skyhara</div>
-                  <span class="pill gold" style="font-size:7.5px;">FLAGSHIP</span>
+                  <div style="font-size:14px;font-weight:700;color:var(--ink);">Front End</div>
+                  <span class="pill gold" style="font-size:7.5px;">STOREFRONT</span>
                 </div>
-                <div style="font-size:10.5px;color:var(--coral);font-family:var(--mono);">handsandhead.com/pages/skyhara</div>
+                <div style="font-size:10.5px;color:var(--coral);font-family:var(--mono);">shop.handsandhead.com</div>
               </div>
-              <span class="pill ok" style="font-size:8px;">BOUTIQUE</span>
+              <span class="pill ok" style="font-size:8px;">ONLINE ↗</span>
+            </div>
+
+            <!-- Accounting Sync App Card -->
+            <div class="neu-app-card" onclick="openAppModule('Accounting')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;border:1px solid rgba(255,123,84,0.3);transition:all 0.25s var(--ease-bouncy);">
+              <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--coral);flex-shrink:0;">
+                <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div style="font-size:14px;font-weight:700;color:var(--ink);">Accounting Sync</div>
+                  <span class="pill ok" style="font-size:7.5px;">ERP</span>
+                </div>
+                <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">account.handsandhead.com</div>
+              </div>
+              <span class="pill info" style="font-size:8px;">SYNCED</span>
             </div>
 
             <!-- Custom Page & App Builder Card -->
             <div class="neu-app-card" onclick="openAppModule('CustomApps')" style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);cursor:pointer;transition:all 0.25s var(--ease-bouncy);">
-              <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--coral);flex-shrink:0;">
+              <div class="neu-app-icon" style="width:42px;height:42px;border-radius:12px;background:var(--bg-neu);box-shadow:var(--neu-track);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex-shrink:0;">
                 <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M12 5v14M5 12h14"/></svg>
               </div>
               <div style="flex:1;min-width:0;">
                 <div style="font-size:14px;font-weight:700;color:var(--ink);">Create Own App / Page</div>
-                <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Build &amp; publish apps like Skyhara</div>
+                <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Build &amp; publish custom apps &amp; catalogs</div>
               </div>
               <span class="pill info" style="font-size:8px;">BUILDER</span>
             </div>
@@ -1047,52 +1063,139 @@ function renderTabbar() {
   document.head.appendChild(s);
 })();
 
-/* ── Drawer & Navigation ── */
-const NAV = [
-  {label:"Home",icon:I.home,app:"Home"},
-  {label:"Orders",icon:I.orders,chev:true,app:"Orders"},
-  {label:"Products",icon:I.tag,chev:true,app:"Products"},
-  {label:"Customers",icon:I.inbox,chev:true,app:"CRM"},
-  {sep:"Headless B2B"},
-  {label:"RAWxOS", icon:I.spark, url:"https://handfilm.github.io/RAWxOS/"},
-  {label:"NexOS", icon:I.gear, url:"https://handfilm.github.io/portal/os/2/"},
-  {label:"HANDFILM", icon:I.cam, url:"https://handfilm.myshopify.com/"},
-  {sep:"Ecosystem"},
-  {label:"Customize Dashboard Layout",icon:I.gear,fn:"window.DashboardEngine.openPinAppsModal()"},
-  {label:"NexOS HUB",icon:I.link,url:"https://handfilm.github.io/nexus/os/hub/"},
-  {label:"Portal Launcher",icon:I.link,url:"https://handfilm.github.io/portal/"},
-  {label:"FrontEnd (Handsandhead)",icon:I.globe,url:"https://handfilm.myshopify.com/pages/handsandhead"},
-  {sep:"Portals HUB"},
-  {label:"Skyhara Boutique",icon:I.spark,app:"Skyhara"},
-  {label:"Create Own App",icon:I.box,app:"CustomApps"},
-  {label:"Custom Apps Studio",icon:I.store,app:"EnterpriseApps"},
-  {sep:"Buyer Portals"},
-  {label:"Arutemika — Leather EU",icon:I.leather,app:"PortalArutemika"},
-  {label:"HANDS & HEAD — RMG",icon:I.rmg,app:"PortalRMG"},
-  {label:"H&H Nexus Website",icon:I.globe,url:"https://www.handsandhead.com/"},
-  {sep:"B2B Operations"},
-  {label:"QR & Barcode Scanner",icon:I.cam,fn:"window.startCamera('barcode')"},
-  {label:"EU Buyer Portal",icon:I.eu,app:"EUPortal"},
-  {label:"Quote Builder",icon:I.doc,app:"QuoteBuilder"},
-  {label:"Buyer CRM",icon:I.users,app:"CRM"},
-  {label:"Inventory",icon:I.box,app:"Inventory"},
-  {label:"Shipment Tracking",icon:I.truck,app:"Tracking"},
-  {sep:"Intelligence"},
-  {label:"Voice Commands (Mic)",icon:I.mic,fn:"window.VoiceEngine.toggle()"},
-  {label:"Analytics",icon:I.chart,app:"Analytics"},
-  {label:"NexAI Forecast",icon:I.ai,app:"NexAI"},
-  {label:"FX Rates",icon:I.fx,app:"FXRates"},
-  {label:"Compliance Docs",icon:I.doc,app:"Compliance"},
-  {label:"Push Notifications",icon:I.bell,app:"Notifications"},
-  {sep:"Apps"},
-  {label:"Skyhara (Flagship)",icon:I.spark,app:"Skyhara"},
-  {label:"Accounting Sync",icon:I.wallet,app:"Accounting"},
-  {label:"Auto Social Post",icon:I.megaphone,app:"SocialPost"},
-  {label:"Meta Live Feed",icon:I.spark,app:"MetaFeed"},
-  {label:"Daraz Sync",icon:I.chart,app:"DarazSync"},
-  {label:"Shopify Suite",icon:I.tag,app:"ShopifySuite"},
-  {sep:"Roles"},
-  {label:"Production View (Hiron)",icon:I.hammer,gate:"production"}
+/* ═══════════════════════════════════════════════════════════════
+   DRAWER & NAVIGATION ARCHITECTURE (NEXT-LEVEL COMMAND MENU)
+   ═══════════════════════════════════════════════════════════════ */
+
+const NAV_SECTIONS = [
+  {
+    id: "core",
+    title: "Core Operations",
+    badge: "WORKPLACE",
+    desc: "Primary commerce terminals and live order queues",
+    items: [
+      { label: "Home", icon: I.home, app: "Home", desc: "Main operator terminal & pinned shelf", ext: "DASH" },
+      { label: "Orders", icon: I.orders, app: "Orders", chev: true, desc: "Live order stream & fulfillment tracker", ext: "POS" },
+      { label: "Products", icon: I.tag, app: "Products", chev: true, desc: "Inventory catalog, variants & pricing matrix", ext: "CATALOG" },
+      { label: "Customers", icon: I.inbox, app: "CRM", chev: true, desc: "Global wholesale buyer CRM & accounts", ext: "CRM" }
+    ]
+  },
+  {
+    id: "d2c",
+    title: "D2C Portals",
+    badge: "2 STORES",
+    desc: "Direct-to-consumer storefronts & retail e-commerce channels",
+    items: [
+      { 
+        label: "Shop (Front End)", 
+        icon: I.globe, 
+        url: "https://shop.handsandhead.com",
+        app: "FrontEnd",
+        desc: "shop.handsandhead.com · Global retail storefront", 
+        ext: "D2C", 
+        extClass: "d2c" 
+      },
+      { 
+        label: "Japan Store (Arutemika)", 
+        icon: I.leather, 
+        url: "https://arutemika.official.ec",
+        app: "JapanStore",
+        desc: "arutemika.official.ec · Tokyo & Japan D2C Boutique (BASE)", 
+        ext: "JAPAN", 
+        extClass: "d2c" 
+      }
+    ]
+  },
+  {
+    id: "finance",
+    title: "Financial & Accounting ERP",
+    badge: "ERP",
+    desc: "Direct synchronization with account.handsandhead.com & Cloud ERPs",
+    items: [
+      { 
+        label: "Accounting Sync", 
+        icon: I.wallet, 
+        app: "Accounting", 
+        desc: "account.handsandhead.com · General ledger, QBO, Xero & Tax sync", 
+        ext: "ERP", 
+        extClass: "erp" 
+      }
+    ]
+  },
+  {
+    id: "ecosystem",
+    title: "Ecosystem & Portals",
+    badge: "EXTERNAL",
+    desc: "Headless B2B network hubs, RAWxOS & custom launchers",
+    items: [
+      { label: "Customize Dashboard Layout", icon: I.gear, fn: "window.DashboardEngine.openPinAppsModal()", desc: "Reorder and pin favorite widgets to Home", ext: "LAYOUT" },
+      { label: "NexOS HUB", icon: I.link, url: "https://handfilm.github.io/nexus/os/hub/", desc: "nexus/os/hub · Enterprise distribution bridge", ext: "HUB" },
+      { label: "Portal Launcher", icon: I.link, url: "https://handfilm.github.io/portal/", desc: "Universal gateway for B2B brand portals", ext: "LAUNCHER" },
+      { label: "RAWxOS", icon: I.spark, url: "https://handfilm.github.io/RAWxOS/", desc: "Raw materials, tanning & chemical ledger OS", ext: "RAW" },
+      { label: "HANDFILM", icon: I.cam, url: "https://handfilm.myshopify.com/", desc: "Official Shopify flagship studio", ext: "SHOPIFY" }
+    ]
+  },
+  {
+    id: "buyer_portals",
+    title: "Buyer Portals & B2B",
+    badge: "GLOBAL",
+    desc: "Dedicated export portals for European & International buyers",
+    items: [
+      { label: "Arutemika — Leather EU", icon: I.leather, app: "PortalArutemika", desc: "Wholesale leather goods catalog & RFQ for EU buyers", ext: "EU B2B", extClass: "b2b" },
+      { label: "HANDS & HEAD — RMG", icon: I.rmg, app: "PortalRMG", desc: "RMG apparel manufacturing portal for EU & US brands", ext: "RMG B2B", extClass: "b2b" },
+      { label: "EU Buyer Portal", icon: I.eu, app: "EUPortal", desc: "Curated collection & sample requests for EU buyers", ext: "PORTAL" },
+      { label: "H&H Nexus Website", icon: I.globe, url: "https://www.handsandhead.com/", desc: "Official corporate website & brand portfolio", ext: "WEB" }
+    ]
+  },
+  {
+    id: "operations",
+    title: "B2B Operations & Logistics",
+    badge: "COMMERCE",
+    desc: "Omnichannel commerce, inventory tracking & scanning tools",
+    items: [
+      { label: "Shopify Suite", icon: I.tag, app: "ShopifySuite", desc: "Tokyo Atelier showroom, webhooks & draft orders", ext: "SHOPIFY" },
+      { label: "Daraz Sync", icon: I.chart, app: "DarazSync", desc: "South Asia marketplace bridge & catalog sync", ext: "DARAZ" },
+      { label: "Inventory Stock", icon: I.box, app: "Inventory", desc: "Real-time stock matrix & raw hide levels", ext: "STOCK" },
+      { label: "Quote Builder", icon: I.doc, app: "QuoteBuilder", desc: "Pro-forma invoice & FOB export quote generator", ext: "QUOTE" },
+      { label: "Shipment Tracking", icon: I.truck, app: "Tracking", desc: "Air & sea freight logistics status tracker", ext: "LOGISTICS" },
+      { label: "QR & Barcode Scanner", icon: I.cam, fn: "window.startCamera('barcode')", desc: "Scan product hangtags & warehouse SKUs", ext: "CAM" }
+    ]
+  },
+  {
+    id: "studio",
+    title: "Custom Apps & Studio",
+    badge: "STUDIO",
+    desc: "Custom page builder, social automation & feed bridges",
+    items: [
+      { label: "Create Own App", icon: I.box, app: "CustomApps", desc: "Deploy custom single-page apps & landing views", ext: "CREATE" },
+      { label: "Custom Apps Studio", icon: I.store, app: "CustomApps", desc: "Browse pre-built brand apps & micro-tools", ext: "STUDIO" },
+      { label: "Auto Social Post", icon: I.megaphone, app: "SocialPost", desc: "Automate Instagram, FB & TikTok product drops", ext: "SOCIAL" },
+      { label: "Meta Live Feed", icon: I.spark, app: "MetaFeed", desc: "Graph API catalog sync for Instagram Shopping", ext: "META" }
+    ]
+  },
+  {
+    id: "intelligence",
+    title: "Intelligence & Forecast",
+    badge: "AI",
+    desc: "Voice commands, AI forecasts, FX rates & compliance",
+    items: [
+      { label: "Voice Commands (Mic)", icon: I.mic, fn: "window.VoiceEngine.toggle()", desc: "Hands-free voice POS & order creation", ext: "MIC" },
+      { label: "Analytics", icon: I.chart, app: "Analytics", desc: "Revenue velocity, margin breakdown & order charts", ext: "REPORTS" },
+      { label: "NexAI Forecast", icon: I.ai, app: "NexAI", desc: "AI tanning advisor, compliance & market intelligence", ext: "AI" },
+      { label: "FX Currency Rates", icon: I.fx, app: "FXRates", desc: "Live EUR, USD & GBP conversion ticker", ext: "FX" },
+      { label: "Compliance Docs", icon: I.doc, app: "Compliance", desc: "REACH, BSCI, OEKO-TEX & EUDR certificate vault", ext: "DOCS" },
+      { label: "Push Notifications", icon: I.bell, app: "Notifications", desc: "Real-time dispatch & browser alert center", ext: "PUSH" }
+    ]
+  },
+  {
+    id: "roles",
+    title: "Access Control & Roles",
+    badge: "SECURITY",
+    desc: "Role-gated factory floor and manager terminals",
+    items: [
+      { label: "Production View (Hiron)", icon: I.hammer, gate: "production", desc: "Hiron's dedicated factory floor production queue", ext: "PIN: 2024" }
+    ]
+  }
 ];
 
 const MODULE_MAP = {
@@ -1111,18 +1214,31 @@ const MODULE_MAP = {
   "Quote Builder": "QuoteBuilder",
   "Inventory": "Inventory",
   "Stock": "Inventory",
+  "Inventory Stock": "Inventory",
   "Tracking": "Tracking",
   "Shipment Tracking": "Tracking",
   "NexAI": "NexAI",
   "NexAI Forecast": "NexAI",
   "FXRates": "FXRates",
   "FX Rates": "FXRates",
+  "FX Currency Rates": "FXRates",
   "Compliance": "Compliance",
   "Compliance Docs": "Compliance",
   "Notifications": "Notifications",
   "Push Notifications": "Notifications",
   "Accounting": "Accounting",
   "Accounting Sync": "Accounting",
+  "Accounting Sync (account.handsandhead.com)": "Accounting",
+  "account.handsandhead.com": "Accounting",
+  "Front End": "FrontEnd",
+  "FrontEnd": "FrontEnd",
+  "Shop (Front End)": "FrontEnd",
+  "Front End (shop.handsandhead.com)": "FrontEnd",
+  "shop.handsandhead.com": "FrontEnd",
+  "JapanStore": "JapanStore",
+  "Japan Store": "JapanStore",
+  "Japan Store (Arutemika)": "JapanStore",
+  "arutemika.official.ec": "JapanStore",
   "SocialPost": "SocialPost",
   "Auto Social Post": "SocialPost",
   "MetaFeed": "MetaFeed",
@@ -1136,9 +1252,6 @@ const MODULE_MAP = {
   "Arutemika — Leather EU": "PortalArutemika",
   "PortalRMG": "PortalRMG",
   "HANDS & HEAD — RMG": "PortalRMG",
-  "Skyhara": "Skyhara",
-  "skyhara": "Skyhara",
-  "Skyhara Boutique": "Skyhara",
   "CustomApps": "CustomApps",
   "Create Own App": "CustomApps",
   "EnterpriseApps": "CustomApps",
@@ -1152,37 +1265,188 @@ const MODULE_MAP = {
   "PriceRules": "ShopifySuite"
 };
 
+let _drawerFilterQuery = "";
+const _collapsedSections = new Set();
+
+function toggleDrawerSection(sectionId) {
+  if (_collapsedSections.has(sectionId)) {
+    _collapsedSections.delete(sectionId);
+  } else {
+    _collapsedSections.add(sectionId);
+  }
+  const el = document.getElementById(`nav_section_${sectionId}`);
+  if (el) {
+    el.classList.toggle('collapsed', _collapsedSections.has(sectionId));
+  }
+}
+
+function filterDrawerNav(query) {
+  _drawerFilterQuery = (query || "").trim().toLowerCase();
+  const clearBtn = document.getElementById("drawerSearchClear");
+  if (clearBtn) clearBtn.classList.toggle("visible", _drawerFilterQuery.length > 0);
+  
+  const navContainer = document.getElementById("drawerNav");
+  if (navContainer) {
+    navContainer.innerHTML = renderDrawerNav();
+  }
+}
+
+function clearDrawerSearch() {
+  const input = document.getElementById("drawerSearchInput");
+  if (input) {
+    input.value = "";
+    input.focus();
+  }
+  filterDrawerNav("");
+}
+
+window.toggleDrawerSection = toggleDrawerSection;
+window.filterDrawerNav = filterDrawerNav;
+window.clearDrawerSearch = clearDrawerSearch;
+
 function renderDrawerNav() {
   const storeId = window.NexAuth?.getStoreId() || "default";
   const customAcc = JSON.parse(localStorage.getItem(`hh_custom_accounting_${storeId}`) || "[]");
   const customSoc = JSON.parse(localStorage.getItem(`hh_custom_social_${storeId}`) || "[]");
   const customApps = JSON.parse(localStorage.getItem(`hh_custom_apps_registry_${storeId}`) || "[]");
 
-  let customNavItems = "";
-  if (customApps.length) {
-    customNavItems += `<span class="nav-section">Your Custom Pages &amp; Apps</span>`;
+  const q = _drawerFilterQuery;
+  let html = "";
+
+  NAV_SECTIONS.forEach(sec => {
+    // Filter items
+    const matchingItems = sec.items.filter(item => {
+      if (!q) return true;
+      return (
+        item.label.toLowerCase().includes(q) ||
+        (item.desc && item.desc.toLowerCase().includes(q)) ||
+        (item.ext && item.ext.toLowerCase().includes(q)) ||
+        sec.title.toLowerCase().includes(q)
+      );
+    });
+
+    if (matchingItems.length === 0 && q) return;
+
+    const isCollapsed = !q && _collapsedSections.has(sec.id);
+
+    html += `
+      <div class="nav-section-group ${isCollapsed ? 'collapsed' : ''}" id="nav_section_${sec.id}">
+        <div class="nav-section-header" onclick="window.toggleDrawerSection('${sec.id}')" title="Click to collapse/expand section">
+          <div class="nav-section-title-wrap">
+            <span class="nav-section-title">${sec.title}</span>
+            <span class="nav-section-badge">${sec.badge || matchingItems.length}</span>
+          </div>
+          <span class="nav-section-toggle">▼</span>
+        </div>
+        <div class="nav-section-desc">${sec.desc}</div>
+        <div class="nav-section-items">
+    `;
+
+    matchingItems.forEach(item => {
+      let clickHandler = "";
+      let rightBadge = item.ext ? `<span class="nav-ext ${item.extClass || ''}">${item.ext}</span>` : '';
+      if (item.chev) rightBadge = `<span class="nav-chev">›</span>` + rightBadge;
+
+      if (item.fn) {
+        clickHandler = `onclick="${item.fn};closeDrawer();"`;
+      } else if (item.url && item.app) {
+        // Dual-purpose item: click opens in-app module view with direct launch link
+        clickHandler = `onclick="closeDrawer();openAppModule('${item.app}');"`;
+      } else if (item.url) {
+        clickHandler = `onclick="window.open('${item.url}','_blank');closeDrawer();"`;
+      } else if (item.app) {
+        clickHandler = `onclick="closeDrawer();openAppModule('${item.app}');"`;
+      } else if (item.gate) {
+        clickHandler = `onclick="closeDrawer();openGate('${item.gate}');"`;
+      } else {
+        clickHandler = `onclick="navTo('${item.label}')"`;
+      }
+
+      html += `
+        <button class="nav-row" ${clickHandler} title="${item.desc || item.label}">
+          <div class="nav-row-main">
+            <div class="nav-row-left">
+              <span class="nav-ic">${item.icon}</span>
+              <span class="nav-row-label">${item.label}</span>
+            </div>
+            ${rightBadge}
+          </div>
+          ${item.desc ? `<div class="nav-row-desc">${item.desc}</div>` : ''}
+        </button>
+      `;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+  });
+
+  // Render Custom Apps Section if registered
+  if (customApps.length || customAcc.length || customSoc.length) {
+    html += `
+      <div class="nav-section-group" id="nav_section_custom">
+        <div class="nav-section-header">
+          <div class="nav-section-title-wrap">
+            <span class="nav-section-title">Your Custom Pages &amp; Integrations</span>
+            <span class="nav-section-badge">${customApps.length + customAcc.length + customSoc.length}</span>
+          </div>
+        </div>
+        <div class="nav-section-items">
+    `;
+
     customApps.forEach(ca => {
-      customNavItems += `<button class="nav-row" onclick="closeDrawer();openAppModule('Skyhara');window.render.Skyhara(document.getElementById('body'), '${ca.slug}');"><div class="nav-row-left"><span class="nav-ic">${I.spark}</span>${ca.name}</div><span class="nav-ext" style="color:var(--gold);">PAGE</span></button>`;
+      html += `
+        <button class="nav-row" onclick="closeDrawer();openAppModule('CustomApps');">
+          <div class="nav-row-main">
+            <div class="nav-row-left">
+              <span class="nav-ic">${I.spark}</span>
+              <span class="nav-row-label">${ca.name}</span>
+            </div>
+            <span class="nav-ext" style="color:var(--gold);">PAGE</span>
+          </div>
+          <div class="nav-row-desc">Custom landing view (${ca.slug})</div>
+        </button>
+      `;
     });
-  }
-  if (customAcc.length || customSoc.length) {
-    customNavItems += `<span class="nav-section">Connected Custom Apps</span>`;
+
     customAcc.forEach(ca => {
-      customNavItems += `<button class="nav-row" onclick="closeDrawer();openAppModule('Accounting');window.openAccountingSettingsModal('${ca.id}');"><div class="nav-row-left"><span class="nav-ic">${I.wallet}</span>${ca.name}</div><span class="nav-ext" style="color:var(--coral);">ERP</span></button>`;
+      html += `
+        <button class="nav-row" onclick="closeDrawer();openAppModule('Accounting');window.openAccountingSettingsModal('${ca.id}');">
+          <div class="nav-row-main">
+            <div class="nav-row-left">
+              <span class="nav-ic">${I.wallet}</span>
+              <span class="nav-row-label">${ca.name}</span>
+            </div>
+            <span class="nav-ext erp">ERP</span>
+          </div>
+          <div class="nav-row-desc">Custom accounting connection</div>
+        </button>
+      `;
     });
+
     customSoc.forEach(cs => {
-      customNavItems += `<button class="nav-row" onclick="closeDrawer();openAppModule('SocialPost');"><div class="nav-row-left"><span class="nav-ic">${I.megaphone}</span>${cs.name}</div><span class="nav-ext" style="color:var(--coral);">SOC</span></button>`;
+      html += `
+        <button class="nav-row" onclick="closeDrawer();openAppModule('SocialPost');">
+          <div class="nav-row-main">
+            <div class="nav-row-left">
+              <span class="nav-ic">${I.megaphone}</span>
+              <span class="nav-row-label">${cs.name}</span>
+            </div>
+            <span class="nav-ext">SOC</span>
+          </div>
+          <div class="nav-row-desc">Social media publishing channel</div>
+        </button>
+      `;
     });
+
+    html += `
+        </div>
+      </div>
+    `;
   }
 
-  return NAV.map(n => {
-    if (n.sep)  return `<span class="nav-section">${n.sep}</span>`;
-    if (n.fn)   return `<button class="nav-row" onclick="${n.fn};closeDrawer();" style="color:var(--coral);"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div><span class="nav-ext" style="color:var(--coral);">MIC</span></button>`;
-    if (n.url)  return `<button class="nav-row" onclick="window.open('${n.url}','_blank');closeDrawer();"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div><span class="nav-ext">↗ EXT</span></button>`;
-    if (n.app)  return `<button class="nav-row" onclick="closeDrawer();openAppModule('${n.app}');"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div>${n.chev ? '<span class="nav-chev">›</span>' : ''}</button>`;
-    if (n.gate) return `<button class="nav-row" onclick="closeDrawer();openGate('${n.gate}');" style="color:var(--ok);"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div><span class="nav-ext" style="color:var(--ok);">PIN</span></button>`;
-    return `<button class="nav-row" onclick="navTo('${n.label}')"><div class="nav-row-left"><span class="nav-ic">${n.icon}</span>${n.label}</div></button>`;
-  }).join("") + customNavItems;
+  return html;
 }
 
 /* ── DOM Mechanics & Dynamic Module Router ── */

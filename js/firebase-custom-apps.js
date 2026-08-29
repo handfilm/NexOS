@@ -1,22 +1,22 @@
 /* ═══════════════════════════════════════════════════════════════
    Hands & Head — js/firebase-custom-apps.js
-   Custom App & Page Builder Engine + Flagship "Skyhara" App
-   URL: https://handsandhead.com/pages/skyhara & Custom Pages Studio
+   Custom App & Page Builder Engine + Atelier Drops
+   URL: https://handsandhead.com/pages/atelier & Custom Pages Studio
    ═══════════════════════════════════════════════════════════════ */
 
 (function () {
   "use strict";
 
-  const DEFAULT_SKYHARA_APP = {
-    id: "skyhara",
-    slug: "skyhara",
-    name: "Skyhara",
+  const DEFAULT_ATELIER_APP = {
+    id: "atelier",
+    slug: "atelier",
+    name: "Atelier Drops",
     subtitle: "Artisanal Botanical Leather & Heritage Minimalism",
-    url: "https://handsandhead.com/pages/skyhara",
-    category: "Signature Boutique",
+    url: "https://handsandhead.com/pages/atelier",
+    category: "Artisan Collection",
     icon: `<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>`,
     theme: {
-      id: "skyhara_luxury",
+      id: "atelier_luxury",
       bg: "#0B0E14",
       cardBg: "#141923",
       accent: "#E2B866",
@@ -27,10 +27,10 @@
       fontBody: "'Space Grotesk', sans-serif"
     },
     hero: {
-      headline: "SKYHARA",
+      headline: "ATELIER DROPS",
       tagline: "HANDCRAFTED IN DHAKA · REFINED FOR THE WORLD",
-      story: "Born at the intersection of Japanese architectural reduction and Dhaka's master leathercraft tradition. Every Skyhara piece is cut from certified full-grain vegetable-tanned hides, hand-waxed with organic beeswax, and fitted with custom solid brass hardware built to age with unmatched patina.",
-      badge: "Flagship Boutique",
+      story: "Born at the intersection of Japanese architectural reduction and Dhaka's master leathercraft tradition. Every piece is cut from certified full-grain vegetable-tanned hides, hand-waxed with organic beeswax, and fitted with custom solid brass hardware built to age with unmatched patina.",
+      badge: "Artisan Studio",
       bannerImage: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=1200&auto=format&fit=crop"
     },
     features: {
@@ -44,8 +44,8 @@
     },
     products: [
       {
-        id: "sky_01",
-        title: "Skyhara Artisan Tokyo Duffle 48H",
+        id: "atl_01",
+        title: "Artisan Tokyo Duffle 48H",
         subtitle: "Full-Grain Saddle Tan · Solid Brass Luggage",
         price: 18500,
         priceEur: 165,
@@ -54,14 +54,14 @@
         category: "Luggage",
         badge: "BESTSELLER",
         stock: 14,
-        sku: "SKY-DUF-48",
+        sku: "ATL-DUF-48",
         colors: ["Saddle Tan", "Midnight Kuro", "Tuscan Cognac"],
         materials: "2.2mm Full-Grain Veg-Tan Leather, Japanese YKK Excella Zippers, Solid Sand-Cast Brass",
         dimensions: "52cm x 28cm x 26cm (42 Liters)"
       },
       {
-        id: "sky_02",
-        title: "Skyhara Kyoto Minimalist Slim Bifold",
+        id: "atl_02",
+        title: "Kyoto Minimalist Slim Bifold",
         subtitle: "Zero-Bulk Edge Painted · 8 Card Architecture",
         price: 3450,
         priceEur: 32,
@@ -70,30 +70,29 @@
         category: "Wallets",
         badge: "ICONIC",
         stock: 38,
-        sku: "SKY-WLT-08",
+        sku: "ATL-WLT-08",
         colors: ["Cognac Brown", "Obsidian Black", "Olive Moss"],
         materials: "1.1mm French Chèvre Lining, Vegetable-Tanned Cowhide, Hand-Stitched Linen Thread",
         dimensions: "10.5cm x 8.5cm x 0.6cm"
       },
       {
-        id: "sky_03",
-        title: "Skyhara Atelier Everyday Leather Tote",
+        id: "atl_03",
+        title: "Atelier Everyday Leather Tote",
         subtitle: "Structured Base · Laptop Sleeve & Key Leash",
         price: 9800,
         priceEur: 88,
         priceUsd: 95,
         image: "https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=800&auto=format&fit=crop",
-        category: "Bags",
+        category: "Totes",
         badge: "NEW DROP",
         stock: 22,
-        sku: "SKY-TOT-20",
-        colors: ["Natural Veg-Tan", "Deep Espresso", "Black Onyx"],
-        materials: "Heavy-Weight Full Grain Leather, Raw Suede Interior, Riveted Bridle Leather Handles",
+        sku: "ATL-TOT-01",
+        colors: ["Natural Saddle", "Smoked Ebony"],
+        materials: "Hand-Waxed Pull-Up Leather, Copper Rivets",
         dimensions: "40cm x 34cm x 14cm"
-      },
       {
-        id: "sky_04",
-        title: "Skyhara Heritage Bespoke Derby Shoes",
+        id: "atl_04",
+        title: "Heritage Bespoke Derby Shoes",
         subtitle: "Goodyear Welted · Vibram Commando Half-Sole",
         price: 14500,
         priceEur: 130,
@@ -102,17 +101,18 @@
         category: "Footwear",
         badge: "LIMITED",
         stock: 9,
-        sku: "SKY-SH-DRB",
+        sku: "ATL-SH-DRB",
         colors: ["Oxblood Cordovan", "Black Grain", "Walnut Tan"],
         materials: "Aniline Hand-Finished Pull-Up Leather, Stacked Leather Heel, Cork Bed Filler",
         dimensions: "EU 40 - 45 (Bespoke Last)"
       }
     ],
-    publishedToDrawer: true,
-    publishedToHomeShelf: true,
+    publishedToDrawer: false,
+    publishedToHomeShelf: false,
     createdAt: "2026-01-01T00:00:00.000Z",
     isOfficial: true
   };
+  const DEFAULT_SKYHARA_APP = DEFAULT_ATELIER_APP;
 
   /* ── Custom Apps Management Service ── */
   window.CustomAppsService = {
@@ -194,8 +194,8 @@
 
     /* Delete an App */
     async delete(appId) {
-      if (appId === "skyhara") {
-        toast("Flagship Skyhara app cannot be deleted (Read-only master).");
+      if (appId === "atelier" || appId === "skyhara") {
+        toast("Flagship Atelier app cannot be deleted (Read-only master).");
         return false;
       }
       const storeId = window.NexAuth?.getStoreId() || "default";
@@ -213,8 +213,8 @@
     }
   };
 
-  /* ── Skyhara Active State Controller ── */
-  window.SkyharaApp = {
+  /* ── Atelier Active State Controller ── */
+  window.AtelierApp = {
     activeCurrency: "BDT",
     activeCategory: "ALL",
     activeRotationAngle: 0,
@@ -222,9 +222,9 @@
 
     setCurrency(curr) {
       this.activeCurrency = curr;
-      const appContainer = document.getElementById("skyhara-mount");
+      const appContainer = document.getElementById("atelier-mount");
       if (appContainer) {
-        this.renderApp(window._currentSkyharaData || DEFAULT_SKYHARA_APP, appContainer);
+        this.renderApp(window._currentAtelierData || DEFAULT_ATELIER_APP, appContainer);
       }
     },
 
@@ -234,7 +234,7 @@
       return `৳${(item.price || 0).toLocaleString()}`;
     },
 
-    /* Place direct WhatsApp or Firestore Order from Skyhara */
+    /* Place direct WhatsApp or Firestore Order from Atelier */
     async placeOrder(item, color = null) {
       const selectedColor = color || (item.colors ? item.colors[0] : "Default");
       const orderPrice = item.price || 0;
@@ -244,18 +244,18 @@
         try {
           await window.OrdersService.create({
             customer: {
-              name: "Skyhara Boutique Buyer",
+              name: "Atelier Boutique Buyer",
               country: this.activeCurrency === "EUR" ? "NL" : this.activeCurrency === "USD" ? "US" : "BD"
             },
             lineItems: [{
               productId: item.id,
               variantId: selectedColor,
               title: `${item.title} (${selectedColor})`,
-              sku: item.sku || "SKYHARA",
+              sku: item.sku || "ATELIER",
               price: orderPrice,
               quantity: 1
             }],
-            notes: `Placed via Skyhara Boutique Page (https://handsandhead.com/pages/skyhara)`
+            notes: `Placed via Atelier Drops Page (https://handsandhead.com/pages/atelier)`
           });
         } catch (e) {
           console.warn("Order auto-log note:", e);
@@ -264,12 +264,12 @@
 
       // 2. Generate WhatsApp Concierge Message
       const waMsg = encodeURIComponent(
-        `✨ *SKYHARA BOUTIQUE ORDER ENQUIRY*\n\n` +
+        `✨ *ATELIER DROPS ORDER ENQUIRY*\n\n` +
         `Product: ${item.title}\n` +
         `Colorway: ${selectedColor}\n` +
         `SKU: ${item.sku}\n` +
         `Price: ${this.formatPrice(item)}\n` +
-        `Reference: https://handsandhead.com/pages/skyhara\n\n` +
+        `Reference: https://handsandhead.com/pages/atelier\n\n` +
         `Hello Hands & Head Team, I would like to reserve this piece.`
       );
       const waUrl = `https://wa.me/8801974518600?text=${waMsg}`;
@@ -280,38 +280,40 @@
     /* 360 Rotation Simulation */
     rotate360(step) {
       this.activeRotationAngle = (this.activeRotationAngle + step + 360) % 360;
-      const el = document.getElementById("skyhara-360-preview");
+      const el = document.getElementById("atelier-360-preview");
       if (el) {
         el.style.transform = `perspective(800px) rotateY(${this.activeRotationAngle}deg)`;
       }
     }
   };
+  window.SkyharaApp = window.AtelierApp;
 
   /* ═══════════════════════════════════════════════════════════
-     RENDERER: SKYHARA FLAGSHIP & CUSTOM APP VIEWER
+     RENDERER: ATELIER FLAGSHIP & CUSTOM APP VIEWER
      ═══════════════════════════════════════════════════════════ */
-  window.render.Skyhara = async function (container, customSlug = "skyhara") {
+  window.render.Atelier = async function (container, customSlug = "atelier") {
     container.innerHTML = `
       <div style="padding:40px 20px;text-align:center;font-family:var(--mono);color:var(--ink-3);font-size:11px;letter-spacing:2px;text-transform:uppercase;">
         <div style="display:inline-block;width:20px;height:20px;border:2px solid var(--wire-hard);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;"></div>
-        <div>Loading Skyhara Boutique Experience…</div>
+        <div>Loading Atelier Boutique Experience…</div>
       </div>
     `;
 
     const appData = await window.CustomAppsService.get(customSlug);
-    window._currentSkyharaData = appData;
+    window._currentAtelierData = appData;
 
-    container.innerHTML = `<div id="skyhara-mount"></div>`;
-    const mount = document.getElementById("skyhara-mount");
-    window.SkyharaApp.renderApp(appData, mount);
+    container.innerHTML = `<div id="atelier-mount"></div>`;
+    const mount = document.getElementById("atelier-mount");
+    window.AtelierApp.renderApp(appData, mount);
   };
+  window.render.Skyhara = window.render.Atelier;
 
-  /* Skyhara App DOM Builder */
-  window.SkyharaApp.renderApp = function (app, target) {
-    const t = app.theme || DEFAULT_SKYHARA_APP.theme;
-    const h = app.hero || DEFAULT_SKYHARA_APP.hero;
-    const prods = app.products || DEFAULT_SKYHARA_APP.products;
-    const curr = window.SkyharaApp.activeCurrency;
+  /* Atelier App DOM Builder */
+  window.AtelierApp.renderApp = function (app, target) {
+    const t = app.theme || DEFAULT_ATELIER_APP.theme;
+    const h = app.hero || DEFAULT_ATELIER_APP.hero;
+    const prods = app.products || DEFAULT_ATELIER_APP.products;
+    const curr = window.AtelierApp.activeCurrency;
 
     target.innerHTML = `
       <div style="background:${t.bg};color:${t.text};min-height:100vh;font-family:${t.fontBody};padding-bottom:50px;">
@@ -516,13 +518,13 @@
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
           <div>
             <span class="pill gold" style="font-size:8px;margin-bottom:6px;display:inline-block;">STANDALONE APP BUILDER</span>
-            <div style="font-size:16px;font-weight:700;color:var(--ink);">Build Your Own Boutique Apps like Skyhara</div>
+            <div style="font-size:16px;font-weight:700;color:var(--ink);">Build Custom Catalogs &amp; Boutique Drops</div>
             <div style="font-size:12px;color:var(--ink-2);margin-top:4px;max-width:540px;">
               Publish signature storefronts, private lookbooks, and B2B catalogs at custom URLs like <code style="font-family:var(--mono);color:var(--coral);">handsandhead.com/pages/[slug]</code> with automated App Drawer &amp; Home Shelf integration.
             </div>
           </div>
-          <button class="btn btn-gold" onclick="openAppModule('Skyhara')" style="font-size:11px;">
-            ✨ Preview Flagship Skyhara
+          <button class="btn btn-gold" onclick="window.openCreateOwnAppModal()" style="font-size:11px;">
+            + Create New App
           </button>
         </div>
       </div>
@@ -547,7 +549,7 @@
                       <div style="font-size:10px;color:var(--coral);font-family:var(--mono);">${app.url}</div>
                     </div>
                   </div>
-                  <span class="pill ${app.isOfficial ? 'gold' : 'ok'}" style="font-size:8px;">${app.isOfficial ? 'FLAGSHIP' : 'CUSTOM'}</span>
+                  <span class="pill ${app.isOfficial ? 'gold' : 'ok'}" style="font-size:8px;">${app.isOfficial ? 'OFFICIAL' : 'CUSTOM'}</span>
                 </div>
 
                 <p style="font-size:12px;color:var(--ink-2);line-height:1.4;margin:8px 0 12px;">
@@ -562,10 +564,10 @@
               </div>
 
               <div style="display:flex;gap:6px;margin-top:10px;">
-                <button class="btn btn-sm btn-dark" style="flex:1;" onclick="window.render.Skyhara(document.getElementById('body'), '${app.slug}')">
+                <button class="btn btn-sm btn-dark" style="flex:1;" onclick="window.render.Atelier(document.getElementById('body'), '${app.slug}')">
                   👁️ Launch
                 </button>
-                <button class="btn btn-sm btn-dark" style="flex:1;" onclick="window.openSkyharaShareModal('${app.slug}')">
+                <button class="btn btn-sm btn-dark" style="flex:1;" onclick="window.openAtelierShareModal('${app.slug}')">
                   🔗 Share
                 </button>
                 <button class="btn btn-sm btn-gold" style="flex:1;" onclick="window.openAppCustomizerModal('${app.id}')">
@@ -583,7 +585,7 @@
   window.render.EnterpriseApps = window.render.CustomApps;
 
   /* ═══════════════════════════════════════════════════════════
-     MODAL: CREATE OWN APP (JUST LIKE SKYHARA)
+     MODAL: CREATE OWN APP & PAGE
      ═══════════════════════════════════════════════════════════ */
   window.openCreateOwnAppModal = function () {
     openSheet(`
@@ -594,13 +596,13 @@
         </div>
         <div>
           <h3 style="margin:0;font-size:18px;">Create Own App &amp; Page</h3>
-          <p class="hint" style="margin:0;">Publish a luxury boutique app like Skyhara</p>
+          <p class="hint" style="margin:0;">Publish a luxury boutique drop or catalog</p>
         </div>
       </div>
 
       <div style="padding:0 4px 24px;">
         <div class="field"><label>App / Brand Name *</label>
-          <input id="new_app_name" placeholder="e.g. Skyhara Bespoke or Artisan Drop" oninput="window.onCustomAppNameInput(this.value)"/>
+          <input id="new_app_name" placeholder="e.g. Heritage Atelier or Artisan Drop" oninput="window.onCustomAppNameInput(this.value)"/>
         </div>
 
         <div class="field"><label>Page URL Slug *</label>
@@ -741,7 +743,7 @@
   };
 
   /* ── Share Modal & QR Code Generator ── */
-  window.openSkyharaShareModal = async function (slug = "skyhara") {
+  window.openAtelierShareModal = async function (slug = "atelier") {
     const app = await window.CustomAppsService.get(slug);
     const url = app.url || `https://handsandhead.com/pages/${slug}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
@@ -769,14 +771,15 @@
       </div>
     `);
   };
+  window.openSkyharaShareModal = window.openAtelierShareModal;
 
   /* ── Concierge Modal ── */
-  window.openSkyharaConciergeModal = function () {
+  window.openAtelierConciergeModal = function () {
     openSheet(`
       <div class="grab"></div>
       <div style="padding:0 10px 20px;text-align:center;">
         <div style="font-size:28px;margin-bottom:8px;">✨</div>
-        <h3 style="margin:0;font-size:20px;">Skyhara Bespoke Concierge</h3>
+        <h3 style="margin:0;font-size:20px;">Atelier Bespoke Concierge</h3>
         <p class="hint" style="margin:4px 0 16px;">Direct line to Hands &amp; Head Master Leather Artisans</p>
 
         <div class="card" style="text-align:left;margin-bottom:16px;">
@@ -786,13 +789,14 @@
           </div>
         </div>
 
-        <button class="btn btn-gold" style="width:100%;margin-bottom:8px;" onclick="window.open('https://wa.me/8801974518600?text=Hello%20Skyhara%20Concierge,%20I%20would%20like%20to%20discuss%20a%20bespoke%20leather%20order.','_blank')">
+        <button class="btn btn-gold" style="width:100%;margin-bottom:8px;" onclick="window.open('https://wa.me/8801974518600?text=Hello%20Atelier%20Concierge,%20I%20would%20like%20to%20discuss%20a%20bespoke%20leather%20order.','_blank')">
           💬 Connect on WhatsApp (+880 1974-518600)
         </button>
         <button class="btn btn-dark" style="width:100%;" onclick="closeSheet()">Close</button>
       </div>
     `);
   };
+  window.openSkyharaConciergeModal = window.openAtelierConciergeModal;
 
   /* ── App Customizer Modal ── */
   window.openAppCustomizerModal = async function (appId) {
