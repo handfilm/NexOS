@@ -1132,7 +1132,8 @@ const NAV_SECTIONS = [
       { label: "NexOS HUB", icon: I.link, url: "https://handfilm.github.io/nexus/os/hub/", desc: "nexus/os/hub · Enterprise distribution bridge", ext: "HUB" },
       { label: "Portal Launcher", icon: I.link, url: "https://handfilm.github.io/portal/", desc: "Universal gateway for B2B brand portals", ext: "LAUNCHER" },
       { label: "RAWxOS", icon: I.spark, url: "https://handfilm.github.io/RAWxOS/", desc: "Raw materials, tanning & chemical ledger OS", ext: "RAW" },
-      { label: "HANDFILM", icon: I.cam, url: "https://handfilm.myshopify.com/", desc: "Official Shopify flagship studio", ext: "SHOPIFY" }
+      { label: "HANDFILM", icon: I.cam, url: "https://handfilm.myshopify.com/", desc: "Official Shopify flagship studio", ext: "SHOPIFY" },
+      { label: "H&H Nexus Website", icon: I.globe, url: "https://www.handsandhead.com/", desc: "Official corporate website & brand portfolio", ext: "WEB" }
     ]
   },
   {
@@ -1144,7 +1145,7 @@ const NAV_SECTIONS = [
       { label: "Arutemika — Leather EU", icon: I.leather, app: "PortalArutemika", desc: "Wholesale leather goods catalog & RFQ for EU buyers", ext: "EU B2B", extClass: "b2b" },
       { label: "HANDS & HEAD — RMG", icon: I.rmg, app: "PortalRMG", desc: "RMG apparel manufacturing portal for EU & US brands", ext: "RMG B2B", extClass: "b2b" },
       { label: "EU Buyer Portal", icon: I.eu, app: "EUPortal", desc: "Curated collection & sample requests for EU buyers", ext: "PORTAL" },
-      { label: "H&H Nexus Website", icon: I.globe, url: "https://www.handsandhead.com/", desc: "Official corporate website & brand portfolio", ext: "WEB" }
+      { label: "Quote Builder", icon: I.doc, app: "QuoteBuilder", desc: "Interactive pricing calculator & quotation generator", ext: "RFQ" }
     ]
   },
   {
@@ -1545,7 +1546,6 @@ function navTo(label) {
     expScreen = "dashboard";
     const b = document.getElementById("body");
     if (b) {
-      b.innerHTML = "";
       if (mode === "production") renderProductionView(b);
       else renderLiteHome(b);
     }

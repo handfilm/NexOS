@@ -126,7 +126,8 @@
       const isAllSelected = items.length > 0 && items.every(p => window._selectedProductIds.has(p.id));
 
       target.innerHTML = modHeader("Products", `${items.length} total · ${activeCount} active · ${totalUnits} units in stock`, [
-        { label: "📷 Scan Item QR", fn: "window.startCamera('barcode')", primary: false },
+        { label: "⚡ Fast Order", fn: "window.openFastOrderModal()", primary: false },
+        { label: "📥 Drive Sync", fn: "openAppModule('DriveSync')", primary: false },
         { label: "+ Add Product", fn: "window.openAdvancedProductForm()", primary: true }
       ]) + `
         <!-- Filter, Multi-Select & Search Toolbar -->
@@ -662,6 +663,9 @@
             ${p ? 'Save Changes' : 'Publish Product'}
           </button>
           ${p ? `
+            <button class="btn btn-dark" style="color:var(--coral);" title="AI Editorial & SEO Assistant" onclick="window.AIProductService.openEnrichmentModal('${p.id}');">
+              ✨ AI Enrich
+            </button>
             <button class="btn btn-dark" style="color:var(--gold);" title="View & Print Product QR Code" onclick="window.openProductQrModal('${p.id}');">
               🔲 Print QR
             </button>
@@ -1883,7 +1887,8 @@
       const selectedTotal = selectedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
 
       target.innerHTML = modHeader("Orders & Shipments", `${items.length} orders · ৳${totalRevenue.toLocaleString()} volume · ${pendingFulfillment} unfulfilled`, [
-        { label: "+ Create Order", fn: "window.openAdvancedOrderForm()", primary: true }
+        { label: "⚡ Fast FB/WA Order", fn: "window.openFastOrderModal()", primary: true },
+        { label: "+ Standard Order", fn: "window.openAdvancedOrderForm()", primary: false }
       ]) + `
         <!-- Filter & Multi-Select Toolbar -->
         <div style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
