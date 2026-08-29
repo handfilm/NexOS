@@ -4,6 +4,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 (function () {
+  window.render = window.render || {};
+
   const SYNC_STATES = {
     NOT_SYNCED: "NOT_SYNCED",
     SYNCING:    "SYNCING",
@@ -611,20 +613,26 @@
   };
 
   /* Load initially saved custom providers */
-  window.AccountingService.loadConnectedProviders();
+  try {
+    window.AccountingService.loadConnectedProviders();
+  } catch (e) {
+    console.warn("[Accounting] loadConnectedProviders failed on boot:", e);
+  }
 
   /* ── Auto-Sync Reactive Subscriber on Order Paid ── */
-  window.NexEvents.on(window.NexEvents.EVENTS.ORDER_PAID, async (orderData) => {
-    try {
-      const config = await window.AccountingService.getConfig("qbo");
-      if (config.autoSyncOnPaid && orderData?.id) {
-        console.log(`[Accounting] Auto-syncing paid order: ${orderData.id}`);
-        await window.AccountingService.syncOrder(orderData.id, "qbo", false);
+  if (window.NexEvents && typeof window.NexEvents.on === "function" && window.NexEvents.EVENTS?.ORDER_PAID) {
+    window.NexEvents.on(window.NexEvents.EVENTS.ORDER_PAID, async (orderData) => {
+      try {
+        const config = await window.AccountingService.getConfig("qbo");
+        if (config.autoSyncOnPaid && orderData?.id) {
+          console.log(`[Accounting] Auto-syncing paid order: ${orderData.id}`);
+          await window.AccountingService.syncOrder(orderData.id, "qbo", false);
+        }
+      } catch (e) {
+        console.warn("[Accounting] Auto-sync trigger failed:", e);
       }
-    } catch (e) {
-      console.warn("[Accounting] Auto-sync trigger failed:", e);
-    }
-  });
+    });
+  }
 
   /* ═══════════════════════════════════════════════════════════
      COMPONENT: ORDER ACCOUNTING SYNC STATUS INDICATOR
@@ -834,7 +842,7 @@
   /* ═══════════════════════════════════════════════════════════
      ACCOUNTING SYNC UI VIEW
      ═══════════════════════════════════════════════════════════ */
-  window.render.Accounting = async function (container) {
+  const renderAccountingView = async function (container) {
     const target = container || document.getElementById("mod-Accounting") || document.getElementById("body");
     if (!target) return;
 
@@ -848,13 +856,25 @@
     try {
       await window.AccountingService.loadConnectedProviders();
 
-      const [ordersSnap, logs, qboConfig] = await Promise.all([
-        window.Collections.orders.get(),
-        window.AccountingService.listLogs({ limit: 20 }),
-        window.AccountingService.getConfig("qbo")
+      const [logs, qboConfig] = await Promise.all([
+        window.AccountingService.listLogs({ limit: 20 }).catch(() => []),
+        window.AccountingService.getConfig("qbo").catch(() => ({}))
       ]);
 
-      const orders = ordersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      let orders = [];
+      try {
+        if (window.OrdersService && typeof window.OrdersService.list === "function") {
+          const res = await window.OrdersService.list({ limit: 100 });
+          orders = res.items || [];
+        } else if (window.Collections?.orders) {
+          const snap = await window.Collections.orders.get();
+          orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        }
+      } catch (err) {
+        console.warn("Orders fetch fallback:", err);
+        const lsOrders = (typeof LS !== "undefined" ? LS.get("orders") : null) || [];
+        orders = lsOrders;
+      }
       const syncedOrders = orders.filter(o => o.accountingSyncStatus === SYNC_STATES.SYNCED);
       const failedOrders = orders.filter(o => o.accountingSyncStatus === SYNC_STATES.FAILED);
       const syncingOrders = orders.filter(o => o.accountingSyncStatus === SYNC_STATES.SYNCING);
@@ -1089,6 +1109,18 @@
       `;
     } catch (err) {
       target.innerHTML = `<div style="padding:20px;color:var(--warn);">Failed to load Accounting module: ${err.message}</div>`;
+    }
+  };
+
+  window.render = window.render || {};
+  window.render.Accounting = renderAccountingView;
+  window.renderAccounting = renderAccountingView;
+  window.openAccountingModule = function() {
+    if (typeof window.openAppModule === "function") {
+      window.openAppModule("Accounting");
+    } else {
+      const b = document.getElementById("body");
+      if (b) renderAccountingView(b);
     }
   };
 

@@ -4,6 +4,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 (function () {
+  window.render = window.render || {};
+
   const POST_STATUS = {
     DRAFT: "DRAFT",
     READY: "READY",

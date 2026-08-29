@@ -5,6 +5,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 (function () {
+  window.render = window.render || {};
+
   // State for search and filtering across views
   window._viewState = {
     products: { search: "", status: "all", sortBy: "updatedAt", sortDir: "desc" },

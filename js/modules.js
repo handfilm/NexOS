@@ -11,7 +11,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 (function () {
-  if (typeof window.render !== "function") return;
+  window.render = window.render || {};
 
   /* ── Shared Helpers ── */
   function modHeader(title, tag, actions = []) {

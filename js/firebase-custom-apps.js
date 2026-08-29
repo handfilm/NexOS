@@ -7,6 +7,8 @@
 (function () {
   "use strict";
 
+  window.render = window.render || {};
+
   const DEFAULT_ATELIER_APP = {
     id: "atelier",
     slug: "atelier",
@@ -90,6 +92,7 @@
         colors: ["Natural Saddle", "Smoked Ebony"],
         materials: "Hand-Waxed Pull-Up Leather, Copper Rivets",
         dimensions: "40cm x 34cm x 14cm"
+      },
       {
         id: "atl_04",
         title: "Heritage Bespoke Derby Shoes",

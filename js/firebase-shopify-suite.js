@@ -11,6 +11,8 @@
 (function () {
   "use strict";
 
+  window.render = window.render || {};
+
   const STORAGE_KEY_WEBHOOKS = "hh_shopify_webhooks_";
   const STORAGE_KEY_DRAFTS = "hh_shopify_draft_orders_";
   const STORAGE_KEY_LOCATIONS = "hh_shopify_inventory_locations_";

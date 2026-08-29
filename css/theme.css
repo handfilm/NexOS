@@ -748,7 +748,7 @@ a { color:var(--coral); text-decoration:none; }
 
 /* Instant Drawer Search Filter */
 .drawer-search-wrap {
-  position:relative; margin-bottom:12px;
+  position:relative; margin-bottom:8px;
 }
 .drawer-search-input {
   width:100%; height:38px; padding:0 34px 0 34px;
@@ -776,6 +776,109 @@ a { color:var(--coral); text-decoration:none; }
   transition:opacity 0.2s;
 }
 .drawer-search-clear.visible { opacity:1; pointer-events:auto; }
+
+/* ── Visual Quick-Jump Category Toolbar ── */
+.drawer-quick-jump {
+  display:flex; align-items:center; gap:6px;
+  overflow-x:auto; padding:2px 2px 8px; margin-bottom:8px;
+  scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;
+}
+.drawer-quick-jump::-webkit-scrollbar { display:none; }
+
+.drawer-qjump-btn {
+  display:inline-flex; align-items:center; gap:5.5px;
+  height:30px; padding:0 9px; border-radius:10px;
+  font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:0.4px;
+  color:var(--ink); background:rgba(235, 241, 248, 0.85);
+  border:1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:2px 2px 5px rgba(166, 180, 200, 0.3), -2px -2px 5px #FFFFFF;
+  cursor:pointer; white-space:nowrap; flex-shrink:0;
+  transition:all 0.22s var(--ease-bouncy);
+}
+.drawer-qjump-btn:hover {
+  transform:translateY(-1.5px) scale(1.02);
+  background:rgba(255, 255, 255, 0.98);
+  box-shadow:3px 3px 9px rgba(166, 180, 200, 0.4), -2px -2px 6px #FFFFFF;
+}
+.drawer-qjump-btn:active, .drawer-qjump-btn.active {
+  transform:scale(0.97);
+  box-shadow:inset 1.5px 1.5px 3.5px rgba(166, 180, 200, 0.45), inset -1.5px -1.5px 3.5px #FFFFFF;
+}
+
+.drawer-qjump-ic {
+  display:flex; align-items:center; justify-content:center;
+}
+.drawer-qjump-ic svg {
+  width:14px; height:14px; stroke:currentColor; stroke-width:2; fill:none;
+  stroke-linecap:round; stroke-linejoin:round; display:block;
+}
+
+/* Category Accent Theming */
+.drawer-qjump-btn.qj-d2c {
+  border-color:rgba(201, 168, 76, 0.35);
+}
+.drawer-qjump-btn.qj-d2c .drawer-qjump-ic { color:var(--gold); }
+.drawer-qjump-btn.qj-d2c:hover, .drawer-qjump-btn.qj-d2c.active {
+  color:var(--gold); border-color:var(--gold);
+  background:rgba(255, 255, 255, 0.98);
+  box-shadow:0 0 10px rgba(201, 168, 76, 0.25), 2px 2px 6px rgba(166, 180, 200, 0.35);
+}
+
+.drawer-qjump-btn.qj-erp {
+  border-color:rgba(46, 144, 250, 0.35);
+}
+.drawer-qjump-btn.qj-erp .drawer-qjump-ic { color:#2E90FA; }
+.drawer-qjump-btn.qj-erp:hover, .drawer-qjump-btn.qj-erp.active {
+  color:#2E90FA; border-color:#2E90FA;
+  background:rgba(255, 255, 255, 0.98);
+  box-shadow:0 0 10px rgba(46, 144, 250, 0.25), 2px 2px 6px rgba(166, 180, 200, 0.35);
+}
+
+.drawer-qjump-btn.qj-core .drawer-qjump-ic { color:var(--coral); }
+.drawer-qjump-btn.qj-core:hover, .drawer-qjump-btn.qj-core.active {
+  color:var(--coral); border-color:var(--coral);
+}
+
+.drawer-qjump-btn.qj-b2b .drawer-qjump-ic { color:var(--ok); }
+.drawer-qjump-btn.qj-b2b:hover, .drawer-qjump-btn.qj-b2b.active {
+  color:var(--ok); border-color:var(--ok);
+}
+
+.drawer-qjump-btn.qj-ops .drawer-qjump-ic { color:#7F56D9; }
+.drawer-qjump-btn.qj-ops:hover, .drawer-qjump-btn.qj-ops.active {
+  color:#7F56D9; border-color:#7F56D9;
+}
+
+.drawer-qjump-btn.qj-hub .drawer-qjump-ic { color:#0086C9; }
+.drawer-qjump-btn.qj-hub:hover, .drawer-qjump-btn.qj-hub.active {
+  color:#0086C9; border-color:#0086C9;
+}
+
+.drawer-qjump-btn.qj-ai .drawer-qjump-ic { color:var(--coral); }
+.drawer-qjump-btn.qj-ai:hover, .drawer-qjump-btn.qj-ai.active {
+  color:var(--coral); border-color:var(--coral);
+}
+
+/* ── Highlight Section Attention Pulse ── */
+@keyframes sectionPulse {
+  0% {
+    box-shadow:0 0 0 0 rgba(255, 91, 53, 0.4);
+    transform:scale(1);
+  }
+  35% {
+    box-shadow:0 0 0 7px rgba(255, 91, 53, 0.25), 0 4px 14px rgba(255, 91, 53, 0.2);
+    transform:scale(1.02);
+  }
+  100% {
+    box-shadow:0 0 0 0 rgba(255, 91, 53, 0);
+    transform:scale(1);
+  }
+}
+.nav-section-group.highlight-pulse {
+  animation:sectionPulse 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border:1px solid rgba(255, 91, 53, 0.5) !important;
+  background:rgba(255, 255, 255, 0.92) !important;
+}
 
 .drawer-nav {
   flex:1; display:flex; flex-direction:column; gap:4px;

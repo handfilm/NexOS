@@ -1267,6 +1267,80 @@ const MODULE_MAP = {
 
 let _drawerFilterQuery = "";
 const _collapsedSections = new Set();
+let _activeQuickJump = null;
+
+const QUICK_JUMP_CATEGORIES = [
+  { id: "d2c", label: "D2C Stores", icon: I.globe, class: "qj-d2c", tag: "D2C" },
+  { id: "finance", label: "Accounting ERP", icon: I.wallet, class: "qj-erp", tag: "ERP" },
+  { id: "core", label: "Core POS", icon: I.home, class: "qj-core", tag: "POS" },
+  { id: "buyer_portals", label: "Buyer B2B", icon: I.leather, class: "qj-b2b", tag: "B2B" },
+  { id: "operations", label: "Operations", icon: I.box, class: "qj-ops", tag: "OPS" },
+  { id: "ecosystem", label: "Ecosystem", icon: I.link, class: "qj-hub", tag: "HUB" },
+  { id: "studio", label: "Studio", icon: I.spark, class: "qj-ops", tag: "APPS" },
+  { id: "intelligence", label: "NexAI", icon: I.ai, class: "qj-ai", tag: "AI" }
+];
+
+function renderDrawerQuickJump() {
+  const container = document.getElementById("drawerQuickJump");
+  if (!container) return;
+
+  container.innerHTML = QUICK_JUMP_CATEGORIES.map(c => `
+    <button class="drawer-qjump-btn ${c.class} ${_activeQuickJump === c.id ? 'active' : ''}" 
+            id="qjump_btn_${c.id}"
+            onclick="window.quickJumpToSection('${c.id}')"
+            title="Quick-Jump to ${c.label}">
+      <span class="drawer-qjump-ic">${c.icon}</span>
+      <span>${c.label}</span>
+    </button>
+  `).join("");
+}
+
+function quickJumpToSection(sectionId) {
+  _activeQuickJump = sectionId;
+  
+  // If search query is currently filtering out this section, clear search
+  if (_drawerFilterQuery) {
+    const input = document.getElementById("drawerSearchInput");
+    if (input) input.value = "";
+    _drawerFilterQuery = "";
+    const clearBtn = document.getElementById("drawerSearchClear");
+    if (clearBtn) clearBtn.classList.remove("visible");
+    const navContainer = document.getElementById("drawerNav");
+    if (navContainer) navContainer.innerHTML = renderDrawerNav();
+  }
+
+  // If section was collapsed, automatically expand it
+  if (_collapsedSections.has(sectionId)) {
+    _collapsedSections.delete(sectionId);
+    const secEl = document.getElementById(`nav_section_${sectionId}`);
+    if (secEl) secEl.classList.remove('collapsed');
+  }
+
+  // Update active state on buttons
+  renderDrawerQuickJump();
+
+  // Smooth scroll directly to the targeted section in the drawer
+  const target = document.getElementById(`nav_section_${sectionId}`);
+  const navContainer = document.getElementById("drawerNav");
+  if (target && navContainer) {
+    const navTop = navContainer.getBoundingClientRect().top;
+    const targetTop = target.getBoundingClientRect().top;
+    const scrollOffset = targetTop - navTop + navContainer.scrollTop - 6;
+
+    navContainer.scrollTo({
+      top: scrollOffset,
+      behavior: "smooth"
+    });
+
+    // Apply attention pulse animation
+    target.classList.remove("highlight-pulse");
+    void target.offsetWidth; // force reflow
+    target.classList.add("highlight-pulse");
+    setTimeout(() => {
+      target.classList.remove("highlight-pulse");
+    }, 1200);
+  }
+}
 
 function toggleDrawerSection(sectionId) {
   if (_collapsedSections.has(sectionId)) {
@@ -1303,6 +1377,8 @@ function clearDrawerSearch() {
 window.toggleDrawerSection = toggleDrawerSection;
 window.filterDrawerNav = filterDrawerNav;
 window.clearDrawerSearch = clearDrawerSearch;
+window.quickJumpToSection = quickJumpToSection;
+window.renderDrawerQuickJump = renderDrawerQuickJump;
 
 function renderDrawerNav() {
   const storeId = window.NexAuth?.getStoreId() || "default";
@@ -1450,8 +1526,16 @@ function renderDrawerNav() {
 }
 
 /* ── DOM Mechanics & Dynamic Module Router ── */
-function openDrawer() { document.getElementById("drawerNav").innerHTML=renderDrawerNav(); document.getElementById("drawer").classList.add("on"); document.getElementById("drawerScrim").classList.add("on"); }
-function closeDrawer() { document.getElementById("drawer").classList.remove("on"); document.getElementById("drawerScrim").classList.remove("on"); }
+function openDrawer() { 
+  renderDrawerQuickJump();
+  document.getElementById("drawerNav").innerHTML = renderDrawerNav(); 
+  document.getElementById("drawer").classList.add("on"); 
+  document.getElementById("drawerScrim").classList.add("on"); 
+}
+function closeDrawer() { 
+  document.getElementById("drawer").classList.remove("on"); 
+  document.getElementById("drawerScrim").classList.remove("on"); 
+}
 
 function navTo(label) {
   closeDrawer();
@@ -1513,9 +1597,18 @@ function openAppModule(appName) {
   b.appendChild(modContainer);
 
   // 5. Dynamically inject the correct rendering function for the selected module
-  if (window.render && typeof window.render[modKey] === "function") {
+  const getRenderFn = () => {
+    if (window.render && typeof window.render[modKey] === "function") return window.render[modKey];
+    if (typeof window["render" + modKey] === "function") return window["render" + modKey];
+    if (modKey === "Accounting" && typeof window.renderAccounting === "function") return window.renderAccounting;
+    if (modKey === "SocialPost" && typeof window.renderSocialPost === "function") return window.renderSocialPost;
+    return null;
+  };
+
+  const renderFn = getRenderFn();
+  if (renderFn) {
     try {
-      window.render[modKey](modContainer);
+      renderFn(modContainer);
     } catch(err) {
       console.error("Error rendering module:", modKey, err);
       modContainer.innerHTML = `<div style="padding:20px;color:var(--warn);">Failed to render ${modKey}: ${err.message}</div>`;
@@ -1526,13 +1619,25 @@ function openAppModule(appName) {
     let attempts = 0;
     const interval = setInterval(() => {
       attempts++;
-      if (window.render && typeof window.render[modKey] === "function") {
+      const delayedFn = getRenderFn();
+      if (delayedFn) {
         clearInterval(interval);
         modContainer.innerHTML = "";
-        window.render[modKey](modContainer);
-      } else if (attempts > 15) {
+        try {
+          delayedFn(modContainer);
+        } catch (e) {
+          console.error("Delayed render error:", e);
+          modContainer.innerHTML = `<div style="padding:20px;color:var(--warn);">Failed to render ${modKey}: ${e.message}</div>`;
+        }
+      } else if (attempts > 20) {
         clearInterval(interval);
-        modContainer.innerHTML = `<div class="empty" style="padding:40px 20px;text-align:center;">Module "${modKey}" is unavailable.</div>`;
+        modContainer.innerHTML = `
+          <div class="empty" style="padding:40px 20px;text-align:center;">
+            <div style="font-weight:700;font-size:14px;color:var(--ink);margin-bottom:6px;">Module "${modKey}" is unavailable.</div>
+            <div style="font-size:11.5px;color:var(--ink-3);margin-bottom:14px;">The module script could not be loaded. Please refresh.</div>
+            <button class="btn btn-sm btn-gold" onclick="window.location.reload()" style="font-weight:700;">🔄 Reload Terminal</button>
+          </div>
+        `;
       }
     }, 150);
   }
@@ -1659,7 +1764,7 @@ function setupQuickOrderLogic() {
 /* ── Global Exports ── */
 window.openGate=openGate; window.closeGate=closeGate; window.tryGate=tryGate;
 window.startCamera=startCamera; window.exitExpert=exitExpert; window.exitProduction=exitProduction;
-window.openAllOrders=openAllOrders; window.closeSheet=closeSheet; window.render=render;
+window.openAllOrders=openAllOrders; window.closeSheet=closeSheet; window.render=Object.assign(render, window.render || {});
 window.openDrawer=openDrawer; window.closeDrawer=closeDrawer; window.navTo=navTo;
 window.openAppModule=openAppModule; window.openAiChat=openAiChat; window.openSearch=openSearch;
 window.openQuickSale=openQuickSale; window.ordersListHtml=ordersListHtml; window.dCat=dCat; window.dCompanies=dCompanies;
