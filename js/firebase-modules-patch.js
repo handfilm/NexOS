@@ -126,6 +126,7 @@
       const isAllSelected = items.length > 0 && items.every(p => window._selectedProductIds.has(p.id));
 
       target.innerHTML = modHeader("Products", `${items.length} total · ${activeCount} active · ${totalUnits} units in stock`, [
+        { label: "📥 Bulk Import (CSV/Excel)", fn: "window.BulkImportEngine.openProductImportModal()", primary: false },
         { label: "⚡ Fast Order", fn: "window.openFastOrderModal()", primary: false },
         { label: "📥 Drive Sync", fn: "openAppModule('DriveSync')", primary: false },
         { label: "+ Add Product", fn: "window.openAdvancedProductForm()", primary: true }
@@ -201,7 +202,10 @@
                     </svg>
                     Edit
                   </button>
-                  <button class="gallery-action-btn" style="flex:1;min-height:30px;padding:4px 6px;font-size:10.5px;color:var(--gold);" title="Generate & Print QR Code" onclick="event.stopPropagation();window.openProductQrModal('${p.id}')">
+                  <button class="gallery-action-btn" style="flex:1.1;min-height:30px;padding:4px 6px;font-size:10.5px;color:var(--gold);" title="Enrich Copy, SEO & Tags with Gemini AI" onclick="event.stopPropagation();window.AIProductService.openEnrichmentModal('${p.id}')">
+                    ✨ Gemini
+                  </button>
+                  <button class="gallery-action-btn" style="flex:0.8;min-height:30px;padding:4px 4px;font-size:10.5px;color:var(--gold);" title="Generate & Print QR Code" onclick="event.stopPropagation();window.openProductQrModal('${p.id}')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;">
                       <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h4v4h-4zM14 21h3v-3h-3zM21 14v3h-3v-3z"/>
                     </svg>
@@ -230,17 +234,23 @@
           <div id="products-selected-count-badge" class="batch-count-badge">
             ✓ ${window._selectedProductIds.size} Selected
           </div>
+          <button class="batch-action-btn btn-batch-primary" onclick="window.BulkProductManager.applyBulkAction('bulk_ai')">
+            ✨ Gemini AI Enrich
+          </button>
           <button class="batch-action-btn btn-batch-warn" onclick="window.batchArchiveProducts()">
             📦 Bulk Archive
           </button>
           <button class="batch-action-btn" onclick="window.openBatchProductQrModal()">
-            🔲 Bulk QR Labels
+            🔲 Bulk QR
           </button>
           <button class="batch-action-btn" onclick="window.openBatchProductLabelsModal()">
-            🏷️ Barcode Labels
+            🏷️ Barcodes
+          </button>
+          <button class="batch-action-btn" onclick="window.BulkImportEngine.openProductImportModal()">
+            📥 Import File
           </button>
           <button class="batch-action-btn btn-batch-primary" onclick="window.batchPushProductsToShopify()">
-            ⚡ Push to Shopify
+            ⚡ Push Shopify
           </button>
           <button class="batch-action-btn" onclick="window.openBatchProductStatusModal()">
             🔄 Status
@@ -1473,6 +1483,7 @@
       const totalSpentAll = items.reduce((s, c) => s + (c.totalSpent || 0), 0);
 
       target.innerHTML = modHeader("Customer Directory", `${items.length} buyer profiles · ৳${totalSpentAll.toLocaleString()} lifetime spend`, [
+        { label: "📥 Bulk Import (CSV/Excel)", fn: "window.BulkImportEngine.openCustomerImportModal()", primary: false },
         { label: "+ Add Customer", fn: "window.openAdvancedCustomerForm()", primary: true }
       ]) + `
         <!-- Filter and Search Toolbar -->

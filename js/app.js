@@ -1182,7 +1182,7 @@ const NAV_SECTIONS = [
     items: [
       { label: "Voice Commands (Mic)", icon: I.mic, fn: "window.VoiceEngine.toggle()", desc: "Hands-free voice POS & order creation", ext: "MIC" },
       { label: "Analytics", icon: I.chart, app: "Analytics", desc: "Revenue velocity, margin breakdown & order charts", ext: "REPORTS" },
-      { label: "NexAI Forecast", icon: I.ai, app: "NexAI", desc: "AI tanning advisor, compliance & market intelligence", ext: "AI" },
+      { label: "Gemini AI Intelligence", icon: I.spark, app: "NexAI", desc: "Enterprise Gemini demand forecasting, compliance & buyer advisor", ext: "GEMINI AI" },
       { label: "FX Currency Rates", icon: I.fx, app: "FXRates", desc: "Live EUR, USD & GBP conversion ticker", ext: "FX" },
       { label: "Compliance Docs", icon: I.doc, app: "Compliance", desc: "REACH, BSCI, OEKO-TEX & EUDR certificate vault", ext: "DOCS" },
       { label: "Push Notifications", icon: I.bell, app: "Notifications", desc: "Real-time dispatch & browser alert center", ext: "PUSH" }
