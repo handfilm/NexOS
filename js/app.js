@@ -809,13 +809,13 @@ async function renderLiteHome(b) {
       case 'nexai_assistant':
         contentHtml = `
           <div class="sec-h" style="padding-top:10px;">
-            <span class="sec-h-label">NexAI Intelligence Terminal</span>
-            <span class="sec-h-action" onclick="openAppModule('NexAI')">Open AI Terminal →</span>
+            <span class="sec-h-label">The Gemini AI Terminal</span>
+            <span class="sec-h-action" onclick="openAppModule('NexAI')">Open The Gemini AI →</span>
           </div>
           <div class="dash-pinned-box" style="margin:0 20px 6px;">
             <div style="display:flex;align-items:center;gap:10px;">
-              <input type="text" placeholder="Ask NexAI about leather tanning specs, HS Codes, or EU buyer compliance…" style="flex:1;background:var(--bg-neu);box-shadow:var(--neu-pressed-sm);border:1px solid var(--wire);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--ink);" onkeydown="if(event.key==='Enter'){openAppModule('NexAI');}"/>
-              <button class="btn btn-gold btn-sm" onclick="openAppModule('NexAI')" style="padding:8px 14px;font-size:11px;">Ask AI</button>
+              <input type="text" placeholder="Ask The Gemini AI about leather tanning specs, HS Codes, or EU buyer compliance…" style="flex:1;background:var(--bg-neu);box-shadow:var(--neu-pressed-sm);border:1px solid var(--wire);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--ink);" onkeydown="if(event.key==='Enter'){openAppModule('NexAI');}"/>
+              <button class="btn btn-gold btn-sm" onclick="openAppModule('NexAI')" style="padding:8px 14px;font-size:11px;">Ask Gemini</button>
             </div>
           </div>
         `;
@@ -1182,7 +1182,7 @@ const NAV_SECTIONS = [
     items: [
       { label: "Voice Commands (Mic)", icon: I.mic, fn: "window.VoiceEngine.toggle()", desc: "Hands-free voice POS & order creation", ext: "MIC" },
       { label: "Analytics", icon: I.chart, app: "Analytics", desc: "Revenue velocity, margin breakdown & order charts", ext: "REPORTS" },
-      { label: "Gemini AI Intelligence", icon: I.spark, app: "NexAI", desc: "Enterprise Gemini demand forecasting, compliance & buyer advisor", ext: "GEMINI AI" },
+      { label: "The Gemini AI", icon: I.spark, app: "NexAI", desc: "Enterprise Google Gemini supply chain reasoning, EU compliance & forecasting", ext: "GEMINI AI" },
       { label: "FX Currency Rates", icon: I.fx, app: "FXRates", desc: "Live EUR, USD & GBP conversion ticker", ext: "FX" },
       { label: "Compliance Docs", icon: I.doc, app: "Compliance", desc: "REACH, BSCI, OEKO-TEX & EUDR certificate vault", ext: "DOCS" },
       { label: "Push Notifications", icon: I.bell, app: "Notifications", desc: "Real-time dispatch & browser alert center", ext: "PUSH" }
@@ -1218,6 +1218,9 @@ const MODULE_MAP = {
   "Inventory Stock": "Inventory",
   "Tracking": "Tracking",
   "Shipment Tracking": "Tracking",
+  "The Gemini AI": "NexAI",
+  "Gemini AI": "NexAI",
+  "Gemini": "NexAI",
   "NexAI": "NexAI",
   "NexAI Forecast": "NexAI",
   "FXRates": "FXRates",
@@ -1278,7 +1281,7 @@ const QUICK_JUMP_CATEGORIES = [
   { id: "operations", label: "Operations", icon: I.box, class: "qj-ops", tag: "OPS" },
   { id: "ecosystem", label: "Ecosystem", icon: I.link, class: "qj-hub", tag: "HUB" },
   { id: "studio", label: "Studio", icon: I.spark, class: "qj-ops", tag: "APPS" },
-  { id: "intelligence", label: "NexAI", icon: I.ai, class: "qj-ai", tag: "AI" }
+  { id: "intelligence", label: "The Gemini AI", icon: I.spark, class: "qj-ai", tag: "GEMINI" }
 ];
 
 function renderDrawerQuickJump() {

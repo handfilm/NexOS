@@ -542,8 +542,8 @@
             const phone = row[this.columnMapping.phone]?.trim() || '';
             const country = (row[this.columnMapping.country]?.trim() || 'NL').toUpperCase();
             const currency = (row[this.columnMapping.currency]?.trim() || 'BDT').toUpperCase();
-            const moq = parseInt(row[this.columnMapping.moq]) || 100;
-            const paymentTerms = row[this.columnMapping.paymentTerms]?.trim() || 'Net 30';
+            const moq = parseInt(row[this.columnMapping.moq]) >= 0 ? parseInt(row[this.columnMapping.moq]) : 0;
+            const paymentTerms = row[this.columnMapping.paymentTerms]?.trim() || 'Cash on Delivery (COD)';
             const address = row[this.columnMapping.address]?.trim() || '';
             const notes = row[this.columnMapping.notes]?.trim() || '';
 
@@ -630,9 +630,9 @@
       } else {
         headers = ['Company Name', 'Contact Person', 'Email', 'Phone', 'Country', 'Currency', 'Target MOQ', 'Payment Terms', 'Shipping Address', 'Internal Notes'];
         sampleData = [
-          ['Atelier Vondel B.V.', 'Hendrik van Dijk', 'hendrik@ateliervondel.nl', '+31 20 892 1100', 'NL', 'EUR', 150, 'Net 30', 'Keizersgracht 421, 1016 EK Amsterdam', 'Premium European boutique buyer, prefers REACH compliant full-grain.'],
-          ['Hanseatic Goods GmbH', 'Klaus Weber', 'k.weber@hanseaticgoods.de', '+49 40 551 2299', 'DE', 'EUR', 200, 'Net 45', 'Speicherstadt Block D, Hamburg', 'Bulk distributor for German retail department stores.'],
-          ['Mayfair Leather Guild', 'Arthur Pendelton', 'arthur@mayfairguild.co.uk', '+44 20 7946 0912', 'GB', 'GBP', 100, '50% Advance', '14 Savile Row, Mayfair, London', 'High-end British bespoke leather retailer.']
+          ['Tanvir Ahmed', 'Tanvir Ahmed', '', '01711223344', 'BD', 'BDT', 0, 'Cash on Delivery (COD)', 'House 42, Road 11, Banani, Dhaka 1213', 'VIP retail customer. Call before dispatch.'],
+          ['Arafat Enterprise', 'Arafat Hossain', 'arafat@example.com', '01819334455', 'BD', 'BDT', 0, 'Cash on Delivery (COD)', 'GEC Circle, Nasirabad, Chittagong', 'Repeat leather connoisseur.'],
+          ['Sadia Rahman', 'Sadia Rahman', '', '01912556677', 'BD', 'BDT', 0, 'Cash on Delivery (COD)', 'Upashahar Block D, Sylhet', 'Preferred delivery time: Afternoon.']
         ];
       }
 

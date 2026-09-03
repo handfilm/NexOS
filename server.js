@@ -41,23 +41,24 @@ Provide clear, highly actionable, professional, and mathematically accurate insi
 /* ── 1. Gemini Chat Endpoint ── */
 app.post('/api/gemini/chat', async (req, res) => {
   try {
-    const { message, history = [], context = {} } = req.body;
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
+    const { message, prompt, history = [], context = {} } = req.body;
+    const userMsg = message || prompt;
+    if (!userMsg) {
+      return res.status(400).json({ error: 'Message or prompt is required' });
     }
 
     const ai = getGeminiAI();
     if (!ai) {
       // Graceful offline fallback if API key is not yet configured in Settings
       return res.json({
-        text: `[Gemini AI Advisory (Offline Mode)]\n\nI have received your query: "${message}". To unlock full real-time Gemini 3.7 Flash reasoning, please ensure your GEMINI_API_KEY is configured in Settings > Secrets.\n\nQuick Tip for Hands & Head: Ensure EUDR compliance dossiers are attached with leather batches destined for Amsterdam and Hamburg ports.`
+        text: `✨ **The Gemini AI Advisory**\n\nI have received your query: "${userMsg}".\n\nTo unlock real-time Gemini reasoning, ensure your GEMINI_API_KEY is configured in Settings. In the meantime, here is immediate guidance for Hands & Head:\n• **Leather Production**: Maintain full-grain aniline and vegetable-tanned leather buffers in the Dhaka atelier.\n• **Export Compliance**: For EU buyers (Netherlands, Germany, UK), ensure REACH and EUDR (EU Deforestation Regulation) compliance dossiers are ready.\n• **Local Delivery**: Keep COD delivery charges standardized (৳80 Dhaka, ৳150 Nationwide).`
       });
     }
 
     // Build context-enhanced prompt
-    let contextualPrompt = message;
-    if (context.catalogSummary || context.lowStockCount !== undefined) {
-      contextualPrompt = `[Live OS Context: ${context.totalProducts || 0} products, ${context.lowStockCount || 0} low stock items, Active store: ${context.storeId || 'default'}]\n\nUser Request: ${message}`;
+    let contextualPrompt = userMsg;
+    if (context.catalogSummary || context.lowStockCount !== undefined || context.productsCount !== undefined) {
+      contextualPrompt = `[Live OS Context: ${context.productsCount || context.totalProducts || 0} active products, ${context.customersCount || 0} registered buyers, Store: ${context.app || 'Hands & Head'}]\n\nUser Request: ${userMsg}`;
     }
 
     const contents = [];

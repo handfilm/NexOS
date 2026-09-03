@@ -360,6 +360,44 @@ window.OrdersService = {
     return true;
   },
 
+  /* ── Full Order Update & Customization (Shopify-Style Order Editing) ── */
+  async update(orderId, patch) {
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
+    const operator = window.NexAuth?.profile?.name || "Operator";
+    const updatePayload = {
+      ...patch,
+      updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
+    };
+    
+    const timelineEntry = {
+      event: patch.timelineEvent || `Order customized & details updated by ${operator}`,
+      at: new Date().toISOString(),
+      by: operator
+    };
+
+    try {
+      if (window.FieldValue?.arrayUnion) {
+        updatePayload.timeline = window.FieldValue.arrayUnion(timelineEntry);
+      }
+      await window.Collections.orders.doc(orderId).set(updatePayload, { merge: true });
+    } catch (e) {
+      console.warn("Firestore order update fallback:", e.message);
+    }
+
+    try {
+      const cached = JSON.parse(localStorage.getItem("nx_orders_cache") || "[]");
+      const idx = cached.findIndex(o => o.id === orderId || o.orderNumber === orderId);
+      if (idx !== -1) {
+        const existing = cached[idx];
+        const updatedTimeline = [...(existing.timeline || []), timelineEntry];
+        cached[idx] = { ...existing, ...patch, timeline: updatedTimeline, updatedAt: new Date().toISOString() };
+        localStorage.setItem("nx_orders_cache", JSON.stringify(cached));
+      }
+    } catch (e) {}
+
+    return true;
+  },
+
   /* ── Delete Order ── */
   async delete(orderId) {
     try {

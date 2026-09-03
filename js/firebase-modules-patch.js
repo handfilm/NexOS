@@ -1534,8 +1534,8 @@
               </div>
               
               <div class="company-meta" style="display:flex;flex-wrap:wrap;gap:6px;font-size:10px;">
-                <div class="company-tag">${c.paymentTerms || 'Net 30'}</div>
-                <div class="company-tag">MOQ: ${c.moq || 100} units</div>
+                <div class="company-tag">${c.paymentTerms || 'Cash on Delivery (COD)'}</div>
+                <div class="company-tag">MOQ: ${c.moq !== undefined ? c.moq : 0} units</div>
                 ${c.email ? `<div class="company-tag">✉ ${c.email}</div>` : ''}
                 ${c.phone ? `<div class="company-tag">📞 ${c.phone}</div>` : ''}
               </div>
@@ -1578,7 +1578,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;padding:0 20px 8px;">
           <div>
             <h3 style="margin:0;font-size:18px;">${c.flag || '🏢'} ${c.companyName || c.name}</h3>
-            <p class="hint" style="margin:2px 0 0;">${c.country || 'Global'} · ${c.paymentTerms || 'Net 30'} · ${c.currency || 'BDT'}</p>
+            <p class="hint" style="margin:2px 0 0;">${c.country || 'Global'} · ${c.paymentTerms || 'Cash on Delivery (COD)'} · ${c.currency || 'BDT'}</p>
           </div>
           <button class="btn btn-dark btn-sm" onclick="window.openAdvancedCustomerForm('${c.id}')">Edit</button>
         </div>
@@ -1595,7 +1595,7 @@
             </div>
             <div class="bento-card">
               <div class="bento-label">MOQ</div>
-              <div class="bento-value" style="font-size:26px;">${c.moq || 100}</div>
+              <div class="bento-value" style="font-size:26px;">${c.moq !== undefined ? c.moq : 0}</div>
             </div>
           </div>
 
@@ -1691,30 +1691,30 @@
         </div>
 
         <div class="field-row">
-          <div class="field"><label>Email *</label>
-            <input id="c_email" type="email" placeholder="procurement@buyer.com" value="${c?.email || ''}"/>
+          <div class="field"><label>Email</label>
+            <input id="c_email" type="email" placeholder="e.g. buyer@example.com" value="${c?.email || ''}"/>
           </div>
           <div class="field"><label>Phone</label>
-            <input id="c_phone" placeholder="+31 20 123 4567" value="${c?.phone || ''}"/>
+            <input id="c_phone" placeholder="+880 17... or +31 20 123 4567" value="${c?.phone || ''}"/>
           </div>
         </div>
 
         <div class="field-row">
           <div class="field"><label>Country</label>
             <select id="c_country">
+              <option value="BD" ${c ? (c.country === 'BD' ? 'selected' : '') : 'selected'}>🇧🇩 Bangladesh</option>
               <option value="NL" ${c?.country === 'NL' ? 'selected' : ''}>🇳🇱 Netherlands</option>
               <option value="DE" ${c?.country === 'DE' ? 'selected' : ''}>🇩🇪 Germany</option>
               <option value="GB" ${c?.country === 'GB' ? 'selected' : ''}>🇬🇧 United Kingdom</option>
               <option value="ES" ${c?.country === 'ES' ? 'selected' : ''}>🇪🇸 Spain</option>
               <option value="FR" ${c?.country === 'FR' ? 'selected' : ''}>🇫🇷 France</option>
               <option value="US" ${c?.country === 'US' ? 'selected' : ''}>🇺🇸 United States</option>
-              <option value="BD" ${c?.country === 'BD' ? 'selected' : ''}>🇧🇩 Bangladesh</option>
               <option value="JP" ${c?.country === 'JP' ? 'selected' : ''}>🇯🇵 Japan</option>
             </select>
           </div>
           <div class="field"><label>Currency</label>
             <select id="c_currency">
-              <option value="BDT" ${c?.currency === 'BDT' ? 'selected' : ''}>BDT (৳)</option>
+              <option value="BDT" ${c?.currency === 'BDT' || !c ? 'selected' : ''}>BDT (৳)</option>
               <option value="EUR" ${c?.currency === 'EUR' ? 'selected' : ''}>EUR (€)</option>
               <option value="USD" ${c?.currency === 'USD' ? 'selected' : ''}>USD ($)</option>
               <option value="GBP" ${c?.currency === 'GBP' ? 'selected' : ''}>GBP (£)</option>
@@ -1724,10 +1724,13 @@
 
         <div class="field-row">
           <div class="field"><label>MOQ Target (Units)</label>
-            <input id="c_moq" type="number" placeholder="100" value="${c?.moq || 100}"/>
+            <input id="c_moq" type="number" min="0" placeholder="0" value="${c ? (c.moq !== undefined ? c.moq : 0) : 0}"/>
           </div>
           <div class="field"><label>Payment Terms</label>
             <select id="c_terms">
+              <option value="Cash on Delivery (COD)" ${c ? (c.paymentTerms === 'Cash on Delivery (COD)' || c.paymentTerms === 'COD' ? 'selected' : '') : 'selected'}>Cash on Delivery (COD)</option>
+              <option value="COD" ${c?.paymentTerms === 'COD' ? 'selected' : ''}>COD</option>
+              <option value="bKash / Mobile Wallet" ${c?.paymentTerms === 'bKash / Mobile Wallet' ? 'selected' : ''}>bKash / Mobile Wallet</option>
               <option value="Net 30" ${c?.paymentTerms === 'Net 30' ? 'selected' : ''}>Net 30</option>
               <option value="Net 45" ${c?.paymentTerms === 'Net 45' ? 'selected' : ''}>Net 45</option>
               <option value="Net 60" ${c?.paymentTerms === 'Net 60' ? 'selected' : ''}>Net 60</option>
@@ -1772,8 +1775,8 @@
       phone: document.getElementById("c_phone").value.trim(),
       country: document.getElementById("c_country").value,
       currency: document.getElementById("c_currency").value,
-      moq: Number(document.getElementById("c_moq").value) || 100,
-      paymentTerms: document.getElementById("c_terms").value,
+      moq: parseInt(document.getElementById("c_moq").value, 10) >= 0 ? parseInt(document.getElementById("c_moq").value, 10) : 0,
+      paymentTerms: document.getElementById("c_terms").value || 'Cash on Delivery (COD)',
       addressLine1: document.getElementById("c_addr").value.trim()
     };
 
@@ -1948,17 +1951,24 @@
                 </div>
 
                 <div class="othumb" style="font-weight:700;color:var(--gold);background:var(--bg-3);border:1px solid var(--wire);">HH</div>
-                <div class="om" style="flex:1;min-width:0;">
-                  <div class="ot" style="display:flex;align-items:center;gap:8px;">
+                <div class="om" style="flex:1;min-width:0;padding-right:8px;">
+                  <div class="ot" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                     <span style="font-weight:700;color:var(--ink);font-family:var(--mono);">${o.orderNumber}</span>
-                    <span style="color:var(--gold);font-weight:600;">৳${(o.total || 0).toLocaleString()}</span>
+                    <span style="color:var(--gold);font-weight:700;">৳${(o.total || 0).toLocaleString()}</span>
                     <span style="font-size:10px;color:var(--ink-3);font-family:var(--mono);">${dateStr}</span>
+                    ${o.deliveryCharge !== undefined ? `<span class="company-tag" style="font-size:9px;font-weight:700;background:var(--bg-3);">🚚 ৳${o.deliveryCharge}</span>` : ''}
                   </div>
-                  <div class="os" style="font-size:11px;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                    ${o.customerSnapshot?.name || 'Walk-in'} · ${(o.lineItems || []).map(li => `${li.title} (${li.quantity})`).join(', ')}
+                  <div class="os" style="font-size:12px;font-weight:600;color:var(--ink);margin-top:2px;">
+                    👤 ${o.customerSnapshot?.name || o.customerName || 'Customer'} ${o.customerSnapshot?.phone || o.phone ? `· <span style="color:var(--coral);font-family:var(--mono);font-weight:700;">📞 ${o.customerSnapshot?.phone || o.phone}</span>` : ''}
+                  </div>
+                  <div style="font-size:11px;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    📍 ${o.customerSnapshot?.address || o.shippingAddress?.line1 || o.address || 'Address pending'} · ${(o.lineItems || []).map(li => `${li.title} (${li.quantity})`).join(', ')}
                   </div>
                 </div>
-                <div style="display:flex;gap:6px;align-items:center;">
+                <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+                  <button class="btn btn-xs btn-dark" style="font-size:9.5px;padding:3px 7px;" onclick="event.stopPropagation(); window.copyOrderForCourier('${o.id}');" title="Copy courier delivery slip">
+                    📋 Slip
+                  </button>
                   <span class="pill ${o.paymentStatus === 'paid' ? 'ok' : 'amber'}" style="font-size:8px;">
                     ${(o.paymentStatus || 'pending').toUpperCase()}
                   </span>
@@ -2192,104 +2202,459 @@
     }, 280);
   };
 
-  /* ── Order Detail & Lifecycle Manager ── */
+  /* ── Order Detail & Lifecycle Manager (Shopify-Grade Order Status & Customization) ── */
   window.openOrderDetail = async function (orderId) {
     openSheet(loading("Loading Order Record…"));
     try {
       const o = await window.OrdersService.get(orderId);
       if (!o) { toast("Order not found"); closeSheet(); return; }
+      window._currentViewingOrder = o;
 
       const timeline = o.timeline || [];
       const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString() : (new Date(o.createdAt || Date.now())).toLocaleString();
 
+      // Recipient and Address extraction
+      const cust = o.customerSnapshot || {};
+      const shipAddr = o.shippingAddress || {};
+      const customerName = cust.name || cust.companyName || o.customerName || 'Valued Customer';
+      const rawPhone = cust.phone || shipAddr.phone || o.phone || '';
+      const customerPhone = rawPhone || 'No phone provided';
+      const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+
+      let fullAddress = cust.address || shipAddr.line1 || shipAddr.address || o.address || '';
+      const district = cust.district || shipAddr.city || o.district || '';
+      const area = cust.area || '';
+      if (area && !fullAddress.includes(area)) fullAddress = `${fullAddress}, ${area}`;
+      if (district && !fullAddress.includes(district)) fullAddress = `${fullAddress}, ${district}`;
+      if (!fullAddress.trim()) fullAddress = 'No delivery address recorded';
+
+      // Financials & Delivery Charge
+      const lineItems = o.lineItems || [];
+      const itemsCount = lineItems.reduce((sum, i) => sum + Number(i.quantity || 1), 0);
+      const computedSubtotal = lineItems.reduce((sum, i) => sum + (Number(i.price || 0) * Number(i.quantity || 1)), 0);
+      const subtotal = Number(o.subtotal !== undefined ? o.subtotal : computedSubtotal);
+      const discount = Number(o.discountTotal || 0);
+
+      let deliveryCharge = 0;
+      if (o.deliveryCharge !== undefined && o.deliveryCharge !== null) {
+        deliveryCharge = Number(o.deliveryCharge);
+      } else if (o.shippingTotal !== undefined && o.shippingTotal !== null) {
+        deliveryCharge = Number(o.shippingTotal);
+      } else if (o.total !== undefined && (Number(o.total) - (subtotal - discount)) > 0) {
+        deliveryCharge = Math.round(Number(o.total) - (subtotal - discount));
+      }
+      const grandTotal = Number(o.total !== undefined ? o.total : (subtotal - discount + deliveryCharge));
+
+      // Payment terms & COD
+      const isPaid = (o.paymentStatus === 'paid');
+      const paymentMethod = o.paymentMethod || (isPaid ? 'Paid Online / Direct' : 'Cash on Delivery (COD)');
+      const isCOD = !isPaid || paymentMethod.toUpperCase().includes('COD') || paymentMethod.toLowerCase().includes('CASH');
+      const cashToCollect = isPaid ? 0 : (o.dueAmount !== undefined ? Number(o.dueAmount) : grandTotal);
+
+      // Fulfillment Stepper calculation (Shopify tracker)
+      const fulfill = o.fulfillmentStatus || 'unfulfilled';
+      const isCancelled = o.status === 'cancelled';
+      const step1Done = true;
+      const step2Done = fulfill === 'fulfilled' || fulfill === 'shipped' || fulfill === 'delivered';
+      const step3Done = fulfill === 'shipped' || fulfill === 'delivered';
+      const step4Done = fulfill === 'delivered';
+
+      const courierName = o.courier || o.courierPartner || 'Steadfast Courier';
+      const trackingNumber = o.trackingNumber || o.consignmentId || '';
+      const customizationNotes = o.customization || o.notes || '';
+
       document.getElementById("sheet").innerHTML = `
         <div class="grab"></div>
-        <div style="padding:0 20px 8px;display:flex;justify-content:space-between;align-items:flex-start;">
-          <div>
-            <h3 style="margin:0;font-size:18px;font-family:var(--mono);">${o.orderNumber}</h3>
-            <p class="hint" style="margin:2px 0 0;">Placed ${dateStr} · ${o.customerSnapshot?.name || 'Walk-in'}</p>
+        
+        <!-- Shopify Order Status Header -->
+        <div style="padding:0 20px 12px;border-bottom:1px solid var(--wire);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <h3 style="margin:0;font-size:20px;font-weight:800;font-family:var(--mono);color:var(--ink);letter-spacing:-0.5px;">#${o.orderNumber}</h3>
+                <span class="company-tag" style="font-size:10px;font-weight:700;background:var(--bg-3);">
+                  ${o.source ? `⚡ ${o.source.toUpperCase()}` : '🛍️ SHOPIFY / STOREFRONT'}
+                </span>
+              </div>
+              <p class="hint" style="margin:0;font-size:11.5px;color:var(--ink-2);">
+                Confirmed on ${dateStr} · <strong>${customerName}</strong>
+              </p>
+            </div>
+            
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <span class="pill ${isPaid ? 'ok' : 'amber'}" style="font-size:10px;font-weight:800;padding:4px 10px;">
+                ${isPaid ? '✓ PAID IN FULL' : '💵 CASH ON DELIVERY'}
+              </span>
+              <span class="pill ${isCancelled ? 'warn' : fulfill === 'delivered' ? 'ok' : fulfill === 'shipped' ? 'blue' : 'amber'}" style="font-size:10px;font-weight:800;padding:4px 10px;">
+                ${isCancelled ? 'CANCELLED' : fulfill.toUpperCase()}
+              </span>
+            </div>
           </div>
-          <span class="pill ${o.status === 'completed' ? 'ok' : o.status === 'cancelled' ? 'warn' : 'amber'}">
-            ${(o.status || 'open').toUpperCase()}
-          </span>
+
+          <!-- Quick Action Buttons: Customize & Courier Dispatch -->
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+            <button class="btn btn-gold btn-sm" onclick="window.toggleOrderCustomizer('${o.id}')" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;">
+              ✏️ Customize Order
+            </button>
+            <button class="btn btn-dark btn-sm" onclick="window.copyOrderForCourier('${o.id}')" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;">
+              📋 Copy for Delivery Guy
+            </button>
+            <button class="btn btn-dark btn-sm" onclick="window.shareOrderOnWhatsApp('${o.id}')" style="display:inline-flex;align-items:center;gap:5px;color:#22c55e;font-weight:700;">
+              💬 WhatsApp Rider
+            </button>
+            ${cleanPhone ? `
+              <a href="tel:${cleanPhone}" class="btn btn-dark btn-sm" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none;color:var(--coral);font-weight:700;">
+                📞 Call Customer
+              </a>
+            ` : ''}
+          </div>
         </div>
 
-        <div style="padding:0 20px 24px;">
-          <!-- Line Items List -->
-          <div class="card" style="margin-bottom:12px;">
-            <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Purchased Items</div>
-            ${(o.lineItems || []).map(li => `
-              <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--wire);">
-                <div>
-                  <div style="font-size:12px;font-weight:600;color:var(--ink);">${li.title}</div>
-                  <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);">SKU: ${li.sku || '—'} · ৳${(li.price || 0).toLocaleString()} × ${li.quantity}</div>
-                </div>
-                <div style="font-size:13px;font-weight:700;color:var(--gold);font-family:var(--mono);">৳${(li.lineTotal || (li.price * li.quantity)).toLocaleString()}</div>
-              </div>
-            `).join('')}
-            
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:4px;">
-              <span style="font-size:12px;color:var(--ink-3);">Subtotal</span>
-              <span style="font-size:12px;color:var(--ink);font-family:var(--mono);">৳${(o.subtotal || o.total || 0).toLocaleString()}</span>
+        <div style="padding:16px 20px 24px;">
+
+          <!-- Shopify Order Status Stepper Bar -->
+          <div class="card" style="margin-bottom:16px;padding:14px 16px;background:var(--bg-neu-light);border:1px solid var(--wire);">
+            <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">
+              Shopify Order Status Tracker
             </div>
-            ${o.discountTotal ? `
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
-                <span style="font-size:12px;color:var(--warn);">Discount</span>
-                <span style="font-size:12px;color:var(--warn);font-family:var(--mono);">-৳${o.discountTotal.toLocaleString()}</span>
+            
+            <div style="display:flex;align-items:center;justify-content:space-between;position:relative;">
+              <!-- Connecting Line -->
+              <div style="position:absolute;top:14px;left:24px;right:24px;height:3px;background:var(--wire);z-index:1;"></div>
+              <div style="position:absolute;top:14px;left:24px;width:${step4Done ? '100%' : step3Done ? '66%' : step2Done ? '33%' : '0%'};height:3px;background:var(--coral);z-index:2;transition:width 0.3s ease;"></div>
+
+              <!-- Step 1: Confirmed -->
+              <div style="position:relative;z-index:3;text-align:center;width:60px;">
+                <div style="width:28px;height:28px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:var(--coral);color:#fff;box-shadow:var(--coral-shadow);">
+                  ✓
+                </div>
+                <div style="font-size:10px;font-weight:700;color:var(--ink);">Confirmed</div>
+              </div>
+
+              <!-- Step 2: In Atelier / Packed -->
+              <div style="position:relative;z-index:3;text-align:center;width:60px;">
+                <div style="width:28px;height:28px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:${step2Done ? 'var(--coral)' : 'var(--bg-3)'};color:${step2Done ? '#fff' : 'var(--ink-3)'};border:2px solid ${step2Done ? 'var(--coral)' : 'var(--wire)'};">
+                  ${step2Done ? '✓' : '2'}
+                </div>
+                <div style="font-size:10px;font-weight:700;color:${step2Done ? 'var(--ink)' : 'var(--ink-3)'};">Atelier</div>
+              </div>
+
+              <!-- Step 3: Dispatched -->
+              <div style="position:relative;z-index:3;text-align:center;width:60px;">
+                <div style="width:28px;height:28px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:${step3Done ? 'var(--coral)' : 'var(--bg-3)'};color:${step3Done ? '#fff' : 'var(--ink-3)'};border:2px solid ${step3Done ? 'var(--coral)' : 'var(--wire)'};">
+                  ${step3Done ? '✓' : '3'}
+                </div>
+                <div style="font-size:10px;font-weight:700;color:${step3Done ? 'var(--ink)' : 'var(--ink-3)'};">Dispatched</div>
+              </div>
+
+              <!-- Step 4: Delivered -->
+              <div style="position:relative;z-index:3;text-align:center;width:60px;">
+                <div style="width:28px;height:28px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:${step4Done ? '#10B981' : 'var(--bg-3)'};color:${step4Done ? '#fff' : 'var(--ink-3)'};border:2px solid ${step4Done ? '#10B981' : 'var(--wire)'};">
+                  ${step4Done ? '✓' : '4'}
+                </div>
+                <div style="font-size:10px;font-weight:700;color:${step4Done ? 'var(--ink)' : 'var(--ink-3)'};">Delivered</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ⭐ THE SCREENSHOT-READY DELIVERY & COURIER DISPATCH CARD -->
+          <div id="courier_dispatch_slip" class="card" style="margin-bottom:16px;border:2px solid var(--coral);background:var(--bg-neu-light);box-shadow:var(--neu-flat);padding:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px dashed var(--wire);margin-bottom:12px;">
+              <div>
+                <div style="font-size:11px;font-weight:800;color:var(--coral);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:6px;">
+                  🚚 DELIVERY &amp; RECIPIENT DISPATCH SLIP
+                </div>
+                <div style="font-size:11px;color:var(--ink-3);margin-top:2px;">
+                  Screenshot &amp; send directly to courier rider or delivery partner
+                </div>
+              </div>
+              <span class="pill" style="background:var(--coral);color:#fff;font-weight:800;font-size:9px;">
+                READY TO SHIP
+              </span>
+            </div>
+
+            <!-- Customer & Phone -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div style="background:var(--bg-3);padding:10px 12px;border-radius:8px;border:1px solid var(--wire);">
+                <div style="font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">Customer Name</div>
+                <div style="font-size:16px;font-weight:800;color:var(--ink);margin-top:2px;word-break:break-word;">
+                  ${customerName}
+                </div>
+              </div>
+
+              <div style="background:var(--bg-3);padding:10px 12px;border-radius:8px;border:1px solid var(--wire);">
+                <div style="font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">Contact Phone</div>
+                <div style="font-size:15px;font-weight:800;color:var(--coral);font-family:var(--mono);margin-top:2px;">
+                  ${customerPhone}
+                </div>
+              </div>
+            </div>
+
+            <!-- Full Address Box -->
+            <div style="background:var(--bg-3);padding:12px 14px;border-radius:8px;border:1px solid var(--wire);margin-bottom:12px;">
+              <div style="font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
+                📍 Full Delivery Address
+              </div>
+              <div style="font-size:14px;font-weight:700;color:var(--ink);margin-top:4px;line-height:1.45;white-space:pre-wrap;">
+                ${fullAddress}
+              </div>
+            </div>
+
+            <!-- COD Cash to Collect Banner -->
+            <div style="background:${isPaid ? '#F0FDF4' : '#FEF2F2'};border:2px solid ${isPaid ? '#10B981' : '#EF4444'};border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <div>
+                <div style="font-size:11px;font-weight:800;color:${isPaid ? '#065F46' : '#991B1B'};text-transform:uppercase;letter-spacing:0.5px;">
+                  ${isPaid ? '✓ PAID ONLINE — DO NOT COLLECT CASH' : '💵 CASH TO COLLECT FROM CUSTOMER (COD)'}
+                </div>
+                <div style="font-size:24px;font-weight:900;color:${isPaid ? '#059669' : '#DC2626'};font-family:var(--mono);margin-top:2px;">
+                  ${isPaid ? '৳0 (Prepaid)' : `৳${cashToCollect.toLocaleString()}`}
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <span class="pill ${isPaid ? 'ok' : 'warn'}" style="font-size:10.5px;font-weight:800;padding:5px 12px;">
+                  ${isPaid ? 'PREPAID ORDER' : 'COLLECT CASH'}
+                </span>
+                <div style="font-size:10px;font-weight:600;color:${isPaid ? '#047857' : '#B91C1C'};margin-top:4px;">
+                  ${isPaid ? 'Direct handover' : 'Collect full amount before handover'}
+                </div>
+              </div>
+            </div>
+
+            <!-- Delivery Charge & Courier Breakdown -->
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;font-size:12.5px;color:var(--ink-2);border-top:1px dashed var(--wire);border-bottom:1px dashed var(--wire);">
+              <span>Delivery Charge (${courierName}):</span>
+              <strong style="font-size:14px;color:var(--ink);font-family:var(--mono);">৳${deliveryCharge.toLocaleString()}</strong>
+            </div>
+
+            <!-- Customization & Delivery Instructions -->
+            ${customizationNotes ? `
+              <div style="background:var(--bg-2);padding:10px 12px;border-radius:6px;border-left:3.5px solid var(--gold);margin-top:12px;font-size:12px;">
+                <div style="font-size:10px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">
+                  Order Customization &amp; Special Instructions:
+                </div>
+                <div style="font-weight:600;color:var(--ink);margin-top:3px;line-height:1.4;white-space:pre-wrap;">
+                  ${customizationNotes}
+                </div>
               </div>
             ` : ''}
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--wire-hard);">
-              <span style="font-size:14px;font-weight:700;color:var(--ink);">Grand Total</span>
-              <span style="font-size:16px;font-weight:800;color:var(--gold);font-family:var(--mono);">৳${(o.total || 0).toLocaleString()}</span>
+          </div>
+
+          <!-- ⭐ ORDER CUSTOMIZATION PANEL (Collapsible / Editable) -->
+          <div id="order_customizer_panel" class="card" style="display:none;margin-bottom:16px;padding:16px;background:var(--bg-neu-dark);border:2px solid var(--gold);box-shadow:var(--neu-flat);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <div>
+                <h4 style="margin:0;font-size:14px;font-weight:800;color:var(--gold-dim);display:flex;align-items:center;gap:6px;">
+                  ✏️ Customize Order #${o.orderNumber}
+                </h4>
+                <div style="font-size:11px;color:var(--ink-3);margin-top:2px;">
+                  Update recipient, address, delivery charge, discount, notes, and payment terms
+                </div>
+              </div>
+              <button class="btn btn-xs btn-dark" onclick="window.toggleOrderCustomizer('${o.id}')">✕ Close</button>
+            </div>
+
+            <!-- Customer Details Editing -->
+            <div class="field"><label>Customer / Buyer Name</label>
+              <input id="edit_ord_name" value="${customerName}"/>
+            </div>
+
+            <div class="field-row">
+              <div class="field"><label>Phone Number</label>
+                <input id="edit_ord_phone" value="${customerPhone}"/>
+              </div>
+              <div class="field"><label>District / City</label>
+                <select id="edit_ord_district">
+                  <option value="Dhaka" ${district.toLowerCase().includes('dhaka') ? 'selected' : ''}>Dhaka</option>
+                  <option value="Chittagong" ${district.toLowerCase().includes('chittagong') ? 'selected' : ''}>Chittagong</option>
+                  <option value="Sylhet" ${district.toLowerCase().includes('sylhet') ? 'selected' : ''}>Sylhet</option>
+                  <option value="Rajshahi" ${district.toLowerCase().includes('rajshahi') ? 'selected' : ''}>Rajshahi</option>
+                  <option value="Khulna" ${district.toLowerCase().includes('khulna') ? 'selected' : ''}>Khulna</option>
+                  <option value="Barisal" ${district.toLowerCase().includes('barisal') ? 'selected' : ''}>Barisal</option>
+                  <option value="Rangpur" ${district.toLowerCase().includes('rangpur') ? 'selected' : ''}>Rangpur</option>
+                  <option value="Mymensingh" ${district.toLowerCase().includes('mymensingh') ? 'selected' : ''}>Mymensingh</option>
+                  <option value="Outside Bangladesh" ${district.toLowerCase().includes('outside') ? 'selected' : ''}>International / Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field"><label>Full Shipping / Delivery Address</label>
+              <textarea id="edit_ord_addr" rows="2" style="width:100%;padding:8px 10px;background:var(--bg-3);border:1px solid var(--wire);border-radius:6px;color:var(--ink);font-size:12.5px;box-sizing:border-box;">${fullAddress}</textarea>
+            </div>
+
+            <!-- Order Customization / Engraving / Notes -->
+            <div class="field">
+              <label>Order Customization / Special Instructions (e.g. Initials Engraving, Gift Wrap)</label>
+              <textarea id="edit_ord_customization" rows="2" placeholder="e.g. Laser engrave initials 'S.A.' on front · Gift packaging with gold ribbon · Call before delivery" style="width:100%;padding:8px 10px;background:var(--bg-3);border:1px solid var(--wire);border-radius:6px;color:var(--ink);font-size:12.5px;box-sizing:border-box;">${customizationNotes}</textarea>
+            </div>
+
+            <!-- Delivery Charge Editing with Fast Presets -->
+            <div class="field" style="margin-top:10px;">
+              <label>Delivery Charge (৳)</label>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(80)">৳80 Inside Dhaka</button>
+                <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(100)">৳100 Express</button>
+                <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(130)">৳130 Suburbs</button>
+                <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(150)">৳150 Outside Dhaka</button>
+                <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(0)">৳0 Free</button>
+              </div>
+              <input id="edit_ord_delivery" type="number" min="0" value="${deliveryCharge}" oninput="window.recalcCustomizerTotals()"/>
+            </div>
+
+            <div class="field-row">
+              <div class="field"><label>Discount Amount (৳)</label>
+                <input id="edit_ord_discount" type="number" min="0" value="${discount}" oninput="window.recalcCustomizerTotals()"/>
+              </div>
+              <div class="field"><label>Payment Terms / Method</label>
+                <select id="edit_ord_pay_method">
+                  <option value="Cash on Delivery (COD)" ${paymentMethod.includes('COD') || paymentMethod.includes('Cash') ? 'selected' : ''}>Cash on Delivery (COD)</option>
+                  <option value="bKash / Mobile Wallet" ${paymentMethod.includes('bKash') ? 'selected' : ''}>bKash / Mobile Wallet</option>
+                  <option value="Nagad" ${paymentMethod.includes('Nagad') ? 'selected' : ''}>Nagad</option>
+                  <option value="Bank Transfer / Card" ${paymentMethod.includes('Bank') || paymentMethod.includes('Card') ? 'selected' : ''}>Bank Transfer / Card</option>
+                  <option value="Net 30" ${paymentMethod.includes('Net 30') ? 'selected' : ''}>Net 30</option>
+                  <option value="50% Advance" ${paymentMethod.includes('50%') ? 'selected' : ''}>50% Advance, 50% COD</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field"><label>Courier Partner</label>
+                <select id="edit_ord_courier">
+                  <option value="Steadfast Courier" ${courierName.includes('Steadfast') ? 'selected' : ''}>Steadfast Courier</option>
+                  <option value="Pathao Courier" ${courierName.includes('Pathao') ? 'selected' : ''}>Pathao Courier</option>
+                  <option value="RedX" ${courierName.includes('RedX') ? 'selected' : ''}>RedX</option>
+                  <option value="Paperfly" ${courierName.includes('Paperfly') ? 'selected' : ''}>Paperfly</option>
+                  <option value="Direct Delivery Rider" ${courierName.includes('Direct') ? 'selected' : ''}>Direct Delivery Rider</option>
+                </select>
+              </div>
+              <div class="field"><label>Consignment / Tracking ID</label>
+                <input id="edit_ord_tracking" placeholder="e.g. STF-98430" value="${trackingNumber}"/>
+              </div>
+            </div>
+
+            <!-- Dynamic Recalculation Preview -->
+            <div style="background:var(--bg-3);padding:10px 12px;border-radius:6px;border:1px solid var(--wire);margin:10px 0;display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12px;font-weight:700;color:var(--ink);">Projected Grand Total:</span>
+              <span id="edit_ord_preview_total" style="font-size:16px;font-weight:900;color:var(--gold);font-family:var(--mono);">৳${grandTotal.toLocaleString()}</span>
+            </div>
+
+            <button class="btn btn-gold" style="width:100%;padding:10px;font-weight:800;" onclick="window.saveOrderCustomization('${o.id}')">
+              ✓ Save Customizations &amp; Recalculate
+            </button>
+          </div>
+
+          <!-- Purchased Line Items (Shopify Style) -->
+          <div class="card" style="margin-bottom:16px;padding:16px;background:var(--bg-neu-light);border:1px solid var(--wire);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--wire);">
+              <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;">
+                Purchased Items (${itemsCount})
+              </div>
+              <span style="font-size:11px;font-family:var(--mono);color:var(--ink-3);">SKU &amp; Pricing</span>
+            </div>
+
+            ${lineItems.map(li => `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--wire);">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:36px;height:36px;border-radius:6px;background:var(--bg-3);border:1px solid var(--wire);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--gold);">
+                    🛍️
+                  </div>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--ink);">${li.title}</div>
+                    <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-top:2px;">
+                      SKU: ${li.sku || '—'} · ৳${(li.price || 0).toLocaleString()} × ${li.quantity}
+                    </div>
+                  </div>
+                </div>
+                <div style="font-size:14px;font-weight:800;color:var(--ink);font-family:var(--mono);">
+                  ৳${(li.lineTotal || (li.price * li.quantity)).toLocaleString()}
+                </div>
+              </div>
+            `).join('')}
+
+            <!-- Financial Summary Breakdown -->
+            <div style="padding-top:12px;display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-2);">
+                <span>Items Subtotal</span>
+                <span style="font-family:var(--mono);color:var(--ink);">৳${subtotal.toLocaleString()}</span>
+              </div>
+              
+              ${discount ? `
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--warn);">
+                  <span>Discount Applied</span>
+                  <span style="font-family:var(--mono);">-৳${discount.toLocaleString()}</span>
+                </div>
+              ` : ''}
+
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-2);">
+                <span>Delivery Charge (${courierName})</span>
+                <span style="font-family:var(--mono);font-weight:700;color:var(--ink);">+৳${deliveryCharge.toLocaleString()}</span>
+              </div>
+
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:8px;border-top:2px solid var(--wire-hard);">
+                <span style="font-size:15px;font-weight:800;color:var(--ink);">Grand Total</span>
+                <span style="font-size:18px;font-weight:900;color:var(--gold);font-family:var(--mono);">৳${grandTotal.toLocaleString()}</span>
+              </div>
             </div>
           </div>
 
-          <!-- Status Controls -->
-          <div class="field-row">
-            <div class="field"><label>Payment Status</label>
-              <select id="ord_pay">
-                <option value="pending" ${o.paymentStatus === 'pending' ? 'selected' : ''}>Pending</option>
-                <option value="paid" ${o.paymentStatus === 'paid' ? 'selected' : ''}>Paid</option>
-                <option value="partially_paid" ${o.paymentStatus === 'partially_paid' ? 'selected' : ''}>Partially Paid</option>
-                <option value="refunded" ${o.paymentStatus === 'refunded' ? 'selected' : ''}>Refunded</option>
+          <!-- Status Controls & Order Lifecycle -->
+          <div class="card" style="margin-bottom:16px;padding:14px;background:var(--bg-neu-light);border:1px solid var(--wire);">
+            <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
+              Order Status Controls
+            </div>
+
+            <div class="field-row">
+              <div class="field"><label>Payment Status</label>
+                <select id="ord_pay">
+                  <option value="pending" ${o.paymentStatus === 'pending' ? 'selected' : ''}>Pending (COD)</option>
+                  <option value="paid" ${o.paymentStatus === 'paid' ? 'selected' : ''}>Paid in Full</option>
+                  <option value="partially_paid" ${o.paymentStatus === 'partially_paid' ? 'selected' : ''}>Partially Paid</option>
+                  <option value="refunded" ${o.paymentStatus === 'refunded' ? 'selected' : ''}>Refunded</option>
+                </select>
+              </div>
+              <div class="field"><label>Fulfillment Status</label>
+                <select id="ord_fulfill">
+                  <option value="unfulfilled" ${o.fulfillmentStatus === 'unfulfilled' ? 'selected' : ''}>Unfulfilled (Ready to Pack)</option>
+                  <option value="fulfilled" ${o.fulfillmentStatus === 'fulfilled' ? 'selected' : ''}>In Atelier (Packed)</option>
+                  <option value="shipped" ${o.fulfillmentStatus === 'shipped' ? 'selected' : ''}>Shipped (Dispatched)</option>
+                  <option value="delivered" ${o.fulfillmentStatus === 'delivered' ? 'selected' : ''}>Delivered</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field"><label>Order State</label>
+              <select id="ord_status">
+                <option value="open" ${o.status === 'open' ? 'selected' : ''}>Open</option>
+                <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Completed</option>
+                <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
               </select>
             </div>
-            <div class="field"><label>Fulfillment Status</label>
-              <select id="ord_fulfill">
-                <option value="unfulfilled" ${o.fulfillmentStatus === 'unfulfilled' ? 'selected' : ''}>Unfulfilled</option>
-                <option value="fulfilled" ${o.fulfillmentStatus === 'fulfilled' ? 'selected' : ''}>Fulfilled</option>
-                <option value="shipped" ${o.fulfillmentStatus === 'shipped' ? 'selected' : ''}>Shipped</option>
-                <option value="delivered" ${o.fulfillmentStatus === 'delivered' ? 'selected' : ''}>Delivered</option>
-              </select>
+          </div>
+
+          <!-- Order Timeline Audit -->
+          <div class="card" style="margin-bottom:16px;padding:14px;background:var(--bg-neu-light);border:1px solid var(--wire);">
+            <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
+              Order Timeline (${timeline.length})
             </div>
-          </div>
-
-          <div class="field"><label>Order State</label>
-            <select id="ord_status">
-              <option value="open" ${o.status === 'open' ? 'selected' : ''}>Open</option>
-              <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Completed</option>
-              <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-            </select>
-          </div>
-
-          <!-- Timeline Audit -->
-          <div class="card" style="margin:12px 0;">
-            <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Order Timeline (${timeline.length})</div>
-            <div style="display:flex;flex-direction:column;gap:6px;max-height:100px;overflow-y:auto;">
+            <div style="display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto;">
               ${timeline.length ? timeline.map(t => `
-                <div style="font-size:11px;color:var(--ink-2);border-left:2px solid var(--wire-hard);padding-left:8px;">
+                <div style="font-size:11px;color:var(--ink-2);border-left:2px solid var(--coral);padding-left:8px;">
                   <div>${t.event}</div>
-                  <div style="font-size:9px;color:var(--ink-3);font-family:var(--mono);">${t.by || 'Operator'} · ${new Date(t.at).toLocaleString()}</div>
+                  <div style="font-size:9.5px;color:var(--ink-3);font-family:var(--mono);margin-top:1px;">
+                    ${t.by || 'Operator'} · ${new Date(t.at).toLocaleString()}
+                  </div>
                 </div>
               `).join('') : '<div style="font-size:11px;color:var(--ink-3);">No timeline events recorded.</div>'}
             </div>
           </div>
 
-          <div style="display:flex;gap:8px;margin-top:10px;">
-            <button class="btn btn-gold" style="flex:1;" onclick="window.saveOrderStatus('${o.id}')">Save Status Updates</button>
+          <!-- Bottom Action Buttons -->
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-gold" style="flex:1;font-weight:700;" onclick="window.saveOrderStatus('${o.id}')">
+              Save Status Updates
+            </button>
             ${o.status !== 'cancelled' ? `
-              <button class="btn btn-dark" style="color:var(--warn);" onclick="window.cancelOrderPrompt('${o.id}')">
-                Cancel & Restock
+              <button class="btn btn-dark" style="color:var(--warn);font-weight:700;" onclick="window.cancelOrderPrompt('${o.id}')">
+                Cancel &amp; Restock
               </button>
             ` : ''}
           </div>
@@ -2299,6 +2664,202 @@
       toast("Error loading order: " + e.message);
       closeSheet();
     }
+  };
+
+  /* ── Order Customizer Handlers ── */
+  window.toggleOrderCustomizer = function (orderId) {
+    const p = document.getElementById("order_customizer_panel");
+    if (!p) return;
+    const isHidden = p.style.display === "none";
+    p.style.display = isHidden ? "block" : "none";
+    if (isHidden) {
+      p.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  window.applyDeliveryPreset = function (amount) {
+    const input = document.getElementById("edit_ord_delivery");
+    if (input) {
+      input.value = amount;
+      window.recalcCustomizerTotals();
+    }
+  };
+
+  window.recalcCustomizerTotals = function () {
+    const o = window._currentViewingOrder;
+    if (!o) return;
+    const lineItems = o.lineItems || [];
+    const subtotal = lineItems.reduce((sum, i) => sum + (Number(i.price || 0) * Number(i.quantity || 1)), 0);
+    const delivery = Number(document.getElementById("edit_ord_delivery")?.value || 0);
+    const discount = Number(document.getElementById("edit_ord_discount")?.value || 0);
+    const newTotal = Math.max(0, subtotal + delivery - discount);
+    const preview = document.getElementById("edit_ord_preview_total");
+    if (preview) {
+      preview.innerText = `৳${newTotal.toLocaleString()}`;
+    }
+  };
+
+  window.saveOrderCustomization = async function (orderId) {
+    const o = window._currentViewingOrder;
+    if (!o) return;
+
+    const newName = document.getElementById("edit_ord_name")?.value.trim() || o.customerSnapshot?.name || 'Customer';
+    const newPhone = document.getElementById("edit_ord_phone")?.value.trim() || '';
+    const newDistrict = document.getElementById("edit_ord_district")?.value || 'Dhaka';
+    const newAddr = document.getElementById("edit_ord_addr")?.value.trim() || '';
+    const newCustomization = document.getElementById("edit_ord_customization")?.value.trim() || '';
+    const newDelivery = Number(document.getElementById("edit_ord_delivery")?.value || 0);
+    const newDiscount = Number(document.getElementById("edit_ord_discount")?.value || 0);
+    const newPayMethod = document.getElementById("edit_ord_pay_method")?.value || 'Cash on Delivery (COD)';
+    const newCourier = document.getElementById("edit_ord_courier")?.value || 'Steadfast Courier';
+    const newTracking = document.getElementById("edit_ord_tracking")?.value.trim() || '';
+
+    const lineItems = o.lineItems || [];
+    const subtotal = lineItems.reduce((sum, i) => sum + (Number(i.price || 0) * Number(i.quantity || 1)), 0);
+    const total = Math.max(0, subtotal + newDelivery - newDiscount);
+
+    const isPaid = (o.paymentStatus === 'paid');
+    const dueAmount = isPaid ? 0 : total;
+
+    const patch = {
+      customerSnapshot: {
+        ...(o.customerSnapshot || {}),
+        name: newName,
+        phone: newPhone,
+        address: newAddr,
+        district: newDistrict
+      },
+      shippingAddress: {
+        ...(o.shippingAddress || {}),
+        line1: newAddr,
+        address: newAddr,
+        city: newDistrict,
+        phone: newPhone
+      },
+      customerName: newName,
+      phone: newPhone,
+      address: newAddr,
+      district: newDistrict,
+      deliveryCharge: newDelivery,
+      shippingTotal: newDelivery,
+      discountTotal: newDiscount,
+      subtotal,
+      total,
+      dueAmount,
+      customization: newCustomization,
+      notes: newCustomization || o.notes || '',
+      paymentMethod: newPayMethod,
+      courier: newCourier,
+      courierPartner: newCourier,
+      trackingNumber: newTracking,
+      consignmentId: newTracking,
+      timelineEvent: `Order customized by Operator (Delivery: ৳${newDelivery}, Total: ৳${total})`
+    };
+
+    try {
+      await window.OrdersService.update(orderId, patch);
+      toast("✓ Order customized & recalculated successfully!");
+      // Re-open updated order view
+      window.openOrderDetail(orderId);
+      // Refresh background orders list
+      const container = document.getElementById("mod-Orders");
+      if (container) window.render.Orders(container);
+    } catch (err) {
+      toast("Failed to save customization: " + err.message);
+    }
+  };
+
+  /* ── 📋 Copy Order for Delivery Guy ── */
+  window.copyOrderForCourier = async function (orderId) {
+    const o = window._currentViewingOrder || await window.OrdersService.get(orderId);
+    if (!o) return;
+
+    const cust = o.customerSnapshot || {};
+    const shipAddr = o.shippingAddress || {};
+    const name = cust.name || cust.companyName || o.customerName || 'Customer';
+    const phone = cust.phone || shipAddr.phone || o.phone || 'No phone';
+    
+    let addr = cust.address || shipAddr.line1 || shipAddr.address || o.address || '';
+    const district = cust.district || shipAddr.city || o.district || '';
+    if (district && !addr.includes(district)) addr = `${addr}, ${district}`;
+
+    const sub = Number(o.subtotal || o.total || 0);
+    const disc = Number(o.discountTotal || 0);
+    let delivery = 0;
+    if (o.deliveryCharge !== undefined) delivery = Number(o.deliveryCharge);
+    else if (o.shippingTotal !== undefined) delivery = Number(o.shippingTotal);
+    else if (o.total && (o.total - (sub - disc)) > 0) delivery = Math.round(o.total - (sub - disc));
+    const grand = Number(o.total || (sub - disc + delivery));
+
+    const isPaid = (o.paymentStatus === 'paid');
+    const cashToCollect = isPaid ? 0 : grand;
+    const items = (o.lineItems || []).map(li => `  • ${li.title} (Qty: ${li.quantity})`).join('\n');
+    const notes = o.customization || o.notes || 'Handle with care';
+
+    const dispatchText = `===============================
+📦 HANDS & HEAD — DELIVERY SLIP
+===============================
+Order Number: #${o.orderNumber}
+Customer: ${name}
+Phone: ${phone}
+Address: ${addr}
+-------------------------------
+Items:
+${items || '  • Leather Product'}
+-------------------------------
+Delivery Fee: ৳${delivery.toLocaleString()}
+${isPaid ? '✓ PAYMENT: PREPAID (৳0 TO COLLECT)' : `💵 CASH TO COLLECT (COD): ৳${cashToCollect.toLocaleString()}`}
+Payment Method: ${o.paymentMethod || (isPaid ? 'Prepaid Online' : 'Cash on Delivery')}
+-------------------------------
+Customization / Notes:
+${notes}
+===============================`;
+
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(dispatchText);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = dispatchText;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      toast("✓ Copied full delivery slip to clipboard for courier guy!");
+    } catch (err) {
+      toast("Copied text fallback enabled");
+    }
+  };
+
+  /* ── 💬 WhatsApp Delivery Dispatch ── */
+  window.shareOrderOnWhatsApp = async function (orderId) {
+    const o = window._currentViewingOrder || await window.OrdersService.get(orderId);
+    if (!o) return;
+
+    const cust = o.customerSnapshot || {};
+    const name = cust.name || cust.companyName || o.customerName || 'Customer';
+    const phone = cust.phone || o.phone || '';
+    let addr = cust.address || o.address || '';
+    const district = cust.district || o.district || '';
+    if (district && !addr.includes(district)) addr = `${addr}, ${district}`;
+
+    const isPaid = (o.paymentStatus === 'paid');
+    const grand = Number(o.total || 0);
+    const cashToCollect = isPaid ? 0 : grand;
+    const items = (o.lineItems || []).map(li => `• ${li.title} x${li.quantity}`).join(', ');
+
+    const msg = encodeURIComponent(`📦 *HANDS & HEAD COURIER DISPATCH*
+*Order:* #${o.orderNumber}
+*Customer:* ${name}
+*Phone:* ${phone}
+*Address:* ${addr}
+*Items:* ${items}
+*Cash to Collect (COD):* ৳${cashToCollect}
+*Notes:* ${o.customization || o.notes || 'Deliver carefully'}`);
+
+    const waUrl = `https://wa.me/?text=${msg}`;
+    window.open(waUrl, '_blank');
   };
 
   window.saveOrderStatus = async function (orderId) {
@@ -2311,7 +2872,7 @@
       paymentStatus: pay,
       fulfillmentStatus: fulfill
     });
-    toast("Order status updated ✓");
+    toast("✓ Order status updated");
     closeSheet();
     const container = document.getElementById("mod-Orders");
     if (container) window.render.Orders(container);
@@ -2321,7 +2882,7 @@
     if (!confirm("Are you sure you want to cancel this order? Stock will be automatically restored to the product inventory ledger.")) return;
     try {
       await window.OrdersService.cancel(orderId, "Operator cancelled from Order Manager");
-      toast("Order cancelled and inventory restored ✓");
+      toast("✓ Order cancelled and inventory restored");
       closeSheet();
       const container = document.getElementById("mod-Orders");
       if (container) window.render.Orders(container);

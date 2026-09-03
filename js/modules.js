@@ -466,11 +466,11 @@
         <div class="field"><label>Country</label><select id="c_country"><option value="NL">🇳🇱 Netherlands</option><option value="DE">🇩🇪 Germany</option><option value="GB">🇬🇧 UK</option><option value="ES">🇪🇸 Spain</option><option value="JP">🇯🇵 Japan</option></select></div>
         <div class="field"><label>Currency</label><select id="c_currency"><option>EUR</option><option>GBP</option><option>JPY</option><option>USD</option></select></div>
       </div>
-      <div class="field"><label>Contact Email</label><input id="c_email" placeholder="buyer@company.eu"/></div>
-      <div class="field"><label>Contact Phone</label><input id="c_phone" placeholder="+31 ..."/></div>
+      <div class="field"><label>Email</label><input id="c_email" placeholder="buyer@company.com"/></div>
+      <div class="field"><label>Contact Phone</label><input id="c_phone" placeholder="+880 17..."/></div>
       <div class="field-row">
-        <div class="field"><label>MOQ (Units)</label><input id="c_moq" type="number" placeholder="100"/></div>
-        <div class="field"><label>Payment Terms</label><select id="c_terms"><option>Net 30</option><option>Net 45</option><option>Net 60</option></select></div>
+        <div class="field"><label>MOQ (Units)</label><input id="c_moq" type="number" min="0" placeholder="0" value="0"/></div>
+        <div class="field"><label>Payment Terms</label><select id="c_terms"><option>Cash on Delivery (COD)</option><option>COD</option><option>bKash / Mobile Wallet</option><option>Net 30</option><option>Net 45</option><option>Net 60</option></select></div>
       </div>
       <div class="field"><label>Product Interest</label><input id="c_interest" placeholder="Wallets, Belts…"/></div>
       <button class="btn btn-gold" id="c_save_btn" onclick="window.submitAdvancedCustomer()" style="margin-top:8px;">Save Company</button>
@@ -572,13 +572,13 @@
   };
 
   /* ═══════════════════════════════════════════════════════════
-     MODULE 9 — GEMINI AI SUPPLY CHAIN & CATALOG INTELLIGENCE
+     MODULE 9 — THE GEMINI AI SUPPLY CHAIN & CATALOG INTELLIGENCE
      ═══════════════════════════════════════════════════════════ */
   window.render.NexAI = function(container) {
-    container.innerHTML = modHeader("Gemini AI Intelligence", "Enterprise Supply Chain, Forecasting & B2B Strategy · Powered by Google Gemini") + `
+    container.innerHTML = modHeader("The Gemini AI", "Enterprise Supply Chain, Forecasting & B2B Strategy · Powered by Google Gemini") + `
       <div style="padding:0 20px 10px;">
         <div class="seg" id="ai-mode-seg">
-          <button class="on" data-m="chat">✨ Gemini Chat</button>
+          <button class="on" data-m="chat">✨ The Gemini AI</button>
           <button data-m="forecast">📈 Demand Forecasting</button>
         </div>
       </div>
@@ -640,6 +640,7 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          message: msg,
           prompt: msg,
           context: {
             app: "Hands & Head Master Platform",
@@ -654,7 +655,7 @@
       feed.innerHTML += `<div class="ai-msg bot">${reply.replace(/\n/g,'<br>')}</div>`;
     } catch(e) {
       const loading = document.getElementById("ai-loading"); if(loading) loading.remove();
-      feed.innerHTML += `<div class="ai-msg bot">✨ Gemini AI Assistant: ${e.message || 'Service temporarily offline'}.</div>`;
+      feed.innerHTML += `<div class="ai-msg bot">✨ The Gemini AI: ${e.message || 'Service temporarily offline'}.</div>`;
     }
     feed.scrollTop = feed.scrollHeight;
   };

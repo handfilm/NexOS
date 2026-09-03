@@ -152,13 +152,13 @@
     },
     {
       id: 'nexai_assistant',
-      title: 'NexAI Intelligence Terminal',
-      subtitle: 'Leather Specs, Customs Tariffs & AI Assistant',
+      title: 'The Gemini AI Terminal',
+      subtitle: 'Google Gemini Pro Leather Specs, Customs Tariffs & Strategy',
       category: 'AI & Tools',
       icon: `<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/></svg>`,
       defaultPinned: false,
       defaultOrder: 15,
-      badge: 'AI'
+      badge: 'GEMINI'
     }
   ];
 

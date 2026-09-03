@@ -336,8 +336,11 @@
       return;
     }
 
-    // 6. AI Assistant Trigger
+    // 6. The Gemini AI Trigger
     if (
+      clean.includes('gemini') ||
+      clean.includes('gemini ai') ||
+      clean.includes('the gemini') ||
       clean.includes('nex ai') ||
       clean.includes('nexai') ||
       clean.includes('assistant') ||
@@ -345,7 +348,7 @@
       clean.includes('open ai')
     ) {
       lastCommandTime = now;
-      executeCommand('NexAI Assistant', () => {
+      executeCommand('The Gemini AI', () => {
         if (typeof window.openAiChat === 'function') window.openAiChat();
       });
       return;
