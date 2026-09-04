@@ -810,12 +810,12 @@ async function renderLiteHome(b) {
         contentHtml = `
           <div class="sec-h" style="padding-top:10px;">
             <span class="sec-h-label">The Gemini AI Terminal</span>
-            <span class="sec-h-action" onclick="openAppModule('NexAI')">Open The Gemini AI →</span>
+            <span class="sec-h-action" onclick="openAiChat()">Open The Gemini AI →</span>
           </div>
           <div class="dash-pinned-box" style="margin:0 20px 6px;">
             <div style="display:flex;align-items:center;gap:10px;">
-              <input type="text" placeholder="Ask The Gemini AI about leather tanning specs, HS Codes, or EU buyer compliance…" style="flex:1;background:var(--bg-neu);box-shadow:var(--neu-pressed-sm);border:1px solid var(--wire);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--ink);" onkeydown="if(event.key==='Enter'){openAppModule('NexAI');}"/>
-              <button class="btn btn-gold btn-sm" onclick="openAppModule('NexAI')" style="padding:8px 14px;font-size:11px;">Ask Gemini</button>
+              <input id="dash_ai_input" type="text" placeholder="Ask The Gemini AI about leather specs, delivery fees, or EU export tariffs…" style="flex:1;background:var(--bg-neu);box-shadow:var(--neu-pressed-sm);border:1px solid var(--wire);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--ink);" onkeydown="if(event.key==='Enter'){openAiChat(this.value);}"/>
+              <button class="btn btn-gold btn-sm" onclick="openAiChat(document.getElementById('dash_ai_input')?.value)" style="padding:8px 14px;font-size:11px;">Ask Gemini</button>
             </div>
           </div>
         `;
@@ -1745,7 +1745,18 @@ function ordersListHtml(o) {
 
 /* ── Search ── */
 function openSearch() { openSheet(`<h3>Search</h3><div style="padding:0 20px;"><div class="field" style="margin-top:8px;"><input placeholder="Orders, products, buyers…" autofocus/></div></div>`); }
-function openAiChat() { openAppModule('NexAI'); }
+function openAiChat(initialQuery) {
+  openAppModule('NexAI');
+  if (initialQuery && typeof initialQuery === 'string' && initialQuery.trim()) {
+    setTimeout(() => {
+      const inp = document.getElementById('aiInput');
+      if (inp) {
+        inp.value = initialQuery.trim();
+        if (typeof window.sendAiMsg === 'function') window.sendAiMsg();
+      }
+    }, 150);
+  }
+}
 function openQuickSale() { openSheet(`<h3>Quick Sale</h3><div style="padding:0 20px;"><div class="field"><label>Item</label><input id="qs_item" placeholder="Product…"/></div><div class="field"><label>Price (৳)</label><input id="qs_price" type="number" placeholder="0.00"/></div><button class="btn btn-gold" style="margin-top:8px;" onclick="document.getElementById('q_item').value=document.getElementById('qs_item').value;document.getElementById('q_price').value=document.getElementById('qs_price').value;closeSheet();toast('Loaded into Quick Order');">Load to Quick Order</button></div>`); }
 
 /* ── Quick Order Logic ── */

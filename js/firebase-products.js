@@ -501,7 +501,7 @@ window.ProductsService = {
       tags: Array.isArray(original.tags) ? [...original.tags, "duplicate"] : ["duplicate"],
       collections: Array.isArray(original.collections) ? [...original.collections] : [],
       pricing: original.pricing ? { ...original.pricing } : { price: 0, currency: "BDT" },
-      images: original.images ? JSON.parse(JSON.stringify(original.images)) : [],
+      images: Array.isArray(original.images) ? original.images.map(img => (typeof img === 'object' && img !== null ? { ...img } : img)) : [],
       variants: duplicatedVariants.length ? duplicatedVariants : undefined,
       stock: original.totalInventory !== undefined ? original.totalInventory : 20,
       totalInventory: original.totalInventory !== undefined ? original.totalInventory : 20,

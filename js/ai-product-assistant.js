@@ -19,10 +19,18 @@
      */
     async generateEnrichment(product) {
       try {
+        const cleanProduct = {
+          id: String(product?.id || ''),
+          title: String(product?.title || product?.name || ''),
+          category: String(product?.productType || product?.category || 'Leather Goods'),
+          material: String(product?.material || ''),
+          price: Number(product?.pricing?.price || product?.price || 0),
+          sku: String(product?.sku || product?.variants?.[0]?.sku || '')
+        };
         const response = await fetch('/api/gemini/enrich-product', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ product })
+          body: JSON.stringify({ product: cleanProduct })
         });
 
         if (!response.ok) {

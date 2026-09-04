@@ -1514,7 +1514,7 @@
 
         <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:8px;">
           ${items.length ? items.map(c => `
-            <div class="company-card" onclick="window.openCompanyDetail('${c.id}')" style="cursor:pointer;transition:transform 0.15s, border-color 0.15s;">
+            <div class="company-card" onclick="window.openCompanyDetail('${encodeURIComponent(c.id)}')" style="cursor:pointer;transition:transform 0.15s, border-color 0.15s;">
               <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
                 <div style="font-size:24px;line-height:1;">${c.flag || '🏢'}</div>
                 <div style="flex:1;min-width:0;">
@@ -1565,7 +1565,8 @@
   };
 
   /* ── Customer Detail Sheet with Real Linked Orders & Notes ── */
-  window.openCompanyDetail = async function (customerId) {
+  window.openCompanyDetail = async function (rawCustomerId) {
+    const customerId = decodeURIComponent(rawCustomerId || "");
     openSheet(loading("Loading Customer Record…"));
     try {
       const { customer: c, orders } = await window.CustomersService.getWithOrders(customerId, 20);
@@ -1580,7 +1581,7 @@
             <h3 style="margin:0;font-size:18px;">${c.flag || '🏢'} ${c.companyName || c.name}</h3>
             <p class="hint" style="margin:2px 0 0;">${c.country || 'Global'} · ${c.paymentTerms || 'Cash on Delivery (COD)'} · ${c.currency || 'BDT'}</p>
           </div>
-          <button class="btn btn-dark btn-sm" onclick="window.openAdvancedCustomerForm('${c.id}')">Edit</button>
+          <button class="btn btn-dark btn-sm" onclick="window.openAdvancedCustomerForm('${encodeURIComponent(c.id)}')">Edit</button>
         </div>
 
         <div style="padding:0 20px 24px;">
@@ -1625,7 +1626,7 @@
             </div>
             <div style="display:flex;gap:6px;">
               <input id="new_cust_note" placeholder="Log customer interaction or preference…" style="flex:1;height:30px;font-size:11px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;border-radius:4px;"/>
-              <button class="btn btn-dark btn-sm" onclick="window.submitCustomerNote('${c.id}')">Add Note</button>
+              <button class="btn btn-dark btn-sm" onclick="window.submitCustomerNote('${encodeURIComponent(c.id)}')">Add Note</button>
             </div>
           </div>
 
@@ -1633,7 +1634,7 @@
           <div class="sec-h" style="padding:4px 0 8px;"><span class="sec-h-label">Linked Orders (${orders.length})</span></div>
           <div class="orders-container" style="margin-bottom:14px;max-height:180px;overflow-y:auto;">
             ${orders.length ? orders.map(o => `
-              <div class="orow" onclick="window.openOrderDetail('${o.id}')" style="cursor:pointer;padding:8px 10px;">
+              <div class="orow" onclick="window.openOrderDetail('${encodeURIComponent(o.id)}')" style="cursor:pointer;padding:8px 10px;">
                 <div class="othumb" style="font-size:10px;">HH</div>
                 <div class="om">
                   <div class="ot" style="font-size:12px;">${o.orderNumber} · ৳${(o.total || 0).toLocaleString()}</div>
@@ -1645,7 +1646,7 @@
           </div>
 
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-gold" style="flex:1;" onclick="closeSheet(); window.openAdvancedOrderForm('${c.id}')">Create Order for Buyer →</button>
+            <button class="btn btn-gold" style="flex:1;" onclick="closeSheet(); window.openAdvancedOrderForm('${encodeURIComponent(c.id)}')">Create Order for Buyer →</button>
             ${c.email ? `<button class="btn btn-dark" onclick="window.open('mailto:${c.email}')">Email Buyer</button>` : ''}
           </div>
         </div>
@@ -1656,7 +1657,8 @@
     }
   };
 
-  window.submitCustomerNote = async function (customerId) {
+  window.submitCustomerNote = async function (rawCustomerId) {
+    const customerId = decodeURIComponent(rawCustomerId || "");
     const input = document.getElementById("new_cust_note");
     const text = input.value.trim();
     if (!text) return;
@@ -1671,7 +1673,8 @@
   };
 
   /* ── Customer Create / Edit Form ── */
-  window.openAdvancedCustomerForm = function (customerId = null) {
+  window.openAdvancedCustomerForm = function (rawCustomerId = null) {
+    const customerId = rawCustomerId ? decodeURIComponent(rawCustomerId) : null;
     const c = customerId ? (window._lastCustomersCache || []).find(x => x.id === customerId) : null;
     const addr = c?.addresses?.[0] || {};
 
@@ -2892,7 +2895,8 @@ ${notes}
   };
 
   /* ── Interactive Multi-Product Order Creation Modal ── */
-  window.openAdvancedOrderForm = async function (preselectedCustomerId = null) {
+  window.openAdvancedOrderForm = async function (rawPreselectedCustomerId = null) {
+    const preselectedCustomerId = rawPreselectedCustomerId ? decodeURIComponent(rawPreselectedCustomerId) : null;
     openSheet(loading("Loading Catalog & Buyers…"));
     try {
       const [{ items: products }, { items: customers }] = await Promise.all([

@@ -238,6 +238,11 @@
     },
 
     /* Place direct WhatsApp or Firestore Order from Atelier */
+    placeOrderByIndex(idx) {
+      const item = (this._catalogProducts && this._catalogProducts[idx]) || null;
+      if (item) this.placeOrder(item);
+    },
+
     async placeOrder(item, color = null) {
       const selectedColor = color || (item.colors ? item.colors[0] : "Default");
       const orderPrice = item.price || 0;
@@ -316,6 +321,7 @@
     const t = app.theme || DEFAULT_ATELIER_APP.theme;
     const h = app.hero || DEFAULT_ATELIER_APP.hero;
     const prods = app.products || DEFAULT_ATELIER_APP.products;
+    window.AtelierApp._catalogProducts = prods;
     const curr = window.AtelierApp.activeCurrency;
 
     target.innerHTML = `
@@ -430,7 +436,7 @@
           </div>
 
           <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));gap:16px;">
-            ${prods.map(p => `
+            ${prods.map((p, idx) => `
               <div style="border-radius:16px;background:${t.cardBg};border:1px solid rgba(255,255,255,0.08);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 25px rgba(0,0,0,0.3);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
                 <div style="position:relative;height:200px;background:#000;overflow:hidden;">
                   <img src="${p.image}" style="width:100%;height:100%;object-fit:cover;" alt="${p.title}"/>
@@ -461,7 +467,7 @@
                     <button onclick="window.openProductDetailModal('${p.id}')" class="btn btn-sm btn-dark" style="flex:1;padding:8px;font-size:11px;background:rgba(255,255,255,0.08);color:${t.text};border:1px solid rgba(255,255,255,0.15);">
                       Specs
                     </button>
-                    <button onclick="window.SkyharaApp.placeOrder(${JSON.stringify(p).replace(/"/g, '&quot;')})" class="btn btn-sm" style="flex:2;padding:8px;font-size:11px;background:${t.accent};color:#000;font-weight:700;border:none;">
+                    <button onclick="window.SkyharaApp.placeOrderByIndex(${idx})" class="btn btn-sm" style="flex:2;padding:8px;font-size:11px;background:${t.accent};color:#000;font-weight:700;border:none;">
                       Reserve / Buy
                     </button>
                   </div>

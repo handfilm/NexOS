@@ -309,13 +309,20 @@
               isCustom: true,
               async syncOrder(order, config) {
                 if (config.endpointUrl) {
+                  const cleanOrder = {
+                    id: String(order.id || ''),
+                    orderNumber: String(order.orderNumber || ''),
+                    total: Number(order.total || 0),
+                    currency: String(order.currency || 'BDT'),
+                    status: String(order.status || '')
+                  };
                   const resp = await fetch(config.endpointUrl, {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
                       "Authorization": config.apiKey ? `Bearer ${config.apiKey}` : undefined
                     },
-                    body: JSON.stringify({ event: "order.sync", provider: cp.id, order })
+                    body: JSON.stringify({ event: "order.sync", provider: cp.id, order: cleanOrder })
                   });
                   if (!resp.ok) throw new Error(`Custom ERP HTTP ${resp.status}`);
                 }
@@ -348,13 +355,20 @@
         isCustom: true,
         async syncOrder(order, config) {
           if (config.endpointUrl) {
+            const cleanOrder = {
+              id: String(order.id || ''),
+              orderNumber: String(order.orderNumber || ''),
+              total: Number(order.total || 0),
+              currency: String(order.currency || 'BDT'),
+              status: String(order.status || '')
+            };
             const resp = await fetch(config.endpointUrl, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
                 "Authorization": config.apiKey ? `Bearer ${config.apiKey}` : undefined
               },
-              body: JSON.stringify({ event: "order.sync", provider: id, order })
+              body: JSON.stringify({ event: "order.sync", provider: id, order: cleanOrder })
             });
             if (!resp.ok) throw new Error(`Integration HTTP ${resp.status}`);
           }

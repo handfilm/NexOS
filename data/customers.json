@@ -1,0 +1,6612 @@
+[
+  {
+    "id": "8779761975521",
+    "name": "Tomotaka Minoura",
+    "companyName": "Tomotaka Minoura",
+    "contactPerson": "Tomotaka Minoura",
+    "firstName": "Tomotaka",
+    "lastName": "Minoura",
+    "email": "",
+    "phone": "+8801912010701",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 0,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House no.9,  Road no.2, Park road",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House no.9,  Road no.2, Park road",
+        "line2": "",
+        "city": "Dhaka - North",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801912010701",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8762388578529",
+    "name": "Gibson",
+    "companyName": "Gibson",
+    "contactPerson": "Gibson",
+    "firstName": "Gibson",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801318200606",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 0,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "mGL company ishwardi epz",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "mGL company ishwardi epz",
+        "line2": "",
+        "city": "Pabna",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801318200606",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8613774622945",
+    "name": "Lailatul Mehnaz",
+    "companyName": "Lailatul Mehnaz",
+    "contactPerson": "Lailatul Mehnaz",
+    "firstName": "Lailatul",
+    "lastName": "Mehnaz",
+    "email": "",
+    "phone": "+8801844051980",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2000,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "The City Bank Limited, Nitol Niloy Centre (opposite of shahbuddin medical college hospital), Level # 4, House # 7, Road # 113/A, Gulshan -2, Sunday to Thursday (10am to 5pm)",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "The City Bank Limited, Nitol Niloy Centre (opposite of shahbuddin medical college hospital), Level # 4, House # 7, Road # 113/A, Gulshan -2, Sunday to Thursday (10am to 5pm)",
+        "line2": "",
+        "city": "Dhaka - North",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801844051980",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8548307730657",
+    "name": "Shabbir",
+    "companyName": "Shabbir",
+    "contactPerson": "Shabbir",
+    "firstName": "Shabbir",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801745395313",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3110,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Mohammadia housing society rd 2 house no 150 mohammadpur",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Mohammadia housing society rd 2 house no 150 mohammadpur",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801745395313",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8508240101601",
+    "name": "maria",
+    "companyName": "maria",
+    "contactPerson": "maria",
+    "firstName": "maria",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801958598625",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 0,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "green sity",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "green sity",
+        "line2": "",
+        "city": "Pabna",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801958598625",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8423562477793",
+    "name": "Bappa Chowdhury",
+    "companyName": "Bappa Chowdhury",
+    "contactPerson": "Bappa Chowdhury",
+    "firstName": "Bappa",
+    "lastName": "Chowdhury",
+    "email": "",
+    "phone": "+8801338789272",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6490,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Chowdhury House 11/1A Kobi jashimuddin rd North Komlapur motijheel Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Chowdhury House 11/1A Kobi jashimuddin rd North Komlapur motijheel Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801338789272",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8347037532385",
+    "name": "Turab Khan",
+    "companyName": "Turab Khan",
+    "contactPerson": "Turab Khan",
+    "firstName": "Turab",
+    "lastName": "Khan",
+    "email": "",
+    "phone": "+8801921540434",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 0,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Ukil Para Road",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Ukil Para Road",
+        "line2": "",
+        "city": "Bhola",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801921540434",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8340944879841",
+    "name": "Adeeb",
+    "companyName": "Adeeb",
+    "contactPerson": "Adeeb",
+    "firstName": "Adeeb",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801745411340",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2160,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House - 18, Road - 6, Dhanmondi, Dhaka - 1205.",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House - 18, Road - 6, Dhanmondi, Dhaka - 1205.",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801745411340",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8191632539873",
+    "name": "Nasif Nahian",
+    "companyName": "Nasif Nahian",
+    "contactPerson": "Nasif Nahian",
+    "firstName": "Nasif",
+    "lastName": "Nahian",
+    "email": "",
+    "phone": "+8801717155699",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4560,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 132, Road 3, Block A, Niketon, Gulshan, Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 132, Road 3, Block A, Niketon, Gulshan, Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801717155699",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8162539634913",
+    "name": "Vladislav",
+    "companyName": "Vladislav",
+    "contactPerson": "Vladislav",
+    "firstName": "Vladislav",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801328056287",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2650,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Green city",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Green city",
+        "line2": "",
+        "city": "Pabna",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801328056287",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8154034340065",
+    "name": "Hridoy Shaikh",
+    "companyName": "Hridoy Shaikh",
+    "contactPerson": "Hridoy Shaikh",
+    "firstName": "Hridoy",
+    "lastName": "Shaikh",
+    "email": "",
+    "phone": "+8801610490729",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2650,
+    "totalOrders": 6,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "narail sodor.narail",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "narail sodor.narail",
+        "line2": "",
+        "city": "narail",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801610490729",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8104068088033",
+    "name": "Mohammed Raihan",
+    "companyName": "Mohammed Raihan",
+    "contactPerson": "Mohammed Raihan",
+    "firstName": "Mohammed",
+    "lastName": "Raihan",
+    "email": "",
+    "phone": "+8801762953916",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3150,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": ": বি- বাড়িয়া ,,,,বাঞ্ছারাপমুর ,,, কদমতলী",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": ": বি- বাড়িয়া ,,,,বাঞ্ছারাপমুর ,,, কদমতলী",
+        "line2": "",
+        "city": "Kadamtali",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801762953916",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8070759842017",
+    "name": "Sayeed Ahmed",
+    "companyName": "Sayeed Ahmed",
+    "contactPerson": "Sayeed Ahmed",
+    "firstName": "Sayeed",
+    "lastName": "Ahmed",
+    "email": "",
+    "phone": "+8801786934199",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 1650,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Cloth House, chndgram, Borolekha, Moulivibazar,",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Cloth House, chndgram, Borolekha, Moulivibazar,",
+        "line2": "",
+        "city": "Mouluvibazar",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801786934199",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8063450382561",
+    "name": "Shahed Chowdhury Robin",
+    "companyName": "Shahed Chowdhury Robin",
+    "contactPerson": "Shahed Chowdhury Robin",
+    "firstName": "Shahed Chowdhury",
+    "lastName": "Robin",
+    "email": "",
+    "phone": "+8801814152500",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 8750,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "EPZ Chittagong",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "EPZ Chittagong",
+        "line2": "",
+        "city": "Chittagong",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801814152500",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8054275080417",
+    "name": "Anne Drong",
+    "companyName": "Anne Drong",
+    "contactPerson": "Anne Drong",
+    "firstName": "Anne",
+    "lastName": "Drong",
+    "email": "",
+    "phone": "+8801726793834",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5340,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Grace Legacy, flat 2A, House 247/7&8 South Pirerbagh, Amtola, 60 feet road, Mirpur, Dhaka Phone",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Grace Legacy, flat 2A, House 247/7&8 South Pirerbagh, Amtola, 60 feet road, Mirpur, Dhaka Phone",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801726793834",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8045721157857",
+    "name": "Tatiana",
+    "companyName": "Tatiana",
+    "contactPerson": "Tatiana",
+    "firstName": "Tatiana",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801958598547",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3950,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Green city",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Green city",
+        "line2": "",
+        "city": "Pabna",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801958598547",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8019856425185",
+    "name": "Md Shihab Hussain",
+    "companyName": "Md Shihab Hussain",
+    "contactPerson": "Md Shihab Hussain",
+    "firstName": "Md Shihab",
+    "lastName": "Hussain",
+    "email": "",
+    "phone": "+8801855521805",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6570,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 20,Road 3,Block D,Banasree, Rampura, Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 20,Road 3,Block D,Banasree, Rampura, Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801855521805",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8019831849185",
+    "name": "Nur Rahman",
+    "companyName": "Nur Rahman",
+    "contactPerson": "Nur Rahman",
+    "firstName": "Nur",
+    "lastName": "Rahman",
+    "email": "",
+    "phone": "+8801711535595",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5710,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 424/ East kafrul",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 424/ East kafrul",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711535595",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8018486493409",
+    "name": "Kobir",
+    "companyName": "Kobir",
+    "contactPerson": "Kobir",
+    "firstName": "Kobir",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801622265291",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3200,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "santi nagar",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "santi nagar",
+        "line2": "",
+        "city": "Noakhali",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801622265291",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8016005759201",
+    "name": "ahsanul kabir",
+    "companyName": "ahsanul kabir",
+    "contactPerson": "ahsanul kabir",
+    "firstName": "ahsanul",
+    "lastName": "kabir",
+    "email": "",
+    "phone": "+8801916306522",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 850,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Fokirapul Postal colony building number F-3 apartment no F-3/6D",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Fokirapul Postal colony building number F-3 apartment no F-3/6D",
+        "line2": "",
+        "city": "Dhaka - South",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801916306522",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "8008081965281",
+    "name": "Hasan Nasim",
+    "companyName": "Hasan Nasim",
+    "contactPerson": "Hasan Nasim",
+    "firstName": "Hasan",
+    "lastName": "Nasim",
+    "email": "",
+    "phone": "+8801830507753",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 8122.73,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "MD.Nasim Hasan qurbo bashatak Dhaka cantonment Dhaka 1206. House :237 Flat :3A .",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "MD.Nasim Hasan qurbo bashatak Dhaka cantonment Dhaka 1206. House :237 Flat :3A .",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801830507753",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7999252627681",
+    "name": "Aryan Hossain",
+    "companyName": "Aryan Hossain",
+    "contactPerson": "Aryan Hossain",
+    "firstName": "Aryan",
+    "lastName": "Hossain",
+    "email": "aryanhossain759@gmail.com",
+    "phone": "+8801880241803",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 1020,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House number-31, Dhanmondi 27, Flat number 13-C",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House number-31, Dhanmondi 27, Flat number 13-C",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1209",
+        "phone": "+8801880241803",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7991766221025",
+    "name": "Abdullah Babu",
+    "companyName": "Abdullah Babu",
+    "contactPerson": "Abdullah Babu",
+    "firstName": "Abdullah",
+    "lastName": "Babu",
+    "email": "",
+    "phone": "+8801748308667",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3190,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "ঠিকানা # ৪৪, হাজী আব্দুল হাই রোড, ঝিগাতলা, ঢাকা। ফোন # ০১৭৪৮৩০৮৬৬৭",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "ঠিকানা # ৪৪, হাজী আব্দুল হাই রোড, ঝিগাতলা, ঢাকা। ফোন # ০১৭৪৮৩০৮৬৬৭",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801748308667",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7988712374497",
+    "name": "Toji",
+    "companyName": "Toji",
+    "contactPerson": "Toji",
+    "firstName": "Toji",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801575072860",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 1600,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "tana:-Mohalchhari zila:- kagrachari receive krbo Mohalchhari  kullang para geram teke",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "tana:-Mohalchhari zila:- kagrachari receive krbo Mohalchhari  kullang para geram teke",
+        "line2": "",
+        "city": "Khagrachhari",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801575072860",
+        "isDefault": true
+      }
+    ],
+    "notes": [
+      {
+        "text": "FB : GO JO H&H",
+        "by": "Customer Ingestion",
+        "createdAt": "2026-09-04T11:54:35.929Z"
+      }
+    ]
+  },
+  {
+    "id": "7988042563809",
+    "name": "Mosumi Mousumi",
+    "companyName": "Mosumi Mousumi",
+    "contactPerson": "Mosumi Mousumi",
+    "firstName": "Mosumi",
+    "lastName": "Mousumi",
+    "email": "",
+    "phone": "+8801722109253",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4123.88,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Road 2 block D house 486/487 flat A3 Bashandhara",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Road 2 block D house 486/487 flat A3 Bashandhara",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801722109253",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7975628210401",
+    "name": "Shumy Ahmed",
+    "companyName": "Shumy Ahmed",
+    "contactPerson": "Shumy Ahmed",
+    "firstName": "Shumy",
+    "lastName": "Ahmed",
+    "email": "",
+    "phone": "+8801315692746",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4700,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "131/2 Noagau, Harinalbazar,Joydebpur, Gazipur.",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "131/2 Noagau, Harinalbazar,Joydebpur, Gazipur.",
+        "line2": "",
+        "city": "Gazipur",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801315692746",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7972546838753",
+    "name": "Preity Chowdhury",
+    "companyName": "Preity Chowdhury",
+    "contactPerson": "Preity Chowdhury",
+    "firstName": "Preity",
+    "lastName": "Chowdhury",
+    "email": "",
+    "phone": "+8801700766283",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6710,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Flat A1, H 31, R 12/A, Dhanmondi R/A",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Flat A1, H 31, R 12/A, Dhanmondi R/A",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801700766283",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7971373383905",
+    "name": "Moktar",
+    "companyName": "Moktar",
+    "contactPerson": "Moktar",
+    "firstName": "Moktar",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801752899833",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4250,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "সম্পূর্ণ ঠিকানা:saidpur,",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "সম্পূর্ণ ঠিকানা:saidpur,",
+        "line2": "",
+        "city": "Nilphamari",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801752899833",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7968291586273",
+    "name": "Arien Sikder Ramim",
+    "companyName": "Arien Sikder Ramim",
+    "contactPerson": "Arien Sikder Ramim",
+    "firstName": "Arien Sikder",
+    "lastName": "Ramim",
+    "email": "",
+    "phone": "+8801765503009",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3670,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Address : Sector 11 Road 13/A House 1 Uttara, dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Address : Sector 11 Road 13/A House 1 Uttara, dhaka",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801765503009",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7960931172577",
+    "name": "Musu Ahmed",
+    "companyName": "Musu Ahmed",
+    "contactPerson": "Musu Ahmed",
+    "firstName": "Musu",
+    "lastName": "Ahmed",
+    "email": "",
+    "phone": "+8801797557560",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 13310,
+    "totalOrders": 6,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "106 lalmohon shah street, dholaikhal, dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "106 lalmohon shah street, dholaikhal, dhaka",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801797557560",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7956432355553",
+    "name": "Mohammad Shahin Molla",
+    "companyName": "Mohammad Shahin Molla",
+    "contactPerson": "Mohammad Shahin Molla",
+    "firstName": "Mohammad Shahin",
+    "lastName": "Molla",
+    "email": "",
+    "phone": "+8801679585034",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7140,
+    "totalOrders": 7,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Sadapur kajipara boliarpur stand theika 20 min vitore Thana: Savar,Dist: Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Sadapur kajipara boliarpur stand theika 20 min vitore Thana: Savar,Dist: Dhaka",
+        "line2": "",
+        "city": "Savar",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801679585034",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7953519411425",
+    "name": "Himadri Qamrul Chowdhury",
+    "companyName": "Himadri Qamrul Chowdhury",
+    "contactPerson": "Himadri Qamrul Chowdhury",
+    "firstName": "Himadri Qamrul",
+    "lastName": "Chowdhury",
+    "email": "",
+    "phone": "+8801784816883",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5790,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "3C, Shatmasjidh Road, West Dhanmondi (Kader Chowdhury Complex). Building No: 5 Flat No: E5 Phone number:",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "3C, Shatmasjidh Road, West Dhanmondi (Kader Chowdhury Complex). Building No: 5 Flat No: E5 Phone number:",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801784816883",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7947691720929",
+    "name": "Naeem Khan",
+    "companyName": "Naeem Khan",
+    "contactPerson": "Naeem Khan",
+    "firstName": "Naeem",
+    "lastName": "Khan",
+    "email": "",
+    "phone": "+8801771899925",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 9860,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "47/1 nanda kumar dutta road, lalbagh, chadnighat dhaka 1211",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "47/1 nanda kumar dutta road, lalbagh, chadnighat dhaka 1211",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801771899925",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7942686933217",
+    "name": "Ju Nel Chakma",
+    "companyName": "Ju Nel Chakma",
+    "contactPerson": "Ju Nel Chakma",
+    "firstName": "Ju Nel",
+    "lastName": "Chakma",
+    "email": "",
+    "phone": "+8801585882279",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2720,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Cox’s Bazar, kolatoli",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Cox’s Bazar, kolatoli",
+        "line2": "",
+        "city": "Cox's Bazar",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801585882279",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7940220682465",
+    "name": "Nobin Shaju",
+    "companyName": "Nobin Shaju",
+    "contactPerson": "Nobin Shaju",
+    "firstName": "Nobin",
+    "lastName": "Shaju",
+    "email": "",
+    "phone": "+8801841265539",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4800,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Flat A5, 23 North Road (bhutergoli), Dhanmondi, Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Flat A5, 23 North Road (bhutergoli), Dhanmondi, Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801841265539",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7938555707617",
+    "name": "Wasiul Islam",
+    "companyName": "Wasiul Islam",
+    "contactPerson": "Wasiul Islam",
+    "firstName": "Wasiul",
+    "lastName": "Islam",
+    "email": "",
+    "phone": "+8801717527753",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 8570,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Damodar, Phultala - 9210, Khulna",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Damodar, Phultala - 9210, Khulna",
+        "line2": "",
+        "city": "Khulna",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801717527753",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7929888964833",
+    "name": "Rakibul Hasan Reshad",
+    "companyName": "Rakibul Hasan Reshad",
+    "contactPerson": "Rakibul Hasan Reshad",
+    "firstName": "Rakibul Hasan",
+    "lastName": "Reshad",
+    "email": "",
+    "phone": "+8801761008874",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7070,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Dhangora Center Point,. Reshad",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Dhangora Center Point,. Reshad",
+        "line2": "",
+        "city": "Sirajgonj",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801761008874",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7922072584417",
+    "name": "Kamrul Islam",
+    "companyName": "Kamrul Islam",
+    "contactPerson": "Kamrul Islam",
+    "firstName": "Kamrul",
+    "lastName": "Islam",
+    "email": "",
+    "phone": "+8801743783379",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 10000,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "An-Najaf Perfumes Court Jame Masjid Market. Shop no. 10.  Habiganj Sadar",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "An-Najaf Perfumes Court Jame Masjid Market. Shop no. 10.  Habiganj Sadar",
+        "line2": "",
+        "city": "Habiganj",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801743783379",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7919516942561",
+    "name": "Rayhan Ahmed",
+    "companyName": "Rayhan Ahmed",
+    "contactPerson": "Rayhan Ahmed",
+    "firstName": "Rayhan",
+    "lastName": "Ahmed",
+    "email": "",
+    "phone": "+8801778487801",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 11705.56,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "BEANIBAZARI SYLHET",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "BEANIBAZARI SYLHET",
+        "line2": "",
+        "city": "SYLHET",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801778487801",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7916715671777",
+    "name": "Ehsan Islam",
+    "companyName": "Ehsan Islam",
+    "contactPerson": "Ehsan Islam",
+    "firstName": "Ehsan",
+    "lastName": "Islam",
+    "email": "ehsan.islamrahim27@gmail.com",
+    "phone": "+8801828610350",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3680,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "63/B lake circus kalabagan",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "63/B lake circus kalabagan",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1205",
+        "phone": "+8801828610350",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7901729095905",
+    "name": "Tashrik Faisal",
+    "companyName": "Tashrik Faisal",
+    "contactPerson": "Tashrik Faisal",
+    "firstName": "Tashrik",
+    "lastName": "Faisal",
+    "email": "",
+    "phone": "+8801870479318",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5110,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Address - road 35, house 41, Gulshan 2, dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Address - road 35, house 41, Gulshan 2, dhaka",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801870479318",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7891115114721",
+    "name": "Taseen Chowdhury",
+    "companyName": "Taseen Chowdhury",
+    "contactPerson": "Taseen Chowdhury",
+    "firstName": "Taseen",
+    "lastName": "Chowdhury",
+    "email": "",
+    "phone": "+8801686337197",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2090,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House:28, road 5/1, titas road, B block, banasree, opposite of Takeout",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House:28, road 5/1, titas road, B block, banasree, opposite of Takeout",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801686337197",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7889114136801",
+    "name": "Iram Parvez",
+    "companyName": "Iram Parvez",
+    "contactPerson": "Iram Parvez",
+    "firstName": "Iram",
+    "lastName": "Parvez",
+    "email": "",
+    "phone": "+8801684999324",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 1860,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Eastern honey House 02  Road 01 Block A Flat 101 Niketon, Gulshan 1 Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Eastern honey House 02  Road 01 Block A Flat 101 Niketon, Gulshan 1 Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801684999324",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7882268803297",
+    "name": "Prova Biswas",
+    "companyName": "Prova Biswas",
+    "contactPerson": "Prova Biswas",
+    "firstName": "Prova",
+    "lastName": "Biswas",
+    "email": "",
+    "phone": "+8801819163715",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4140,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Address: House #8 (Jhinuk), Road #13 (New) 30 (Old), Dhanmondi, Dhaka-1209. Number:",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Address: House #8 (Jhinuk), Road #13 (New) 30 (Old), Dhanmondi, Dhaka-1209. Number:",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801819163715",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7872604930273",
+    "name": "Rivu",
+    "companyName": "Rivu",
+    "contactPerson": "Rivu",
+    "firstName": "Rivu",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801797120828",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3910,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Name- Rivu Address- House 40,Road 13,Sector 12,Uttara, Dhaka 1230 Contact -",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Name- Rivu Address- House 40,Road 13,Sector 12,Uttara, Dhaka 1230 Contact -",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801797120828",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7871849267425",
+    "name": "Panik Tanjindaphon",
+    "companyName": "Panik Tanjindaphon",
+    "contactPerson": "Panik Tanjindaphon",
+    "firstName": "Panik",
+    "lastName": "Tanjindaphon",
+    "email": "",
+    "phone": "+8801845979450",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 10050.75,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Nazimgarh Resort, Khadimnagar.Mui",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Nazimgarh Resort, Khadimnagar.Mui",
+        "line2": "",
+        "city": "Sylhet",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801845979450",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7870174724321",
+    "name": "Aspet",
+    "companyName": "Aspet",
+    "contactPerson": "Aspet",
+    "firstName": "Aspet",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801929131136",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 8750,
+    "totalOrders": 6,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Green City",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Green City",
+        "line2": "",
+        "city": "Pabna",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801929131136",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7862760767713",
+    "name": "Nafees Imtiaz Ahmed",
+    "companyName": "Nafees Imtiaz Ahmed",
+    "contactPerson": "Nafees Imtiaz Ahmed",
+    "firstName": "Nafees Imtiaz",
+    "lastName": "Ahmed",
+    "email": "",
+    "phone": "+8801703579508",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3760,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "The Forum 187, 188/B Bir Uttam Mir Shawkat Sarak Tejgaon, Dhaka-1208",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "The Forum 187, 188/B Bir Uttam Mir Shawkat Sarak Tejgaon, Dhaka-1208",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801703579508",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7850327965921",
+    "name": "নাসরিন জে রানি",
+    "companyName": "নাসরিন জে রানি",
+    "contactPerson": "নাসরিন জে রানি",
+    "firstName": "নাসরিন জে",
+    "lastName": "রানি",
+    "email": "",
+    "phone": "০১৭১৭০৩৮১১৯",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4610,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "ফ্ল্যাট -বি ফাইভ,  সিবি- ৬, ৬/১,  রানার মৈত্রী এপার্টমেন্ট, কচুক্ষেত পুরান বাজার,  ঢাকা ক্যান্টনমেন্ট। ফোনঃ",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "ফ্ল্যাট -বি ফাইভ,  সিবি- ৬, ৬/১,  রানার মৈত্রী এপার্টমেন্ট, কচুক্ষেত পুরান বাজার,  ঢাকা ক্যান্টনমেন্ট। ফোনঃ",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "০১৭১৭০৩৮১১৯",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7747977380065",
+    "name": "Muhammad Junaed Talukder",
+    "companyName": "Muhammad Junaed Talukder",
+    "contactPerson": "Muhammad Junaed Talukder",
+    "firstName": "Muhammad Junaed",
+    "lastName": "Talukder",
+    "email": "",
+    "phone": "+8801788681444",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2260,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "hobigong. nobigong. seyd pur bazar",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "hobigong. nobigong. seyd pur bazar",
+        "line2": "",
+        "city": "habiganj",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801788681444",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7742366974177",
+    "name": "Mhamudul Hasan Dilshad",
+    "companyName": "Mhamudul Hasan Dilshad",
+    "contactPerson": "Mhamudul Hasan Dilshad",
+    "firstName": "Mhamudul Hasan",
+    "lastName": "Dilshad",
+    "email": "",
+    "phone": "+8801773229901",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2070,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House-35, Road-05, Sector-10, Uttara",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House-35, Road-05, Sector-10, Uttara",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801773229901",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7736298438881",
+    "name": "Nazmul Islam Remon",
+    "companyName": "Nazmul Islam Remon",
+    "contactPerson": "Nazmul Islam Remon",
+    "firstName": "Nazmul Islam",
+    "lastName": "Remon",
+    "email": "",
+    "phone": "+8801313205643",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 13070,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "FULL ADDESS: 171/1/J, Akota housing ASA Goli (Opposite of  ASA Villa) Road - 2, Shyamoli, Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "FULL ADDESS: 171/1/J, Akota housing ASA Goli (Opposite of  ASA Villa) Road - 2, Shyamoli, Dhaka",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801313205643",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7734031188193",
+    "name": "Dilshad",
+    "companyName": "Dilshad",
+    "contactPerson": "Dilshad",
+    "firstName": "Dilshad",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801773229901",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4140,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House-35, Road-05, Sector-10, Uttara",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House-35, Road-05, Sector-10, Uttara",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801773229901",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7730448105697",
+    "name": "Nayan Mehmood",
+    "companyName": "Nayan Mehmood",
+    "contactPerson": "Nayan Mehmood",
+    "firstName": "Nayan",
+    "lastName": "Mehmood",
+    "email": "",
+    "phone": "+8801711703751",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 10250,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Block D, Road no 9/A , House no 378 , Bashundhara",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Block D, Road no 9/A , House no 378 , Bashundhara",
+        "line2": "",
+        "city": "Dhaka - North",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711703751",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7682524283105",
+    "name": "sohel",
+    "companyName": "sohel",
+    "contactPerson": "sohel",
+    "firstName": "sohel",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801630579740",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3510,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "nazimuddin road hasan store 111-1 7th floo",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "nazimuddin road hasan store 111-1 7th floo",
+        "line2": "",
+        "city": "dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801630579740",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7677535518945",
+    "name": "Iqra L Qamari",
+    "companyName": "Iqra L Qamari",
+    "contactPerson": "Iqra L Qamari",
+    "firstName": "Iqra L",
+    "lastName": "Qamari",
+    "email": "",
+    "phone": "+8801743818652",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2550,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "house-53 road 6/a dhanmondi",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "house-53 road 6/a dhanmondi",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801743818652",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7657028976865",
+    "name": "Shopu Ahmed",
+    "companyName": "Shopu Ahmed",
+    "contactPerson": "Shopu Ahmed",
+    "firstName": "Shopu",
+    "lastName": "Ahmed",
+    "email": "",
+    "phone": "+8801719314156",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5000,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Jagannatpur upzila",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Jagannatpur upzila",
+        "line2": "",
+        "city": "Jagannatpur",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801719314156",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7654135824609",
+    "name": "Zubaida Rita",
+    "companyName": "Zubaida Rita",
+    "contactPerson": "Zubaida Rita",
+    "firstName": "Zubaida",
+    "lastName": "Rita",
+    "email": "",
+    "phone": "+8801718242452",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6230,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Flat-A8,house-26,road-8,sector-6 Uttara Dhaka 1230",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Flat-A8,house-26,road-8,sector-6 Uttara Dhaka 1230",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801718242452",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7647309299937",
+    "name": "Imtiaz Karim",
+    "companyName": "Imtiaz Karim",
+    "contactPerson": "Imtiaz Karim",
+    "firstName": "Imtiaz",
+    "lastName": "Karim",
+    "email": "",
+    "phone": "+8801819270077",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2960,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Imtiaz  House 19 road 96 gulshan 2 Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Imtiaz  House 19 road 96 gulshan 2 Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801819270077",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7635990446305",
+    "name": "Petrovich",
+    "companyName": "Petrovich",
+    "contactPerson": "Petrovich",
+    "firstName": "Petrovich",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801903285663",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3400,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Green City",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Green City",
+        "line2": "",
+        "city": "Pabna",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801903285663",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7625430073569",
+    "name": "Zuhaier Absar",
+    "companyName": "Zuhaier Absar",
+    "contactPerson": "Zuhaier Absar",
+    "firstName": "Zuhaier",
+    "lastName": "Absar",
+    "email": "",
+    "phone": "+8801968263454",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2460,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 7, road 29, sector 7, Uttara",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 7, road 29, sector 7, Uttara",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801968263454",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7621955551457",
+    "name": "Irina",
+    "companyName": "Irina",
+    "contactPerson": "Irina",
+    "firstName": "Irina",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801958050339",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7650,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Greencity",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Greencity",
+        "line2": "",
+        "city": "Pabna",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801958050339",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7591938130145",
+    "name": "seiko ZUBAIR",
+    "companyName": "seiko ZUBAIR",
+    "contactPerson": "seiko ZUBAIR",
+    "firstName": "seiko",
+    "lastName": "ZUBAIR",
+    "email": "",
+    "phone": "+8801758996963",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 1750,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "flat5c, house11/A, road90, gulshan2",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "flat5c, house11/A, road90, gulshan2",
+        "line2": "",
+        "city": "Dhaka - North",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801758996963",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7584948256993",
+    "name": "Asad Zaman",
+    "companyName": "Asad Zaman",
+    "contactPerson": "Asad Zaman",
+    "firstName": "Asad",
+    "lastName": "Zaman",
+    "email": "",
+    "phone": "+8801674451681",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2500,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "215 east Madarbari(beside rabeya workshop)Chittagong",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "215 east Madarbari(beside rabeya workshop)Chittagong",
+        "line2": "",
+        "city": "Chittagong",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801674451681",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7581580984545",
+    "name": "Ahnaf Hoque",
+    "companyName": "Ahnaf Hoque",
+    "contactPerson": "Ahnaf Hoque",
+    "firstName": "Ahnaf",
+    "lastName": "Hoque",
+    "email": "",
+    "phone": "+8801701254487",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3640,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "dhanmondi 7 road-7 house-21 waza skytouch tower flat-a7",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "dhanmondi 7 road-7 house-21 waza skytouch tower flat-a7",
+        "line2": "",
+        "city": "Dhakar",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801701254487",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7565804437729",
+    "name": "Zuhayr Bari",
+    "companyName": "Zuhayr Bari",
+    "contactPerson": "Zuhayr Bari",
+    "firstName": "Zuhayr",
+    "lastName": "Bari",
+    "email": "",
+    "phone": "+8801977686212",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 1490,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Flat 4B, house 13A, road 68A, gulshan 2",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Flat 4B, house 13A, road 68A, gulshan 2",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801977686212",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7555985932513",
+    "name": "Noorjahan Pinkey",
+    "companyName": "Noorjahan Pinkey",
+    "contactPerson": "Noorjahan Pinkey",
+    "firstName": "Noorjahan",
+    "lastName": "Pinkey",
+    "email": "",
+    "phone": "+8801911350325",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3890,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Gulshan 1. Road 26. House20/c",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Gulshan 1. Road 26. House20/c",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801911350325",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7544513364193",
+    "name": "Abir Haq",
+    "companyName": "Abir Haq",
+    "contactPerson": "Abir Haq",
+    "firstName": "Abir",
+    "lastName": "Haq",
+    "email": "",
+    "phone": "+8801914382777",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3020,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Dhaka, South Keranigong Chunkutia Moddhopara",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Dhaka, South Keranigong Chunkutia Moddhopara",
+        "line2": "",
+        "city": "Keranigong",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801914382777",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7516620816609",
+    "name": "Md Mushfiqur Rahman",
+    "companyName": "Md Mushfiqur Rahman",
+    "contactPerson": "Md Mushfiqur Rahman",
+    "firstName": "Md Mushfiqur",
+    "lastName": "Rahman",
+    "email": "",
+    "phone": "+8801708461630",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4660,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 7, Flat 8/A, Road 23, Block B, Banani, Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 7, Flat 8/A, Road 23, Block B, Banani, Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801708461630",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7501599473889",
+    "name": "Riasat Iqbal Nafees",
+    "companyName": "Riasat Iqbal Nafees",
+    "contactPerson": "Riasat Iqbal Nafees",
+    "firstName": "Riasat Iqbal",
+    "lastName": "Nafees",
+    "email": "",
+    "phone": "+8801877748703",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3810,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "924/C, Khilgaon taltola more (Infinity Building)",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "924/C, Khilgaon taltola more (Infinity Building)",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801877748703",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7495848984801",
+    "name": "Nabila Hoque",
+    "companyName": "Nabila Hoque",
+    "contactPerson": "Nabila Hoque",
+    "firstName": "Nabila",
+    "lastName": "Hoque",
+    "email": "",
+    "phone": "+8801907940857",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 10250,
+    "totalOrders": 7,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 572, Block F, road 18 Bashundhara residential area",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 572, Block F, road 18 Bashundhara residential area",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801907940857",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7487701156065",
+    "name": "S M Huq Saad",
+    "companyName": "S M Huq Saad",
+    "contactPerson": "S M Huq Saad",
+    "firstName": "S M Huq",
+    "lastName": "Saad",
+    "email": "",
+    "phone": "+8801675179856",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7530,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House-28, Road-14/A (Bangladesh Medical College goli), Dhanmondi, Dhaka.",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House-28, Road-14/A (Bangladesh Medical College goli), Dhanmondi, Dhaka.",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801675179856",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7460254810337",
+    "name": "Sha Rehan",
+    "companyName": "Sha Rehan",
+    "contactPerson": "Sha Rehan",
+    "firstName": "Sha",
+    "lastName": "Rehan",
+    "email": "",
+    "phone": "+8801757436011",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 720,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "H : 08, R : 06, Block : B , mirpur pallabi near kalshi",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "H : 08, R : 06, Block : B , mirpur pallabi near kalshi",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801757436011",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7450305462497",
+    "name": "Sunag Nagesha",
+    "companyName": "Sunag Nagesha",
+    "contactPerson": "Sunag Nagesha",
+    "firstName": "Sunag",
+    "lastName": "Nagesha",
+    "email": "",
+    "phone": "+8801310999328",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7140,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House#27,Road # 15, Rabindra saroni, near crescent hospital, next to Bigboss showroom, Uttara,Sectpr-3,Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House#27,Road # 15, Rabindra saroni, near crescent hospital, next to Bigboss showroom, Uttara,Sectpr-3,Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801310999328",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7426238120161",
+    "name": "Khalid Bin Walid",
+    "companyName": "Khalid Bin Walid",
+    "contactPerson": "Khalid Bin Walid",
+    "firstName": "Khalid Bin",
+    "lastName": "Walid",
+    "email": "",
+    "phone": "+8801680-256518",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 18234.72,
+    "totalOrders": 14,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "431/1 Senpara parbata, Mirpur, Dhaka.  2nd floor. Zisun",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "431/1 Senpara parbata, Mirpur, Dhaka.  2nd floor. Zisun",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801680-256518",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7425480949985",
+    "name": "Akash Saha",
+    "companyName": "Akash Saha",
+    "contactPerson": "Akash Saha",
+    "firstName": "Akash",
+    "lastName": "Saha",
+    "email": "",
+    "phone": "+8801719073901",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3550,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Pabna medical college",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Pabna medical college",
+        "line2": "",
+        "city": "Pabna",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801719073901",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7423488065761",
+    "name": "Zaheen Ali",
+    "companyName": "Zaheen Ali",
+    "contactPerson": "Zaheen Ali",
+    "firstName": "Zaheen",
+    "lastName": "Ali",
+    "email": "",
+    "phone": "+8801707372018",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5310,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Baridhara diplomatic zone road 10 house 4, Road 10 house 4",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Baridhara diplomatic zone road 10 house 4",
+        "line2": "Road 10 house 4",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1212",
+        "phone": "+8801707372018",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7401985343713",
+    "name": "Fahmida Ara",
+    "companyName": "Fahmida Ara",
+    "contactPerson": "Fahmida Ara",
+    "firstName": "Fahmida",
+    "lastName": "Ara",
+    "email": "",
+    "phone": "+8801687475141",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 1916.5,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House no: 04(Sharnalata),lalmatia block b,behind aarong",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House no: 04(Sharnalata),lalmatia block b,behind aarong",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1207",
+        "phone": "+8801687475141",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7367703265505",
+    "name": "Prodip Sarker",
+    "companyName": "Prodip Sarker",
+    "contactPerson": "Prodip Sarker",
+    "firstName": "Prodip",
+    "lastName": "Sarker",
+    "email": "aviprodip@gmail.com",
+    "phone": "01819255076",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2728.25,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "8/a/1 Apt. C-1, Rd-14(new).dhanmondi, Zenith tower, Apt . C-1 , H-8/a/1 , Rd-14(new), DHANMONDI",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "8/a/1 Apt. C-1, Rd-14(new).dhanmondi",
+        "line2": "Zenith tower, Apt . C-1 , H-8/a/1 , Rd-14(new), DHANMONDI",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1209",
+        "phone": "01819255076",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7362356216033",
+    "name": "Rubaiya khan",
+    "companyName": "Rubaiya khan",
+    "contactPerson": "Rubaiya khan",
+    "firstName": "Rubaiya",
+    "lastName": "khan",
+    "email": "",
+    "phone": "+8801919807949",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 780,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Name Rubaiya Khan . Address nikli thana kishoregonj dristric",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Name Rubaiya Khan . Address nikli thana kishoregonj dristric",
+        "line2": "",
+        "city": "Kishoregonj",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801919807949",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7316837597409",
+    "name": "Shafin Siddiqui",
+    "companyName": "Shafin Siddiqui",
+    "contactPerson": "Shafin Siddiqui",
+    "firstName": "Shafin",
+    "lastName": "Siddiqui",
+    "email": "",
+    "phone": "+8801879565007",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5330,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "852, Ibrahimpur Bazar, Cantonment, Dhaka-1206",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "852, Ibrahimpur Bazar, Cantonment, Dhaka-1206",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801879565007",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7316727333089",
+    "name": "Rovan Shams",
+    "companyName": "Rovan Shams",
+    "contactPerson": "Rovan Shams",
+    "firstName": "Rovan",
+    "lastName": "Shams",
+    "email": "",
+    "phone": "+8801675750318",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4760,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Pathan Bari Road,Feni Thana :Feni Sadar Model Thana (edited)",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Pathan Bari Road,Feni Thana :Feni Sadar Model Thana (edited)",
+        "line2": "",
+        "city": "Feni",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801675750318",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7314550128865",
+    "name": "Kamal Mahmud",
+    "companyName": "Kamal Mahmud",
+    "contactPerson": "Kamal Mahmud",
+    "firstName": "Kamal",
+    "lastName": "Mahmud",
+    "email": "",
+    "phone": "+8801715040024",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 10710,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 57 Road 5/A 3rd floor (3/A) Dhanmondi 1209 Delivery time 1 pm to 8 pm",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 57 Road 5/A 3rd floor (3/A) Dhanmondi 1209 Delivery time 1 pm to 8 pm",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801715040024",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7314421743841",
+    "name": "Farjana Resmi",
+    "companyName": "Farjana Resmi",
+    "contactPerson": "Farjana Resmi",
+    "firstName": "Farjana",
+    "lastName": "Resmi",
+    "email": "",
+    "phone": "+8801635077025",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5760,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House No-54, Road No-9/6, Block-G, South Banasree, Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House No-54, Road No-9/6, Block-G, South Banasree, Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801635077025",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7302129418465",
+    "name": "Md Shopon khan",
+    "companyName": "Md Shopon khan",
+    "contactPerson": "Md Shopon khan",
+    "firstName": "Md Shopon",
+    "lastName": "khan",
+    "email": "shopno23@gmail.com",
+    "phone": "01742105891",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2500,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "1 Bhulu Nibash, Sonaimuri Bazar, noakhali",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "1 Bhulu Nibash, Sonaimuri Bazar, noakhali",
+        "line2": "",
+        "city": "sonaimuri",
+        "country": "BD",
+        "postalCode": "3827",
+        "phone": "01742105891",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7295830982881",
+    "name": "Aquib Hossain",
+    "companyName": "Aquib Hossain",
+    "contactPerson": "Aquib Hossain",
+    "firstName": "Aquib",
+    "lastName": "Hossain",
+    "email": "",
+    "phone": "+8801984551277",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2490,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Express House, House 16, Road 10/A, Block H, Banani, Dhaka 1213",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Express House, House 16, Road 10/A, Block H, Banani, Dhaka 1213",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801984551277",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7282817106145",
+    "name": "Tanna Tå Nnâ Châkmä",
+    "companyName": "Tanna Tå Nnâ Châkmä",
+    "contactPerson": "Tanna Tå Nnâ Châkmä",
+    "firstName": "Tanna",
+    "lastName": "Tå Nnâ Châkmä",
+    "email": "",
+    "phone": "+8801868654102",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7000,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Khagrachhari sadar,switch gate",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Khagrachhari sadar,switch gate",
+        "line2": "",
+        "city": "Khagrachhari",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801868654102",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7266525085921",
+    "name": "Shati sikder",
+    "companyName": "Shati sikder",
+    "contactPerson": "Shati sikder",
+    "firstName": "Shati",
+    "lastName": "sikder",
+    "email": "",
+    "phone": "+8801709961393",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 8090,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": ". House no-8.  Road no -51. Gulshan -2. Dhaka Flat-B6",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": ". House no-8.  Road no -51. Gulshan -2. Dhaka Flat-B6",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801709961393",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7206299074785",
+    "name": "Dr. Mohammad Masrurul Mowla",
+    "companyName": "Dr. Mohammad Masrurul Mowla",
+    "contactPerson": "Dr. Mohammad Masrurul Mowla",
+    "firstName": "Dr. Mohammad Masrurul",
+    "lastName": "Mowla",
+    "email": "",
+    "phone": "+8801554329168",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 14450,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 01(first floor) Road 10 Nasirabad properties limited (opposite of government women college) Khulshi, Chittagong.",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 01(first floor) Road 10 Nasirabad properties limited (opposite of government women college) Khulshi, Chittagong.",
+        "line2": "",
+        "city": "Chittagong",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801554329168",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7163387642081",
+    "name": "Samia Rashid hai",
+    "companyName": "Samia Rashid hai",
+    "contactPerson": "Samia Rashid hai",
+    "firstName": "Samia Rashid",
+    "lastName": "hai",
+    "email": "",
+    "phone": "+8801749089225",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 12460,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Baridhara DOHS Lane-6 House- 399",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Baridhara DOHS Lane-6 House- 399",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801749089225",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7139726786785",
+    "name": "Rikee Banerjee",
+    "companyName": "Rikee Banerjee",
+    "contactPerson": "Rikee Banerjee",
+    "firstName": "Rikee",
+    "lastName": "Banerjee",
+    "email": "",
+    "phone": "+8801783614530",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4860,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Flat C5, House 43, Lake Circus Kalabagan Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Flat C5, House 43, Lake Circus Kalabagan Dhaka",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801783614530",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7138236694753",
+    "name": "Fidah",
+    "companyName": "Fidah",
+    "contactPerson": "Fidah",
+    "firstName": "Fidah",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801763044473",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 8070,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "house:2, road:9c, sector:5, uttara",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "house:2, road:9c, sector:5, uttara",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801763044473",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7119262122209",
+    "name": "Sadiat Mannan",
+    "companyName": "Sadiat Mannan",
+    "contactPerson": "Sadiat Mannan",
+    "firstName": "Sadiat",
+    "lastName": "Mannan",
+    "email": "",
+    "phone": "+8801778999977",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7890,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 6, Road 113A, Gulshan 2, Dhaka 1212",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 6, Road 113A, Gulshan 2, Dhaka 1212",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801778999977",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7119220080865",
+    "name": "Fahim Reza",
+    "companyName": "Fahim Reza",
+    "contactPerson": "Fahim Reza",
+    "firstName": "Fahim",
+    "lastName": "Reza",
+    "email": "",
+    "phone": "+8801711479750",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5280,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "6/2 Segunbagicha,Excelsia Tower,Flat-J8,Dhaka-1000, Segun Restaurent er goli",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "6/2 Segunbagicha,Excelsia Tower,Flat-J8,Dhaka-1000",
+        "line2": "Segun Restaurent er goli",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711479750",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7057530454241",
+    "name": "Samira L. Kaiser",
+    "companyName": "Samira L. Kaiser",
+    "contactPerson": "Samira L. Kaiser",
+    "firstName": "Samira L.",
+    "lastName": "Kaiser",
+    "email": "",
+    "phone": "+8801766-684159",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4360,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Pls deliver to this address;  Lena House No. 62, Road No. 08, Block-B, Bashundhara R/A",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Pls deliver to this address;  Lena House No. 62, Road No. 08, Block-B, Bashundhara R/A",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801766-684159",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7041574797537",
+    "name": "Mohiuddin Mohammad Murad",
+    "companyName": "Mohiuddin Mohammad Murad",
+    "contactPerson": "Mohiuddin Mohammad Murad",
+    "firstName": "Mohiuddin Mohammad",
+    "lastName": "Murad",
+    "email": "",
+    "phone": "০১৯১১১৬০৩৪৬",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7930,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "সারুলিয়া,ডেমরা,ঢাকা। সারুলিয়া বাজার মুরাদ রাইছ এজেন্সি  দোকান নং ৪  ০১৬১১১৬০৩৪৬",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "সারুলিয়া,ডেমরা,ঢাকা। সারুলিয়া বাজার মুরাদ রাইছ এজেন্সি  দোকান নং ৪  ০১৬১১১৬০৩৪৬",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "০১৯১১১৬০৩৪৬",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7041431896289",
+    "name": "Mazharul Islam",
+    "companyName": "Mazharul Islam",
+    "contactPerson": "Mazharul Islam",
+    "firstName": "Mazharul",
+    "lastName": "Islam",
+    "email": "",
+    "phone": "+8801714414351",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 21000,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Unit no 403,4th floor,Hazi Abul Kalam tower,East Katiadi,Behind the Katiadi Powrosova. katiadi,.  Mobile:       01713-189063",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Unit no 403,4th floor,Hazi Abul Kalam tower,East Katiadi,Behind the Katiadi Powrosova. katiadi,.  Mobile:       01713-189063",
+        "line2": "",
+        "city": "Kishoreganj",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801714414351",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7018003759329",
+    "name": "Mizanur Rahman Bulbul",
+    "companyName": "Mizanur Rahman Bulbul",
+    "contactPerson": "Mizanur Rahman Bulbul",
+    "firstName": "Mizanur Rahman",
+    "lastName": "Bulbul",
+    "email": "",
+    "phone": "+8801738874542",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6850,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Mohasthan garh, sibganj, bogura.",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Mohasthan garh, sibganj, bogura.",
+        "line2": "",
+        "city": "bogura.",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801738874542",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7015077282017",
+    "name": "Abu Sufian Chowdhury",
+    "companyName": "Abu Sufian Chowdhury",
+    "contactPerson": "Abu Sufian Chowdhury",
+    "firstName": "Abu Sufian",
+    "lastName": "Chowdhury",
+    "email": "",
+    "phone": "+8801711325857",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 10050,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "01, Rangdhanu Chowkidekhi Airport road Sylhet",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "01, Rangdhanu Chowkidekhi Airport road Sylhet",
+        "line2": "",
+        "city": "Sylhet",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711325857",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "7004322988257",
+    "name": "Masfik Azad Rifat",
+    "companyName": "Masfik Azad Rifat",
+    "contactPerson": "Masfik Azad Rifat",
+    "firstName": "Masfik Azad",
+    "lastName": "Rifat",
+    "email": "masfikazadrifat@gmail.com",
+    "phone": "+8801792066558",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3800,
+    "totalOrders": 6,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "National bank Bangshal Branch",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "National bank Bangshal Branch",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801792066558",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6998386180321",
+    "name": "Ali Asger Joher",
+    "companyName": "Ali Asger Joher",
+    "contactPerson": "Ali Asger Joher",
+    "firstName": "Ali Asger",
+    "lastName": "Joher",
+    "email": "",
+    "phone": "+8801718500124",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 10150,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "81/A S.S Khaled Road , Cpdl chowdhury heights Thana : Chawkbazar 01718500124",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "81/A S.S Khaled Road , Cpdl chowdhury heights Thana : Chawkbazar 01718500124",
+        "line2": "",
+        "city": "Flat 6a , Chittagong",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801718500124",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6998338273505",
+    "name": "Nazmul Hasan Shifat",
+    "companyName": "Nazmul Hasan Shifat",
+    "contactPerson": "Nazmul Hasan Shifat",
+    "firstName": "Nazmul Hasan",
+    "lastName": "Shifat",
+    "email": "",
+    "phone": "+8801765389131",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 11940,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Nazmul Hasan Shifat Address: Flat- 7 C, House- 17/11, Rankin Street, Wari, Dhaka- 1203. Cell: 01765389131",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Nazmul Hasan Shifat Address: Flat- 7 C, House- 17/11, Rankin Street, Wari, Dhaka- 1203. Cell: 01765389131",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801765389131",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6982570508513",
+    "name": "Sarah M",
+    "companyName": "Sarah M",
+    "contactPerson": "Sarah M",
+    "firstName": "Sarah",
+    "lastName": "M",
+    "email": "",
+    "phone": "+8801745784102",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3561.42,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Name: Sarah Address: House : 27 , Road : 103/107, Lift : E2, Gulshan 2 Phone no: 01745784102",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Name: Sarah Address: House : 27 , Road : 103/107, Lift : E2, Gulshan 2 Phone no: 01745784102",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801745784102",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6937164808417",
+    "name": "Farah Khan",
+    "companyName": "Farah Khan",
+    "contactPerson": "Farah Khan",
+    "firstName": "Farah",
+    "lastName": "Khan",
+    "email": "",
+    "phone": "+8801751236905",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2960,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Apt 5C House 13 new Road 27 old Dhanmondi Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Apt 5C House 13 new Road 27 old Dhanmondi Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801751236905",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6936017141985",
+    "name": "Sharmin Simi",
+    "companyName": "Sharmin Simi",
+    "contactPerson": "Sharmin Simi",
+    "firstName": "Sharmin",
+    "lastName": "Simi",
+    "email": "sharmin_simi1@yahoo.com",
+    "phone": "01712885736",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 10764.5,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Mansurabad r/a, House 29, Flat A4, Road 4, Block B, adabor , Shyamoli",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Mansurabad r/a, House 29, Flat A4, Road 4, Block B, adabor , Shyamoli",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1207",
+        "phone": "01712885736",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6890790748385",
+    "name": "Tushar Mollik",
+    "companyName": "Tushar Mollik",
+    "contactPerson": "Tushar Mollik",
+    "firstName": "Tushar",
+    "lastName": "Mollik",
+    "email": "",
+    "phone": "+8801760722120",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3650,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "B/39 arsin gate Faridabad, Dhaka-1204",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "B/39 arsin gate Faridabad, Dhaka-1204",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801760722120",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6852593451233",
+    "name": "Omar Farook Siddiquee",
+    "companyName": "Omar Farook Siddiquee",
+    "contactPerson": "Omar Farook Siddiquee",
+    "firstName": "Omar Farook",
+    "lastName": "Siddiquee",
+    "email": "",
+    "phone": "+8801973121213",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7450,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "1128 ahmed mansion sk mujib road dewanhat chittagong 4100",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "1128 ahmed mansion sk mujib road dewanhat chittagong 4100",
+        "line2": "",
+        "city": "Chittagong",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801973121213",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6840712659169",
+    "name": "Mina Makary",
+    "companyName": "Mina Makary",
+    "contactPerson": "Mina Makary",
+    "firstName": "Mina",
+    "lastName": "Makary",
+    "email": "",
+    "phone": "+8801406699708",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 13600,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Road 90 - House 9 Gulshan 2 Infront of Unimart",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Road 90 - House 9 Gulshan 2 Infront of Unimart",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801406699708",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6828043239649",
+    "name": "Hosen Zaman Rakib",
+    "companyName": "Hosen Zaman Rakib",
+    "contactPerson": "Hosen Zaman Rakib",
+    "firstName": "Hosen Zaman",
+    "lastName": "Rakib",
+    "email": "",
+    "phone": "+8801750138635",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4360,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "39, Sonargaon Janapath road, sec-7, Uttara,  Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "39, Sonargaon Janapath road, sec-7, Uttara,  Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1230",
+        "phone": "+8801750138635",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6826283106529",
+    "name": "Shamsun Shaila",
+    "companyName": "Shamsun Shaila",
+    "contactPerson": "Shamsun Shaila",
+    "firstName": "Shamsun",
+    "lastName": "Shaila",
+    "email": "",
+    "phone": "+8801615457478",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3640,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House-B/122,Lane-21, New DOHS, Mohakhali,Dhaka. Cell number-.",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House-B/122,Lane-21, New DOHS, Mohakhali,Dhaka. Cell number-.",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801615457478",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6822103777505",
+    "name": "MD Al Amin Amin",
+    "companyName": "MD Al Amin Amin",
+    "contactPerson": "MD Al Amin Amin",
+    "firstName": "MD Al Amin",
+    "lastName": "Amin",
+    "email": "",
+    "phone": "+8801711507981",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5560,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "78 Gulshan Avenue",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "78 Gulshan Avenue",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711507981",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6818523250913",
+    "name": "Belal Ahmed",
+    "companyName": "Belal Ahmed",
+    "contactPerson": "Belal Ahmed",
+    "firstName": "Belal",
+    "lastName": "Ahmed",
+    "email": "belalahmed240992@gmail.com",
+    "phone": "+8801727616234",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7893.75,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Shunashar",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Shunashar",
+        "line2": "",
+        "city": "Zakiganj",
+        "country": "BD",
+        "postalCode": "3190",
+        "phone": "+8801727616234",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6785383137505",
+    "name": "AREEBAH AREEBAH",
+    "companyName": "AREEBAH AREEBAH",
+    "contactPerson": "AREEBAH AREEBAH",
+    "firstName": "AREEBAH",
+    "lastName": "AREEBAH",
+    "email": "",
+    "phone": "+8801766678324",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2970,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "W/5 MOHAMMADPUR,NOORJAHANROAD DHAKA-1207,3RD FLOOR. EMAIL:AribahIphone007@gmail.com",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "W/5 MOHAMMADPUR,NOORJAHANROAD DHAKA-1207,3RD FLOOR. EMAIL:AribahIphone007@gmail.com",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801766678324",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6783381274849",
+    "name": "Bipasha Ahmed",
+    "companyName": "Bipasha Ahmed",
+    "contactPerson": "Bipasha Ahmed",
+    "firstName": "Bipasha",
+    "lastName": "Ahmed",
+    "email": "",
+    "phone": "+8801711348717",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7510,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Flat: B 1 House: 1 B Road:3 Gulshan 1",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Flat: B 1 House: 1 B Road:3 Gulshan 1",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711348717",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6782836375777",
+    "name": "MD. Shahidul Islam",
+    "companyName": "MD. Shahidul Islam",
+    "contactPerson": "MD. Shahidul Islam",
+    "firstName": "MD. Shahidul",
+    "lastName": "Islam",
+    "email": "md0817us@yahoo.com",
+    "phone": "+8801711-195613",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 0,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House-170, Road-6, Block-a, B6",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House-170, Road-6, Block-a",
+        "line2": "B6",
+        "city": "Bashundhara R/a",
+        "country": "BD",
+        "postalCode": "1229",
+        "phone": "+8801711-195613",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6782463541473",
+    "name": "Ali Akber",
+    "companyName": "Ali Akber",
+    "contactPerson": "Ali Akber",
+    "firstName": "Ali",
+    "lastName": "Akber",
+    "email": "",
+    "phone": "+8801955508351",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7100,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House no - 47/i , Road no - 1,   Ispahani Park, South Khulshi, Khulshi. Chittagong. Phone",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House no - 47/i , Road no - 1,   Ispahani Park, South Khulshi, Khulshi. Chittagong. Phone",
+        "line2": "",
+        "city": "Chittagong",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801955508351",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6777163383009",
+    "name": "Piash Khan",
+    "companyName": "Piash Khan",
+    "contactPerson": "Piash Khan",
+    "firstName": "Piash",
+    "lastName": "Khan",
+    "email": "",
+    "phone": "+8801407090971",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3570,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Dhaka, Baridhara J block, road 8, house 1, lift 2",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Dhaka, Baridhara J block, road 8, house 1, lift 2",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801407090971",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6774099378401",
+    "name": "Dianne Cacanando",
+    "companyName": "Dianne Cacanando",
+    "contactPerson": "Dianne Cacanando",
+    "firstName": "Dianne",
+    "lastName": "Cacanando",
+    "email": "",
+    "phone": "+8801318239424",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 11360,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 786 road 1 H-block Bashundhara R/A",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 786 road 1 H-block Bashundhara R/A",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801318239424",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6772955054305",
+    "name": "Ayaz Ali Sharif",
+    "companyName": "Ayaz Ali Sharif",
+    "contactPerson": "Ayaz Ali Sharif",
+    "firstName": "Ayaz Ali",
+    "lastName": "Sharif",
+    "email": "",
+    "phone": "+8801977338146",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4060,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 12, Road 7, Gulshan 1, Apt 7B",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 12, Road 7, Gulshan 1, Apt 7B",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801977338146",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6771194069217",
+    "name": "Anila Nehreen",
+    "companyName": "Anila Nehreen",
+    "contactPerson": "Anila Nehreen",
+    "firstName": "Anila",
+    "lastName": "Nehreen",
+    "email": "anilabinoyee02@gmail.com",
+    "phone": "+8801787388808",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3763,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Flat D1, 45 Dhanmondi Road 6/a, H/n",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Flat D1",
+        "line2": "45 Dhanmondi Road 6/a, H/n",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1209",
+        "phone": "+8801787388808",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6770346459361",
+    "name": "K.M. Muzahidur Rahman",
+    "companyName": "K.M. Muzahidur Rahman",
+    "contactPerson": "K.M. Muzahidur Rahman",
+    "firstName": "K.M. Muzahidur",
+    "lastName": "Rahman",
+    "email": "",
+    "phone": "+8801717066160",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 17500,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Manik nagar Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Manik nagar Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801717066160",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6769498489057",
+    "name": "Kartik chandra barmon",
+    "companyName": "Kartik chandra barmon",
+    "contactPerson": "Kartik chandra barmon",
+    "firstName": "Kartik chandra",
+    "lastName": "barmon",
+    "email": "",
+    "phone": "+8801703742156",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3420,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "bormi Sreepur Gazipur",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "bormi Sreepur Gazipur",
+        "line2": "",
+        "city": "Gazipur",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801703742156",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6766718681313",
+    "name": "Rumman Topu",
+    "companyName": "Rumman Topu",
+    "contactPerson": "Rumman Topu",
+    "firstName": "Rumman",
+    "lastName": "Topu",
+    "email": "rumman.aridod@gmail.com",
+    "phone": "+8801792068071",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6450,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Mauradi , Araihajar Narayanganj",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Mauradi , Araihajar Narayanganj",
+        "line2": "",
+        "city": "Araihajar",
+        "country": "BD",
+        "postalCode": "1450",
+        "phone": "+8801792068071",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6764214223073",
+    "name": "Tawfique Hasan Chowdhury",
+    "companyName": "Tawfique Hasan Chowdhury",
+    "contactPerson": "Tawfique Hasan Chowdhury",
+    "firstName": "Tawfique Hasan",
+    "lastName": "Chowdhury",
+    "email": "www.tawfiquenehal@gmail.com",
+    "phone": "+8801842525194",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 1470,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "51, siddheshari circular road,siddheshwari sky city hotel, malibagh, thana-ramna, Apartment number- 51",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "51, siddheshari circular road,siddheshwari sky city hotel, malibagh, thana-ramna",
+        "line2": "Apartment number- 51",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1217",
+        "phone": "+8801842525194",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6760747663585",
+    "name": "Deena Shah",
+    "companyName": "Deena Shah",
+    "contactPerson": "Deena Shah",
+    "firstName": "Deena",
+    "lastName": "Shah",
+    "email": "",
+    "phone": "+8801713002310",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4810,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Address: 11/1, central bashabo, dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Address: 11/1, central bashabo, dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801713002310",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6756633837793",
+    "name": "Syed Masuduzzaman",
+    "companyName": "Syed Masuduzzaman",
+    "contactPerson": "Syed Masuduzzaman",
+    "firstName": "Syed",
+    "lastName": "Masuduzzaman",
+    "email": "",
+    "phone": "+8801715024998",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4170,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 8 road 25 sector 7 uttara Masud",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 8 road 25 sector 7 uttara Masud",
+        "line2": "",
+        "city": "dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801715024998",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6754247999713",
+    "name": "মেহরাজ সম্রাট",
+    "companyName": "মেহরাজ সম্রাট",
+    "contactPerson": "মেহরাজ সম্রাট",
+    "firstName": "মেহরাজ",
+    "lastName": "সম্রাট",
+    "email": "",
+    "phone": "+8801777-744300",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 18520,
+    "totalOrders": 6,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "NBR Bhaban, Plot-F, 1/A W, Agargaon, Sher-e-Bangla Nagar, Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "NBR Bhaban, Plot-F, 1/A W, Agargaon, Sher-e-Bangla Nagar, Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801777-744300",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6753363067105",
+    "name": "Kashfia Ahmed",
+    "companyName": "Kashfia Ahmed",
+    "contactPerson": "Kashfia Ahmed",
+    "firstName": "Kashfia",
+    "lastName": "Ahmed",
+    "email": "",
+    "phone": "+8801780332211",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5060,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "house 55, road 6, block c, lift 2, niketon",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "house 55, road 6, block c, lift 2, niketon",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801780332211",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6750573101281",
+    "name": "Rony M J H Chowdhury",
+    "companyName": "Rony M J H Chowdhury",
+    "contactPerson": "Rony M J H Chowdhury",
+    "firstName": "Rony M J H",
+    "lastName": "Chowdhury",
+    "email": "",
+    "phone": "+8801975-616539",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7400,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "CS Lab Limited 36 Sonargaon Janapath(5th Floor) Sector :12 Uttara Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "CS Lab Limited 36 Sonargaon Janapath(5th Floor) Sector :12 Uttara Dhaka",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801975-616539",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6749441556705",
+    "name": "Rifat",
+    "companyName": "Rifat",
+    "contactPerson": "Rifat",
+    "firstName": "Rifat",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801625452056",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6660,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Nha tower block A lalmatia building no 1 flat no 6",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Nha tower block A lalmatia building no 1 flat no 6",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801625452056",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6747824062689",
+    "name": "Shojib",
+    "companyName": "Shojib",
+    "contactPerson": "Shojib",
+    "firstName": "Shojib",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801671426953",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 20400,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Khilkhet",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Khilkhet",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801671426953",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6740701282529",
+    "name": "Mirza Sharif",
+    "companyName": "Mirza Sharif",
+    "contactPerson": "Mirza Sharif",
+    "firstName": "Mirza",
+    "lastName": "Sharif",
+    "email": "",
+    "phone": "+8801710663052",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 1650,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Sakhipur,Tangail",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Sakhipur,Tangail",
+        "line2": "",
+        "city": "Tangail",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801710663052",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6738507202785",
+    "name": "Sadia Eva",
+    "companyName": "Sadia Eva",
+    "contactPerson": "Sadia Eva",
+    "firstName": "Sadia",
+    "lastName": "Eva",
+    "email": "",
+    "phone": "+8801738011017",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4960,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "55/A pirerbag palace Behind Shwapno super shop North Pirerbag ,60 Feet Mirpur",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "55/A pirerbag palace Behind Shwapno super shop North Pirerbag ,60 Feet Mirpur",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801738011017",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6732864749793",
+    "name": "Ahlam Ahsan",
+    "companyName": "Ahlam Ahsan",
+    "contactPerson": "Ahlam Ahsan",
+    "firstName": "Ahlam",
+    "lastName": "Ahsan",
+    "email": "",
+    "phone": "+8801713049285",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6270,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House B 117 Road 7 New dohs Mohakhali",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House B 117 Road 7 New dohs Mohakhali",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801713049285",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6731391205601",
+    "name": "Musfiq Rahman",
+    "companyName": "Musfiq Rahman",
+    "contactPerson": "Musfiq Rahman",
+    "firstName": "Musfiq",
+    "lastName": "Rahman",
+    "email": "",
+    "phone": "+8801673776011",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 11990,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Musfiq Rahman Tomal Chairman Meghna Insurance House 14 Flat A4 Road 1/A Baridhara J Block Notun Bajar Dhaka 1212",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Musfiq Rahman Tomal Chairman Meghna Insurance House 14 Flat A4 Road 1/A Baridhara J Block Notun Bajar Dhaka 1212",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801673776011",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6731319607521",
+    "name": "nowshin Tabassum",
+    "companyName": "nowshin Tabassum",
+    "contactPerson": "nowshin Tabassum",
+    "firstName": "nowshin",
+    "lastName": "Tabassum",
+    "email": "",
+    "phone": "+8801628103047",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5450,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "231/b khilgaon near Mukti Nursing home",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "231/b khilgaon near Mukti Nursing home",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801628103047",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6731228840161",
+    "name": "Raisa Ahadilari",
+    "companyName": "Raisa Ahadilari",
+    "contactPerson": "Raisa Ahadilari",
+    "firstName": "Raisa",
+    "lastName": "Ahadilari",
+    "email": "",
+    "phone": "+8801758066999",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4460,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Raisa 272/1, Cornel Goli, West Agargaon, Dhaka. Near BNP Water Tank.",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Raisa 272/1, Cornel Goli, West Agargaon, Dhaka. Near BNP Water Tank.",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801758066999",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6724138139873",
+    "name": "Silvi Mahmud",
+    "companyName": "Silvi Mahmud",
+    "contactPerson": "Silvi Mahmud",
+    "firstName": "Silvi",
+    "lastName": "Mahmud",
+    "email": "",
+    "phone": "+8801756169633",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 8000,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Mirpur pallabi.",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Mirpur pallabi.",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801756169633",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6722972680417",
+    "name": "Mohammed Nasir Uddin",
+    "companyName": "Mohammed Nasir Uddin",
+    "contactPerson": "Mohammed Nasir Uddin",
+    "firstName": "Mohammed",
+    "lastName": "Nasir Uddin",
+    "email": "",
+    "phone": "+8801819307746",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 22715.25,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Eastern Bank Ltd. Corporate Banking, Agrabad Branch 33 Agrabad C/A",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Eastern Bank Ltd. Corporate Banking",
+        "line2": "Agrabad Branch 33 Agrabad C/A",
+        "city": "Chittagong",
+        "country": "BD",
+        "postalCode": "4100",
+        "phone": "+8801819307746",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6706240618721",
+    "name": "Arafat Zaman",
+    "companyName": "Arafat Zaman",
+    "contactPerson": "Arafat Zaman",
+    "firstName": "Arafat",
+    "lastName": "Zaman",
+    "email": "",
+    "phone": "+8801930950960",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 15965.25,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "শহর পরিকল্পনাবিদ মাদারীপুর পৌরসভা জেলাঃ",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "শহর পরিকল্পনাবিদ মাদারীপুর পৌরসভা জেলাঃ",
+        "line2": "",
+        "city": "মাদারীপুর",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801930950960",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6694218760417",
+    "name": "Salahuddin Sino",
+    "companyName": "Salahuddin Sino",
+    "contactPerson": "Salahuddin Sino",
+    "firstName": "Salahuddin",
+    "lastName": "Sino",
+    "email": "",
+    "phone": "+8801746385071",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 21085,
+    "totalOrders": 7,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 381 (2nd floor), Road 28, Mohakhali DOHS. Contact number : 01746385071",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 381 (2nd floor), Road 28, Mohakhali DOHS. Contact number : 01746385071",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801746385071",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6686986633441",
+    "name": "Mim Mim",
+    "companyName": "Mim Mim",
+    "contactPerson": "Mim Mim",
+    "firstName": "Mim",
+    "lastName": "Mim",
+    "email": "",
+    "phone": "+8801619539165",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 33190,
+    "totalOrders": 7,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Agrabadh muhuri para uttora abasik",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Agrabadh muhuri para uttora abasik",
+        "line2": "",
+        "city": "Chittagong",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801619539165",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6684791472353",
+    "name": "ADIT ISHRAK",
+    "companyName": "ADIT ISHRAK",
+    "contactPerson": "ADIT ISHRAK",
+    "firstName": "ADIT",
+    "lastName": "ISHRAK",
+    "email": "",
+    "phone": "+8801786139385",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 12004,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "17/2 POLLABI",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "17/2 POLLABI",
+        "line2": "",
+        "city": "DHAKA",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801786139385",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6675486736609",
+    "name": "Barrister Imranul Hye Sajib",
+    "companyName": "Barrister Imranul Hye Sajib",
+    "contactPerson": "Barrister Imranul Hye Sajib",
+    "firstName": "Barrister Imranul Hye",
+    "lastName": "Sajib",
+    "email": "",
+    "phone": "+8801733338888",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7829.75,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Biswas Credence', Flat- 3A, House- 68, Road- 7/A, Dhanmondi R/A. Dhaka.",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Biswas Credence', Flat- 3A, House- 68, Road- 7/A, Dhanmondi R/A. Dhaka.",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801733338888",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6670888141025",
+    "name": "Mazedur Rahman",
+    "companyName": "Mazedur Rahman",
+    "contactPerson": "Mazedur Rahman",
+    "firstName": "Mazedur",
+    "lastName": "Rahman",
+    "email": "",
+    "phone": "+8801713372320",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5140,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "36, Dilkusha, Motijheel C/A, 16th Floor, Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "36, Dilkusha, Motijheel C/A, 16th Floor, Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801713372320",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6661804261601",
+    "name": "Saber Babu",
+    "companyName": "Saber Babu",
+    "contactPerson": "Saber Babu",
+    "firstName": "Saber",
+    "lastName": "Babu",
+    "email": "saberbabu256@gmail.com",
+    "phone": "+8801575598641",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 1376.25,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "19/2debe Das Ghat Lane Chawk Bajer Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "19/2debe Das Ghat Lane Chawk Bajer Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1211",
+        "phone": "+8801575598641",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6660133028065",
+    "name": "Fauzia Hasan",
+    "companyName": "Fauzia Hasan",
+    "contactPerson": "Fauzia Hasan",
+    "firstName": "Fauzia",
+    "lastName": "Hasan",
+    "email": "",
+    "phone": "+8801714090065",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6280,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "green leaf house 27 apt# D 3 road 107 ghulshan 2",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "green leaf house 27 apt# D 3 road 107 ghulshan 2",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801714090065",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6656013697249",
+    "name": "MD Hedayet Hossain Sifat",
+    "companyName": "MD Hedayet Hossain Sifat",
+    "contactPerson": "MD Hedayet Hossain Sifat",
+    "firstName": "MD Hedayet Hossain",
+    "lastName": "Sifat",
+    "email": "",
+    "phone": "+8801796369538",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7500,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Pallabi, Mirpur 12, Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Pallabi, Mirpur 12, Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1216",
+        "phone": "+8801796369538",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6651294777569",
+    "name": "Syed Mohammed",
+    "companyName": "Syed Mohammed",
+    "contactPerson": "Syed Mohammed",
+    "firstName": "Syed",
+    "lastName": "Mohammed",
+    "email": "",
+    "phone": "+8801617143599",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 10760,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Syed Mohammed House (se)4, road 137 Gulshan 1",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Syed Mohammed House (se)4, road 137 Gulshan 1",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801617143599",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6648090296545",
+    "name": "S Karim Chowdhury",
+    "companyName": "S Karim Chowdhury",
+    "contactPerson": "S Karim Chowdhury",
+    "firstName": "S Karim",
+    "lastName": "Chowdhury",
+    "email": "",
+    "phone": "+8801730701400",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 11140,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Road-3, sector-3, house-13,",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Road-3, sector-3, house-13,",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801730701400",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6647777427681",
+    "name": "pulok saha",
+    "companyName": "pulok saha",
+    "contactPerson": "pulok saha",
+    "firstName": "pulok",
+    "lastName": "saha",
+    "email": "puloksaha05@gmail.com",
+    "phone": "01871066770",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6614.25,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Ml Stores, Collage Road Chwmuhani Noakhali",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Ml Stores",
+        "line2": "Collage Road Chwmuhani Noakhali",
+        "city": "Noakhali",
+        "country": "BD",
+        "postalCode": "3821",
+        "phone": "01871066770",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6646823715041",
+    "name": "Adnan Shaikat",
+    "companyName": "Adnan Shaikat",
+    "contactPerson": "Adnan Shaikat",
+    "firstName": "Adnan",
+    "lastName": "Shaikat",
+    "email": "",
+    "phone": "+8801712287397",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5925.25,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": ",address:191/3,Malibagh, Bazar Road, Aman House, Dhaka  1217",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": ",address:191/3,Malibagh, Bazar Road, Aman House, Dhaka  1217",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801712287397",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6644489486561",
+    "name": "Mujtanibul Ahmed Sakib",
+    "companyName": "Mujtanibul Ahmed Sakib",
+    "contactPerson": "Mujtanibul Ahmed Sakib",
+    "firstName": "Mujtanibul Ahmed",
+    "lastName": "Sakib",
+    "email": "",
+    "phone": "+8801711081194",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4860,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "19/b Paribag,Dhaka-1000",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "19/b Paribag,Dhaka-1000",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711081194",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6644206993633",
+    "name": "শেখ,লুৎফর রহমান",
+    "companyName": "শেখ,লুৎফর রহমান",
+    "contactPerson": "শেখ,লুৎফর রহমান",
+    "firstName": "শেখ,লুৎফর",
+    "lastName": "রহমান",
+    "email": "",
+    "phone": "+8801640000018",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4600,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "শেখ,লুৎফর রহমান,গাজীপুর সিটি কর্পোরেশন,পূবাইল থানা,মেঘডুবী কলের বাজার,৪০নং ওয়ার্ড, মোবাইল 01640000018",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "শেখ,লুৎফর রহমান,গাজীপুর সিটি কর্পোরেশন,পূবাইল থানা,মেঘডুবী কলের বাজার,৪০নং ওয়ার্ড, মোবাইল 01640000018",
+        "line2": "",
+        "city": "Gazipur",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801640000018",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6643729170657",
+    "name": "Rashnat kanon",
+    "companyName": "Rashnat kanon",
+    "contactPerson": "Rashnat kanon",
+    "firstName": "Rashnat",
+    "lastName": "kanon",
+    "email": "",
+    "phone": "01712201533",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6714.75,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Ghatail,Tangail",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Ghatail,Tangail",
+        "line2": "",
+        "city": "Tangail",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "01712201533",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6639607677153",
+    "name": "Shafwat Adnan Arnab",
+    "companyName": "Shafwat Adnan Arnab",
+    "contactPerson": "Shafwat Adnan Arnab",
+    "firstName": "Shafwat",
+    "lastName": "Adnan Arnab",
+    "email": "shafwatadnan@gmail.com",
+    "phone": "+8801711898661",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4440,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Apartment: B5, House: 43, Road: 23, Block: B, Banani, Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Apartment: B5, House: 43, Road: 23, Block: B, Banani, Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1213",
+        "phone": "+8801711898661",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6635636949217",
+    "name": "Zubaeer Hasnat Naeem",
+    "companyName": "Zubaeer Hasnat Naeem",
+    "contactPerson": "Zubaeer Hasnat Naeem",
+    "firstName": "Zubaeer Hasnat",
+    "lastName": "Naeem",
+    "email": "",
+    "phone": "+8801676879139",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6700,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Niribili tower,niribili r/a,mollapara,doublemooring,Chattogram",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Niribili tower,niribili r/a,mollapara,doublemooring,Chattogram",
+        "line2": "",
+        "city": "Chattogram",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801676879139",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6634111828193",
+    "name": "Sanyat Rahman",
+    "companyName": "Sanyat Rahman",
+    "contactPerson": "Sanyat Rahman",
+    "firstName": "Sanyat",
+    "lastName": "Rahman",
+    "email": "sanyatrahman@gmail.com",
+    "phone": "+8801680757560",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4670,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 04 Road 11 Sector 04, 4A",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 04 Road 11 Sector 04",
+        "line2": "4A",
+        "city": "Uttara",
+        "country": "BD",
+        "postalCode": "1230",
+        "phone": "+8801680757560",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6633643933921",
+    "name": "Md Tareq Mahmud",
+    "companyName": "Md Tareq Mahmud",
+    "contactPerson": "Md Tareq Mahmud",
+    "firstName": "Md Tareq",
+    "lastName": "Mahmud",
+    "email": "",
+    "phone": "০১৭১৬০২৩৭০২",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4950,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "মো তারেক মাহমুদ বাংলা বাজার। ছাতক।সুনামগঞ্জ",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "মো তারেক মাহমুদ বাংলা বাজার। ছাতক।সুনামগঞ্জ",
+        "line2": "",
+        "city": "সুনামগঞ্জ",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "০১৭১৬০২৩৭০২",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6632654110945",
+    "name": "Khan Samiuzzaman",
+    "companyName": "Khan Samiuzzaman",
+    "contactPerson": "Khan Samiuzzaman",
+    "firstName": "Khan",
+    "lastName": "Samiuzzaman",
+    "email": "sami.flybot1@gmail.com",
+    "phone": "+8801323873971",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 12690,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Flat 203, building A4, manashi Lakeview apartments, Shahinpukur, mirpur 1",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Flat 203, building A4, manashi Lakeview apartments, Shahinpukur, mirpur 1",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1216",
+        "phone": "+8801323873971",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6631769735393",
+    "name": "topu dev",
+    "companyName": "topu dev",
+    "contactPerson": "topu dev",
+    "firstName": "topu",
+    "lastName": "dev",
+    "email": "topudev@gmail.com",
+    "phone": "01700744510",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 9910,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House:13/Ka/1/4,K.M.Das Lane, Tikatuli, Flat 3A, Prantik Rose Garden",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House:13/Ka/1/4,K.M.Das Lane, Tikatuli",
+        "line2": "Flat 3A, Prantik Rose Garden",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1203",
+        "phone": "01700744510",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6629102452961",
+    "name": "Dr.Rafiqul Islam",
+    "companyName": "Dr.Rafiqul Islam",
+    "contactPerson": "Dr.Rafiqul Islam",
+    "firstName": "Dr.Rafiqul",
+    "lastName": "Islam",
+    "email": "",
+    "phone": "+8801712567964",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4819.75,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Kalatiya modern hospital. Kalatiya Keraniganj Dhaka.",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Kalatiya modern hospital. Kalatiya Keraniganj Dhaka.",
+        "line2": "",
+        "city": "Keraniganj",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801712567964",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6627050160353",
+    "name": "Mahmud Kajol",
+    "companyName": "Mahmud Kajol",
+    "contactPerson": "Mahmud Kajol",
+    "firstName": "Mahmud",
+    "lastName": "Kajol",
+    "email": "",
+    "phone": "+8801708441778",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4550,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Tamim Agro Industries ltd,Bonani,Bogura",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Tamim Agro Industries ltd,Bonani,Bogura",
+        "line2": "",
+        "city": "Bogura",
+        "country": "BD",
+        "postalCode": "5800",
+        "phone": "+8801708441778",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6625037123809",
+    "name": "Irtiza Rahman Akif",
+    "companyName": "Irtiza Rahman Akif",
+    "contactPerson": "Irtiza Rahman Akif",
+    "firstName": "Irtiza Rahman",
+    "lastName": "Akif",
+    "email": "",
+    "phone": "+8801711092757",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6220,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 5 road 127 Gulshan 1 Dhaka 1212",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 5 road 127 Gulshan 1 Dhaka 1212",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711092757",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6609854726369",
+    "name": "Shah Emran",
+    "companyName": "Shah Emran",
+    "contactPerson": "Shah Emran",
+    "firstName": "Shah",
+    "lastName": "Emran",
+    "email": "",
+    "phone": "+8801919255784",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 11350,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "785 Mehedibug ctg",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "785 Mehedibug ctg",
+        "line2": "",
+        "city": "chittagong",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801919255784",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6606585725153",
+    "name": "Yusuf Rasel",
+    "companyName": "Yusuf Rasel",
+    "contactPerson": "Yusuf Rasel",
+    "firstName": "Yusuf",
+    "lastName": "Rasel",
+    "email": "",
+    "phone": "+8801610021248",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5305.25,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House-52, Level-5A, Block-D, Road-4  Bashundhara R/A , Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House-52, Level-5A, Block-D, Road-4  Bashundhara R/A , Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801610021248",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6605638205665",
+    "name": "Ak Rezaul Haque",
+    "companyName": "Ak Rezaul Haque",
+    "contactPerson": "Ak Rezaul Haque",
+    "firstName": "Ak Rezaul",
+    "lastName": "Haque",
+    "email": "",
+    "phone": "+8801730293688",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 9610,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Halima 70 , Dhanmondi 12/a  Lift a3",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Halima 70 , Dhanmondi 12/a  Lift a3",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801730293688",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6604504760545",
+    "name": "Ucchhash Marma",
+    "companyName": "Ucchhash Marma",
+    "contactPerson": "Ucchhash Marma",
+    "firstName": "Ucchhash",
+    "lastName": "Marma",
+    "email": "ucchhash@gmail.com",
+    "phone": "01611375042",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6711,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "227 West Manikdi, Dhaka Cantonment, Dhaka 1206",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "227 West Manikdi",
+        "line2": "Dhaka Cantonment, Dhaka 1206",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1206",
+        "phone": "01611375042",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6593641414881",
+    "name": "Nabila Afrin",
+    "companyName": "Nabila Afrin",
+    "contactPerson": "Nabila Afrin",
+    "firstName": "Nabila",
+    "lastName": "Afrin",
+    "email": "",
+    "phone": "+8801882774323",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 2640,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "G. P. JA-116/1/2, Zahura Villa, Mohakhali Wireless gate",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "G. P. JA-116/1/2, Zahura Villa, Mohakhali Wireless gate",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801882774323",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6593528103137",
+    "name": "Monzur Alam Khan",
+    "companyName": "Monzur Alam Khan",
+    "contactPerson": "Monzur Alam Khan",
+    "firstName": "Monzur Alam",
+    "lastName": "Khan",
+    "email": "",
+    "phone": "+8801951865956",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 30500,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Mirpur",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Mirpur",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801951865956",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6590048370913",
+    "name": "MD. AL Aslam",
+    "companyName": "MD. AL Aslam",
+    "contactPerson": "MD. AL Aslam",
+    "firstName": "MD. AL",
+    "lastName": "Aslam",
+    "email": "",
+    "phone": "+8801911522041",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4920,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "মো: আসলাম ০১৯১১৫২২০৪১  ০১৭১১০২৫৬০৫ ৯৮ পশ্চিম ইসলাম বাগ , ইসলাম বাগ ঈদগাহ মাঠের পশ্চিমে, লালবাগ ,পোস্তা, ঢাকা-১২১১",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "মো: আসলাম ০১৯১১৫২২০৪১  ০১৭১১০২৫৬০৫ ৯৮ পশ্চিম ইসলাম বাগ , ইসলাম বাগ ঈদগাহ মাঠের পশ্চিমে, লালবাগ ,পোস্তা, ঢাকা-১২১১",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801911522041",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6586852933857",
+    "name": "Shadiul Islam Sohel",
+    "companyName": "Shadiul Islam Sohel",
+    "contactPerson": "Shadiul Islam Sohel",
+    "firstName": "Shadiul Islam",
+    "lastName": "Sohel",
+    "email": "",
+    "phone": "+8801819371987",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5500,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Sr.manager Sales and Markeeting Sanzi textile mills ltd Industry area Kalurghat Chandgoan Chattogram",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Sr.manager Sales and Markeeting Sanzi textile mills ltd Industry area Kalurghat Chandgoan Chattogram",
+        "line2": "",
+        "city": "Chittagong",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801819371987",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6584873976033",
+    "name": "Rifát Dráxlér",
+    "companyName": "Rifát Dráxlér",
+    "contactPerson": "Rifát Dráxlér",
+    "firstName": "Rifát",
+    "lastName": "Dráxlér",
+    "email": "",
+    "phone": "+8801625452056",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3560,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Nha tower block A lalmatia dhaka building name sonar tori flat no 6",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Nha tower block A lalmatia dhaka building name sonar tori flat no 6",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801625452056",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6580174422241",
+    "name": "Tanmoy",
+    "companyName": "Tanmoy",
+    "contactPerson": "Tanmoy",
+    "firstName": "Tanmoy",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801712166133",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 9750,
+    "totalOrders": 7,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Mayble & Frank Fashions Limited Mamarishpur, Mallikbari, Bhaluka, Mymensingh",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Mayble & Frank Fashions Limited Mamarishpur, Mallikbari, Bhaluka, Mymensingh",
+        "line2": "",
+        "city": "Mymensingh",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801712166133",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6580165017825",
+    "name": "Engr  Rony M J H Chowdhury",
+    "companyName": "Engr  Rony M J H Chowdhury",
+    "contactPerson": "Engr  Rony M J H Chowdhury",
+    "firstName": "Engr  Rony M J H",
+    "lastName": "Chowdhury",
+    "email": "",
+    "phone": "+8801975-616539",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4280,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House : 308 Road : 1 Block F Bashundhara R/A 01975616539",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House : 308 Road : 1 Block F Bashundhara R/A 01975616539",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801975-616539",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6564907319521",
+    "name": "rounak ahmed",
+    "companyName": "rounak ahmed",
+    "contactPerson": "rounak ahmed",
+    "firstName": "rounak",
+    "lastName": "ahmed",
+    "email": "",
+    "phone": "+8801782666557",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6116,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "house 530, rd 7, avenue 5, mirpur Dohs",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "house 530, rd 7, avenue 5, mirpur Dohs",
+        "line2": "",
+        "city": "dhaka",
+        "country": "BD",
+        "postalCode": "1216",
+        "phone": "+8801782666557",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6561844756705",
+    "name": "Tanjina prema",
+    "companyName": "Tanjina prema",
+    "contactPerson": "Tanjina prema",
+    "firstName": "Tanjina",
+    "lastName": "prema",
+    "email": "",
+    "phone": "+8801714643049",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 11650,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Tanjina Anis Prema Plot 9, flat 3A, avenue 1, block A, section 11, mirpur. Opposite to mirpur bangla boys school",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Tanjina Anis Prema Plot 9, flat 3A, avenue 1, block A, section 11, mirpur. Opposite to mirpur bangla boys school",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801714643049",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6550004498657",
+    "name": "Rupom",
+    "companyName": "Rupom",
+    "contactPerson": "Rupom",
+    "firstName": "Rupom",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801711871987",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 22000,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Gulshan Avenue",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Gulshan Avenue",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1212",
+        "phone": "+8801711871987",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6549910618337",
+    "name": "Bidisha Sidiqque",
+    "companyName": "Bidisha Sidiqque",
+    "contactPerson": "Bidisha Sidiqque",
+    "firstName": "Bidisha",
+    "lastName": "Sidiqque",
+    "email": "",
+    "phone": "+8801711828292",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 32370,
+    "totalOrders": 12,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "10 president park and Dutabash Rd Baridhara diplomatic zone",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "10 president park and Dutabash Rd Baridhara diplomatic zone",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711828292",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6548107395297",
+    "name": "Alamgir Chowdhury",
+    "companyName": "Alamgir Chowdhury",
+    "contactPerson": "Alamgir Chowdhury",
+    "firstName": "Alamgir",
+    "lastName": "Chowdhury",
+    "email": "",
+    "phone": "+8801711527069",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 16910,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Road 35A house 39 gulshan 2 behind lakeshore hotel., F",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Road 35A house 39 gulshan 2 behind lakeshore hotel.",
+        "line2": "F",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1212",
+        "phone": "+8801711527069",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6541660160225",
+    "name": "Fidah Tahrim Hossain",
+    "companyName": "Fidah Tahrim Hossain",
+    "contactPerson": "Fidah Tahrim Hossain",
+    "firstName": "Fidah Tahrim",
+    "lastName": "Hossain",
+    "email": "",
+    "phone": "+8801811001157",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 17860,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "house:2, road:9c, sector:5, uttara",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "house:2, road:9c, sector:5, uttara",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801811001157",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6540923830497",
+    "name": "Shamima Popy",
+    "companyName": "Shamima Popy",
+    "contactPerson": "Shamima Popy",
+    "firstName": "Shamima",
+    "lastName": "Popy",
+    "email": "",
+    "phone": "+8801922299740",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3020,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Mannan plaza Khilkhet Bazar dhaka 1229 01922299740",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Mannan plaza Khilkhet Bazar dhaka 1229 01922299740",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801922299740",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6539992760545",
+    "name": "Kamal supplier",
+    "companyName": "Kamal supplier",
+    "contactPerson": "Kamal supplier",
+    "firstName": "Kamal supplier",
+    "lastName": "",
+    "email": "",
+    "phone": "+8801676739312",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 12200,
+    "totalOrders": 6,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Mirpur-12 Bus Stand",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Mirpur-12 Bus Stand",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1216",
+        "phone": "+8801676739312",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6539869421793",
+    "name": "Muminul Hoq Shahin",
+    "companyName": "Muminul Hoq Shahin",
+    "contactPerson": "Muminul Hoq Shahin",
+    "firstName": "Muminul Hoq",
+    "lastName": "Shahin",
+    "email": "",
+    "phone": "+8801717620002",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 8310,
+    "totalOrders": 5,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 56, Road 27, Dhanmondi",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 56, Road 27, Dhanmondi",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801717620002",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6539086463201",
+    "name": "Nargish Islam",
+    "companyName": "Nargish Islam",
+    "contactPerson": "Nargish Islam",
+    "firstName": "Nargish",
+    "lastName": "Islam",
+    "email": "",
+    "phone": "+8801711352030",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4390,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House no:276.road no:20.Mohakhali Dohs.",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House no:276.road no:20.Mohakhali Dohs.",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711352030",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6538280829153",
+    "name": "Piash Sam",
+    "companyName": "Piash Sam",
+    "contactPerson": "Piash Sam",
+    "firstName": "Piash",
+    "lastName": "Sam",
+    "email": "",
+    "phone": "+8801612422477",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6640,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Flat 4c,195 Uttar Badda, satarkul road (AL-Madina Super Shop Building) Thana Badda",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Flat 4c,195 Uttar Badda, satarkul road (AL-Madina Super Shop Building) Thana Badda",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801612422477",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6535324106977",
+    "name": "Trisha Taher",
+    "companyName": "Trisha Taher",
+    "contactPerson": "Trisha Taher",
+    "firstName": "Trisha",
+    "lastName": "Taher",
+    "email": "",
+    "phone": "+8801817716969",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7650,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Sanmar montoro house no 6 road no 1 nasirabad",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Sanmar montoro house no 6 road no 1 nasirabad",
+        "line2": "",
+        "city": "Chittagong",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801817716969",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6532176478433",
+    "name": "Tarmihim Hossain",
+    "companyName": "Tarmihim Hossain",
+    "contactPerson": "Tarmihim Hossain",
+    "firstName": "Tarmihim",
+    "lastName": "Hossain",
+    "email": "tarminhossain@yahoo.com",
+    "phone": "+8801959914917",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 10690,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Ka 95/2 A joar shahara, jamaj road, kuril,Dhaka-1229.(Bakshi bari)",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Ka 95/2 A joar shahara, jamaj road, kuril,Dhaka-1229.(Bakshi bari)",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801959914917",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6527811879137",
+    "name": "Md WASIUDDIN",
+    "companyName": "Md WASIUDDIN",
+    "contactPerson": "Md WASIUDDIN",
+    "firstName": "Md",
+    "lastName": "WASIUDDIN",
+    "email": "",
+    "phone": "+8801911342690",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 7920,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "H 12 R 23/a block b Banani Apt b 8",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "H 12 R 23/a block b Banani Apt b 8",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801911342690",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6523888337121",
+    "name": "Ananta Antu",
+    "companyName": "Ananta Antu",
+    "contactPerson": "Ananta Antu",
+    "firstName": "Ananta",
+    "lastName": "Antu",
+    "email": "",
+    "phone": "+8801712013883",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 8350,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "chairman ghat, chandpur sadar, chandpur",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "chairman ghat, chandpur sadar, chandpur",
+        "line2": "",
+        "city": "chandpur",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801712013883",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6523029913825",
+    "name": "Muzammel Iqbal",
+    "companyName": "Muzammel Iqbal",
+    "contactPerson": "Muzammel Iqbal",
+    "firstName": "Muzammel",
+    "lastName": "Iqbal",
+    "email": "",
+    "phone": "no",
+    "country": "1000",
+    "currency": "USD",
+    "totalSpent": 10,
+    "totalOrders": 1,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "8/3 Paribagh, Motaleb Plaza, Block B, Flat 1212,, Dhaka,",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "8/3 Paribagh, Motaleb Plaza, Block B, Flat 1212,",
+        "line2": "Dhaka,",
+        "city": "Dhaka",
+        "country": "1000",
+        "postalCode": "01945007000",
+        "phone": "no",
+        "isDefault": true
+      }
+    ],
+    "notes": [
+      {
+        "text": "no",
+        "by": "Customer Ingestion",
+        "createdAt": "2026-09-04T11:54:35.933Z"
+      }
+    ]
+  },
+  {
+    "id": "6520754929889",
+    "name": "Antara Marusha Huq",
+    "companyName": "Antara Marusha Huq",
+    "contactPerson": "Antara Marusha Huq",
+    "firstName": "Antara Marusha",
+    "lastName": "Huq",
+    "email": "",
+    "phone": "+8801714001420",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6060.36,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 10 Nishorgo Road 24 Gulshan, C5",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 10 Nishorgo Road 24 Gulshan",
+        "line2": "C5",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "1212",
+        "phone": "+8801714001420",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6516676460769",
+    "name": "Sunny GEN",
+    "companyName": "Sunny GEN",
+    "contactPerson": "Sunny GEN",
+    "firstName": "Sunny",
+    "lastName": "GEN",
+    "email": "",
+    "phone": "+8801750148979",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 35345.5,
+    "totalOrders": 6,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Shyamoli",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Shyamoli",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801750148979",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6513404870881",
+    "name": "Saadi Huq",
+    "companyName": "Saadi Huq",
+    "contactPerson": "Saadi Huq",
+    "firstName": "Saadi",
+    "lastName": "Huq",
+    "email": "",
+    "phone": "+8801817-299085",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 37330,
+    "totalOrders": 7,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 48, road 10/A, Apt A9, Dhanmondi, Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 48, road 10/A, Apt A9, Dhanmondi, Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801817-299085",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6511634383073",
+    "name": "Zinath Sharmin Anne",
+    "companyName": "Zinath Sharmin Anne",
+    "contactPerson": "Zinath Sharmin Anne",
+    "firstName": "Zinath Sharmin",
+    "lastName": "Anne",
+    "email": "",
+    "phone": "+8801795201064",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 800,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 188, rd 5, Block d, Bashundhara",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 188, rd 5, Block d, Bashundhara",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801795201064",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6500118003937",
+    "name": "Tahiya Mansoor",
+    "companyName": "Tahiya Mansoor",
+    "contactPerson": "Tahiya Mansoor",
+    "firstName": "Tahiya",
+    "lastName": "Mansoor",
+    "email": "",
+    "phone": "+8801312485855",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 8080,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Tahiya Mansoor House 178, road 2 , baridhara dohs",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Tahiya Mansoor House 178, road 2 , baridhara dohs",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801312485855",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6499812835553",
+    "name": "shak hossain",
+    "companyName": "shak hossain",
+    "contactPerson": "shak hossain",
+    "firstName": "shak",
+    "lastName": "hossain",
+    "email": "",
+    "phone": "+8801711280380",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 8100,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Rena petrol pump Notunrasta more kalishpur doulotpur Khulna",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Rena petrol pump Notunrasta more kalishpur doulotpur Khulna",
+        "line2": "",
+        "city": "khulna",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711280380",
+        "isDefault": true
+      }
+    ],
+    "notes": [
+      {
+        "text": "Ayon raw",
+        "by": "Customer Ingestion",
+        "createdAt": "2026-09-04T11:54:35.933Z"
+      }
+    ]
+  },
+  {
+    "id": "6493438738657",
+    "name": "Sudam Dalpathado",
+    "companyName": "Sudam Dalpathado",
+    "contactPerson": "Sudam Dalpathado",
+    "firstName": "Sudam",
+    "lastName": "Dalpathado",
+    "email": "",
+    "phone": "+8801817291622",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 17610,
+    "totalOrders": 10,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 09, road 23, banani, block B",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 09, road 23, banani, block B",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801817291622",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6489868370145",
+    "name": "Jawad Adam",
+    "companyName": "Jawad Adam",
+    "contactPerson": "Jawad Adam",
+    "firstName": "Jawad",
+    "lastName": "Adam",
+    "email": "",
+    "phone": "+8801622441350",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 12500,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Tajmahal road",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Tajmahal road",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801622441350",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6487325835489",
+    "name": "Mahamudaakter Enney",
+    "companyName": "Mahamudaakter Enney",
+    "contactPerson": "Mahamudaakter Enney",
+    "firstName": "Mahamudaakter",
+    "lastName": "Enney",
+    "email": "",
+    "phone": "+8801710211040",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5320,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "মিরপুর ডিও এইচ বাসা, ১৫৮ এভিনিউ ৩ বাসা রোড ১ মোবাইল",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "মিরপুর ডিও এইচ বাসা, ১৫৮ এভিনিউ ৩ বাসা রোড ১ মোবাইল",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801710211040",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6484123353313",
+    "name": "শাহরিয়ার তানভীর",
+    "companyName": "শাহরিয়ার তানভীর",
+    "contactPerson": "শাহরিয়ার তানভীর",
+    "firstName": "শাহরিয়ার",
+    "lastName": "তানভীর",
+    "email": "",
+    "phone": "+8801887-757457",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5490,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House- 44/D, Block- D, Road- 04, Bashundhara R/A",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House- 44/D, Block- D, Road- 04, Bashundhara R/A",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801887-757457",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6483568656609",
+    "name": "Md Sazzadur Rahman",
+    "companyName": "Md Sazzadur Rahman",
+    "contactPerson": "Md Sazzadur Rahman",
+    "firstName": "Md Sazzadur",
+    "lastName": "Rahman",
+    "email": "",
+    "phone": "+8801711200903",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4580,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Holding 448 , house 28 , road 8 , sector 4 , Uttara, Dhaka",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Holding 448 , house 28 , road 8 , sector 4 , Uttara, Dhaka",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711200903",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6483162038497",
+    "name": "Aiman Sadiq",
+    "companyName": "Aiman Sadiq",
+    "contactPerson": "Aiman Sadiq",
+    "firstName": "Aiman",
+    "lastName": "Sadiq",
+    "email": "",
+    "phone": "+8801713000000",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 14200,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "57/3, Lake Circus, Kalabagan, 4th floor",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "57/3, Lake Circus, Kalabagan, 4th floor",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801713000000",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6482109841203",
+    "name": "Nahid Hasan",
+    "companyName": "Nahid Hasan",
+    "contactPerson": "Nahid Hasan",
+    "firstName": "Nahid",
+    "lastName": "Hasan",
+    "email": "",
+    "phone": "+8801711002233",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 6800,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Road 12, Sector 10, Uttara",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Road 12, Sector 10, Uttara",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801711002233",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6481098471291",
+    "name": "Tanvir Chowdhury",
+    "companyName": "Tanvir Chowdhury",
+    "contactPerson": "Tanvir Chowdhury",
+    "firstName": "Tanvir",
+    "lastName": "Chowdhury",
+    "email": "",
+    "phone": "+8801819001122",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 8950,
+    "totalOrders": 4,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "House 12, Road 4, Dhanmondi",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "House 12, Road 4, Dhanmondi",
+        "line2": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801819001122",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  },
+  {
+    "id": "6479018274102",
+    "name": "Zubair Ahmed",
+    "companyName": "Zubair Ahmed",
+    "contactPerson": "Zubair Ahmed",
+    "firstName": "Zubair",
+    "lastName": "Ahmed",
+    "email": "",
+    "phone": "+8801912334455",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 5400,
+    "totalOrders": 3,
+    "paymentTerms": "Cash on Delivery (COD)",
+    "tags": [
+      "retail-customer"
+    ],
+    "addressLine1": "Agrabad Commercial Area, Chittagong",
+    "addresses": [
+      {
+        "type": "shipping",
+        "line1": "Agrabad Commercial Area, Chittagong",
+        "line2": "",
+        "city": "Chittagong",
+        "country": "BD",
+        "postalCode": "",
+        "phone": "+8801912334455",
+        "isDefault": true
+      }
+    ],
+    "notes": []
+  }
+]

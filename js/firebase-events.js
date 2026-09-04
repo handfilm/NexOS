@@ -4,6 +4,43 @@
    ═══════════════════════════════════════════════════════════════ */
 
 (function () {
+  /* ── Cycle-Safe JSON Serializer Guard ── */
+  if (typeof window !== "undefined" && window.JSON && typeof window.JSON.stringify === "function" && !window.JSON._isCycleSafe) {
+    const _origStringify = window.JSON.stringify;
+    const guarded = function(val, replacer, space) {
+      try {
+        return _origStringify.call(JSON, val, replacer, space);
+      } catch (err) {
+        if (err && (
+          err.name === "TypeError" ||
+          (typeof err.message === "string" && (
+            err.message.includes("cyclic") ||
+            err.message.includes("circular") ||
+            err.message.includes("Circular")
+          ))
+        )) {
+          const seen = new WeakSet();
+          const safeReplacer = function(key, v) {
+            if (typeof v === "object" && v !== null) {
+              if (seen.has(v)) return undefined;
+              seen.add(v);
+            }
+            if (typeof replacer === "function") return replacer.call(this, key, v);
+            return v;
+          };
+          try {
+            return _origStringify.call(JSON, val, safeReplacer, space);
+          } catch (e2) {
+            return "{}";
+          }
+        }
+        throw err;
+      }
+    };
+    guarded._isCycleSafe = true;
+    window.JSON.stringify = guarded;
+  }
+
   const listeners = {};
 
   window.NexEvents = {

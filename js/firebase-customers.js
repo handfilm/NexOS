@@ -4,10 +4,13 @@
    ═══════════════════════════════════════════════════════════════ */
 
 window.CustomersService = {
-  PAGE_SIZE: 50,
+  PAGE_SIZE: 1000,
   _lastDoc: null,
 
   _getDefaultSeedCustomers() {
+    if (window.PERMANENT_SEEDED_CUSTOMERS && Array.isArray(window.PERMANENT_SEEDED_CUSTOMERS) && window.PERMANENT_SEEDED_CUSTOMERS.length > 0) {
+      return window.PERMANENT_SEEDED_CUSTOMERS;
+    }
     return [
       {
         id: "cust-amsterdam",
@@ -378,6 +381,33 @@ window.CustomersService = {
         createdAt: window.serverTimestamp()
       });
     } catch (e) {}
+  },
+
+  async seedPermanentData() {
+    try {
+      if (!window.PERMANENT_SEEDED_CUSTOMERS || !window.PERMANENT_SEEDED_CUSTOMERS.length) return;
+      const ver = localStorage.getItem("nx_customers_version_v2");
+      if (ver !== "2.0") {
+        localStorage.setItem("nx_customers_cache", JSON.stringify(window.PERMANENT_SEEDED_CUSTOMERS));
+        localStorage.setItem("nx_customers_version_v2", "2.0");
+        console.log(`[CustomersService] Updated clean sanitized customer dataset (${window.PERMANENT_SEEDED_CUSTOMERS.length} records)`);
+        return;
+      }
+      const cached = JSON.parse(localStorage.getItem("nx_customers_cache") || "[]");
+      if (cached.length < window.PERMANENT_SEEDED_CUSTOMERS.length) {
+        localStorage.setItem("nx_customers_cache", JSON.stringify(window.PERMANENT_SEEDED_CUSTOMERS));
+      }
+    } catch (e) {
+      console.warn("Error seeding permanent customer data:", e);
+    }
   }
 };
+
+if (typeof window !== "undefined") {
+  setTimeout(() => {
+    if (window.CustomersService && typeof window.CustomersService.seedPermanentData === "function") {
+      window.CustomersService.seedPermanentData();
+    }
+  }, 50);
+}
 

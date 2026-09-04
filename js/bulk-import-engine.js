@@ -252,18 +252,46 @@
         return;
       }
 
+      // Helper for RFC 4180 line splitting
+      const parseCSVLine = (line, delim) => {
+        const row = [];
+        let inQuote = false;
+        let cur = '';
+        for (let c = 0; c < line.length; c++) {
+          const char = line[c];
+          if (char === '"' && !inQuote) {
+            inQuote = true;
+          } else if (char === '"' && inQuote) {
+            if (line[c + 1] === '"') {
+              cur += '"';
+              c++;
+            } else {
+              inQuote = false;
+            }
+          } else if (char === delim && !inQuote) {
+            row.push(cur.trim().replace(/^['"]+|['"]+$/g, ''));
+            cur = '';
+          } else {
+            cur += char;
+          }
+        }
+        row.push(cur.trim().replace(/^['"]+|['"]+$/g, ''));
+        return row;
+      };
+
       // Detect delimiter (, or \t or ;)
       const firstLine = lines[0];
       const delimiter = firstLine.includes('\t') ? '\t' : firstLine.includes(';') ? ';' : ',';
 
-      this.headers = lines[0].split(delimiter).map(h => h.replace(/^["']|["']$/g, '').trim()).filter(Boolean);
+      this.headers = parseCSVLine(lines[0], delimiter).filter(Boolean);
       this.parsedRows = [];
 
       for (let i = 1; i < lines.length; i++) {
-        const parts = lines[i].split(delimiter).map(c => c.replace(/^["']|["']$/g, '').trim());
+        if (!lines[i].trim()) continue;
+        const parts = parseCSVLine(lines[i], delimiter);
         const row = {};
         this.headers.forEach((h, idx) => {
-          row[h] = parts[idx] || '';
+          row[h] = parts[idx] !== undefined ? parts[idx] : '';
         });
         this.parsedRows.push(row);
       }
@@ -306,16 +334,22 @@
         };
       } else {
         this.columnMapping = {
-          companyName: matchField(['company', 'company name', 'buyer', 'account', 'client', 'business name', 'name']),
-          contactPerson: matchField(['contact', 'contact person', 'person', 'owner', 'manager', 'lead']),
+          customerId: matchField(['customer id', 'id', 'customer_id', 'client id']),
+          firstName: matchField(['first name', 'firstname', 'given name']),
+          lastName: matchField(['last name', 'lastname', 'surname', 'family name']),
+          companyName: matchField(['default address company', 'company', 'company name', 'business name', 'buyer', 'account']),
           email: matchField(['email', 'mail', 'e-mail', 'contact email']),
-          phone: matchField(['phone', 'mobile', 'tel', 'telephone', 'whatsapp', 'cell']),
-          country: matchField(['country', 'nation', 'region', 'destination']),
-          currency: matchField(['currency', 'curr']),
-          moq: matchField(['moq', 'minimum order', 'target moq', 'order volume']),
-          paymentTerms: matchField(['payment terms', 'terms', 'term', 'credit terms', 'payment']),
-          address: matchField(['address', 'shipping address', 'billing address', 'location', 'street', 'city']),
-          notes: matchField(['notes', 'comments', 'memo', 'info'])
+          phone: matchField(['phone', 'mobile', 'cell', 'tel', 'whatsapp']),
+          defaultAddressPhone: matchField(['default address phone', 'address phone']),
+          address1: matchField(['default address address1', 'address1', 'street', 'address line 1', 'address', 'shipping address']),
+          address2: matchField(['default address address2', 'address2', 'apartment', 'suite', 'address line 2']),
+          city: matchField(['default address city', 'city', 'town', 'district', 'area']),
+          country: matchField(['default address country code', 'country', 'country code', 'nation']),
+          zip: matchField(['default address zip', 'zip', 'postal code', 'postcode']),
+          totalSpent: matchField(['total spent', 'total_spent', 'spent', 'lifetime spend', 'amount']),
+          totalOrders: matchField(['total orders', 'total_orders', 'orders count', 'orders']),
+          notes: matchField(['note', 'notes', 'comments', 'memo', 'info']),
+          tags: matchField(['tags', 'tag', 'labels', 'keywords'])
         };
       }
     },
@@ -380,12 +414,12 @@
                   <th style="padding:6px 10px;font-weight:700;">Stock</th>
                   <th style="padding:6px 10px;font-weight:700;">Status</th>
                 ` : `
-                  <th style="padding:6px 10px;font-weight:700;">Company / Buyer</th>
-                  <th style="padding:6px 10px;font-weight:700;">Contact</th>
-                  <th style="padding:6px 10px;font-weight:700;">Email</th>
+                  <th style="padding:6px 10px;font-weight:700;">Customer Name</th>
                   <th style="padding:6px 10px;font-weight:700;">Phone</th>
-                  <th style="padding:6px 10px;font-weight:700;">Country</th>
-                  <th style="padding:6px 10px;font-weight:700;">Payment Terms</th>
+                  <th style="padding:6px 10px;font-weight:700;">City / Region</th>
+                  <th style="padding:6px 10px;font-weight:700;">Orders</th>
+                  <th style="padding:6px 10px;font-weight:700;">Total Spent</th>
+                  <th style="padding:6px 10px;font-weight:700;">Address Preview</th>
                 `}
               </tr>
             </thead>
@@ -411,22 +445,27 @@
                     </tr>
                   `;
                 } else {
-                  const company = r[this.columnMapping.companyName] || 'Unnamed Client';
-                  const contact = r[this.columnMapping.contactPerson] || '—';
-                  const email = r[this.columnMapping.email] || '—';
-                  const phone = r[this.columnMapping.phone] || '—';
-                  const country = r[this.columnMapping.country] || 'NL';
-                  const terms = r[this.columnMapping.paymentTerms] || 'Net 30';
+                  const cleanVal = (v) => String(v || '').replace(/^['"]|['"]$/g, '').trim();
+                  const first = cleanVal(r[this.columnMapping.firstName]);
+                  const last = cleanVal(r[this.columnMapping.lastName]);
+                  const name = [first, last].filter(Boolean).join(' ') || cleanVal(r[this.columnMapping.companyName]) || 'Unnamed Customer';
+                  let phone = cleanVal(r[this.columnMapping.phone]) || cleanVal(r[this.columnMapping.defaultAddressPhone]) || '—';
+                  if (phone.startsWith("'+")) phone = phone.substring(1);
+                  if (phone.startsWith("'")) phone = phone.substring(1);
+                  const city = cleanVal(r[this.columnMapping.city]) || 'Dhaka';
+                  const orders = parseInt(cleanVal(r[this.columnMapping.totalOrders])) || 0;
+                  const spent = parseFloat(cleanVal(r[this.columnMapping.totalSpent])) || 0;
+                  const addr = cleanVal(r[this.columnMapping.address1]) || '—';
 
                   return `
                     <tr style="border-bottom:1px solid var(--wire);border-top:1px solid var(--wire);">
                       <td style="padding:6px 10px;font-family:var(--mono);color:var(--ink-3);">${idx + 1}</td>
-                      <td style="padding:6px 10px;font-weight:700;color:var(--ink);">${company}</td>
-                      <td style="padding:6px 10px;color:var(--ink-2);">${contact}</td>
-                      <td style="padding:6px 10px;color:var(--ink-3);font-family:var(--mono);">${email}</td>
-                      <td style="padding:6px 10px;color:var(--ink-3);">${phone}</td>
-                      <td style="padding:6px 10px;font-weight:600;">${country}</td>
-                      <td style="padding:6px 10px;"><span class="company-tag" style="font-size:9px;">${terms}</span></td>
+                      <td style="padding:6px 10px;font-weight:700;color:var(--ink);">${name}</td>
+                      <td style="padding:6px 10px;color:var(--ink-2);font-family:var(--mono);">${phone}</td>
+                      <td style="padding:6px 10px;color:var(--ink);">${city}</td>
+                      <td style="padding:6px 10px;font-family:var(--mono);"><span class="pill ok" style="font-size:9px;">${orders} orders</span></td>
+                      <td style="padding:6px 10px;font-family:var(--mono);font-weight:700;color:var(--gold);">৳${spent.toLocaleString()}</td>
+                      <td style="padding:6px 10px;color:var(--ink-3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${addr}</td>
                     </tr>
                   `;
                 }
@@ -536,30 +575,60 @@
             }
           } else {
             // Customer Ingestion
-            const companyName = row[this.columnMapping.companyName]?.trim() || `Buyer Account #${i + 1}`;
-            const contactPerson = row[this.columnMapping.contactPerson]?.trim() || companyName;
-            const email = row[this.columnMapping.email]?.trim() || '';
-            const phone = row[this.columnMapping.phone]?.trim() || '';
-            const country = (row[this.columnMapping.country]?.trim() || 'NL').toUpperCase();
-            const currency = (row[this.columnMapping.currency]?.trim() || 'BDT').toUpperCase();
-            const moq = parseInt(row[this.columnMapping.moq]) >= 0 ? parseInt(row[this.columnMapping.moq]) : 0;
-            const paymentTerms = row[this.columnMapping.paymentTerms]?.trim() || 'Cash on Delivery (COD)';
-            const address = row[this.columnMapping.address]?.trim() || '';
-            const notes = row[this.columnMapping.notes]?.trim() || '';
+            const cleanVal = (v) => String(v || '').replace(/[\r\n]+/g, ' ').replace(/^['"]+|['"]+$/g, '').trim();
+            const firstName = cleanVal(row[this.columnMapping.firstName]);
+            const lastName = cleanVal(row[this.columnMapping.lastName]);
+            const company = cleanVal(row[this.columnMapping.companyName]);
+            const rawCid = cleanVal(row[this.columnMapping.customerId]);
+            const customerId = rawCid ? rawCid.replace(/[^a-zA-Z0-9_-]/g, '') : ('cust-' + Date.now().toString(36) + '-' + i);
+
+            const fullName = [firstName, lastName].filter(Boolean).join(' ') || company || `Customer #${i + 1}`;
+            const email = cleanVal(row[this.columnMapping.email]);
+            let phone = cleanVal(row[this.columnMapping.phone]) || cleanVal(row[this.columnMapping.defaultAddressPhone]);
+            if (phone.startsWith("'+")) phone = phone.substring(1);
+            if (phone.startsWith("'")) phone = phone.substring(1);
+            phone = phone.replace(/^\+880\s*0?/, '+880').trim();
+
+            const addr1 = cleanVal(row[this.columnMapping.address1]);
+            const addr2 = cleanVal(row[this.columnMapping.address2]);
+            const city = cleanVal(row[this.columnMapping.city]) || 'Dhaka';
+            const country = (cleanVal(row[this.columnMapping.country]) || 'BD').toUpperCase();
+            const zip = cleanVal(row[this.columnMapping.zip]);
+            const totalSpent = parseFloat(row[this.columnMapping.totalSpent]) || 0;
+            const totalOrders = parseInt(row[this.columnMapping.totalOrders]) || 1;
+            const noteText = cleanVal(row[this.columnMapping.notes]);
+            const rawTags = cleanVal(row[this.columnMapping.tags]);
+            const tags = rawTags ? rawTags.split(/[,;]/).map(t => t.trim()).filter(Boolean) : ['retail-customer'];
+
+            const fullAddressLine = [addr1, addr2].filter(Boolean).join(', ');
 
             const customerPayload = {
-              companyName,
-              name: companyName,
-              contactPerson,
+              id: customerId,
+              name: fullName,
+              companyName: company || fullName,
+              contactPerson: fullName,
+              firstName,
+              lastName,
               email,
               phone,
               country,
-              currency,
-              moq,
-              paymentTerms,
-              addressLine1: address,
-              addresses: address ? [{ line1: address, country }] : [],
-              notes: notes ? [{ text: notes, by: 'Bulk Importer', createdAt: new Date().toISOString() }] : []
+              currency: country === 'BD' ? 'BDT' : 'USD',
+              totalSpent,
+              totalOrders,
+              paymentTerms: 'Cash on Delivery (COD)',
+              tags,
+              addressLine1: fullAddressLine || addr1,
+              addresses: (fullAddressLine || city) ? [{
+                type: 'shipping',
+                line1: addr1,
+                line2: addr2,
+                city,
+                country,
+                postalCode: zip,
+                phone,
+                isDefault: true
+              }] : [],
+              notes: noteText ? [{ text: noteText, by: 'Customer Export Import', createdAt: new Date().toISOString() }] : []
             };
 
             if (window.CustomersService) {
@@ -628,11 +697,32 @@
           ['Heavyweight Raw Boxy Tee 240GSM', 'TEE-RAW-BLK', 'Fashion Apparel', 1650, 650, 120, 'active', 'streetwear, combed-cotton, rawxos', '240 GSM pre-shrunk luxury heavyweight cotton.', '']
         ];
       } else {
-        headers = ['Company Name', 'Contact Person', 'Email', 'Phone', 'Country', 'Currency', 'Target MOQ', 'Payment Terms', 'Shipping Address', 'Internal Notes'];
+        headers = [
+          'Customer ID',
+          'First Name',
+          'Last Name',
+          'Email',
+          'Accepts Email Marketing',
+          'Default Address Company',
+          'Default Address Address1',
+          'Default Address Address2',
+          'Default Address City',
+          'Default Address Province Code',
+          'Default Address Country Code',
+          'Default Address Zip',
+          'Default Address Phone',
+          'Phone',
+          'Accepts SMS Marketing',
+          'Total Spent',
+          'Total Orders',
+          'Note',
+          'Tax Exempt',
+          'Tags'
+        ];
         sampleData = [
-          ['Tanvir Ahmed', 'Tanvir Ahmed', '', '01711223344', 'BD', 'BDT', 0, 'Cash on Delivery (COD)', 'House 42, Road 11, Banani, Dhaka 1213', 'VIP retail customer. Call before dispatch.'],
-          ['Arafat Enterprise', 'Arafat Hossain', 'arafat@example.com', '01819334455', 'BD', 'BDT', 0, 'Cash on Delivery (COD)', 'GEC Circle, Nasirabad, Chittagong', 'Repeat leather connoisseur.'],
-          ['Sadia Rahman', 'Sadia Rahman', '', '01912556677', 'BD', 'BDT', 0, 'Cash on Delivery (COD)', 'Upashahar Block D, Sylhet', 'Preferred delivery time: Afternoon.']
+          ["'8779761975521", "Tomotaka", "Minoura", "", "no", "", "House no.9, Road no.2, Park road", "", "Dhaka - North", "", "BD", "", "'+8801912010701", "'+8801912010701", "no", "0.00", "3", "", "no", "VIP Customer"],
+          ["'7999252627681", "Aryan", "Hossain", "aryanhossain759@gmail.com", "yes", "", "House number-31, Dhanmondi 27, Flat number 13-C", "", "Dhaka", "", "BD", "1209", "'+8801880241803", "'+8801880241803", "yes", "1020.00", "3", "", "no", "Newsletter"],
+          ["'5236232552602", "Morshed H.", "Bhuiyan", "morshed.bizbrothers@gmail.com", "yes", "BIZ BROTHERS", "Mitu Anwara Garden, 9/1 Pallabi", "", "Mirpur, Dhaka", "", "BD", "1216", "'+8801841001001", "'+8801841001001", "no", "48124.00", "13", "Frequent buyer", "no", "Corporate, denim, Dhaka, Polo Shirt"]
         ];
       }
 

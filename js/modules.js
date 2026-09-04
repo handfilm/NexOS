@@ -32,6 +32,7 @@
       {flag:"🇬🇧",name:"United Kingdom",city:"London",buyers:1,status:"PROSPECTING",interest:"Card Holders",color:"var(--gold)"},
       {flag:"🇪🇸",name:"Spain",city:"Madrid",buyers:0,status:"PROSPECTING",interest:"Belts · Wallets",color:"var(--gold)"}
     ];
+    window._euMarkets = markets;
     container.innerHTML = `
       ${modHeader("EU Portal","B2B Buyer Access · European Markets",[
         {label:"+ New Buyer",fn:"window.openNewBuyerForm()"}
@@ -42,8 +43,8 @@
         <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);letter-spacing:2px;">LEATHER EXPORT DIVISION · BANGLADESH ORIGIN</div>
       </div>
       <div class="eu-markets">
-        ${markets.map(m=>`
-          <div class="eu-market-card" onclick="window.openMarketDetail(${JSON.stringify(m).replace(/"/g,'&quot;')})">
+        ${markets.map((m, idx)=>`
+          <div class="eu-market-card" onclick="window.openMarketDetail(window._euMarkets[${idx}])">
             <div class="eu-flag">${m.flag}</div>
             <div class="eu-country">${m.name}</div>
             <div class="eu-stats">${m.city}</div>
@@ -422,8 +423,8 @@
     const companies = window.dCompanies;
     container.innerHTML = modHeader("Buyer CRM",`${companies.length} company profiles`,[
       {label:"+ Add Company",fn:"window.openAdvancedCustomerForm()"}
-    ]) + companies.map(c=>`
-      <div class="company-card" onclick="window.openCompanyDetail(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+    ]) + companies.map((c, idx)=>`
+      <div class="company-card" onclick="window.openCompanyDetail(window.dCompanies[${idx}])">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
           <div style="font-size:22px;">${c.flag}</div>
           <div>
@@ -572,13 +573,16 @@
   };
 
   /* ═══════════════════════════════════════════════════════════
-     MODULE 9 — THE GEMINI AI SUPPLY CHAIN & CATALOG INTELLIGENCE
+     MODULE 9 — THE GEMINI AI SUPPLY CHAIN & FUNCTIONAL TOOLS SUITE
      ═══════════════════════════════════════════════════════════ */
+  window._geminiChatHistory = window._geminiChatHistory || [];
+
   window.render.NexAI = function(container) {
-    container.innerHTML = modHeader("The Gemini AI", "Enterprise Supply Chain, Forecasting & B2B Strategy · Powered by Google Gemini") + `
+    container.innerHTML = modHeader("The Gemini AI", "Enterprise Supply Chain, Functional Tools & Strategy · Powered by Google Gemini") + `
       <div style="padding:0 20px 10px;">
         <div class="seg" id="ai-mode-seg">
-          <button class="on" data-m="chat">✨ The Gemini AI</button>
+          <button class="on" data-m="chat">✨ Gemini Terminal</button>
+          <button data-m="tools">🛠️ Functional Tools</button>
           <button data-m="forecast">📈 Demand Forecasting</button>
         </div>
       </div>
@@ -586,41 +590,612 @@
         ${renderAiChat()}
       </div>
     `;
+
     const segs = container.querySelectorAll('#ai-mode-seg button');
-    segs.forEach(b=>{ b.onclick=()=>{ segs.forEach(x=>x.classList.remove('on')); b.classList.add('on');
-      document.getElementById('ai-panel').innerHTML = b.dataset.m==='chat' ? renderAiChat() : renderAiForecast(); }; });
+    segs.forEach(b => {
+      b.onclick = () => {
+        segs.forEach(x => x.classList.remove('on'));
+        b.classList.add('on');
+        const mode = b.dataset.m;
+        const panel = document.getElementById('ai-panel');
+        if (!panel) return;
+        if (mode === 'chat') panel.innerHTML = renderAiChat();
+        else if (mode === 'tools') panel.innerHTML = renderAiToolsSuite();
+        else if (mode === 'forecast') panel.innerHTML = renderAiForecast();
+      };
+    });
+
+    // Attach Enter key trigger to input
+    setTimeout(() => {
+      const inp = document.getElementById('aiInput');
+      if (inp) {
+        inp.onkeydown = (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            window.sendAiMsg();
+          }
+        };
+      }
+    }, 100);
   };
 
   function renderAiChat() {
     return `<div class="ai-chat-wrap">
-      <div class="ai-feed" id="aiFeed">
-        <div class="ai-msg bot">✨ <strong>Google Gemini AI is active</strong>. I specialize in Hands & Head Dhaka supply chain forecasting, EU buyer negotiations (Netherlands, Germany, UK, Spain), BSCI/REACH/EUDR compliance documentation, and multi-channel order optimization. How can I assist you today?</div>
+      <div class="ai-quick-prompts" style="display:flex;gap:8px;padding:8px 20px 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <button class="pill" style="white-space:nowrap;cursor:pointer;font-size:11px;" onclick="window.sendPresetAiPrompt('What leather products are currently in stock?')">📦 Leather Stock</button>
+        <button class="pill" style="white-space:nowrap;cursor:pointer;font-size:11px;" onclick="window.sendPresetAiPrompt('Calculate delivery charge to Banani, Dhaka with express option')">🚚 Delivery to Banani</button>
+        <button class="pill" style="white-space:nowrap;cursor:pointer;font-size:11px;" onclick="window.sendPresetAiPrompt('Calculate export pricing for 100 leather wallets to Netherlands in EUR')">🌍 Export 100 Wallets</button>
+        <button class="pill" style="white-space:nowrap;cursor:pointer;font-size:11px;" onclick="window.sendPresetAiPrompt('Generate courier slip for Tanvir Ahmed, Road 11 Banani Dhaka, Phone 01711223344, COD 2800')">📋 Courier Slip</button>
+        <button class="pill" style="white-space:nowrap;cursor:pointer;font-size:11px;" onclick="window.sendPresetAiPrompt('Check EUDR deforestation and REACH compliance status for leather exports')">🇪🇺 EUDR Compliance</button>
       </div>
-      <div class="ai-input-bar">
-        <input id="aiInput" placeholder="Ask Gemini about supply chain, pricing strategy, EU compliance, or catalog…"/>
-        <button class="ai-send" onclick="window.sendAiMsg()"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+
+      <div class="ai-feed" id="aiFeed" style="max-height:480px;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:12px;">
+        <div class="ai-msg bot">
+          ✨ <strong>Google Gemini AI is active</strong> (Model: <code>gemini-3.8-flash</code> with live tool execution).
+          <div style="font-size:11px;color:var(--ink-2);margin-top:6px;line-height:1.6;">
+            I have direct functional tool access to inspect store inventory, calculate Bangladesh courier charges, run B2B export pricing & tariffs (EUR/GBP/USD), format courier dispatch slips, and verify EU export compliance. Click a quick prompt above or type your request below!
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-input-bar" style="padding:10px 20px 14px;display:flex;gap:8px;">
+        <input id="aiInput" placeholder="Ask Gemini about inventory, delivery rates, EU export quotes, or courier slips…" style="flex:1;height:42px;border-radius:12px;padding:0 14px;border:1px solid var(--wire);background:var(--surface);color:var(--ink);font-size:13px;outline:none;" />
+        <button class="btn btn-gold" style="height:42px;width:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;padding:0;" onclick="window.sendAiMsg()">
+          <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
       </div>
     </div>`;
   }
 
+  function formatAiMarkdown(text = '') {
+    if (!text) return '';
+    // Format bolding
+    let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Format markdown tables
+    if (html.includes('|')) {
+      const lines = html.split('\n');
+      let inTable = false;
+      let tableHtml = '<div style="overflow-x:auto;margin:8px 0;"><table class="data-table" style="width:100%;font-size:11px;border-collapse:collapse;">';
+      const outputLines = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith('|') && line.endsWith('|')) {
+          if (!inTable) {
+            inTable = true;
+            tableHtml = '<div style="overflow-x:auto;margin:8px 0;"><table style="width:100%;font-size:11px;border-collapse:collapse;background:rgba(0,0,0,0.02);border-radius:8px;">';
+          }
+          if (line.includes('---')) continue; // Skip divider
+          const cells = line.split('|').filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+          const isHeader = !tableHtml.includes('<tbody>');
+          if (isHeader) {
+            tableHtml += '<thead><tr style="border-bottom:1px solid var(--wire);background:rgba(0,0,0,0.04);">';
+            cells.forEach(c => { tableHtml += `<th style="padding:6px 10px;text-align:left;font-family:var(--mono);">${c.trim()}</th>`; });
+            tableHtml += '</tr></thead><tbody>';
+          } else {
+            tableHtml += '<tr style="border-bottom:1px solid var(--wire);">';
+            cells.forEach(c => { tableHtml += `<td style="padding:6px 10px;">${c.trim()}</td>`; });
+            tableHtml += '</tr>';
+          }
+        } else {
+          if (inTable) {
+            tableHtml += '</tbody></table></div>';
+            outputLines.push(tableHtml);
+            inTable = false;
+          }
+          outputLines.push(line);
+        }
+      }
+      if (inTable) {
+        tableHtml += '</tbody></table></div>';
+        outputLines.push(tableHtml);
+      }
+      html = outputLines.join('\n');
+    }
+    // Format bullet points
+    html = html.replace(/^\* (.*$)/gim, '<li style="margin-left:16px;list-style-type:disc;">$1</li>');
+    html = html.replace(/^- (.*$)/gim, '<li style="margin-left:16px;list-style-type:disc;">$1</li>');
+    // Format code blocks
+    html = html.replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:11px;">$1</code>');
+    // Format line breaks
+    html = html.replace(/\n\n/g, '<div style="height:8px;"></div>');
+    html = html.replace(/\n/g, '<br>');
+    return html;
+  }
+
+  function renderToolCallCard(toolCall) {
+    if (!toolCall) return '';
+    const { name, args, result } = toolCall;
+
+    if (name === 'calculateDeliveryFee' && result) {
+      return `
+        <div class="card" style="margin:8px 0;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:12px 14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:10px;font-family:var(--mono);color:var(--ok);letter-spacing:1px;font-weight:700;text-transform:uppercase;">🚚 Gemini Courier Tool · ${result.zone || 'Delivery Quote'}</div>
+            <div class="pill ok">৳${result.deliveryFee} BDT</div>
+          </div>
+          <div style="font-size:12px;color:var(--ink);line-height:1.5;">
+            <strong>Location:</strong> ${args.location || 'Dhaka'}<br>
+            <strong>Standard Fee:</strong> ৳${result.deliveryFee} · <strong>ETA:</strong> ${result.estimatedDelivery || '24-48 Hours'}<br>
+            <strong>COD Handling Fee:</strong> ৳${result.codCollectionFee} (Free absorbed)
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            <button class="btn btn-sm btn-dark" style="font-size:10px;padding:4px 10px;" onclick="navigator.clipboard.writeText('Delivery: ${args.location} | Charge: ৳${result.deliveryFee} | ETA: ${result.estimatedDelivery}');toast('Copied delivery info!');">📋 Copy Delivery Note</button>
+          </div>
+        </div>
+      `;
+    }
+
+    if (name === 'generateCourierSlip' && result) {
+      return `
+        <div class="card" style="margin:8px 0;background:rgba(217,119,6,0.06);border:1px solid rgba(217,119,6,0.3);border-radius:12px;padding:12px 14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:10px;font-family:var(--mono);color:var(--gold);letter-spacing:1px;font-weight:700;text-transform:uppercase;">📦 Generated Dispatch Slip</div>
+            <button class="btn btn-sm btn-gold" style="font-size:10px;padding:4px 10px;" onclick="navigator.clipboard.writeText(decodeURIComponent('${encodeURIComponent(result.formattedSlip || '')}'));toast('✓ Courier Slip Copied!');">📋 Copy Slip</button>
+          </div>
+          <pre style="background:var(--surface);padding:10px;border-radius:8px;font-family:var(--mono);font-size:10px;line-height:1.4;overflow-x:auto;color:var(--ink);border:1px solid var(--wire);">${result.formattedSlip || ''}</pre>
+        </div>
+      `;
+    }
+
+    if (name === 'calculateExportQuote' && result) {
+      return `
+        <div class="card" style="margin:8px 0;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.3);border-radius:12px;padding:12px 14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:10px;font-family:var(--mono);color:var(--info);letter-spacing:1px;font-weight:700;text-transform:uppercase;">🌍 B2B Export Pricing Engine · ${result.currency} ${result.fobUnitPriceTarget} / unit</div>
+            <div class="pill info">${result.discountApplied || 'Wholesale Tier'}</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;margin-bottom:8px;">
+            <div><strong>Quantity:</strong> ${result.quantity} units</div>
+            <div><strong>FOB Total:</strong> ${result.currency} ${result.fobSubtotalTarget} (৳${result.fobUnitPriceBdt * result.quantity})</div>
+            <div><strong>Air Cargo Est:</strong> ${result.currency} ${result.airFreightEstimatePerUnit} / unit</div>
+            <div><strong>Suggested EU MSRP:</strong> ${result.currency} ${result.suggestedMSRPForeign}</div>
+          </div>
+          <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);margin-bottom:8px;">
+            HS Code: ${result.hsCode} · Tariff: ${result.euImportTariff}
+          </div>
+          <button class="btn btn-sm btn-dark" style="font-size:10px;padding:4px 10px;" onclick="navigator.clipboard.writeText('Hands & Head Export Quote: ${result.quantity} units @ ${result.currency} ${result.fobUnitPriceTarget}/unit (Total: ${result.currency} ${result.fobSubtotalTarget}). Air freight: ${result.currency} ${result.airFreightEstimatePerUnit}/unit. HS: 4202.31.00');toast('Copied export quote!');">📋 Copy Export Quotation</button>
+        </div>
+      `;
+    }
+
+    if (name === 'checkComplianceStandard' && result) {
+      return `
+        <div class="card" style="margin:8px 0;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.3);border-radius:12px;padding:12px 14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-size:10px;font-family:var(--mono);color:var(--purple);letter-spacing:1px;font-weight:700;text-transform:uppercase;">📜 ${result.title || result.standard}</div>
+            <div class="pill ok">✓ ${result.status}</div>
+          </div>
+          <div style="font-size:11px;color:var(--ink);line-height:1.5;">
+            <strong>Audit Scope:</strong> ${result.scope}<br>
+            <strong>Laboratory / Testing Body:</strong> ${result.laboratory || 'Accredited European Partner'}<br>
+            <strong>Validity Period:</strong> ${result.validThrough}
+          </div>
+        </div>
+      `;
+    }
+
+    if (name === 'searchInventory' && result && result.items) {
+      return `
+        <div class="card" style="margin:8px 0;background:rgba(0,0,0,0.02);border:1px solid var(--wire);border-radius:12px;padding:12px 14px;">
+          <div style="font-size:10px;font-family:var(--mono);color:var(--gold);letter-spacing:1px;font-weight:700;text-transform:uppercase;margin-bottom:8px;">📦 Live Inventory Match (${result.count} items)</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            ${result.items.map(it => `
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px dashed var(--wire);">
+                <div><strong>${it.title}</strong> <span style="font-family:var(--mono);color:var(--ink-3);font-size:10px;">(${it.sku})</span></div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span>৳${it.price}</span>
+                  <span class="pill ${it.status === 'LOW_STOCK' ? 'warn' : 'ok'}" style="font-size:9px;padding:2px 6px;">${it.stock} in stock</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    return '';
+  }
+
+  window.sendPresetAiPrompt = function(presetText) {
+    const inp = document.getElementById('aiInput');
+    if (inp) inp.value = presetText;
+    window.sendAiMsg();
+  };
+
+  window.sendAiMsg = async function() {
+    const inp = document.getElementById("aiInput"); if (!inp) return;
+    const msg = inp.value.trim(); if (!msg) return;
+    const feed = document.getElementById("aiFeed"); if (!feed) return;
+
+    feed.innerHTML += `<div class="ai-msg user" style="align-self:flex-end;background:var(--coral);color:#fff;padding:8px 14px;border-radius:14px;max-width:85%;font-size:13px;line-height:1.4;">${msg}</div>`;
+    feed.innerHTML += `<div class="ai-msg bot loading" id="ai-loading" style="align-self:flex-start;background:var(--surface);border:1px solid var(--wire);padding:8px 14px;border-radius:14px;max-width:85%;font-size:12px;color:var(--ink-2);">✨ Gemini is reasoning & executing tools…</div>`;
+    inp.value = "";
+    feed.scrollTop = feed.scrollHeight;
+
+    // Maintain conversation context
+    window._geminiChatHistory.push({ role: 'user', text: msg });
+
+    try {
+      const catalog = (window._lastProductsCache || window.dCat || []).slice(0, 30).map(p => ({
+        title: p.title || p.name || 'Product',
+        sku: p.sku || 'HH-001',
+        price: p.pricing?.price || p.price || 2500,
+        stock: p.stock !== undefined ? p.stock : (p.totalInventory || 20),
+        category: p.productType || p.category || 'Leather Goods'
+      }));
+
+      const res = await fetch("/api/gemini/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: msg,
+          prompt: msg,
+          history: window._geminiChatHistory.slice(-8),
+          context: {
+            app: "Hands & Head Master Platform",
+            productsCount: catalog.length,
+            customersCount: (window._lastCustomersCache || []).length,
+            catalog
+          }
+        })
+      });
+
+      const data = await res.json();
+      const reply = data.text || "Could not generate response. Please verify Gemini API key.";
+      window._geminiChatHistory.push({ role: 'model', text: reply });
+
+      const loading = document.getElementById("ai-loading"); if (loading) loading.remove();
+
+      let toolsHtml = '';
+      if (Array.isArray(data.toolCalls) && data.toolCalls.length > 0) {
+        toolsHtml = data.toolCalls.map(tc => renderToolCallCard(tc)).join('');
+      }
+
+      const formattedReply = formatAiMarkdown(reply);
+      feed.innerHTML += `
+        <div class="ai-msg bot" style="align-self:flex-start;background:var(--surface);border:1px solid var(--wire);padding:10px 14px;border-radius:14px;max-width:92%;font-size:12px;color:var(--ink);line-height:1.5;">
+          ${formattedReply}
+          ${toolsHtml}
+          ${data.modelUsed ? `<div style="font-size:9px;color:var(--ink-4);font-family:var(--mono);margin-top:6px;">Model: ${data.modelUsed} · Hands & Head Dhaka Atelier</div>` : ''}
+        </div>
+      `;
+    } catch (e) {
+      const loading = document.getElementById("ai-loading"); if (loading) loading.remove();
+      feed.innerHTML += `<div class="ai-msg bot" style="align-self:flex-start;background:var(--surface);border:1px solid var(--wire);padding:10px 14px;border-radius:14px;max-width:85%;font-size:12px;color:var(--warn);">✨ The Gemini AI: ${e.message || 'Service temporarily offline'}.</div>`;
+    }
+    feed.scrollTop = feed.scrollHeight;
+  };
+
+  /* ── 2. Dedicated Functional Tools Suite UI ── */
+  function renderAiToolsSuite() {
+    const catalog = window._lastProductsCache || window.dCat || [];
+    return `
+      <div style="padding:0 20px 20px;">
+        <div style="font-size:12px;color:var(--ink-2);margin-bottom:14px;line-height:1.5;">
+          Interactive supply chain, pricing, logistics, and compliance utilities powered by <strong>Google Gemini</strong>. Execute with 1-click:
+        </div>
+
+        <div class="seg" id="tools-sub-seg" style="margin-bottom:14px;">
+          <button class="on" onclick="window.switchAiToolTab('export')">🌍 Export Calculator</button>
+          <button onclick="window.switchAiToolTab('courier')">📦 Courier Slip</button>
+          <button onclick="window.switchAiToolTab('compliance')">📜 EU Compliance</button>
+          <button onclick="window.switchAiToolTab('seo')">🏷️ Product SEO</button>
+        </div>
+
+        <!-- Tool A: B2B Export Calculator -->
+        <div id="aiTool_export" class="card" style="padding:16px;">
+          <div style="font-family:var(--display);font-size:16px;letter-spacing:1px;margin-bottom:4px;">B2B EXPORT PRICING & TARIFF ENGINE</div>
+          <div style="font-size:11px;color:var(--ink-3);margin-bottom:12px;">Calculates FOB Dhaka export price, wholesale tier discounts, air freight estimates, and EU/US tariffs.</div>
+          
+          <div class="field-row" style="margin-bottom:10px;">
+            <div class="field">
+              <label>Order Quantity (Units)</label>
+              <input id="tool_exp_qty" type="number" value="100" />
+            </div>
+            <div class="field">
+              <label>Target Currency</label>
+              <select id="tool_exp_cur">
+                <option value="EUR">EUR (€) — European Union</option>
+                <option value="USD">USD ($) — North America</option>
+                <option value="GBP">GBP (£) — United Kingdom</option>
+                <option value="JPY">JPY (¥) — Japan</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-row" style="margin-bottom:12px;">
+            <div class="field">
+              <label>Destination Country</label>
+              <input id="tool_exp_country" value="Netherlands" />
+            </div>
+            <div class="field">
+              <label>Product Reference</label>
+              <input id="tool_exp_prod" value="Full-Grain Leather Bi-Fold Wallet" />
+            </div>
+          </div>
+
+          <button class="btn btn-gold" style="width:100%;margin-bottom:12px;" onclick="window.runExportCalculatorTool()">⚡ Calculate B2B Export Quote with Gemini</button>
+          <div id="tool_export_output"></div>
+        </div>
+
+        <!-- Tool B: Courier Dispatch Slip Generator -->
+        <div id="aiTool_courier" class="card" style="padding:16px;display:none;">
+          <div style="font-family:var(--display);font-size:16px;letter-spacing:1px;margin-bottom:4px;">INSTANT COURIER DISPATCH SLIP</div>
+          <div style="font-size:11px;color:var(--ink-3);margin-bottom:12px;">Auto-formats rider dispatch slips for Steadfast, RedX, Pathao, or WhatsApp delivery drivers.</div>
+
+          <div class="field-row" style="margin-bottom:8px;">
+            <div class="field"><label>Customer Name</label><input id="tool_cour_name" placeholder="Tanvir Ahmed" value="Tanvir Ahmed" /></div>
+            <div class="field"><label>Phone Number</label><input id="tool_cour_phone" placeholder="01711223344" value="01711223344" /></div>
+          </div>
+
+          <div class="field" style="margin-bottom:8px;">
+            <label>Delivery Address</label>
+            <input id="tool_cour_addr" placeholder="House 14, Road 11, Block D, Banani, Dhaka" value="House 14, Road 11, Block D, Banani, Dhaka" />
+          </div>
+
+          <div class="field-row" style="margin-bottom:12px;">
+            <div class="field"><label>Cash on Delivery (COD ৳)</label><input id="tool_cour_cod" type="number" value="2800" /></div>
+            <div class="field"><label>Delivery Charge (৳)</label><input id="tool_cour_fee" type="number" value="80" /></div>
+          </div>
+
+          <button class="btn btn-gold" style="width:100%;margin-bottom:12px;" onclick="window.runCourierSlipTool()">⚡ Generate Courier Dispatch Slip</button>
+          <div id="tool_courier_output"></div>
+        </div>
+
+        <!-- Tool C: EU Compliance Dossier -->
+        <div id="aiTool_compliance" class="card" style="padding:16px;display:none;">
+          <div style="font-family:var(--display);font-size:16px;letter-spacing:1px;margin-bottom:4px;">EU COMPLIANCE DOSSIER DRAFTER</div>
+          <div style="font-size:11px;color:var(--ink-3);margin-bottom:12px;">Generates verified compliance statements for EUDR Deforestation, REACH, and BSCI audit verification.</div>
+
+          <div class="field-row" style="margin-bottom:10px;">
+            <div class="field">
+              <label>Regulatory Standard</label>
+              <select id="tool_comp_std">
+                <option value="EUDR">EUDR — Deforestation-Free Regulation (EU 2023/1115)</option>
+                <option value="REACH">REACH — Chemical Safety Annex XVII (Chrome VI < 3ppm)</option>
+                <option value="BSCI">BSCI — Amfori Social Audit & Living Wage</option>
+                <option value="LWG">LWG — Leather Working Group Tannery Protocol</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Target Market</label>
+              <select id="tool_comp_market">
+                <option value="Netherlands">Netherlands (Amsterdam Port)</option>
+                <option value="Germany">Germany (Hamburg / Frankfurt)</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Spain">Spain</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn btn-gold" style="width:100%;margin-bottom:12px;" onclick="window.runComplianceDossierTool()">⚡ Draft Compliance Dossier</button>
+          <div id="tool_compliance_output"></div>
+        </div>
+
+        <!-- Tool D: Product Story & SEO -->
+        <div id="aiTool_seo" class="card" style="padding:16px;display:none;">
+          <div style="font-family:var(--display);font-size:16px;letter-spacing:1px;margin-bottom:4px;">PRODUCT CRAFTSMANSHIP & SEO ENRICHER</div>
+          <div style="font-size:11px;color:var(--ink-3);margin-bottom:12px;">Generates editorial copy, bullet points, meta title, tags, and B2B wholesale hooks.</div>
+
+          <div class="field" style="margin-bottom:12px;">
+            <label>Select Product from Catalog or Type Name</label>
+            <select id="tool_seo_prod_select" onchange="document.getElementById('tool_seo_prod_name').value=this.value;">
+              <option value="">-- Choose Product --</option>
+              ${catalog.slice(0, 15).map(p => `<option value="${p.title || p.name}">${p.title || p.name} (৳${p.pricing?.price || p.price || 2500})</option>`).join('')}
+            </select>
+            <input id="tool_seo_prod_name" placeholder="Or enter product name..." value="Full-Grain Leather Bi-Fold Wallet" style="margin-top:6px;" />
+          </div>
+
+          <button class="btn btn-gold" style="width:100%;margin-bottom:12px;" onclick="window.runProductEnrichTool()">⚡ Enrich Product Copy with Gemini</button>
+          <div id="tool_seo_output"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  window.switchAiToolTab = function(tabKey) {
+    const tabs = ['export', 'courier', 'compliance', 'seo'];
+    tabs.forEach(t => {
+      const el = document.getElementById(`aiTool_${t}`);
+      if (el) el.style.display = (t === tabKey) ? 'block' : 'none';
+    });
+    const subSegButtons = document.querySelectorAll('#tools-sub-seg button');
+    subSegButtons.forEach((btn, idx) => {
+      if (tabs[idx] === tabKey) btn.classList.add('on');
+      else btn.classList.remove('on');
+    });
+  };
+
+  /* ── Dedicated Tool Action Handlers ── */
+  window.runExportCalculatorTool = async function() {
+    const qty = +document.getElementById('tool_exp_qty').value || 100;
+    const cur = document.getElementById('tool_exp_cur').value || 'EUR';
+    const country = document.getElementById('tool_exp_country').value || 'Netherlands';
+    const prod = document.getElementById('tool_exp_prod').value || 'Leather Wallet';
+    const out = document.getElementById('tool_export_output');
+    if (!out) return;
+
+    out.innerHTML = `<div style="font-size:11px;color:var(--ink-2);padding:10px;text-align:center;">✨ Gemini is calculating export economics…</div>`;
+
+    try {
+      const res = await fetch('/api/gemini/tools/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolName: 'calculateExportQuote',
+          params: { quantity: qty, currency: cur, destinationCountry: country, productName: prod }
+        })
+      });
+      const data = await res.json();
+      const r = data.result || {};
+
+      out.innerHTML = `
+        <div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.3);border-radius:10px;padding:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--info);font-weight:700;">${r.discountApplied || 'Wholesale Tier'}</div>
+            <div class="pill ok">${r.currency} ${r.fobUnitPriceTarget} / unit</div>
+          </div>
+          <div style="font-size:12px;color:var(--ink);line-height:1.6;margin-bottom:8px;">
+            <strong>Order Volume:</strong> ${r.quantity} units<br>
+            <strong>FOB Subtotal:</strong> ${r.currency} ${r.fobSubtotalTarget} (৳${(r.fobUnitPriceBdt || 2050) * r.quantity})<br>
+            <strong>Air Cargo Est:</strong> ${r.currency} ${r.airFreightEstimatePerUnit} / unit<br>
+            <strong>Suggested EU Retail MSRP:</strong> ${r.currency} ${r.suggestedMSRPForeign}<br>
+            <strong>HS Code / Tariff:</strong> ${r.hsCode} (${r.euImportTariff})
+          </div>
+          ${data.synthesis ? `<div style="font-size:11px;color:var(--ink-2);background:var(--surface);padding:8px;border-radius:6px;border:1px solid var(--wire);margin-bottom:8px;">${data.synthesis}</div>` : ''}
+          <button class="btn btn-sm btn-dark" onclick="navigator.clipboard.writeText('Hands & Head B2B Quote: ${r.quantity} units ${prod} @ ${r.currency} ${r.fobUnitPriceTarget}/unit (Total FOB: ${r.currency} ${r.fobSubtotalTarget}). Air freight: ${r.currency} ${r.airFreightEstimatePerUnit}/unit.');toast('Export quote copied!');">📋 Copy Export Quote</button>
+        </div>
+      `;
+    } catch (e) {
+      out.innerHTML = `<div style="font-size:11px;color:var(--warn);padding:8px;">Error: ${e.message}</div>`;
+    }
+  };
+
+  window.runCourierSlipTool = async function() {
+    const name = document.getElementById('tool_cour_name').value || 'Customer';
+    const phone = document.getElementById('tool_cour_phone').value || '01711223344';
+    const addr = document.getElementById('tool_cour_addr').value || 'Dhaka';
+    const cod = +document.getElementById('tool_cour_cod').value || 0;
+    const fee = +document.getElementById('tool_cour_fee').value || 80;
+    const out = document.getElementById('tool_courier_output');
+    if (!out) return;
+
+    out.innerHTML = `<div style="font-size:11px;color:var(--ink-2);padding:10px;text-align:center;">✨ Formatting courier slip…</div>`;
+
+    try {
+      const res = await fetch('/api/gemini/tools/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolName: 'generateCourierSlip',
+          params: { recipientName: name, phone, address: addr, codAmount: cod, deliveryCharge: fee, itemsDescription: 'Hands & Head Leather Goods' }
+        })
+      });
+      const data = await res.json();
+      const r = data.result || {};
+
+      out.innerHTML = `
+        <div style="background:rgba(217,119,6,0.06);border:1px solid rgba(217,119,6,0.3);border-radius:10px;padding:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--gold);font-weight:700;">DISPATCH SLIP READY</div>
+            <button class="btn btn-sm btn-gold" onclick="navigator.clipboard.writeText(decodeURIComponent('${encodeURIComponent(r.formattedSlip || '')}'));toast('✓ Courier Slip Copied!');">📋 Copy Slip</button>
+          </div>
+          <pre style="background:var(--surface);padding:10px;border-radius:8px;font-family:var(--mono);font-size:10px;line-height:1.4;overflow-x:auto;color:var(--ink);border:1px solid var(--wire);">${r.formattedSlip || ''}</pre>
+        </div>
+      `;
+    } catch (e) {
+      out.innerHTML = `<div style="font-size:11px;color:var(--warn);padding:8px;">Error: ${e.message}</div>`;
+    }
+  };
+
+  window.runComplianceDossierTool = async function() {
+    const std = document.getElementById('tool_comp_std').value || 'EUDR';
+    const market = document.getElementById('tool_comp_market').value || 'Netherlands';
+    const out = document.getElementById('tool_compliance_output');
+    if (!out) return;
+
+    out.innerHTML = `<div style="font-size:11px;color:var(--ink-2);padding:10px;text-align:center;">✨ Verifying regulatory standards with Gemini…</div>`;
+
+    try {
+      const res = await fetch('/api/gemini/tools/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolName: 'checkComplianceStandard',
+          params: { standard: std, market }
+        })
+      });
+      const data = await res.json();
+      const r = data.result || {};
+
+      out.innerHTML = `
+        <div style="background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.3);border-radius:10px;padding:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:11px;font-family:var(--mono);color:var(--purple);font-weight:700;">${r.title || std}</div>
+            <div class="pill ok">✓ ${r.status}</div>
+          </div>
+          <div style="font-size:11px;color:var(--ink);line-height:1.5;margin-bottom:8px;">
+            <strong>Market:</strong> ${r.market}<br>
+            <strong>Scope:</strong> ${r.scope}<br>
+            <strong>Accredited Body:</strong> ${r.laboratory || 'TÜV Rheinland / SGS Bangladesh'}<br>
+            <strong>Valid Through:</strong> ${r.validThrough}
+          </div>
+          ${data.synthesis ? `<div style="font-size:11px;color:var(--ink-2);background:var(--surface);padding:8px;border-radius:6px;border:1px solid var(--wire);margin-bottom:8px;">${data.synthesis}</div>` : ''}
+          <button class="btn btn-sm btn-dark" onclick="navigator.clipboard.writeText('HANDS & HEAD EXPORT COMPLIANCE DOSSIER\\nStandard: ${r.title}\\nStatus: ${r.status}\\nScope: ${r.scope}\\nValid: ${r.validThrough}');toast('Compliance statement copied!');">📋 Copy Declaration Statement</button>
+        </div>
+      `;
+    } catch (e) {
+      out.innerHTML = `<div style="font-size:11px;color:var(--warn);padding:8px;">Error: ${e.message}</div>`;
+    }
+  };
+
+  window.runProductEnrichTool = async function() {
+    const prodName = document.getElementById('tool_seo_prod_name').value.trim() || 'Full-Grain Leather Bi-Fold Wallet';
+    const out = document.getElementById('tool_seo_output');
+    if (!out) return;
+
+    out.innerHTML = `<div style="font-size:11px;color:var(--ink-2);padding:10px;text-align:center;">✨ Gemini is generating luxury story and SEO…</div>`;
+
+    try {
+      const res = await fetch('/api/gemini/enrich-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product: { title: prodName, category: 'Leather Goods', price: 2800 }
+        })
+      });
+      const data = await res.json();
+
+      out.innerHTML = `
+        <div style="background:rgba(217,119,6,0.04);border:1px solid var(--wire);border-radius:10px;padding:12px;">
+          <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px;">${data.title || prodName}</div>
+          <div style="font-size:11px;color:var(--gold);font-style:italic;margin-bottom:8px;">"${data.shortDescription || ''}"</div>
+          <div style="font-size:11px;color:var(--ink-2);line-height:1.5;margin-bottom:8px;">${data.description || ''}</div>
+          
+          <div style="font-size:10px;font-family:var(--mono);color:var(--ink-3);margin-bottom:4px;font-weight:700;">SPECIFICATIONS:</div>
+          <ul style="font-size:11px;color:var(--ink);margin-bottom:8px;padding-left:16px;">
+            ${(data.bulletPoints || []).map(b => `<li>${b}</li>`).join('')}
+          </ul>
+
+          <div style="background:var(--surface);padding:8px;border-radius:6px;border:1px solid var(--wire);font-size:10px;font-family:var(--mono);margin-bottom:8px;">
+            <div><strong>SEO Title:</strong> ${data.seo?.title || ''}</div>
+            <div><strong>SEO Desc:</strong> ${data.seo?.description || ''}</div>
+          </div>
+
+          <button class="btn btn-sm btn-gold" onclick="navigator.clipboard.writeText('${(data.title || '').replace(/'/g, "\\'")}\\n\\n${(data.description || '').replace(/'/g, "\\'")}');toast('Product story copied!');">📋 Copy Product Copy</button>
+        </div>
+      `;
+    } catch (e) {
+      out.innerHTML = `<div style="font-size:11px;color:var(--warn);padding:8px;">Error: ${e.message}</div>`;
+    }
+  };
+
+  /* ── 3. Demand Forecasting UI ── */
   function renderAiForecast() {
-    const forecasts = (window.dCat || []).map(p=>({...p, forecast: Math.round((p.stock || 20)*0.6+Math.random()*50), trend: Math.random()>0.5?'up':'down' }));
+    const forecasts = (window.dCat || []).map(p => ({
+      ...p,
+      forecast: Math.round((p.stock || 20) * 0.6 + Math.random() * 50),
+      trend: Math.random() > 0.5 ? 'up' : 'down'
+    }));
+
     return `
       <div style="padding:0 20px 12px;">
-        <div class="card" style="margin:0 0 12px;border-left:2px solid var(--gold);background:rgba(212,160,23,0.04);">
+        <div class="card" style="margin:0 0 12px;border-left:2px solid var(--gold);background:rgba(217,119,6,0.04);">
           <div style="font-size:10px;color:var(--gold);font-family:var(--mono);letter-spacing:2px;margin-bottom:6px;text-transform:uppercase;font-weight:700;">✨ Gemini Predictive Demand Analysis</div>
           <div style="font-size:12px;color:var(--ink);line-height:1.6;" id="geminiForecastAnalysisText">
             Analyzing current sales velocity and historical order data... Based on recent 90-day wholesale reorders, full-grain leather wallets and cardholders show a +22% projected surge in Northern European boutique inquiries for Q3/Q4. Recommend maintaining at least 150 units buffer in Dhaka atelier.
           </div>
+          <div id="geminiForecastRecommendations" style="margin-top:8px;font-size:11px;color:var(--ink-2);"></div>
         </div>
       </div>
       <div class="sec-h" style="padding-top:0;"><span class="sec-h-label">30-Day Demand Projections</span></div>
       <div class="forecast-grid">
-        ${forecasts.map(p=>`
+        ${forecasts.map(p => `
           <div class="forecast-card">
             <div class="forecast-sku">${p.ini || p.title || 'SKU'}</div>
             <div class="forecast-val">${p.forecast}</div>
-            <div class="forecast-trend" style="color:${p.trend==='up'?'var(--ok)':'var(--warn)'};">${p.trend==='up'?'▲ Increasing':'▼ Declining'}</div>
+            <div class="forecast-trend" style="color:${p.trend === 'up' ? 'var(--ok)' : 'var(--warn)'};">${p.trend === 'up' ? '▲ Increasing' : '▼ Declining'}</div>
           </div>
         `).join('')}
       </div>
@@ -628,51 +1203,39 @@
     `;
   }
 
-  window.sendAiMsg = async function() {
-    const inp = document.getElementById("aiInput"); if(!inp) return;
-    const msg = inp.value.trim(); if(!msg) return;
-    const feed = document.getElementById("aiFeed"); if(!feed) return;
-    feed.innerHTML += `<div class="ai-msg user">${msg}</div>`;
-    feed.innerHTML += `<div class="ai-msg bot loading" id="ai-loading">✨ Gemini is thinking…</div>`;
-    inp.value = ""; feed.scrollTop = feed.scrollHeight;
-    try {
-      const res = await fetch("/api/gemini/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: msg,
-          prompt: msg,
-          context: {
-            app: "Hands & Head Master Platform",
-            productsCount: (window._lastProductsCache || []).length,
-            customersCount: (window._lastCustomersCache || []).length
-          }
-        })
-      });
-      const data = await res.json();
-      const reply = data.text || "Could not generate response. Please verify Gemini API key.";
-      const loading = document.getElementById("ai-loading"); if(loading) loading.remove();
-      feed.innerHTML += `<div class="ai-msg bot">${reply.replace(/\n/g,'<br>')}</div>`;
-    } catch(e) {
-      const loading = document.getElementById("ai-loading"); if(loading) loading.remove();
-      feed.innerHTML += `<div class="ai-msg bot">✨ The Gemini AI: ${e.message || 'Service temporarily offline'}.</div>`;
-    }
-    feed.scrollTop = feed.scrollHeight;
-  };
-
   window.runAIForecast = async function() {
     if (window.toast) toast("✨ Contacting Gemini AI for live demand forecasting…");
     try {
-      const products = window._lastProductsCache || window.dCat || [];
+      const rawProducts = window._lastProductsCache || window.dCat || [];
+      const cleanProducts = rawProducts.slice(0, 30).map(p => ({
+        id: String(p.id || ''),
+        title: String(p.title || p.name || 'Product'),
+        sku: String(p.sku || ''),
+        price: Number(p.pricing?.price || p.price || 0),
+        stock: Number(p.stock !== undefined ? p.stock : (p.totalInventory || 20)),
+        category: String(p.productType || p.category || 'Leather Goods')
+      }));
+      const rawOrders = window._lastOrdersCache || [];
+      const cleanOrders = rawOrders.slice(0, 30).map(o => ({
+        id: String(o.id || o.orderNumber || ''),
+        total: Number(o.total || 0),
+        status: String(o.status || ''),
+        itemCount: Array.isArray(o.lineItems) ? o.lineItems.length : 1
+      }));
       const res = await fetch('/api/gemini/forecast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ products, days: 30 })
+        body: JSON.stringify({ inventory: cleanProducts, orders: cleanOrders })
       });
       const data = await res.json();
       const analysisEl = document.getElementById('geminiForecastAnalysisText');
       if (analysisEl && data.summary) {
         analysisEl.innerText = data.summary;
+      }
+      const recsEl = document.getElementById('geminiForecastRecommendations');
+      if (recsEl && Array.isArray(data.recommendations)) {
+        recsEl.innerHTML = '<strong>Operational Recommendations:</strong><ul style="padding-left:16px;margin-top:4px;">' +
+          data.recommendations.map(r => `<li>${r}</li>`).join('') + '</ul>';
       }
       if (window.toast) toast("✓ Gemini Demand Forecast Updated!");
     } catch (e) {
