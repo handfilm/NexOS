@@ -80,9 +80,30 @@ window.CustomersService = {
 
   /* ── Query & List Customers with Search & Filtering ── */
   async list({ search = null, country = null, tag = null, sortBy = "updatedAt", sortDir = "desc" } = {}) {
-    try { await window.NexAuth.ensureAuth(); } catch (e) {}
-
     let items = [];
+
+    // 1. Primary Cross-Device Persistent Storage (/api/customers)
+    try {
+      const qParams = new URLSearchParams();
+      if (country && country !== "all") qParams.append("country", country);
+      if (tag && tag !== "all") qParams.append("tag", tag);
+      if (search && search.trim()) qParams.append("search", search.trim());
+      qParams.append("limit", "500");
+
+      const resp = await fetch("/api/customers?" + qParams.toString());
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.ok && Array.isArray(data.items) && data.items.length) {
+          items = data.items;
+          try { localStorage.setItem("nx_customers_cache", JSON.stringify(items)); } catch (e) {}
+          return { items, count: items.length };
+        }
+      }
+    } catch (apiErr) {
+      console.debug("Customers API fetch notice (switching to Firestore/local):", apiErr.message);
+    }
+
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
 
     try {
       let q = window.Collections.customers;
@@ -244,6 +265,24 @@ window.CustomersService = {
     };
 
     let newId = "cust-" + Date.now().toString(36);
+
+    // 1. Primary Cross-Device Server Persistence
+    try {
+      const resp = await fetch("/api/customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, id: newId })
+      });
+      if (resp.ok) {
+        const resData = await resp.json();
+        if (resData.ok && resData.id) {
+          newId = resData.id;
+        }
+      }
+    } catch (apiErr) {
+      console.debug("Customers API write note (falling back):", apiErr.message);
+    }
+
     try {
       const ref = await window.Collections.customers.add(payload);
       newId = ref.id;
@@ -287,6 +326,17 @@ window.CustomersService = {
         postalCode: data.postalCode || "",
         isDefault: true
       }];
+    }
+
+    // 1. Primary Cross-Device Server Persistence
+    try {
+      await fetch(`/api/customers/${encodeURIComponent(customerId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch)
+      });
+    } catch (apiErr) {
+      console.debug("Customers API update note:", apiErr.message);
     }
 
     try {
@@ -340,6 +390,10 @@ window.CustomersService = {
 
   /* ── Delete Customer ── */
   async delete(customerId) {
+    try {
+      await fetch(`/api/customers/${encodeURIComponent(customerId)}`, { method: "DELETE" });
+    } catch (e) {}
+
     try {
       await window.NexAuth.ensureAuth();
       await window.Collections.customers.doc(customerId).delete();

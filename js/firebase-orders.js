@@ -71,11 +71,34 @@ window.OrdersService = {
 
   /* ── Query & List Orders with Search & Filter ── */
   async list({ status = null, paymentStatus = null, fulfillmentStatus = null, search = null, sortBy = "createdAt", sortDir = "desc" } = {}) {
+    let items = [];
+
+    // 1. Primary Cross-Device Persistent Storage (/api/orders)
+    try {
+      const qParams = new URLSearchParams();
+      if (status && status !== "all") qParams.append("status", status);
+      if (paymentStatus && paymentStatus !== "all") qParams.append("paymentStatus", paymentStatus);
+      if (fulfillmentStatus && fulfillmentStatus !== "all") qParams.append("fulfillmentStatus", fulfillmentStatus);
+      if (search && search.trim()) qParams.append("search", search.trim());
+      if (sortBy) qParams.append("sortBy", sortBy);
+      if (sortDir) qParams.append("sortDir", sortDir);
+
+      const resp = await fetch("/api/orders?" + qParams.toString());
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.ok && Array.isArray(data.items) && data.items.length) {
+          items = data.items;
+          try { localStorage.setItem("nx_orders_cache", JSON.stringify(items)); } catch (e) {}
+          return { items, count: items.length };
+        }
+      }
+    } catch (apiErr) {
+      console.debug("Orders API fetch notice (switching to Firestore/local):", apiErr.message);
+    }
+
     try {
       await window.NexAuth.ensureAuth();
     } catch (e) {}
-
-    let items = [];
 
     try {
       let q = window.Collections.orders;
@@ -245,6 +268,23 @@ window.OrdersService = {
       updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
     };
 
+    // 1. Primary Cross-Device Server Persistence
+    try {
+      const resp = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...orderData, id: orderRef.id })
+      });
+      if (resp.ok) {
+        const resData = await resp.json();
+        if (resData.ok && resData.id) {
+          // Sync server response
+        }
+      }
+    } catch (apiErr) {
+      console.debug("Orders API write note (falling back):", apiErr.message);
+    }
+
     // Try Firestore write first
     let firestoreSuccess = false;
     try {
@@ -299,6 +339,17 @@ window.OrdersService = {
       }
     }
 
+    // 1. Primary Cross-Device Server Persistence
+    try {
+      await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch)
+      });
+    } catch (apiErr) {
+      console.debug("Orders API update note:", apiErr.message);
+    }
+
     try {
       await window.Collections.orders.doc(orderId).set(patch, { merge: true });
     } catch (e) {
@@ -334,6 +385,18 @@ window.OrdersService = {
       at: new Date().toISOString(),
       by: operator
     };
+
+    // 1. Primary Cross-Device Server Persistence
+    try {
+      await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "cancelled",
+          paymentStatus: order.paymentStatus === "paid" ? "refunded" : order.paymentStatus
+        })
+      });
+    } catch (e) {}
 
     try {
       await window.Collections.orders.doc(orderId).update({
@@ -374,6 +437,15 @@ window.OrdersService = {
       at: new Date().toISOString(),
       by: operator
     };
+
+    // 1. Primary Cross-Device Server Persistence
+    try {
+      await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatePayload)
+      });
+    } catch (e) {}
 
     try {
       if (window.FieldValue?.arrayUnion) {

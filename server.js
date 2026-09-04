@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
 import * as XLSX from 'xlsx';
@@ -812,6 +813,777 @@ app.post('/api/import/parse-excel', (req, res) => {
   } catch (err) {
     console.error('Excel Parse Error:', err);
     res.status(500).json({ error: 'Failed to parse Excel file: ' + err.message });
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   PERSISTENT CROSS-DEVICE STORAGE LAYER (PIN 1981 / Operator OS)
+   Ensures products, customers, and orders persist permanently
+   across all devices, browser sessions, and server restarts.
+   ═══════════════════════════════════════════════════════════════ */
+
+const DATA_DIR = path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
+const CUSTOMERS_FILE = path.join(DATA_DIR, 'customers.json');
+const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
+const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+
+function safeReadJson(filePath, fallback = []) {
+  try {
+    if (!fs.existsSync(filePath)) return fallback;
+    const raw = fs.readFileSync(filePath, 'utf8');
+    if (!raw.trim()) return fallback;
+    return JSON.parse(raw);
+  } catch (err) {
+    console.error(`[Storage] Failed to read ${filePath}:`, err.message);
+    return fallback;
+  }
+}
+
+function safeWriteJson(filePath, data) {
+  try {
+    const tmp = `${filePath}.${Date.now()}.${Math.random().toString(36).slice(2, 6)}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8');
+    fs.renameSync(tmp, filePath);
+  } catch (err) {
+    console.error(`[Storage] Failed to atomic-write ${filePath}, using direct write:`, err.message);
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+  }
+}
+
+// Seed default products if not already initialized
+if (!fs.existsSync(PRODUCTS_FILE) || safeReadJson(PRODUCTS_FILE, []).length === 0) {
+  const seedProducts = [
+    {
+      id: "prod-tee-01",
+      title: "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+      handle: "heavyweight-boxy-graphic-tee-dhaka-cyber",
+      status: "active",
+      vendor: "Hands & Head",
+      productType: "Tees & Apparel",
+      description: "260 GSM combed cotton vintage acid-washed oversized streetwear tee with high-density screenprint and reinforced ribbed collar.",
+      tags: ["tee", "tshirt", "oversized", "streetwear", "acid-wash", "apparel"],
+      pricing: { price: 1850, compareAtPrice: 2400, cost: 750, currency: "BDT" },
+      images: [
+        { url: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80", alt: "Heavyweight Boxy Graphic Tee" },
+        { url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&auto=format&fit=crop&q=80", alt: "Tee Back View" }
+      ],
+      variants: [
+        { id: "v-tee-m", title: "Vintage Washed Black / M", sku: "HH-TEE-01-M", price: 1850, inventoryQty: 45, availableForSale: true },
+        { id: "v-tee-l", title: "Vintage Washed Black / L", sku: "HH-TEE-01-L", price: 1850, inventoryQty: 60, availableForSale: true },
+        { id: "v-tee-xl", title: "Vintage Washed Black / XL", sku: "HH-TEE-01-XL", price: 1850, inventoryQty: 30, availableForSale: true }
+      ],
+      totalInventory: 135,
+      lowStockThreshold: 15,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: "prod-tee-02",
+      title: "Artisanal Raw-Hem Oversized Drop Tee",
+      handle: "artisanal-raw-hem-oversized-drop-tee",
+      status: "active",
+      vendor: "Hands & Head",
+      productType: "Tees & Apparel",
+      description: "240 GSM organic slub cotton drop-shoulder silhouette with raw-cut distressed hems and tonal embroidered chest emblem.",
+      tags: ["tee", "tshirt", "raw-hem", "streetwear", "apparel", "minimalist"],
+      pricing: { price: 1650, compareAtPrice: 2100, cost: 680, currency: "BDT" },
+      images: [
+        { url: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800&auto=format&fit=crop&q=80", alt: "Raw-Hem Drop Tee" }
+      ],
+      variants: [
+        { id: "v-tee-raw-l", title: "Bone White / L", sku: "HH-TEE-02-L", price: 1650, inventoryQty: 50, availableForSale: true },
+        { id: "v-tee-raw-xl", title: "Bone White / XL", sku: "HH-TEE-02-XL", price: 1650, inventoryQty: 38, availableForSale: true }
+      ],
+      totalInventory: 88,
+      lowStockThreshold: 12,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: "prod-tee-03",
+      title: "Architectural Cutout Leather-Pocket Tee",
+      handle: "architectural-cutout-leather-pocket-tee",
+      status: "active",
+      vendor: "Hands & Head",
+      productType: "Tees & Apparel",
+      description: "Heavy 280 GSM French terry tee featuring genuine vegetable-tanned leather utility patch pocket with antique brass rivet.",
+      tags: ["tee", "leather-trim", "luxury", "apparel", "streetwear"],
+      pricing: { price: 2450, compareAtPrice: 2950, cost: 950, currency: "BDT" },
+      images: [
+        { url: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&auto=format&fit=crop&q=80", alt: "Leather Pocket Tee" }
+      ],
+      variants: [
+        { id: "v-tee-pock-m", title: "Charcoal Slate / M", sku: "HH-TEE-03-M", price: 2450, inventoryQty: 32, availableForSale: true },
+        { id: "v-tee-pock-l", title: "Charcoal Slate / L", sku: "HH-TEE-03-L", price: 2450, inventoryQty: 40, availableForSale: true }
+      ],
+      totalInventory: 72,
+      lowStockThreshold: 10,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: "prod-wlt-01",
+      title: "Full-Grain Leather Bi-Fold Wallet",
+      handle: "full-grain-leather-bi-fold-wallet",
+      status: "active",
+      vendor: "Hands & Head",
+      productType: "Leather Goods",
+      description: "Handcrafted 100% full-grain vegetable-tanned cowhide wallet with 6 card slots and dual currency partitions.",
+      tags: ["wallet", "leather", "bifold", "b2b"],
+      pricing: { price: 2850, compareAtPrice: 3400, cost: 1600, currency: "BDT" },
+      images: [{ url: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80", alt: "Leather Wallet" }],
+      variants: [{ id: "v-wlt-tan", title: "Tan Brown", sku: "HH-WLT-01", price: 2850, inventoryQty: 48, availableForSale: true }],
+      totalInventory: 48,
+      lowStockThreshold: 10,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: "prod-brf-02",
+      title: "Executive Leather Briefcase",
+      handle: "executive-leather-briefcase",
+      status: "active",
+      vendor: "Hands & Head",
+      productType: "Leather Goods",
+      description: "Handmade vegetable-tanned full-grain leather briefcase with brass hardware, laptop compartment, and luggage trolley strap.",
+      tags: ["briefcase", "luxury", "executive", "b2b"],
+      pricing: { price: 14500, compareAtPrice: 17500, cost: 8200, currency: "BDT" },
+      images: [{ url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80", alt: "Leather Briefcase" }],
+      variants: [{ id: "v-brf-blk", title: "Midnight Black", sku: "HH-BRF-02", price: 14500, inventoryQty: 18, availableForSale: true }],
+      totalInventory: 18,
+      lowStockThreshold: 5,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: "prod-crd-02",
+      title: "Minimalist Cardholder — Aniline Tan",
+      handle: "minimalist-cardholder-aniline-tan",
+      status: "active",
+      vendor: "Hands & Head",
+      productType: "Leather Goods",
+      description: "Slim 4-slot cardholder crafted from oil-pullup calf leather with center cash pocket.",
+      tags: ["cardholder", "minimalist", "accessories"],
+      pricing: { price: 1450, compareAtPrice: 1800, cost: 650, currency: "BDT" },
+      images: [{ url: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop&q=80", alt: "Cardholder" }],
+      variants: [{ id: "v-crd-tan", title: "Aniline Tan", sku: "HH-CRD-02", price: 1450, inventoryQty: 65, availableForSale: true }],
+      totalInventory: 65,
+      lowStockThreshold: 12,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: "prod-blt-01",
+      title: "Heavyweight Full-Grain Leather Belt",
+      handle: "heavyweight-full-grain-leather-belt",
+      status: "active",
+      vendor: "Hands & Head",
+      productType: "Leather Goods",
+      description: "Solid 38mm harness leather belt with solid brushed brass roller buckle.",
+      tags: ["belt", "accessories", "b2b"],
+      pricing: { price: 3200, compareAtPrice: 3800, cost: 1400, currency: "BDT" },
+      images: [{ url: "https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=600&auto=format&fit=crop&q=80", alt: "Leather Belt" }],
+      variants: [{ id: "v-blt-brn", title: "Cognac Brown", sku: "HH-BLT-01", price: 3200, inventoryQty: 52, availableForSale: true }],
+      totalInventory: 52,
+      lowStockThreshold: 10,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: "prod-fol-01",
+      title: "Passport Travel Folio & Boarding Wallet",
+      handle: "passport-travel-folio-boarding-wallet",
+      status: "active",
+      vendor: "Hands & Head",
+      productType: "Leather Goods",
+      description: "All-in-one travel organizer accommodating two passports, boarding pass, 6 cards, and pen loop.",
+      tags: ["travel", "passport", "folio"],
+      pricing: { price: 4200, compareAtPrice: 4900, cost: 1900, currency: "BDT" },
+      images: [{ url: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&auto=format&fit=crop&q=80", alt: "Travel Folio" }],
+      variants: [{ id: "v-fol-blk", title: "Onyx Black", sku: "HH-FOL-01", price: 4200, inventoryQty: 34, availableForSale: true }],
+      totalInventory: 34,
+      lowStockThreshold: 8,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  ];
+  safeWriteJson(PRODUCTS_FILE, seedProducts);
+}
+
+// Seed default orders if not already initialized
+if (!fs.existsSync(ORDERS_FILE) || safeReadJson(ORDERS_FILE, []).length === 0) {
+  const seedOrders = [
+    {
+      id: "ord-1048",
+      orderNumber: "NX-1048",
+      customerSnapshot: { name: "Amsterdam Goods B.V.", email: "procurement@leather-amsterdam.nl", country: "NL", currency: "EUR" },
+      lineItems: [
+        { productId: "prod-wlt-01", title: "Full-Grain Leather Bi-Fold Wallet", sku: "HH-WLT-01", quantity: 50, price: 2850 }
+      ],
+      subtotal: 142500,
+      shipping: 8500,
+      discount: 0,
+      total: 151000,
+      currency: "BDT",
+      paymentStatus: "paid",
+      fulfillmentStatus: "fulfilled",
+      status: "completed",
+      paymentMethod: "bank_transfer",
+      notes: "B2B Export batch to Rotterdam via air freight.",
+      timeline: [
+        { event: "Order created and confirmed", at: new Date(Date.now() - 3600000 * 24).toISOString(), by: "Operator 1981" },
+        { event: "Payment verified in EUR", at: new Date(Date.now() - 3600000 * 18).toISOString(), by: "Finance" },
+        { event: "Dispatched via DHL Global Forwarding", at: new Date(Date.now() - 3600000 * 6).toISOString(), by: "Logistics" }
+      ],
+      createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+      updatedAt: new Date(Date.now() - 3600000 * 6).toISOString()
+    },
+    {
+      id: "ord-1047",
+      orderNumber: "NX-1047",
+      customerSnapshot: { name: "London Retail Group", email: "orders@londonretail.co.uk", country: "GB", currency: "GBP" },
+      lineItems: [
+        { productId: "prod-brf-02", title: "Executive Leather Briefcase", sku: "HH-BRF-02", quantity: 6, price: 14500 }
+      ],
+      subtotal: 87000,
+      shipping: 5200,
+      discount: 0,
+      total: 92200,
+      currency: "BDT",
+      paymentStatus: "paid",
+      fulfillmentStatus: "unfulfilled",
+      status: "open",
+      paymentMethod: "bank_transfer",
+      notes: "Custom embossed monogramming requested for briefcases.",
+      timeline: [
+        { event: "Order placed (6 items, ৳92,200)", at: new Date(Date.now() - 3600000 * 12).toISOString(), by: "Operator 1981" }
+      ],
+      createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+      updatedAt: new Date(Date.now() - 3600000 * 12).toISOString()
+    },
+    {
+      id: "ord-1046",
+      orderNumber: "NX-1046",
+      customerSnapshot: { name: "Tomotaka Minoura", phone: "+8801912010701", country: "BD", currency: "BDT" },
+      lineItems: [
+        { productId: "prod-tee-01", title: "Heavyweight Boxy Graphic Tee — Dhaka Cyber", sku: "HH-TEE-01-L", quantity: 2, price: 1850 },
+        { productId: "prod-crd-02", title: "Minimalist Cardholder — Aniline Tan", sku: "HH-CRD-02", quantity: 1, price: 1450 }
+      ],
+      subtotal: 5150,
+      shipping: 80,
+      discount: 0,
+      total: 5230,
+      currency: "BDT",
+      paymentStatus: "paid",
+      fulfillmentStatus: "fulfilled",
+      status: "completed",
+      paymentMethod: "cod",
+      notes: "Inside Dhaka City delivery.",
+      timeline: [
+        { event: "Order placed and dispatched", at: new Date(Date.now() - 3600000 * 4).toISOString(), by: "Operator 1981" }
+      ],
+      createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+      updatedAt: new Date(Date.now() - 3600000 * 2).toISOString()
+    }
+  ];
+  safeWriteJson(ORDERS_FILE, seedOrders);
+}
+
+/* ── PIN Authentication Verification ── */
+app.post('/api/auth/pin', (req, res) => {
+  const { pin } = req.body;
+  if (pin === '1981') {
+    return res.json({
+      ok: true,
+      role: 'expert',
+      name: 'Expert Operator',
+      email: 'handfilm.ai@gmail.com',
+      token: 'session_operator_1981',
+      permissions: ['read', 'write', 'admin', 'export', 'pos']
+    });
+  }
+  if (pin === '2024') {
+    return res.json({
+      ok: true,
+      role: 'production',
+      name: 'Production Lead',
+      token: 'session_prod_2024',
+      permissions: ['read', 'write_orders', 'inventory']
+    });
+  }
+  return res.status(401).json({ ok: false, error: 'Invalid operator PIN' });
+});
+
+/* ── 1. PRODUCTS REST API ── */
+app.get('/api/products', (req, res) => {
+  try {
+    let items = safeReadJson(PRODUCTS_FILE, []);
+    const { search, category, vendor, status, sortBy, sortDir } = req.query;
+
+    if (status && status !== 'all') {
+      items = items.filter(p => (p.status || 'active') === status);
+    }
+    if (category && category !== 'all') {
+      items = items.filter(p => (p.productType || '').toLowerCase() === category.toLowerCase());
+    }
+    if (vendor && vendor !== 'all') {
+      items = items.filter(p => (p.vendor || '').toLowerCase() === vendor.toLowerCase());
+    }
+    if (search && search.trim()) {
+      const q = search.toLowerCase().trim();
+      items = items.filter(p =>
+        (p.title || '').toLowerCase().includes(q) ||
+        (p.handle || '').toLowerCase().includes(q) ||
+        (p.vendor || '').toLowerCase().includes(q) ||
+        (p.productType || '').toLowerCase().includes(q) ||
+        (p.variants || []).some(v => (v.sku || '').toLowerCase().includes(q))
+      );
+    }
+
+    if (sortBy === 'price') {
+      items.sort((a, b) => {
+        const pa = a.pricing?.price || a.price || 0;
+        const pb = b.pricing?.price || b.price || 0;
+        return sortDir === 'asc' ? pa - pb : pb - pa;
+      });
+    } else {
+      // Default newest first
+      items.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    }
+
+    res.json({ ok: true, items, count: items.length });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/api/products/:id', (req, res) => {
+  const items = safeReadJson(PRODUCTS_FILE, []);
+  const product = items.find(p => p.id === req.params.id || p.handle === req.params.id);
+  if (!product) return res.status(404).json({ ok: false, error: 'Product not found' });
+  res.json({ ok: true, item: product });
+});
+
+app.post('/api/products', (req, res) => {
+  try {
+    const data = req.body;
+    if (!data.title && !data.Name) {
+      return res.status(400).json({ ok: false, error: 'Product title is required' });
+    }
+
+    const items = safeReadJson(PRODUCTS_FILE, []);
+    const title = (data.title || data.Name || 'New Product').trim();
+    const price = Number(data.price || data.Price || data.pricing?.price || 0);
+    const sku = data.sku || data.SKU || ('HH-' + Math.floor(1000 + Math.random() * 9000));
+    const stock = Number(data.stock || data.Stock || data.totalInventory || 100);
+    const newId = data.id || data.ID || ('prod-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1000));
+
+    const newProduct = {
+      id: newId,
+      title,
+      handle: (data.handle || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')),
+      status: data.status || 'active',
+      vendor: data.vendor || data.Vendor || 'Hands & Head',
+      productType: data.productType || data.Type || 'Leather Goods',
+      description: data.description || data.Description || '',
+      tags: Array.isArray(data.tags) ? data.tags : [data.productType || 'Leather Goods'],
+      pricing: {
+        price,
+        compareAtPrice: data.compareAtPrice ? Number(data.compareAtPrice) : null,
+        cost: data.cost ? Number(data.cost) : null,
+        currency: data.currency || 'BDT'
+      },
+      images: Array.isArray(data.images) && data.images.length ? data.images : (
+        data.Image ? [{ url: data.Image, alt: title }] : [{ url: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80', alt: title }]
+      ),
+      variants: [
+        { id: 'v-' + newId, title: 'Standard', sku, price, inventoryQty: stock, availableForSale: true }
+      ],
+      totalInventory: stock,
+      lowStockThreshold: Number(data.lowStockThreshold) || 10,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    items.unshift(newProduct);
+    safeWriteJson(PRODUCTS_FILE, items);
+
+    res.json({ ok: true, id: newId, item: newProduct });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.put('/api/products/:id', (req, res) => {
+  try {
+    const items = safeReadJson(PRODUCTS_FILE, []);
+    const idx = items.findIndex(p => p.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ ok: false, error: 'Product not found' });
+
+    const existing = items[idx];
+    const patch = req.body;
+    
+    if (patch.price !== undefined) {
+      existing.pricing = { ...existing.pricing, price: Number(patch.price) };
+    }
+    if (patch.stock !== undefined) {
+      existing.totalInventory = Number(patch.stock);
+    }
+
+    const updated = {
+      ...existing,
+      ...patch,
+      updatedAt: new Date().toISOString()
+    };
+
+    items[idx] = updated;
+    safeWriteJson(PRODUCTS_FILE, items);
+    res.json({ ok: true, item: updated });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.delete('/api/products/:id', (req, res) => {
+  try {
+    let items = safeReadJson(PRODUCTS_FILE, []);
+    const initialLen = items.length;
+    items = items.filter(p => p.id !== req.params.id);
+    if (items.length === initialLen) {
+      return res.status(404).json({ ok: false, error: 'Product not found' });
+    }
+    safeWriteJson(PRODUCTS_FILE, items);
+    res.json({ ok: true, message: 'Product deleted' });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/* ── 2. CUSTOMERS REST API ── */
+app.get('/api/customers', (req, res) => {
+  try {
+    let items = safeReadJson(CUSTOMERS_FILE, []);
+    const { search, country, tag, limit } = req.query;
+
+    if (country && country !== 'all') {
+      items = items.filter(c => (c.country || '').toUpperCase() === country.toUpperCase());
+    }
+    if (tag && tag !== 'all') {
+      items = items.filter(c => (c.tags || []).includes(tag));
+    }
+    if (search && search.trim()) {
+      const q = search.toLowerCase().trim();
+      items = items.filter(c =>
+        (c.name || '').toLowerCase().includes(q) ||
+        (c.companyName || '').toLowerCase().includes(q) ||
+        (c.email || '').toLowerCase().includes(q) ||
+        (c.phone || '').toLowerCase().includes(q) ||
+        (c.country || '').toLowerCase().includes(q)
+      );
+    }
+
+    const maxItems = limit ? parseInt(limit, 10) : 500;
+    res.json({ ok: true, items: items.slice(0, maxItems), count: items.length });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/api/customers/:id', (req, res) => {
+  const items = safeReadJson(CUSTOMERS_FILE, []);
+  const customer = items.find(c => String(c.id) === String(req.params.id));
+  if (!customer) return res.status(404).json({ ok: false, error: 'Customer not found' });
+  res.json({ ok: true, item: customer });
+});
+
+app.post('/api/customers', (req, res) => {
+  try {
+    const data = req.body;
+    if (!data.name && !data.Name && !data.companyName) {
+      return res.status(400).json({ ok: false, error: 'Customer name or company is required' });
+    }
+
+    const items = safeReadJson(CUSTOMERS_FILE, []);
+    const name = (data.name || data.Name || data.companyName || 'New Buyer').trim();
+    const newId = data.id || data.ID || ('cust-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1000));
+
+    const newCustomer = {
+      id: newId,
+      name,
+      companyName: data.companyName || name,
+      contactPerson: data.contactPerson || name,
+      email: data.email || data.Email || '',
+      phone: data.phone || data.Phone || '',
+      country: data.country || data.Address || 'BD',
+      currency: data.currency || 'BDT',
+      totalSpent: Number(data.totalSpent || 0),
+      totalOrders: Number(data.totalOrders || 0),
+      moq: Number(data.moq || 0),
+      paymentTerms: data.paymentTerms || data.terms || 'Cash on Delivery (COD)',
+      tags: Array.isArray(data.tags) ? data.tags : ['retail-customer'],
+      addressLine1: data.addressLine1 || data.Address || '',
+      addresses: data.addresses || [
+        { type: 'shipping', line1: data.addressLine1 || data.Address || '', city: 'Dhaka', country: data.country || 'BD', isDefault: true }
+      ],
+      notes: data.notes || [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    items.unshift(newCustomer);
+    safeWriteJson(CUSTOMERS_FILE, items);
+
+    res.json({ ok: true, id: newId, item: newCustomer });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.put('/api/customers/:id', (req, res) => {
+  try {
+    const items = safeReadJson(CUSTOMERS_FILE, []);
+    const idx = items.findIndex(c => String(c.id) === String(req.params.id));
+    if (idx === -1) return res.status(404).json({ ok: false, error: 'Customer not found' });
+
+    const updated = {
+      ...items[idx],
+      ...req.body,
+      updatedAt: new Date().toISOString()
+    };
+
+    items[idx] = updated;
+    safeWriteJson(CUSTOMERS_FILE, items);
+    res.json({ ok: true, item: updated });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.delete('/api/customers/:id', (req, res) => {
+  try {
+    let items = safeReadJson(CUSTOMERS_FILE, []);
+    const initialLen = items.length;
+    items = items.filter(c => String(c.id) !== String(req.params.id));
+    if (items.length === initialLen) {
+      return res.status(404).json({ ok: false, error: 'Customer not found' });
+    }
+    safeWriteJson(CUSTOMERS_FILE, items);
+    res.json({ ok: true, message: 'Customer deleted' });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/* ── 3. ORDERS REST API ── */
+app.get('/api/orders', (req, res) => {
+  try {
+    let items = safeReadJson(ORDERS_FILE, []);
+    const { search, status, paymentStatus, fulfillmentStatus, sortBy, sortDir } = req.query;
+
+    if (status && status !== 'all') {
+      items = items.filter(o => o.status === status);
+    }
+    if (paymentStatus && paymentStatus !== 'all') {
+      items = items.filter(o => o.paymentStatus === paymentStatus);
+    }
+    if (fulfillmentStatus && fulfillmentStatus !== 'all') {
+      items = items.filter(o => o.fulfillmentStatus === fulfillmentStatus);
+    }
+    if (search && search.trim()) {
+      const q = search.toLowerCase().trim();
+      items = items.filter(o =>
+        (o.orderNumber || '').toLowerCase().includes(q) ||
+        (o.customerSnapshot?.name || '').toLowerCase().includes(q) ||
+        (o.customerSnapshot?.phone || '').toLowerCase().includes(q) ||
+        (o.lineItems || []).some(li => (li.title || '').toLowerCase().includes(q))
+      );
+    }
+
+    if (sortBy === 'total') {
+      items.sort((a, b) => sortDir === 'asc' ? (a.total || 0) - (b.total || 0) : (b.total || 0) - (a.total || 0));
+    } else {
+      items.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    }
+
+    res.json({ ok: true, items, count: items.length });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/api/orders/:id', (req, res) => {
+  const items = safeReadJson(ORDERS_FILE, []);
+  const order = items.find(o => o.id === req.params.id || o.orderNumber === req.params.id);
+  if (!order) return res.status(404).json({ ok: false, error: 'Order not found' });
+  res.json({ ok: true, item: order });
+});
+
+app.post('/api/orders', (req, res) => {
+  try {
+    const data = req.body;
+    const orders = safeReadJson(ORDERS_FILE, []);
+    const products = safeReadJson(PRODUCTS_FILE, []);
+
+    const orderNumber = data.orderNumber || ('NX-' + Math.floor(1000 + Math.random() * 9000));
+    const newId = data.id || ('ord-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 1000));
+
+    // Resolve line items
+    let lineItems = [];
+    if (Array.isArray(data.items) && data.items.length) {
+      lineItems = data.items.map(item => ({
+        productId: item.productId || item.id || '',
+        title: item.title || item.name || 'Leather Goods',
+        sku: item.sku || 'HH-ITEM',
+        quantity: Number(item.quantity || 1),
+        price: Number(item.price || 0)
+      }));
+    } else if (typeof data.Items === 'string') {
+      lineItems = [{
+        productId: '',
+        title: data.Items,
+        sku: 'HH-ITEM',
+        quantity: 1,
+        price: Number(data.Total || 0)
+      }];
+    } else {
+      lineItems = [{
+        productId: '',
+        title: 'B2B Custom Order',
+        sku: 'HH-B2B',
+        quantity: 1,
+        price: Number(data.total || data.Total || 0)
+      }];
+    }
+
+    // Deduct stock from products if matched
+    lineItems.forEach(item => {
+      const prod = products.find(p => p.id === item.productId || p.title === item.title);
+      if (prod && prod.totalInventory !== undefined) {
+        prod.totalInventory = Math.max(0, prod.totalInventory - item.quantity);
+      }
+    });
+    safeWriteJson(PRODUCTS_FILE, products);
+
+    const subtotal = lineItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+    const shipping = Number(data.deliveryFee || data.shipping || 0);
+    const discount = Number(data.discount || 0);
+    const total = Number(data.total || data.Total || (subtotal + shipping - discount));
+
+    const newOrder = {
+      id: newId,
+      orderNumber,
+      customerSnapshot: {
+        name: data.customer?.name || data.Customer || 'Walk-in Buyer',
+        phone: data.customer?.phone || data.phone || '',
+        email: data.customer?.email || data.email || '',
+        country: data.customer?.country || 'BD',
+        currency: data.customer?.currency || 'BDT'
+      },
+      lineItems,
+      subtotal,
+      shipping,
+      discount,
+      total,
+      currency: data.currency || 'BDT',
+      paymentStatus: data.paymentStatus || 'paid',
+      fulfillmentStatus: data.fulfillmentStatus || 'unfulfilled',
+      status: data.status || 'open',
+      paymentMethod: data.paymentMethod || data.method || 'cash',
+      shippingAddress: data.shippingAddress || { line1: data.address || '', city: 'Dhaka', country: 'BD' },
+      notes: data.notes || '',
+      timeline: [
+        {
+          event: `Order placed (${lineItems.length} items, ৳${total.toLocaleString()})`,
+          at: new Date().toISOString(),
+          by: 'Operator 1981'
+        }
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    orders.unshift(newOrder);
+    safeWriteJson(ORDERS_FILE, orders);
+
+    res.json({ ok: true, id: newId, orderNumber, item: newOrder });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.put('/api/orders/:id', (req, res) => {
+  try {
+    const orders = safeReadJson(ORDERS_FILE, []);
+    const idx = orders.findIndex(o => o.id === req.params.id || o.orderNumber === req.params.id);
+    if (idx === -1) return res.status(404).json({ ok: false, error: 'Order not found' });
+
+    const existing = orders[idx];
+    const patch = req.body;
+    const timeline = existing.timeline || [];
+
+    if (patch.status && patch.status !== existing.status) {
+      timeline.push({
+        event: `Status changed to ${patch.status.toUpperCase()}`,
+        at: new Date().toISOString(),
+        by: 'Operator 1981'
+      });
+    }
+
+    const updated = {
+      ...existing,
+      ...patch,
+      timeline,
+      updatedAt: new Date().toISOString()
+    };
+
+    orders[idx] = updated;
+    safeWriteJson(ORDERS_FILE, orders);
+    res.json({ ok: true, item: updated });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.delete('/api/orders/:id', (req, res) => {
+  try {
+    let orders = safeReadJson(ORDERS_FILE, []);
+    const initialLen = orders.length;
+    orders = orders.filter(o => o.id !== req.params.id && o.orderNumber !== req.params.id);
+    if (orders.length === initialLen) {
+      return res.status(404).json({ ok: false, error: 'Order not found' });
+    }
+    safeWriteJson(ORDERS_FILE, orders);
+    res.json({ ok: true, message: 'Order deleted' });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/* ── 4. REAL-TIME BUSINESS STATS ── */
+app.get('/api/stats', (req, res) => {
+  try {
+    const orders = safeReadJson(ORDERS_FILE, []);
+    const products = safeReadJson(PRODUCTS_FILE, []);
+    const customers = safeReadJson(CUSTOMERS_FILE, []);
+
+    const salesToday = orders.reduce((sum, o) => sum + (o.status !== 'cancelled' ? (o.total || 0) : 0), 0);
+    const pending = orders.filter(o => o.fulfillmentStatus === 'unfulfilled' && o.status !== 'cancelled').length;
+
+    res.json({
+      ok: true,
+      salesToday,
+      ordersToday: orders.length,
+      pending,
+      catalog: products.length,
+      customers: customers.length
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 

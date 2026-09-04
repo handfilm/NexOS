@@ -184,9 +184,33 @@ window.ProductsService = {
 
   /* ── Query & List Products with Search, Filtering & Sorting ── */
   async list({ status = null, search = null, productType = null, vendor = null, sortBy = "updatedAt", sortDir = "desc" } = {}) {
-    try { await window.NexAuth.ensureAuth(); } catch (e) {}
-
     let items = [];
+
+    // 1. Primary Cross-Device Persistent Storage (/api/products)
+    try {
+      const qParams = new URLSearchParams();
+      if (status && status !== "all") qParams.append("status", status);
+      if (productType && productType !== "all") qParams.append("category", productType);
+      if (vendor && vendor !== "all") qParams.append("vendor", vendor);
+      if (search && search.trim()) qParams.append("search", search.trim());
+      if (sortBy) qParams.append("sortBy", sortBy);
+      if (sortDir) qParams.append("sortDir", sortDir);
+
+      const resp = await fetch("/api/products?" + qParams.toString());
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.ok && Array.isArray(data.items) && data.items.length) {
+          items = data.items;
+          try { localStorage.setItem("nx_products_cache", JSON.stringify(items)); } catch (e) {}
+          return { items, lastDoc: null };
+        }
+      }
+    } catch (apiErr) {
+      console.debug("Products API fetch notice (switching to Firestore/local):", apiErr.message);
+    }
+
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
+    items = [];
 
     try {
       let q = window.Collections.products;
@@ -342,6 +366,24 @@ window.ProductsService = {
     };
 
     let newId = "prod-" + Date.now().toString(36);
+
+    // 1. Primary Cross-Device Server Persistence
+    try {
+      const resp = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, id: newId })
+      });
+      if (resp.ok) {
+        const resData = await resp.json();
+        if (resData.ok && resData.id) {
+          newId = resData.id;
+        }
+      }
+    } catch (apiErr) {
+      console.debug("Products API write note (falling back):", apiErr.message);
+    }
+
     try {
       const ref = await window.Collections.products.add(payload);
       newId = ref.id;
@@ -387,6 +429,17 @@ window.ProductsService = {
       patch.totalInventory = Number(data.stock) || 0;
     }
 
+    // 1. Primary Cross-Device Server Persistence
+    try {
+      await fetch(`/api/products/${encodeURIComponent(productId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch)
+      });
+    } catch (apiErr) {
+      console.debug("Products API update note:", apiErr.message);
+    }
+
     try {
       await window.Collections.products.doc(productId).set(patch, { merge: true });
       if (patch.totalInventory !== undefined) {
@@ -413,6 +466,14 @@ window.ProductsService = {
   /* ── Archive Product ── */
   async archive(productId) {
     try {
+      await fetch(`/api/products/${encodeURIComponent(productId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "archived" })
+      });
+    } catch (e) {}
+
+    try {
       await window.NexAuth.ensureAuth();
       await window.Collections.products.doc(productId).update({
         status: "archived",
@@ -436,6 +497,14 @@ window.ProductsService = {
   /* ── Unarchive / Activate Product ── */
   async activate(productId) {
     try {
+      await fetch(`/api/products/${encodeURIComponent(productId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "active" })
+      });
+    } catch (e) {}
+
+    try {
       await window.NexAuth.ensureAuth();
       await window.Collections.products.doc(productId).update({
         status: "active",
@@ -458,6 +527,10 @@ window.ProductsService = {
 
   /* ── Delete Product ── */
   async delete(productId) {
+    try {
+      await fetch(`/api/products/${encodeURIComponent(productId)}`, { method: "DELETE" });
+    } catch (e) {}
+
     try {
       await window.NexAuth.ensureAuth();
       await window.Collections.products.doc(productId).delete();
