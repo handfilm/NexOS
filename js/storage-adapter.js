@@ -332,8 +332,8 @@
 
             if (window.ProductsService && typeof window.ProductsService.createProduct === 'function') {
               await window.ProductsService.createProduct(newProduct);
-            } else if (window.db && window.Collections) {
-              await window.db.collection(window.Collections.products).doc(newProduct.id).set(newProduct);
+            } else if (window.Collections && window.Collections.products) {
+              await window.Collections.products.doc(newProduct.id).set(newProduct);
             }
             summary.created++;
           } else {
@@ -357,8 +357,8 @@
 
               if (window.ProductsService && typeof window.ProductsService.updateProduct === 'function') {
                 await window.ProductsService.updateProduct(existing.id, patch);
-              } else if (window.db && window.Collections) {
-                await window.db.collection(window.Collections.products).doc(existing.id).update(patch);
+              } else if (window.Collections && window.Collections.products) {
+                await window.Collections.products.doc(existing.id).update(patch);
               }
               summary.updated++;
             } else {

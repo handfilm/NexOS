@@ -181,8 +181,8 @@
       // 3. Save into Orders Service & Firestore
       if (window.OrdersService && typeof window.OrdersService.createOrder === 'function') {
         await window.OrdersService.createOrder(orderRecord);
-      } else if (window.db && window.Collections) {
-        await window.db.collection(window.Collections.orders).doc(orderRecord.id).set(orderRecord);
+      } else if (window.Collections && window.Collections.orders) {
+        await window.Collections.orders.doc(orderRecord.id).set(orderRecord);
       }
 
       // 4. Emit global event

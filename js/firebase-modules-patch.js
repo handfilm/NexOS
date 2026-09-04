@@ -1640,6 +1640,9 @@
                   <div class="ot" style="font-size:12px;">${o.orderNumber} · ৳${(o.total || 0).toLocaleString()}</div>
                   <div class="os" style="font-size:10px;">${(o.lineItems || []).map(li => `${li.title} (${li.quantity})`).join(', ')}</div>
                 </div>
+                <button class="btn btn-xs btn-gold" style="font-size:9px;padding:2px 7px;font-weight:700;margin-right:4px;" onclick="event.stopPropagation(); window.openOrderInvoice('${encodeURIComponent(o.id)}')" title="Generate PDF Invoice">
+                  📄 Invoice
+                </button>
                 <span class="pill ${o.status === 'completed' ? 'ok' : o.status === 'cancelled' ? 'warn' : 'amber'}" style="font-size:8px;">${(o.status || 'open').toUpperCase()}</span>
               </div>
             `).join('') : '<div class="empty" style="padding:14px;">No linked orders recorded yet</div>'}
@@ -1969,6 +1972,9 @@
                   </div>
                 </div>
                 <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+                  <button class="btn btn-xs btn-gold" style="font-size:9.5px;padding:3px 7px;font-weight:800;display:inline-flex;align-items:center;gap:3px;" onclick="event.stopPropagation(); window.openOrderInvoice('${encodeURIComponent(o.id)}');" title="Generate & view official PDF invoice">
+                    📄 Invoice
+                  </button>
                   <button class="btn btn-xs btn-dark" style="font-size:9.5px;padding:3px 7px;" onclick="event.stopPropagation(); window.copyOrderForCourier('${o.id}');" title="Copy courier delivery slip">
                     📋 Slip
                   </button>
@@ -2001,6 +2007,11 @@
           <button class="batch-action-btn" onclick="window.openBatchOrderLabelsModal()">
             🏷️ Bulk Print Labels
           </button>
+          ${window._selectedOrderIds.size === 1 ? `
+            <button class="batch-action-btn btn-batch-primary" onclick="window.openOrderInvoice(Array.from(window._selectedOrderIds)[0])">
+              📄 View PDF Invoice
+            </button>
+          ` : ''}
           <button class="batch-action-btn" onclick="window.batchFulfillAndPayOrders()">
             📦 Bulk Fulfill &amp; Pay
           </button>
@@ -2294,9 +2305,15 @@
             </div>
           </div>
 
-          <!-- Quick Action Buttons: Customize & Courier Dispatch -->
+          <!-- Quick Action Buttons: Customize & Courier Dispatch & PDF Invoice -->
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-            <button class="btn btn-gold btn-sm" onclick="window.toggleOrderCustomizer('${o.id}')" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;">
+            <button class="btn btn-gold btn-sm" onclick="window.openOrderInvoice('${encodeURIComponent(o.id)}')" style="display:inline-flex;align-items:center;gap:5px;font-weight:800;background:var(--gold);color:#0f172a;">
+              📄 PDF Invoice
+            </button>
+            <button class="btn btn-dark btn-sm" onclick="window.downloadOrderInvoicePdf('${encodeURIComponent(o.id)}')" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;" title="Instantly export and download high-resolution PDF invoice">
+              📥 Download PDF
+            </button>
+            <button class="btn btn-dark btn-sm" onclick="window.toggleOrderCustomizer('${o.id}')" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;">
               ✏️ Customize Order
             </button>
             <button class="btn btn-dark btn-sm" onclick="window.copyOrderForCourier('${o.id}')" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;">
@@ -2595,6 +2612,19 @@
               <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:8px;border-top:2px solid var(--wire-hard);">
                 <span style="font-size:15px;font-weight:800;color:var(--ink);">Grand Total</span>
                 <span style="font-size:18px;font-weight:900;color:var(--gold);font-family:var(--mono);">৳${grandTotal.toLocaleString()}</span>
+              </div>
+
+              <!-- Quick Invoice Action Strip -->
+              <div style="display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--wire);">
+                <button class="btn btn-dark btn-sm" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="window.openOrderInvoice('${encodeURIComponent(o.id)}')">
+                  📄 Commercial PDF Invoice
+                </button>
+                <button class="btn btn-dark btn-sm" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="window.downloadOrderInvoicePdf('${encodeURIComponent(o.id)}')" title="Download PDF directly">
+                  📥 PDF
+                </button>
+                <button class="btn btn-dark btn-sm" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="window.printOrderInvoice('${encodeURIComponent(o.id)}')" title="Print or save as PDF via system dialog">
+                  🖨️ Print
+                </button>
               </div>
             </div>
           </div>

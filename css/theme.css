@@ -2865,8 +2865,24 @@ a { color:var(--coral); text-decoration:none; }
   body * {
     visibility: hidden;
   }
-  .sheet, .sheet *, .qr-hangtag-card, .qr-hangtag-card *, .barcode-label-card, .barcode-label-card * {
+  .sheet, .sheet *, .qr-hangtag-card, .qr-hangtag-card *, .barcode-label-card, .barcode-label-card *, .hh-invoice-sheet, .hh-invoice-sheet * {
     visibility: visible;
+  }
+  .hh-invoice-sheet {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    background: #FFF !important;
+    box-shadow: none !important;
+    border: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .invoice-modal-wrap, .fast-order-overlay, .fo-header, .invoice-actions-bar {
+    display: none !important;
   }
   .sheet {
     position: absolute;
@@ -2887,6 +2903,101 @@ a { color:var(--coral); text-decoration:none; }
     gap: 16px !important;
   }
 }
+
+/* ── Professional Invoice Styling ── */
+.invoice-modal-dialog {
+  max-width: 840px !important;
+  width: 96% !important;
+  padding: 0 !important;
+  overflow: hidden;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  max-height: 94vh;
+}
+
+.invoice-preview-container {
+  overflow-y: auto;
+  padding: 24px;
+  background: var(--bg-neu-dark);
+  display: flex;
+  justify-content: center;
+}
+
+.hh-invoice-sheet {
+  width: 100%;
+  max-width: 790px;
+  min-height: 980px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 36px 40px;
+  box-sizing: border-box;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  position: relative;
+}
+
+.hh-invoice-sheet * {
+  box-sizing: border-box;
+}
+
+.hh-inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+
+.hh-inv-table th {
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 700;
+  text-align: left;
+  padding: 10px 12px;
+  border-top: 1.5px solid #0f172a;
+  border-bottom: 1.5px solid #0f172a;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hh-inv-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #1e293b;
+  vertical-align: top;
+}
+
+.hh-inv-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.hh-inv-badge.paid {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.hh-inv-badge.cod {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.hh-inv-badge.shipped {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
 
 
 

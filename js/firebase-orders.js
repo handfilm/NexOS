@@ -412,6 +412,38 @@ window.OrdersService = {
       localStorage.setItem("nx_orders_cache", JSON.stringify(filtered));
     } catch (e) {}
     return true;
+  },
+
+  /* ── Hydrate Comprehensive Order & Customer Data for Invoicing ── */
+  async getInvoiceData(orderId) {
+    const order = await this.get(orderId);
+    if (!order) return null;
+
+    let customer = null;
+    if (order.customerId && window.CustomersService) {
+      try {
+        customer = await window.CustomersService.get(order.customerId);
+      } catch (e) {
+        console.warn("Could not fetch customer by ID for invoice:", e);
+      }
+    }
+
+    // Fallback: match by phone or name in customer database
+    if (!customer && window.CustomersService) {
+      const snapPhone = order.customerSnapshot?.phone || order.phone || order.shippingAddress?.phone;
+      const snapName = order.customerSnapshot?.name || order.customerName;
+      if (snapPhone || snapName) {
+        try {
+          const cachedCustomers = JSON.parse(localStorage.getItem("nx_customers_cache") || "[]");
+          customer = cachedCustomers.find(c => 
+            (snapPhone && c.phone && c.phone.replace(/[^0-9]/g, "") === String(snapPhone).replace(/[^0-9]/g, "")) ||
+            (snapName && c.name && c.name.toLowerCase() === snapName.toLowerCase())
+          ) || null;
+        } catch (e) {}
+      }
+    }
+
+    return { order, customer };
   }
 };
 
