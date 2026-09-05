@@ -978,24 +978,26 @@
             </div>
           </div>
 
-          <table style="width:100%;font-size:11px;border-collapse:collapse;margin:12px 0;">
-            <thead>
-              <tr style="border-bottom:1px solid #E5E7EB;color:#6B7280;font-size:9px;text-align:left;">
-                <th style="padding:4px 0;">ITEM</th>
-                <th style="text-align:center;">QTY</th>
-                <th style="text-align:right;">PRICE (BDT)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${draft.lineItems.map(li => `
-                <tr style="border-bottom:1px solid #F3F4F6;">
-                  <td style="padding:6px 0;font-weight:600;">${li.title}</td>
-                  <td style="text-align:center;">${li.quantity}</td>
-                  <td style="text-align:right;">৳${(li.unitPriceBDT * li.quantity).toLocaleString()}</td>
+          <div class="table-responsive">
+            <table style="width:100%;font-size:11px;border-collapse:collapse;margin:12px 0;">
+              <thead>
+                <tr style="border-bottom:1px solid #E5E7EB;color:#6B7280;font-size:9px;text-align:left;">
+                  <th style="padding:4px 0;">ITEM</th>
+                  <th style="text-align:center;">QTY</th>
+                  <th style="text-align:right;">PRICE (BDT)</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                ${draft.lineItems.map(li => `
+                  <tr style="border-bottom:1px solid #F3F4F6;">
+                    <td style="padding:6px 0;font-weight:600;">${li.title}</td>
+                    <td style="text-align:center;">${li.quantity}</td>
+                    <td style="text-align:right;">৳${(li.unitPriceBDT * li.quantity).toLocaleString()}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
 
           <div style="display:flex;justify-content:flex-end;margin-top:8px;">
             <div style="text-align:right;font-size:11px;">

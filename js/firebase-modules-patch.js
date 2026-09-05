@@ -1911,7 +1911,7 @@
         { label: "+ Standard Order", fn: "window.openAdvancedOrderForm()", primary: false }
       ]) + `
         <!-- Filter & Multi-Select Toolbar -->
-        <div style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+        <div class="orders-toolbar" style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
           <!-- Select All Checkbox Component -->
           <label style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-3);border:1px solid var(--wire);padding:0 10px;height:34px;border-radius:6px;cursor:pointer;user-select:none;">
             <input type="checkbox" id="cb_select_all_orders" class="item-select-checkbox" 
@@ -1942,7 +1942,7 @@
           </select>
         </div>
 
-        <div class="orders-container" style="margin:0 20px 80px;">
+        <div class="orders-container" style="margin:0 auto 80px;width:100%;max-width:100%;padding:0 20px;">
           ${items.length ? items.map(o => {
             const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString() : (new Date(o.createdAt || Date.now())).toLocaleDateString();
             const isSelected = window._selectedOrderIds.has(o.id);
@@ -1971,7 +1971,7 @@
                     📍 ${o.customerSnapshot?.address || o.shippingAddress?.line1 || o.address || 'Address pending'} · ${(o.lineItems || []).map(li => `${li.title} (${li.quantity})`).join(', ')}
                   </div>
                 </div>
-                <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+                <div class="orow-actions" style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
                   <button class="btn btn-xs btn-gold" style="font-size:9.5px;padding:3px 7px;font-weight:800;display:inline-flex;align-items:center;gap:3px;" onclick="event.stopPropagation(); window.openOrderInvoice('${encodeURIComponent(o.id)}');" title="Generate & view official PDF invoice">
                     📄 Invoice
                   </button>
@@ -2338,13 +2338,13 @@
               Shopify Order Status Tracker
             </div>
             
-            <div style="display:flex;align-items:center;justify-content:space-between;position:relative;">
+            <div class="order-status-stepper" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
               <!-- Connecting Line -->
               <div style="position:absolute;top:14px;left:24px;right:24px;height:3px;background:var(--wire);z-index:1;"></div>
-              <div style="position:absolute;top:14px;left:24px;width:${step4Done ? '100%' : step3Done ? '66%' : step2Done ? '33%' : '0%'};height:3px;background:var(--coral);z-index:2;transition:width 0.3s ease;"></div>
+              <div style="position:absolute;top:14px;left:24px;width:${step4Done ? 'calc(100% - 48px)' : step3Done ? 'calc((100% - 48px) * 0.66)' : step2Done ? 'calc((100% - 48px) * 0.33)' : '0px'};height:3px;background:var(--coral);z-index:2;transition:width 0.3s ease;"></div>
 
               <!-- Step 1: Confirmed -->
-              <div style="position:relative;z-index:3;text-align:center;width:60px;">
+              <div class="stepper-step" style="position:relative;z-index:3;text-align:center;width:60px;">
                 <div style="width:28px;height:28px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:var(--coral);color:#fff;box-shadow:var(--coral-shadow);">
                   ✓
                 </div>
@@ -2352,7 +2352,7 @@
               </div>
 
               <!-- Step 2: In Atelier / Packed -->
-              <div style="position:relative;z-index:3;text-align:center;width:60px;">
+              <div class="stepper-step" style="position:relative;z-index:3;text-align:center;width:60px;">
                 <div style="width:28px;height:28px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:${step2Done ? 'var(--coral)' : 'var(--bg-3)'};color:${step2Done ? '#fff' : 'var(--ink-3)'};border:2px solid ${step2Done ? 'var(--coral)' : 'var(--wire)'};">
                   ${step2Done ? '✓' : '2'}
                 </div>
@@ -2360,7 +2360,7 @@
               </div>
 
               <!-- Step 3: Dispatched -->
-              <div style="position:relative;z-index:3;text-align:center;width:60px;">
+              <div class="stepper-step" style="position:relative;z-index:3;text-align:center;width:60px;">
                 <div style="width:28px;height:28px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:${step3Done ? 'var(--coral)' : 'var(--bg-3)'};color:${step3Done ? '#fff' : 'var(--ink-3)'};border:2px solid ${step3Done ? 'var(--coral)' : 'var(--wire)'};">
                   ${step3Done ? '✓' : '3'}
                 </div>
@@ -2368,7 +2368,7 @@
               </div>
 
               <!-- Step 4: Delivered -->
-              <div style="position:relative;z-index:3;text-align:center;width:60px;">
+              <div class="stepper-step" style="position:relative;z-index:3;text-align:center;width:60px;">
                 <div style="width:28px;height:28px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:${step4Done ? '#10B981' : 'var(--bg-3)'};color:${step4Done ? '#fff' : 'var(--ink-3)'};border:2px solid ${step4Done ? '#10B981' : 'var(--wire)'};">
                   ${step4Done ? '✓' : '4'}
                 </div>
@@ -2394,7 +2394,7 @@
             </div>
 
             <!-- Customer & Phone -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="courier-info-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
               <div style="background:var(--bg-3);padding:10px 12px;border-radius:8px;border:1px solid var(--wire);">
                 <div style="font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">Customer Name</div>
                 <div style="font-size:16px;font-weight:800;color:var(--ink);margin-top:2px;word-break:break-word;">
@@ -2615,8 +2615,8 @@
               </div>
 
               <!-- Quick Invoice Action Strip -->
-              <div style="display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--wire);">
-                <button class="btn btn-dark btn-sm" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="window.openOrderInvoice('${encodeURIComponent(o.id)}')">
+              <div style="display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--wire);flex-wrap:wrap;">
+                <button class="btn btn-dark btn-sm" style="flex:1;min-width:160px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="window.openOrderInvoice('${encodeURIComponent(o.id)}')">
                   📄 Commercial PDF Invoice
                 </button>
                 <button class="btn btn-dark btn-sm" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="window.downloadOrderInvoicePdf('${encodeURIComponent(o.id)}')" title="Download PDF directly">
@@ -2681,8 +2681,8 @@
           </div>
 
           <!-- Bottom Action Buttons -->
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-gold" style="flex:1;font-weight:700;" onclick="window.saveOrderStatus('${o.id}')">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-gold" style="flex:1;min-width:160px;font-weight:700;" onclick="window.saveOrderStatus('${o.id}')">
               Save Status Updates
             </button>
             ${o.status !== 'cancelled' ? `

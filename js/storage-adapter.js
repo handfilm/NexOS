@@ -476,7 +476,7 @@
             <button class="btn btn-sm btn-dark" onclick="window.addCategoryRuleRow()">+ Add Prefix Rule</button>
           </div>
 
-          <div style="overflow-x:auto;">
+          <div class="table-responsive" style="overflow-x:auto;">
             <table style="width:100%;border-collapse:collapse;font-size:13px;">
               <thead>
                 <tr style="border-bottom:1.5px solid var(--wire);color:var(--ink-3);text-align:left;font-family:var(--mono);font-size:11px;">

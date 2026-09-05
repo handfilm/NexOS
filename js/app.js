@@ -109,19 +109,22 @@ async function spine(action, payload={}) {
     if (action === "listOrders" || action === "getOrders") {
       if (window.OrdersService) {
         const { items } = await window.OrdersService.list({ sortBy: "createdAt", sortDir: "desc" });
-        if (items && items.length) {
-          return {
-            items: items.map(o => ({
-              id: o.orderNumber || o.id,
-              t: (o.lineItems || []).map(li => `${li.title} x${li.quantity}`).join(", ") || "Leather Goods",
-              s: `${o.customerSnapshot?.name || 'Walk-in'} · ৳${(o.total || 0).toLocaleString()}`,
-              st: [
-                (o.status || 'NEW').toUpperCase(),
-                o.status === 'completed' ? 'ok' : o.status === 'cancelled' ? 'warn' : 'amber'
-              ]
-            }))
-          };
-        }
+        return {
+          items: (items || []).map(o => ({
+            id: o.orderNumber || o.id,
+            rawId: o.id,
+            total: o.total || 0,
+            status: o.status || 'NEW',
+            fulfillmentStatus: o.fulfillmentStatus || 'unfulfilled',
+            createdAt: o.createdAt,
+            t: (o.lineItems || []).map(li => `${li.title} x${li.quantity}`).join(", ") || "Leather Goods",
+            s: `${o.customerSnapshot?.name || 'Walk-in'} · ৳${(o.total || 0).toLocaleString()}`,
+            st: [
+              (o.status || 'NEW').toUpperCase(),
+              o.status === 'completed' ? 'ok' : o.status === 'cancelled' ? 'warn' : 'amber'
+            ]
+          }))
+        };
       }
     }
     if (action === "getStats") {
@@ -294,8 +297,17 @@ function render() {
 
 /* ── Lite / Expert Home (Dynamic Drag-and-Drop Dashboard System) ── */
 async function renderLiteHome(b) {
-  const s = LS.get("stats") || {salesToday:0,ordersToday:0,pending:0};
-  const o = LS.get("orders") || [];
+  let s = LS.get("stats");
+  let o = LS.get("orders");
+  if (!s || !o) {
+    try {
+      const [sf, of2] = await Promise.all([spine("getStats"), spine("listOrders")]);
+      if (sf) { s = sf; LS.set("stats", sf); }
+      if (of2 && of2.items) { o = of2.items; LS.set("orders", o); }
+    } catch(e) {}
+  }
+  s = s || {salesToday:0,ordersToday:0,pending:0};
+  o = o || [];
 
   // Get FX for hero stat
   let fxLine = '';
@@ -363,7 +375,7 @@ async function renderLiteHome(b) {
             <div class="dash-accounting-grid">
               <div class="dash-acc-stat-box">
                 <div style="font-size:9.5px;font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">Synced Revenue</div>
-                <div style="font-size:17px;font-weight:800;color:var(--ink);font-family:var(--mono);">৳${(s.salesToday || 84600).toLocaleString()}</div>
+                <div style="font-size:17px;font-weight:800;color:var(--ink);font-family:var(--mono);" id="dash_acc_revenue">৳${(s.salesToday || 0).toLocaleString()}</div>
               </div>
               <div class="dash-acc-stat-box">
                 <div style="font-size:9.5px;font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">Pending Invoices</div>
@@ -406,17 +418,17 @@ async function renderLiteHome(b) {
           <div class="bento-grid">
             <div class="bento-card hero-stat">
               <div class="bento-label">Sales Today</div>
-              <div class="bento-value">৳${(s.salesToday||0).toLocaleString()}</div>
+              <div class="bento-value" id="dash_sales_today">৳${(s.salesToday||0).toLocaleString()}</div>
               <div class="bento-trend">Active Pipeline</div>
               ${fxLine ? `<div class="bento-fx">${fxLine}</div>` : ''}
             </div>
             <div class="bento-card">
               <div class="bento-label">Pending Orders</div>
-              <div class="bento-value" style="font-size:36px;color:var(--coral);">${s.pending||0}</div>
+              <div class="bento-value" id="dash_pending_orders" style="font-size:36px;color:var(--coral);">${s.pending||0}</div>
             </div>
             <div class="bento-card">
               <div class="bento-label">Completed Today</div>
-              <div class="bento-value" style="font-size:36px;">${s.ordersToday||0}</div>
+              <div class="bento-value" id="dash_completed_orders" style="font-size:36px;">${s.ordersToday||0}</div>
             </div>
           </div>
         `;
@@ -441,7 +453,7 @@ async function renderLiteHome(b) {
               <div style="display:flex;justify-content:space-between;align-items:flex-end;position:relative;z-index:2;">
                 <div>
                   <div style="font-size:9.5px;font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;letter-spacing:1px;">Today's Inflow</div>
-                  <div style="font-size:22px;font-weight:700;color:var(--ink);font-family:var(--mono);">৳${(s.salesToday || 84600).toLocaleString()}</div>
+                  <div style="font-size:22px;font-weight:700;color:var(--ink);font-family:var(--mono);" id="dash_vcard_inflow">৳${(s.salesToday || 0).toLocaleString()}</div>
                 </div>
                 <div style="text-align:right;">
                   <div style="font-size:9px;font-family:var(--mono);color:var(--ink-3);">EXP</div>
@@ -930,6 +942,9 @@ async function renderLiteHome(b) {
   try {
     const [sf, of2] = await Promise.all([spine("getStats"), spine("listOrders")]);
     LS.set("stats", sf); LS.set("orders", of2.items);
+    if (typeof window.updateDashboardLiveElements === "function") {
+      window.updateDashboardLiveElements(sf, of2.items);
+    }
   } catch(e) {}
 }
 
@@ -1829,6 +1844,193 @@ function setupQuickOrderLogic() {
   }
 }
 
+/* ── Live Dashboard UI Synchronizer ── */
+window.updateDashboardLiveElements = function(stats, orders) {
+  const s = stats || LS.get("stats") || { salesToday: 0, ordersToday: 0, pending: 0 };
+  const o = orders || LS.get("orders") || [];
+
+  const salesEl = document.getElementById("dash_sales_today");
+  if (salesEl) salesEl.innerText = `৳${(s.salesToday || 0).toLocaleString()}`;
+
+  const pendingEl = document.getElementById("dash_pending_orders");
+  if (pendingEl) pendingEl.innerText = String(s.pending || 0);
+
+  const compEl = document.getElementById("dash_completed_orders");
+  if (compEl) compEl.innerText = String(s.ordersToday || 0);
+
+  const accRevEl = document.getElementById("dash_acc_revenue");
+  if (accRevEl) accRevEl.innerText = `৳${(s.salesToday || 0).toLocaleString()}`;
+
+  const vcardEl = document.getElementById("dash_vcard_inflow");
+  if (vcardEl) vcardEl.innerText = `৳${(s.salesToday || 0).toLocaleString()}`;
+
+  const recentEl = document.getElementById("recentList");
+  if (recentEl && Array.isArray(o)) {
+    recentEl.innerHTML = ordersListHtml(o.slice(0, 5));
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   SYNC ENGINE (Continuous Server-Authoritative Cross-Device Heartbeat)
+   ═══════════════════════════════════════════════════════════════ */
+window.SyncEngine = {
+  _lastSignatures: null,
+  _timer: null,
+  _isSyncing: false,
+  _pollInterval: 5000,
+  _active: true,
+
+  init() {
+    this.poll();
+    this.bindEvents();
+  },
+
+  bindEvents() {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        this.check();
+      }
+    });
+    window.addEventListener("focus", () => {
+      this.check();
+    });
+
+    if (window.NexEvents) {
+      window.NexEvents.on("ORDERS_CHANGED", () => {
+        this.syncOrders(true);
+      });
+      window.NexEvents.on("ORDER_CREATED", () => {
+        this.syncOrders(true);
+      });
+      window.NexEvents.on("PRODUCTS_CHANGED", () => {
+        this.syncProducts(true);
+      });
+      window.NexEvents.on("CUSTOMERS_CHANGED", () => {
+        this.syncCustomers(true);
+      });
+    }
+  },
+
+  async poll() {
+    if (this._timer) clearTimeout(this._timer);
+    if (this._active) {
+      await this.check();
+    }
+    this._timer = setTimeout(() => this.poll(), this._pollInterval);
+  },
+
+  async check() {
+    if (this._isSyncing) return;
+    this._isSyncing = true;
+    try {
+      const resp = await fetch("/api/sync", { cache: "no-store" });
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (!data.ok || !data.signatures) return;
+
+      const sigs = data.signatures;
+      const prev = this._lastSignatures;
+      this._lastSignatures = sigs;
+
+      if (!prev) {
+        await this.syncOrders(false);
+        return;
+      }
+
+      const ordersChanged = prev.orders?.count !== sigs.orders?.count ||
+                            prev.orders?.lastUpdated !== sigs.orders?.lastUpdated ||
+                            prev.orders?.latestId !== sigs.orders?.latestId;
+
+      if (ordersChanged) {
+        await this.syncOrders(true);
+      }
+
+      const productsChanged = prev.products?.count !== sigs.products?.count ||
+                              prev.products?.lastUpdated !== sigs.products?.lastUpdated;
+      if (productsChanged) {
+        await this.syncProducts(true);
+      }
+
+      const customersChanged = prev.customers?.count !== sigs.customers?.count ||
+                               prev.customers?.lastUpdated !== sigs.customers?.lastUpdated;
+      if (customersChanged) {
+        await this.syncCustomers(true);
+      }
+    } catch (e) {
+      console.debug("[SyncEngine] Heartbeat notice:", e.message);
+    } finally {
+      this._isSyncing = false;
+    }
+  },
+
+  async syncOrders(forceRerender = false) {
+    try {
+      const [sf, of2] = await Promise.all([
+        spine("getStats"),
+        spine("listOrders")
+      ]);
+      if (sf) LS.set("stats", sf);
+      if (of2 && of2.items) LS.set("orders", of2.items);
+
+      const isHome = (!expScreen || expScreen === "dashboard" || expScreen === "Home");
+      if (isHome) {
+        window.updateDashboardLiveElements(sf, of2?.items || []);
+      } else if (expScreen === "Orders" && window.render && window.render.Orders) {
+        const modEl = document.getElementById("mod-Orders");
+        if (modEl) window.render.Orders(modEl);
+      }
+
+      if (mode === "production") {
+        const b = document.getElementById("body");
+        if (b) renderProductionView(b);
+      }
+
+      if (window.NexEvents) {
+        window.NexEvents.emit("DATA_SYNC", { type: "orders", count: of2?.items?.length || 0 });
+      }
+    } catch (e) {
+      console.debug("[SyncEngine] Sync orders note:", e.message);
+    }
+  },
+
+  async syncProducts(forceRerender = false) {
+    try {
+      if (window.ProductsService) {
+        await window.ProductsService.list();
+      }
+      if (typeof window.refreshHomeProductGallery === "function") {
+        window.refreshHomeProductGallery();
+      }
+      if (expScreen === "Products" && window.render && window.render.Products) {
+        const modEl = document.getElementById("mod-Products");
+        if (modEl) window.render.Products(modEl);
+      }
+      if (window.NexEvents) {
+        window.NexEvents.emit("DATA_SYNC", { type: "products" });
+      }
+    } catch (e) {
+      console.debug("[SyncEngine] Sync products note:", e.message);
+    }
+  },
+
+  async syncCustomers(forceRerender = false) {
+    try {
+      if (window.CustomersService) {
+        await window.CustomersService.list();
+      }
+      if (expScreen === "Customers" && window.render && window.render.Customers) {
+        const modEl = document.getElementById("mod-Customers");
+        if (modEl) window.render.Customers(modEl);
+      }
+      if (window.NexEvents) {
+        window.NexEvents.emit("DATA_SYNC", { type: "customers" });
+      }
+    } catch (e) {
+      console.debug("[SyncEngine] Sync customers note:", e.message);
+    }
+  }
+};
+
 /* ── Global Exports ── */
 window.openGate=openGate; window.closeGate=closeGate; window.tryGate=tryGate;
 window.startCamera=startCamera; window.exitExpert=exitExpert; window.exitProduction=exitProduction;
@@ -1836,9 +2038,15 @@ window.openAllOrders=openAllOrders; window.closeSheet=closeSheet; window.render=
 window.openDrawer=openDrawer; window.closeDrawer=closeDrawer; window.navTo=navTo;
 window.openAppModule=openAppModule; window.openAiChat=openAiChat; window.openSearch=openSearch;
 window.openQuickSale=openQuickSale; window.ordersListHtml=ordersListHtml; window.dCat=dCat; window.dCompanies=dCompanies;
+window.SyncEngine=SyncEngine;
 
 /* ── Boot ── */
 if (mode === "expert" || mode === "production") {
   applyTheme(mode);
 }
 render();
+
+// Initialize Continuous Cross-Device Sync Engine
+if (typeof window !== "undefined" && window.SyncEngine) {
+  window.SyncEngine.init();
+}

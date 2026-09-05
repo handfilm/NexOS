@@ -213,7 +213,7 @@
           </div>
 
           <!-- Customer & Consignee Two-Column Details -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;padding:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
+          <div class="inv-meta-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;padding:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
             <!-- Bill To -->
             <div>
               <div style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
@@ -253,51 +253,53 @@
           </div>
 
           <!-- Items Table -->
-          <table class="hh-inv-table">
-            <thead>
-              <tr>
-                <th style="width:36px;text-align:center;">#</th>
-                <th>Item Description &amp; Specifications</th>
-                <th style="width:110px;">SKU Code</th>
-                <th style="width:60px;text-align:center;">Qty</th>
-                <th style="width:100px;text-align:right;">Unit Price</th>
-                <th style="width:110px;text-align:right;">Amount (BDT)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${lineItems.map((li, idx) => {
-                const itemTotal = Number(li.lineTotal || (Number(li.price || 0) * Number(li.quantity || 1)));
-                return `
-                  <tr>
-                    <td style="text-align:center;color:#64748b;font-weight:700;font-size:11px;">${idx + 1}</td>
-                    <td>
-                      <div style="font-weight:800;color:#0f172a;font-size:13px;">${li.title || 'Atelier Item'}</div>
-                      ${li.variantTitle || li.color || li.size ? `
-                        <div style="font-size:11px;color:#64748b;margin-top:1px;">
-                          ${[li.variantTitle, li.color, li.size].filter(Boolean).join(' · ')}
-                        </div>
-                      ` : ''}
-                    </td>
-                    <td style="font-family:monospace;font-size:11px;color:#475569;">
-                      ${li.sku || 'HH-ATELIER'}
-                    </td>
-                    <td style="text-align:center;font-weight:800;font-size:13px;color:#0f172a;">
-                      ${li.quantity || 1}
-                    </td>
-                    <td style="text-align:right;font-family:monospace;font-size:12.5px;color:#334155;">
-                      ৳${Number(li.price || 0).toLocaleString()}
-                    </td>
-                    <td style="text-align:right;font-family:monospace;font-weight:800;font-size:13px;color:#0f172a;">
-                      ৳${itemTotal.toLocaleString()}
-                    </td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="hh-inv-table">
+              <thead>
+                <tr>
+                  <th style="width:36px;text-align:center;">#</th>
+                  <th>Item Description &amp; Specifications</th>
+                  <th style="width:110px;">SKU Code</th>
+                  <th style="width:60px;text-align:center;">Qty</th>
+                  <th style="width:100px;text-align:right;">Unit Price</th>
+                  <th style="width:110px;text-align:right;">Amount (BDT)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${lineItems.map((li, idx) => {
+                  const itemTotal = Number(li.lineTotal || (Number(li.price || 0) * Number(li.quantity || 1)));
+                  return `
+                    <tr>
+                      <td style="text-align:center;color:#64748b;font-weight:700;font-size:11px;">${idx + 1}</td>
+                      <td>
+                        <div style="font-weight:800;color:#0f172a;font-size:13px;">${li.title || 'Atelier Item'}</div>
+                        ${li.variantTitle || li.color || li.size ? `
+                          <div style="font-size:11px;color:#64748b;margin-top:1px;">
+                            ${[li.variantTitle, li.color, li.size].filter(Boolean).join(' · ')}
+                          </div>
+                        ` : ''}
+                      </td>
+                      <td style="font-family:monospace;font-size:11px;color:#475569;">
+                        ${li.sku || 'HH-ATELIER'}
+                      </td>
+                      <td style="text-align:center;font-weight:800;font-size:13px;color:#0f172a;">
+                        ${li.quantity || 1}
+                      </td>
+                      <td style="text-align:right;font-family:monospace;font-size:12.5px;color:#334155;">
+                        ৳${Number(li.price || 0).toLocaleString()}
+                      </td>
+                      <td style="text-align:right;font-family:monospace;font-weight:800;font-size:13px;color:#0f172a;">
+                        ৳${itemTotal.toLocaleString()}
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
 
           <!-- Special Customization & Financial Totals Breakdown -->
-          <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:24px;margin-top:18px;">
+          <div class="inv-totals-grid" style="display:grid;grid-template-columns:1.2fr 1fr;gap:24px;margin-top:18px;">
             <!-- Left: Notes & Customization -->
             <div>
               ${notes ? `

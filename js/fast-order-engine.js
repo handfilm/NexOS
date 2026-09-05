@@ -279,7 +279,7 @@
           </div>
 
           <!-- Customer Phone & Instant Auto-lookup -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div class="fo-row-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
             <div>
               <label class="fo-label">CUSTOMER PHONE NUMBER *</label>
               <div style="position:relative;">
@@ -294,7 +294,7 @@
           </div>
 
           <!-- Delivery Address & District -->
-          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="fo-row-2-1" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:14px;">
             <div>
               <label class="fo-label">DELIVERY ADDRESS *</label>
               <input type="text" id="foCustomerAddress" class="fo-input" placeholder="House, Road, Area, Thana" value="${draft.customer.address}" oninput="FastOrderEngine.draft.customer.address = this.value"/>
@@ -358,10 +358,10 @@
           </div>
 
           <!-- Delivery Charge & Payment Options -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="fo-row-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
             <div>
               <label class="fo-label">DELIVERY CHARGE (BDT)</label>
-              <div style="display:flex;gap:6px;margin-bottom:6px;">
+              <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;">
                 <button type="button" class="fo-chip ${draft.deliveryLocation === 'inside_dhaka' ? 'active' : ''}" onclick="window.setFODelivery('inside_dhaka')">Dhaka (৳80)</button>
                 <button type="button" class="fo-chip ${draft.deliveryLocation === 'outside_dhaka' ? 'active' : ''}" onclick="window.setFODelivery('outside_dhaka')">Outside (৳150)</button>
                 <button type="button" class="fo-chip ${draft.deliveryLocation === 'free' ? 'active' : ''}" onclick="window.setFODelivery('free')">Free (৳0)</button>
@@ -371,7 +371,7 @@
 
             <div>
               <label class="fo-label">PAYMENT METHOD</label>
-              <div style="display:flex;gap:6px;margin-bottom:6px;">
+              <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;">
                 <button type="button" class="fo-chip ${draft.paymentMethod === 'COD' ? 'active' : ''}" onclick="window.setFOPayment('COD')">COD</button>
                 <button type="button" class="fo-chip ${draft.paymentMethod === 'bKash' ? 'active' : ''}" onclick="window.setFOPayment('bKash')">bKash</button>
                 <button type="button" class="fo-chip ${draft.paymentMethod === 'Nagad' ? 'active' : ''}" onclick="window.setFOPayment('Nagad')">Nagad</button>
@@ -386,7 +386,7 @@
           </div>
 
           <!-- Total Summary & Submit -->
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--bg-neu-dark);border-radius:var(--r-md);margin-top:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--bg-neu-dark);border-radius:var(--r-md);margin-top:14px;flex-wrap:wrap;gap:12px;">
             <div>
               <div style="font-size:11px;color:var(--ink-3);text-transform:uppercase;font-family:var(--mono);">Grand Total Payable</div>
               <div id="foGrandTotalDisplay" style="font-size:22px;font-weight:800;color:var(--coral);font-family:var(--display);letter-spacing:0.5px;">
@@ -395,7 +395,7 @@
               <div style="font-size:11px;color:var(--ink-3);">Subtotal: ৳${totals.subtotal.toLocaleString()} + Delivery: ৳${totals.delivery}</div>
             </div>
 
-            <div style="display:flex;gap:10px;">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
               <button class="btn btn-dark" onclick="window.closeFastOrderModal()">Cancel</button>
               <button class="btn btn-gold" id="btnSaveFastOrder" onclick="window.submitFastOrderNow()" style="padding:10px 22px;font-weight:700;font-size:14px;">
                 ⚡ Create Order

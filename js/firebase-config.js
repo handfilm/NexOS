@@ -67,21 +67,10 @@ if (window.db && typeof window.db.enablePersistence === "function") {
   window.db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 }
 
-// In sandbox iframe environments or when backend is unreachable, gracefully transition to offline cache mode
-(async function verifyBackendReachability() {
-  try {
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("offline-timeout")), 2500));
-    const probe = window.db.collection("settings").limit(1).get();
-    await Promise.race([probe, timeout]);
-  } catch (err) {
-    // Gracefully switch to offline mode so pending queries resolve instantly from local cache
-    try {
-      if (window.db && typeof window.db.disableNetwork === "function") {
-        await window.db.disableNetwork();
-      }
-    } catch (e) {}
-  }
-})();
+// Ensure Firestore is connected to Cloud Firestore backend
+if (window.db && typeof window.db.enableNetwork === "function") {
+  window.db.enableNetwork().catch(e => console.debug("Firestore network status:", e?.message));
+}
 
 /* ── ৫. Firestore টাইমস্ট্যাম্প হেল্পার ── */
 window.FieldValue = firebase.firestore.FieldValue;

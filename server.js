@@ -1434,25 +1434,48 @@ app.post('/api/orders', (req, res) => {
 
     // Resolve line items
     let lineItems = [];
-    if (Array.isArray(data.items) && data.items.length) {
-      lineItems = data.items.map(item => ({
+    if (Array.isArray(data.lineItems) && data.lineItems.length) {
+      lineItems = data.lineItems.map(item => ({
         productId: item.productId || item.id || '',
+        variantId: item.variantId || 'default',
         title: item.title || item.name || 'Leather Goods',
         sku: item.sku || 'HH-ITEM',
-        quantity: Number(item.quantity || 1),
-        price: Number(item.price || 0)
+        quantity: Math.max(1, Number(item.quantity || 1)),
+        price: Number(item.price || 0),
+        image: item.image || ''
+      }));
+    } else if (Array.isArray(data.items) && data.items.length) {
+      lineItems = data.items.map(item => ({
+        productId: item.productId || item.id || '',
+        variantId: item.variantId || 'default',
+        title: item.title || item.name || 'Leather Goods',
+        sku: item.sku || 'HH-ITEM',
+        quantity: Math.max(1, Number(item.quantity || 1)),
+        price: Number(item.price || 0),
+        image: item.image || ''
       }));
     } else if (typeof data.Items === 'string') {
       lineItems = [{
         productId: '',
+        variantId: 'default',
         title: data.Items,
         sku: 'HH-ITEM',
         quantity: 1,
-        price: Number(data.Total || 0)
+        price: Number(data.Total || data.price || 0)
+      }];
+    } else if (data.item || data.Item) {
+      lineItems = [{
+        productId: '',
+        variantId: 'default',
+        title: String(data.item || data.Item),
+        sku: 'HH-ITEM',
+        quantity: 1,
+        price: Number(data.price || data.Total || data.total || 0)
       }];
     } else {
       lineItems = [{
         productId: '',
+        variantId: 'default',
         title: 'B2B Custom Order',
         sku: 'HH-B2B',
         quantity: 1,
@@ -1465,52 +1488,105 @@ app.post('/api/orders', (req, res) => {
       const prod = products.find(p => p.id === item.productId || p.title === item.title);
       if (prod && prod.totalInventory !== undefined) {
         prod.totalInventory = Math.max(0, prod.totalInventory - item.quantity);
+        if (Array.isArray(prod.variants) && prod.variants.length) {
+          const v = prod.variants.find(x => x.id === item.variantId || x.sku === item.sku) || prod.variants[0];
+          if (v && v.inventoryQty !== undefined) {
+            v.inventoryQty = Math.max(0, v.inventoryQty - item.quantity);
+          }
+        }
       }
     });
     safeWriteJson(PRODUCTS_FILE, products);
 
     const subtotal = lineItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-    const shipping = Number(data.deliveryFee || data.shipping || 0);
-    const discount = Number(data.discount || 0);
-    const total = Number(data.total || data.Total || (subtotal + shipping - discount));
+    const shipping = Number(data.shippingTotal || data.deliveryCharge || data.deliveryFee || data.shipping || 0);
+    const discount = Number(data.discountTotal || data.discount || 0);
+    const tax = Number(data.taxTotal || data.tax || 0);
+    const total = Number(data.total || data.Total || (subtotal + shipping + tax - discount));
+
+    const custSnap = data.customerSnapshot || data.customer || {};
+    const buyerName = custSnap.name || custSnap.companyName || data.Customer || data.buyer || 'Walk-in Buyer';
+    const buyerPhone = custSnap.phone || data.phone || '';
+    const buyerEmail = custSnap.email || data.email || '';
+    const buyerCountry = custSnap.country || data.country || 'BD';
+    const buyerCurrency = custSnap.currency || data.currency || 'BDT';
 
     const newOrder = {
       id: newId,
       orderNumber,
+      source: data.source || 'Direct',
+      customerId: data.customerId || custSnap.id || null,
       customerSnapshot: {
-        name: data.customer?.name || data.Customer || 'Walk-in Buyer',
-        phone: data.customer?.phone || data.phone || '',
-        email: data.customer?.email || data.email || '',
-        country: data.customer?.country || 'BD',
-        currency: data.customer?.currency || 'BDT'
+        id: data.customerId || custSnap.id || null,
+        name: buyerName,
+        phone: buyerPhone,
+        email: buyerEmail,
+        country: buyerCountry,
+        currency: buyerCurrency,
+        address: custSnap.address || data.address || ''
       },
       lineItems,
       subtotal,
       shipping,
       discount,
+      tax,
       total,
-      currency: data.currency || 'BDT',
+      currency: buyerCurrency,
       paymentStatus: data.paymentStatus || 'paid',
       fulfillmentStatus: data.fulfillmentStatus || 'unfulfilled',
       status: data.status || 'open',
       paymentMethod: data.paymentMethod || data.method || 'cash',
-      shippingAddress: data.shippingAddress || { line1: data.address || '', city: 'Dhaka', country: 'BD' },
+      paidAmount: Number(data.paidAmount !== undefined ? data.paidAmount : (data.paymentStatus === 'paid' ? total : 0)),
+      dueAmount: Number(data.dueAmount !== undefined ? data.dueAmount : (data.paymentStatus === 'paid' ? 0 : total)),
+      shippingAddress: data.shippingAddress || { line1: data.address || custSnap.address || '', city: 'Dhaka', country: buyerCountry },
       notes: data.notes || '',
-      timeline: [
+      timeline: Array.isArray(data.timeline) && data.timeline.length ? data.timeline : [
         {
           event: `Order placed (${lineItems.length} items, ৳${total.toLocaleString()})`,
           at: new Date().toISOString(),
-          by: 'Operator 1981'
+          by: 'Operator'
         }
       ],
-      createdAt: new Date().toISOString(),
+      createdAt: typeof data.createdAt === 'string' && data.createdAt ? data.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
     orders.unshift(newOrder);
     safeWriteJson(ORDERS_FILE, orders);
 
-    res.json({ ok: true, id: newId, orderNumber, item: newOrder });
+    // Also auto-record customer if new and phone exists
+    if (buyerPhone && buyerPhone.length >= 8) {
+      const customers = safeReadJson(CUSTOMERS_FILE, []);
+      const existingCust = customers.find(c => (c.phone || '').replace(/[^0-9]/g, '') === buyerPhone.replace(/[^0-9]/g, ''));
+      if (existingCust) {
+        existingCust.totalOrders = (existingCust.totalOrders || 0) + 1;
+        existingCust.totalSpent = (existingCust.totalSpent || 0) + total;
+        existingCust.lastOrderDate = new Date().toISOString();
+        safeWriteJson(CUSTOMERS_FILE, customers);
+      } else {
+        customers.unshift({
+          id: 'cust-' + Date.now().toString(36),
+          name: buyerName,
+          companyName: buyerName,
+          contactPerson: buyerName,
+          phone: buyerPhone,
+          email: buyerEmail,
+          country: buyerCountry,
+          currency: buyerCurrency,
+          totalSpent: total,
+          totalOrders: 1,
+          lastOrderDate: new Date().toISOString(),
+          tags: ['retail-customer'],
+          addresses: [{ line1: custSnap.address || data.address || '', city: 'Dhaka', country: buyerCountry, isDefault: true }],
+          notes: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+        safeWriteJson(CUSTOMERS_FILE, customers);
+      }
+    }
+
+    res.json({ ok: true, id: newId, orderId: newId, orderNumber, item: newOrder, order: newOrder });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -1523,27 +1599,55 @@ app.put('/api/orders/:id', (req, res) => {
     if (idx === -1) return res.status(404).json({ ok: false, error: 'Order not found' });
 
     const existing = orders[idx];
-    const patch = req.body;
-    const timeline = existing.timeline || [];
+    const patch = req.body || {};
+    let timeline = Array.isArray(existing.timeline) ? [...existing.timeline] : [];
 
     if (patch.status && patch.status !== existing.status) {
       timeline.push({
-        event: `Status changed to ${patch.status.toUpperCase()}`,
+        event: `Status changed to ${String(patch.status).toUpperCase()}`,
         at: new Date().toISOString(),
-        by: 'Operator 1981'
+        by: 'Operator'
+      });
+    }
+    if (patch.paymentStatus && patch.paymentStatus !== existing.paymentStatus) {
+      timeline.push({
+        event: `Payment marked ${String(patch.paymentStatus).toUpperCase()}`,
+        at: new Date().toISOString(),
+        by: 'Operator'
+      });
+    }
+    if (patch.fulfillmentStatus && patch.fulfillmentStatus !== existing.fulfillmentStatus) {
+      timeline.push({
+        event: `Fulfillment marked ${String(patch.fulfillmentStatus).toUpperCase()}`,
+        at: new Date().toISOString(),
+        by: 'Operator'
       });
     }
 
+    // If caller provided timeline entries as array
+    if (Array.isArray(patch.timeline)) {
+      patch.timeline.forEach(te => {
+        if (te && te.event && !timeline.some(t => t.event === te.event && t.at === te.at)) {
+          timeline.push(te);
+        }
+      });
+    }
+
+    // Clean patch to avoid nullifying critical fields
+    const safePatch = { ...patch };
+    delete safePatch.id;
+    delete safePatch.timeline;
+
     const updated = {
       ...existing,
-      ...patch,
+      ...safePatch,
       timeline,
       updatedAt: new Date().toISOString()
     };
 
     orders[idx] = updated;
     safeWriteJson(ORDERS_FILE, orders);
-    res.json({ ok: true, item: updated });
+    res.json({ ok: true, item: updated, order: updated });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -1564,7 +1668,7 @@ app.delete('/api/orders/:id', (req, res) => {
   }
 });
 
-/* ── 4. REAL-TIME BUSINESS STATS ── */
+/* ── 4. REAL-TIME BUSINESS STATS & CROSS-DEVICE SYNC ENGINE ── */
 app.get('/api/stats', (req, res) => {
   try {
     const orders = safeReadJson(ORDERS_FILE, []);
@@ -1581,6 +1685,63 @@ app.get('/api/stats', (req, res) => {
       pending,
       catalog: products.length,
       customers: customers.length
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/* Fast real-time sync heartbeat: checks data state in <3ms for multi-device sync */
+app.get('/api/sync', (req, res) => {
+  try {
+    const orders = safeReadJson(ORDERS_FILE, []);
+    const products = safeReadJson(PRODUCTS_FILE, []);
+    const customers = safeReadJson(CUSTOMERS_FILE, []);
+
+    const salesToday = orders.reduce((sum, o) => sum + (o.status !== 'cancelled' ? (o.total || 0) : 0), 0);
+    const pending = orders.filter(o => o.fulfillmentStatus === 'unfulfilled' && o.status !== 'cancelled').length;
+
+    const latestOrder = orders[0] || null;
+    const latestProduct = products[0] || null;
+
+    res.json({
+      ok: true,
+      serverTime: Date.now(),
+      counts: {
+        orders: orders.length,
+        products: products.length,
+        customers: customers.length
+      },
+      stats: {
+        salesToday,
+        ordersToday: orders.length,
+        pending,
+        catalog: products.length,
+        customers: customers.length
+      },
+      signatures: {
+        orderSig: latestOrder ? `${latestOrder.id}_${latestOrder.updatedAt || latestOrder.createdAt}_${orders.length}` : `empty_0`,
+        productSig: latestProduct ? `${latestProduct.id}_${latestProduct.updatedAt || latestProduct.createdAt}_${products.length}` : `empty_0`,
+        customerSig: `${customers.length}`,
+        orders: { count: orders.length, lastUpdated: latestOrder?.updatedAt || latestOrder?.createdAt || null, latestId: latestOrder?.id || null },
+        products: { count: products.length, lastUpdated: latestProduct?.updatedAt || latestProduct?.createdAt || null },
+        customers: { count: customers.length, lastUpdated: null }
+      },
+      recentOrders: orders.slice(0, 10).map(o => ({
+        id: o.orderNumber || o.id,
+        rawId: o.id,
+        t: (o.lineItems || []).map(li => `${li.title} x${li.quantity}`).join(", ") || "Leather Goods",
+        s: `${o.customerSnapshot?.name || 'Walk-in'} · ৳${(o.total || 0).toLocaleString()}`,
+        st: [
+          (o.status || 'NEW').toUpperCase(),
+          o.status === 'completed' ? 'ok' : o.status === 'cancelled' ? 'warn' : 'amber'
+        ],
+        total: o.total || 0,
+        status: o.status || 'open',
+        fulfillmentStatus: o.fulfillmentStatus || 'unfulfilled',
+        paymentStatus: o.paymentStatus || 'paid',
+        createdAt: o.createdAt
+      }))
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });

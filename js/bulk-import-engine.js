@@ -401,7 +401,7 @@
           <span>DATA PREVIEW (First ${previewRows.length} of ${total} records)</span>
           <span>Scroll horizontally if needed →</span>
         </div>
-        <div style="border:1px solid var(--wire);border-radius:8px;overflow-x:auto;max-height:240px;background:var(--bg-3);margin-bottom:16px;">
+        <div class="table-responsive" style="border:1px solid var(--wire);border-radius:8px;overflow-x:auto;max-height:240px;background:var(--bg-3);margin-bottom:16px;">
           <table style="width:100%;border-collapse:collapse;font-size:11.5px;text-align:left;">
             <thead>
               <tr style="background:var(--bg-neu);border-bottom:1px solid var(--wire);position:sticky;top:0;z-index:2;">

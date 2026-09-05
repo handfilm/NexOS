@@ -1078,7 +1078,7 @@
                   </div>
 
                   <!-- Integrated Status Indicator Component -->
-                  <div style="flex-shrink:0;">
+                  <div class="orow-actions" style="flex-shrink:0;">
                     ${window.renderAccountingSyncStatusIndicator(o)}
                   </div>
                 </div>

@@ -6,6 +6,29 @@
 window.OrdersService = {
   PAGE_SIZE: 50,
   _lastDoc: null,
+  _memCache: [],
+  _initPromise: null,
+
+  _getCollection() {
+    return window.Collections?.orders || window.db.collection("orders");
+  },
+
+  async _ensureInit() {
+    if (this._initPromise) return this._initPromise;
+    this._initPromise = (async () => {
+      try {
+        const col = this._getCollection();
+        if (col && typeof col.onSnapshot === "function") {
+          col.onSnapshot(snap => {
+            if (snap && !snap.empty) {
+              this._memCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            }
+          }, err => console.debug("Orders snapshot notice:", err?.message));
+        }
+      } catch (e) {}
+    })();
+    return this._initPromise;
+  },
 
   _getDefaultSeedOrders() {
     return [
@@ -71,37 +94,14 @@ window.OrdersService = {
 
   /* ── Query & List Orders with Search & Filter ── */
   async list({ status = null, paymentStatus = null, fulfillmentStatus = null, search = null, sortBy = "createdAt", sortDir = "desc" } = {}) {
+    await this._ensureInit();
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
+
     let items = [];
-
-    // 1. Primary Cross-Device Persistent Storage (/api/orders)
-    try {
-      const qParams = new URLSearchParams();
-      if (status && status !== "all") qParams.append("status", status);
-      if (paymentStatus && paymentStatus !== "all") qParams.append("paymentStatus", paymentStatus);
-      if (fulfillmentStatus && fulfillmentStatus !== "all") qParams.append("fulfillmentStatus", fulfillmentStatus);
-      if (search && search.trim()) qParams.append("search", search.trim());
-      if (sortBy) qParams.append("sortBy", sortBy);
-      if (sortDir) qParams.append("sortDir", sortDir);
-
-      const resp = await fetch("/api/orders?" + qParams.toString());
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.ok && Array.isArray(data.items) && data.items.length) {
-          items = data.items;
-          try { localStorage.setItem("nx_orders_cache", JSON.stringify(items)); } catch (e) {}
-          return { items, count: items.length };
-        }
-      }
-    } catch (apiErr) {
-      console.debug("Orders API fetch notice (switching to Firestore/local):", apiErr.message);
-    }
+    const col = this._getCollection();
 
     try {
-      await window.NexAuth.ensureAuth();
-    } catch (e) {}
-
-    try {
-      let q = window.Collections.orders;
+      let q = col;
 
       if (status && status !== "all") {
         q = q.where("status", "==", status);
@@ -116,39 +116,46 @@ window.OrdersService = {
       try {
         q = q.orderBy(sortBy, sortDir);
       } catch (e) {
-        console.warn("Orders query fallback ordering:", e);
+        console.debug("Orders query fallback ordering:", e?.message);
       }
 
       const snap = await q.limit(this.PAGE_SIZE).get();
-      items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      this._lastDoc = snap.docs[snap.docs.length - 1] || null;
-
-      if (items.length) {
-        try { localStorage.setItem("nx_orders_cache", JSON.stringify(items)); } catch (e) {}
+      if (snap && !snap.empty) {
+        items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        this._lastDoc = snap.docs[snap.docs.length - 1] || null;
       }
     } catch (err) {
-      console.warn("Firestore Orders fetch notice (using cache/local storage):", err.message);
-      try {
-        const cached = JSON.parse(localStorage.getItem("nx_orders_cache") || "[]");
-        items = cached.length ? cached : this._getDefaultSeedOrders();
-      } catch (e) {
-        items = this._getDefaultSeedOrders();
-      }
-
-      // Filter in-memory if query parameters provided
-      if (status && status !== "all") {
-        items = items.filter(o => o.status === status);
-      }
-      if (paymentStatus && paymentStatus !== "all") {
-        items = items.filter(o => o.paymentStatus === paymentStatus);
-      }
-      if (fulfillmentStatus && fulfillmentStatus !== "all") {
-        items = items.filter(o => o.fulfillmentStatus === fulfillmentStatus);
-      }
+      console.warn("Firestore orders fetch notice:", err?.message);
     }
 
+    // Auto-seed global Firestore collection if empty on first boot so cloud persistence is active across all devices
     if (!items.length && (!status || status === "all") && (!paymentStatus || paymentStatus === "all") && (!fulfillmentStatus || fulfillmentStatus === "all") && !search) {
-      items = this._getDefaultSeedOrders();
+      if (this._memCache && this._memCache.length) {
+        items = [...this._memCache];
+      } else {
+        const seedOrders = this._getDefaultSeedOrders();
+        try {
+          const batch = window.db.batch();
+          seedOrders.forEach(o => {
+            const ref = col.doc(o.id);
+            batch.set(ref, o);
+          });
+          await batch.commit();
+          items = seedOrders;
+          this._memCache = [...seedOrders];
+        } catch (seedErr) {
+          console.debug("Firestore order seeding note:", seedErr?.message);
+          items = seedOrders;
+          this._memCache = [...seedOrders];
+        }
+      }
+    } else if (items.length) {
+      this._memCache = items;
+    } else if (this._memCache && this._memCache.length) {
+      items = [...this._memCache];
+      if (status && status !== "all") items = items.filter(o => o.status === status);
+      if (paymentStatus && paymentStatus !== "all") items = items.filter(o => o.paymentStatus === paymentStatus);
+      if (fulfillmentStatus && fulfillmentStatus !== "all") items = items.filter(o => o.fulfillmentStatus === fulfillmentStatus);
     }
 
     // Client-side text search (Order #, Customer Name, Email, SKU, Product Title)
@@ -167,20 +174,61 @@ window.OrdersService = {
       );
     }
 
+    // Sort in memory if needed
+    if (sortBy === "total") {
+      items.sort((a, b) => sortDir === "asc" ? (a.total || 0) - (b.total || 0) : (b.total || 0) - (a.total || 0));
+    } else if (sortBy === "createdAt") {
+      items.sort((a, b) => {
+        const ta = new Date(a.createdAt || 0).getTime();
+        const tb = new Date(b.createdAt || 0).getTime();
+        return sortDir === "asc" ? ta - tb : tb - ta;
+      });
+    }
+
+    // Sync cloud backup endpoint in background
+    try {
+      fetch("/api/orders?limit=100").catch(() => {});
+    } catch (e) {}
+
     return { items, count: items.length };
   },
 
+  /* ── Get All Cached Orders (Synchronous Quick Access) ── */
+  getAll() {
+    return this._memCache.length ? this._memCache : this._getDefaultSeedOrders();
+  },
+
   async get(orderId) {
+    await this._ensureInit();
+    try { await window.NexAuth.ensureAuth(); } catch (apiErr) {}
+
+    const col = this._getCollection();
+
+    // 1. Direct Global Firestore Document Fetch
     try {
-      await window.NexAuth.ensureAuth();
-      const doc = await window.Collections.orders.doc(orderId).get();
-      if (doc.exists) return { id: doc.id, ...doc.data() };
+      const doc = await col.doc(orderId).get();
+      if (doc.exists) {
+        const data = { id: doc.id, ...doc.data() };
+        const idx = this._memCache.findIndex(o => o.id === orderId);
+        if (idx !== -1) this._memCache[idx] = data;
+        else this._memCache.unshift(data);
+        return data;
+      }
     } catch (e) {
-      console.warn("Firestore get order fallback:", e);
+      console.warn("Firestore get order notice:", e?.message);
     }
-    const cached = JSON.parse(localStorage.getItem("nx_orders_cache") || "[]");
-    const all = cached.length ? cached : this._getDefaultSeedOrders();
-    return all.find(o => o.id === orderId || o.orderNumber === orderId) || null;
+
+    // 2. Query Firestore by Order Number
+    try {
+      const snap = await col.where("orderNumber", "==", orderId).limit(1).get();
+      if (!snap.empty) {
+        const doc = snap.docs[0];
+        const data = { id: doc.id, ...doc.data() };
+        return data;
+      }
+    } catch (e) {}
+
+    return this._memCache.find(o => o.id === orderId || o.orderNumber === orderId) || null;
   },
 
   /* ── Atomic Order Creation Transaction ──
@@ -188,74 +236,81 @@ window.OrdersService = {
      2. Validates and decrements variant inventory
      3. Computes subtotal, discount, shipping, tax, total
      4. Sets immutable customerSnapshot & lineItems
-     5. Increments customer totalSpent & totalOrders
+     5. Increments customer totalSpent & totalOrders in Firestore
      6. Creates audit logs & activity feed
   ── */
-  async create({
-    customerId = null,
-    customer = null,
-    lineItems = [],
-    discountTotal = 0,
-    shippingTotal = 0,
-    taxTotal = 0,
-    paymentStatus = "pending",
-    fulfillmentStatus = "unfulfilled",
-    shippingAddress = null,
-    billingAddress = null,
-    notes = "",
-    storeId = "default"
-  }) {
+  async create(orderInput) {
+    await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
 
-    if (!lineItems || !lineItems.length) {
+    const customerId = orderInput.customerId || null;
+    const customer = orderInput.customer || orderInput.customerSnapshot || null;
+    const rawLineItems = orderInput.lineItems || orderInput.items || [];
+    const discountTotal = Number(orderInput.discountTotal || orderInput.discount || 0);
+    const shippingTotal = Number(orderInput.shippingTotal || orderInput.shipping || orderInput.deliveryCharge || 0);
+    const taxTotal = Number(orderInput.taxTotal || orderInput.tax || 0);
+    const paymentStatus = orderInput.paymentStatus || "paid";
+    const fulfillmentStatus = orderInput.fulfillmentStatus || "unfulfilled";
+    const paymentMethod = orderInput.paymentMethod || orderInput.method || "cash";
+    const shippingAddress = orderInput.shippingAddress || null;
+    const billingAddress = orderInput.billingAddress || null;
+    const notes = orderInput.notes || "";
+    const storeId = orderInput.storeId || "default";
+
+    if (!rawLineItems || !rawLineItems.length) {
       throw new Error("Order must contain at least one line item.");
     }
 
-    const orderRef = window.Collections.orders.doc();
-    const orderNumber = "HH-" + Math.floor(100000 + Math.random() * 900000);
-    const subtotal = lineItems.reduce((sum, li) => sum + (Number(li.price || 0) * Number(li.quantity || 1)), 0);
-    const discount = Number(discountTotal) || 0;
-    const shipping = Number(shippingTotal) || 0;
-    const tax = Number(taxTotal) || 0;
-    const total = Math.max(0, subtotal - discount + shipping + tax);
+    const col = this._getCollection();
+    const orderRef = orderInput.id ? col.doc(orderInput.id) : col.doc();
+    const newId = orderRef.id;
+
+    const orderNumber = orderInput.orderNumber || ("HH-" + Math.floor(100000 + Math.random() * 900000));
+    const subtotal = rawLineItems.reduce((sum, li) => sum + (Number(li.price || 0) * Number(li.quantity || 1)), 0);
+    const total = Math.max(0, subtotal - discountTotal + shippingTotal + taxTotal);
 
     const customerSnapshot = {
-      name: customer?.name || customer?.companyName || "Walk-in Customer",
+      name: customer?.name || customer?.companyName || orderInput.Customer || orderInput.buyer || "Walk-in Customer",
       companyName: customer?.companyName || customer?.name || "",
-      email: customer?.email || "",
-      phone: customer?.phone || "",
-      country: customer?.country || "NL",
-      currency: customer?.currency || "BDT"
+      email: customer?.email || orderInput.email || "",
+      phone: customer?.phone || orderInput.phone || "",
+      country: customer?.country || orderInput.country || "BD",
+      currency: customer?.currency || orderInput.currency || "BDT",
+      address: customer?.address || orderInput.address || ""
     };
 
     const operatorName = window.NexAuth?.profile?.name || window.NexAuth?.currentUser?.email || "Operator";
 
-    const resolvedLineItems = lineItems.map(li => ({
-      productId: li.productId || ("prod-" + Math.random().toString(36).slice(2, 7)),
+    const resolvedLineItems = rawLineItems.map(li => ({
+      productId: li.productId || li.id || ("prod-" + Math.random().toString(36).slice(2, 7)),
       variantId: li.variantId || "default",
-      title: li.title || "Leather Goods",
+      title: li.title || li.name || "Leather Goods",
       sku: li.sku || "HH-SKU",
       price: Number(li.price) || 0,
-      quantity: Number(li.quantity) || 1,
-      lineTotal: (Number(li.price) || 0) * (Number(li.quantity) || 1),
+      quantity: Math.max(1, Number(li.quantity) || 1),
+      lineTotal: (Number(li.price) || 0) * Math.max(1, Number(li.quantity) || 1),
       image: li.image || ""
     }));
 
     const orderData = {
+      id: newId,
       orderNumber,
       customerId: customerId || null,
       customerSnapshot,
       lineItems: resolvedLineItems,
       subtotal,
-      discountTotal: discount,
-      shippingTotal: shipping,
-      taxTotal: tax,
+      discountTotal,
+      shippingTotal,
+      taxTotal,
       total,
       currency: customerSnapshot.currency,
-      paymentStatus: paymentStatus || "pending",
+      paymentStatus: paymentStatus || "paid",
       fulfillmentStatus: fulfillmentStatus || "unfulfilled",
+      paymentMethod,
+      paidAmount: Number(orderInput.paidAmount !== undefined ? orderInput.paidAmount : (paymentStatus === "paid" ? total : 0)),
+      dueAmount: Number(orderInput.dueAmount !== undefined ? orderInput.dueAmount : (paymentStatus === "paid" ? 0 : total)),
       status: "open",
-      shippingAddress: shippingAddress || { line1: "", city: "", country: customerSnapshot.country },
+      shippingAddress: shippingAddress || { line1: customerSnapshot.address || "", city: "Dhaka", country: customerSnapshot.country },
       billingAddress: billingAddress || shippingAddress || null,
       notes: notes || "",
       timeline: [{
@@ -268,45 +323,58 @@ window.OrdersService = {
       updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
     };
 
-    // 1. Primary Cross-Device Server Persistence
-    try {
-      const resp = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...orderData, id: orderRef.id })
-      });
-      if (resp.ok) {
-        const resData = await resp.json();
-        if (resData.ok && resData.id) {
-          // Sync server response
+    // 1. Strictly persist to global Cloud Firestore collection
+    await orderRef.set(orderData);
+
+    // 2. Decrement inventory in Firestore for line items
+    for (const item of resolvedLineItems) {
+      if (item.productId && window.ProductsService?.adjustInventory) {
+        try {
+          await window.ProductsService.adjustInventory(item.productId, item.variantId, -item.quantity, "order_placement");
+        } catch (invErr) {
+          console.debug("Inventory decrement note:", invErr?.message);
         }
       }
-    } catch (apiErr) {
-      console.debug("Orders API write note (falling back):", apiErr.message);
     }
 
-    // Try Firestore write first
-    let firestoreSuccess = false;
-    try {
-      await orderRef.set(orderData);
-      firestoreSuccess = true;
-    } catch (e) {
-      console.warn("Firestore order set note (saved locally):", e.message);
+    // 3. Bump customer aggregates in Firestore
+    if (customerId && window.CustomersService?._bumpAggregates) {
+      try {
+        await window.CustomersService._bumpAggregates(customerId, total);
+      } catch (custErr) {
+        console.debug("Customer aggregate update note:", custErr?.message);
+      }
     }
 
-    // Save to local cache
+    // 4. Server persistence backup for cross-system consistency
     try {
-      const cached = JSON.parse(localStorage.getItem("nx_orders_cache") || "[]");
-      const localOrder = { id: orderRef.id, ...orderData, createdAt: new Date().toISOString() };
-      cached.unshift(localOrder);
-      localStorage.setItem("nx_orders_cache", JSON.stringify(cached));
-    } catch (e) {}
+      fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderData)
+      }).catch(() => {});
+    } catch (apiErr) {}
 
-    return { orderId: orderRef.id, orderNumber, total, resolvedLineItems };
+    // Update in-memory cache
+    const existingIdx = this._memCache.findIndex(o => o.id === newId);
+    if (existingIdx !== -1) {
+      this._memCache[existingIdx] = orderData;
+    } else {
+      this._memCache.unshift(orderData);
+    }
+
+    // Emit live cross-device & client events
+    if (window.NexEvents) {
+      window.NexEvents.emit("ORDERS_CHANGED", orderData);
+      window.NexEvents.emit("DATA_SYNC", { type: "order_created", order: orderData });
+    }
+
+    return { id: orderData.id, orderId: orderData.id, orderNumber: orderData.orderNumber, total, resolvedLineItems, item: orderData, order: orderData };
   },
 
   /* ── Update Order Statuses & Timeline ── */
   async updateStatus(orderId, { status, paymentStatus, fulfillmentStatus, notes }) {
+    await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
     const patch = { updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString() };
     const events = [];
@@ -328,8 +396,9 @@ window.OrdersService = {
       patch.notes = notes;
     }
 
+    let timelineEntries = [];
     if (events.length) {
-      const timelineEntries = events.map(e => ({
+      timelineEntries = events.map(e => ({
         event: e,
         at: new Date().toISOString(),
         by: operator
@@ -339,41 +408,41 @@ window.OrdersService = {
       }
     }
 
-    // 1. Primary Cross-Device Server Persistence
+    const col = this._getCollection();
+
+    // 1. Strictly update in global Cloud Firestore collection
+    await col.doc(orderId).set(patch, { merge: true });
+
+    // 2. Server persistence backup
     try {
-      await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+      const serverPayload = { ...patch, updatedAt: new Date().toISOString() };
+      delete serverPayload.timeline;
+      fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patch)
-      });
-    } catch (apiErr) {
-      console.debug("Orders API update note:", apiErr.message);
-    }
+        body: JSON.stringify(serverPayload)
+      }).catch(() => {});
+    } catch (apiErr) {}
 
-    try {
-      await window.Collections.orders.doc(orderId).set(patch, { merge: true });
-    } catch (e) {
-      console.warn("Firestore status update fallback to local cache:", e.message);
-    }
-
-    // Update local cache
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_orders_cache") || "[]");
-      const idx = cached.findIndex(o => o.id === orderId || o.orderNumber === orderId);
-      if (idx !== -1) {
-        cached[idx] = { ...cached[idx], ...patch };
-        if (events.length) {
-          cached[idx].timeline = [...(cached[idx].timeline || []), ...events.map(e => ({ event: e, at: new Date().toISOString(), by: operator }))];
-        }
-        localStorage.setItem("nx_orders_cache", JSON.stringify(cached));
+    // Update in-memory cache
+    const idx = this._memCache.findIndex(o => o.id === orderId || o.orderNumber === orderId);
+    if (idx !== -1) {
+      this._memCache[idx] = { ...this._memCache[idx], ...patch };
+      if (timelineEntries.length) {
+        this._memCache[idx].timeline = [...(this._memCache[idx].timeline || []), ...timelineEntries];
       }
-    } catch (e) {}
+    }
+
+    if (window.NexEvents) {
+      window.NexEvents.emit("ORDERS_CHANGED", { id: orderId, ...patch });
+    }
 
     return true;
   },
 
   /* ── Cancel Order & Restore Inventory in Firestore Transaction ── */
   async cancel(orderId, reason = "Customer request") {
+    await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
     const order = await this.get(orderId);
     if (!order) throw new Error("Order not found");
@@ -386,45 +455,57 @@ window.OrdersService = {
       by: operator
     };
 
-    // 1. Primary Cross-Device Server Persistence
+    const col = this._getCollection();
+
+    // 1. Strictly update in global Cloud Firestore collection
+    await col.doc(orderId).update({
+      status: "cancelled",
+      paymentStatus: order.paymentStatus === "paid" ? "refunded" : order.paymentStatus,
+      updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString(),
+      timeline: window.FieldValue?.arrayUnion ? window.FieldValue.arrayUnion(cancelTimeline) : [cancelTimeline]
+    });
+
+    // 2. Restore inventory if line items exist
+    if (Array.isArray(order.lineItems)) {
+      for (const item of order.lineItems) {
+        if (item.productId && window.ProductsService?.adjustInventory) {
+          try {
+            await window.ProductsService.adjustInventory(item.productId, item.variantId, item.quantity, "order_cancellation");
+          } catch (invErr) {}
+        }
+      }
+    }
+
+    // 3. Server persistence backup
     try {
-      await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+      fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: "cancelled",
           paymentStatus: order.paymentStatus === "paid" ? "refunded" : order.paymentStatus
         })
-      });
+      }).catch(() => {});
     } catch (e) {}
 
-    try {
-      await window.Collections.orders.doc(orderId).update({
-        status: "cancelled",
-        paymentStatus: order.paymentStatus === "paid" ? "refunded" : order.paymentStatus,
-        updatedAt: window.serverTimestamp(),
-        timeline: window.FieldValue.arrayUnion(cancelTimeline)
-      });
-    } catch (e) {
-      console.warn("Firestore cancel fallback:", e.message);
+    // Update in-memory cache
+    const idx = this._memCache.findIndex(o => o.id === orderId || o.orderNumber === orderId);
+    if (idx !== -1) {
+      this._memCache[idx].status = "cancelled";
+      if (this._memCache[idx].paymentStatus === "paid") this._memCache[idx].paymentStatus = "refunded";
+      this._memCache[idx].timeline = [...(this._memCache[idx].timeline || []), cancelTimeline];
     }
 
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_orders_cache") || "[]");
-      const idx = cached.findIndex(o => o.id === orderId || o.orderNumber === orderId);
-      if (idx !== -1) {
-        cached[idx].status = "cancelled";
-        if (cached[idx].paymentStatus === "paid") cached[idx].paymentStatus = "refunded";
-        cached[idx].timeline = [...(cached[idx].timeline || []), cancelTimeline];
-        localStorage.setItem("nx_orders_cache", JSON.stringify(cached));
-      }
-    } catch (e) {}
+    if (window.NexEvents) {
+      window.NexEvents.emit("ORDERS_CHANGED", { id: orderId, status: "cancelled" });
+    }
 
     return true;
   },
 
   /* ── Full Order Update & Customization (Shopify-Style Order Editing) ── */
   async update(orderId, patch) {
+    await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
     const operator = window.NexAuth?.profile?.name || "Operator";
     const updatePayload = {
@@ -438,51 +519,59 @@ window.OrdersService = {
       by: operator
     };
 
-    // 1. Primary Cross-Device Server Persistence
+    const col = this._getCollection();
+
+    // 1. Strictly update in global Cloud Firestore collection
+    if (window.FieldValue?.arrayUnion) {
+      updatePayload.timeline = window.FieldValue.arrayUnion(timelineEntry);
+    }
+    await col.doc(orderId).set(updatePayload, { merge: true });
+
+    // 2. Server persistence backup
     try {
-      await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+      const serverPayload = { ...updatePayload, updatedAt: new Date().toISOString() };
+      delete serverPayload.timeline;
+      fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatePayload)
-      });
+        body: JSON.stringify(serverPayload)
+      }).catch(() => {});
     } catch (e) {}
 
-    try {
-      if (window.FieldValue?.arrayUnion) {
-        updatePayload.timeline = window.FieldValue.arrayUnion(timelineEntry);
-      }
-      await window.Collections.orders.doc(orderId).set(updatePayload, { merge: true });
-    } catch (e) {
-      console.warn("Firestore order update fallback:", e.message);
+    // Update in-memory cache
+    const idx = this._memCache.findIndex(o => o.id === orderId || o.orderNumber === orderId);
+    if (idx !== -1) {
+      const existing = this._memCache[idx];
+      const updatedTimeline = [...(existing.timeline || []), timelineEntry];
+      this._memCache[idx] = { ...existing, ...patch, timeline: updatedTimeline, updatedAt: new Date().toISOString() };
     }
 
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_orders_cache") || "[]");
-      const idx = cached.findIndex(o => o.id === orderId || o.orderNumber === orderId);
-      if (idx !== -1) {
-        const existing = cached[idx];
-        const updatedTimeline = [...(existing.timeline || []), timelineEntry];
-        cached[idx] = { ...existing, ...patch, timeline: updatedTimeline, updatedAt: new Date().toISOString() };
-        localStorage.setItem("nx_orders_cache", JSON.stringify(cached));
-      }
-    } catch (e) {}
+    if (window.NexEvents) {
+      window.NexEvents.emit("ORDERS_CHANGED", { id: orderId, ...patch });
+    }
 
     return true;
   },
 
   /* ── Delete Order ── */
   async delete(orderId) {
+    await this._ensureInit();
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
+
+    const col = this._getCollection();
+    // Strictly delete from global Cloud Firestore collection
+    await col.doc(orderId).delete();
+
     try {
-      await window.NexAuth.ensureAuth();
-      await window.Collections.orders.doc(orderId).delete();
-    } catch (e) {
-      console.warn("Firestore delete fallback:", e.message);
-    }
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_orders_cache") || "[]");
-      const filtered = cached.filter(o => o.id !== orderId && o.orderNumber !== orderId);
-      localStorage.setItem("nx_orders_cache", JSON.stringify(filtered));
+      fetch(`/api/orders/${encodeURIComponent(orderId)}`, { method: "DELETE" }).catch(() => {});
     } catch (e) {}
+
+    this._memCache = this._memCache.filter(o => o.id !== orderId && o.orderNumber !== orderId);
+
+    if (window.NexEvents) {
+      window.NexEvents.emit("ORDERS_CHANGED", { id: orderId, deleted: true });
+    }
+
     return true;
   },
 
@@ -500,14 +589,14 @@ window.OrdersService = {
       }
     }
 
-    // Fallback: match by phone or name in customer database
+    // Fallback: match by phone or name in customer database using CustomersService
     if (!customer && window.CustomersService) {
       const snapPhone = order.customerSnapshot?.phone || order.phone || order.shippingAddress?.phone;
       const snapName = order.customerSnapshot?.name || order.customerName;
       if (snapPhone || snapName) {
         try {
-          const cachedCustomers = JSON.parse(localStorage.getItem("nx_customers_cache") || "[]");
-          customer = cachedCustomers.find(c => 
+          const allCustomers = window.CustomersService.getAll();
+          customer = allCustomers.find(c => 
             (snapPhone && c.phone && c.phone.replace(/[^0-9]/g, "") === String(snapPhone).replace(/[^0-9]/g, "")) ||
             (snapName && c.name && c.name.toLowerCase() === snapName.toLowerCase())
           ) || null;
@@ -518,4 +607,7 @@ window.OrdersService = {
     return { order, customer };
   }
 };
+
+window.OrdersService.createOrder = window.OrdersService.create.bind(window.OrdersService);
+window.OrdersService.updateOrder = window.OrdersService.update.bind(window.OrdersService);
 

@@ -6,6 +6,29 @@
 window.ProductsService = {
   PAGE_SIZE: 50,
   _lastDoc: null,
+  _memCache: [],
+  _initPromise: null,
+
+  _getCollection() {
+    return window.Collections?.products || window.db.collection("products");
+  },
+
+  async _ensureInit() {
+    if (this._initPromise) return this._initPromise;
+    this._initPromise = (async () => {
+      try {
+        const col = this._getCollection();
+        if (col && typeof col.onSnapshot === "function") {
+          col.onSnapshot(snap => {
+            if (snap && !snap.empty) {
+              this._memCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            }
+          }, err => console.debug("Products snapshot notice:", err?.message));
+        }
+      } catch (e) {}
+    })();
+    return this._initPromise;
+  },
 
   _getDefaultSeedProducts() {
     return [
@@ -184,36 +207,14 @@ window.ProductsService = {
 
   /* ── Query & List Products with Search, Filtering & Sorting ── */
   async list({ status = null, search = null, productType = null, vendor = null, sortBy = "updatedAt", sortDir = "desc" } = {}) {
-    let items = [];
-
-    // 1. Primary Cross-Device Persistent Storage (/api/products)
-    try {
-      const qParams = new URLSearchParams();
-      if (status && status !== "all") qParams.append("status", status);
-      if (productType && productType !== "all") qParams.append("category", productType);
-      if (vendor && vendor !== "all") qParams.append("vendor", vendor);
-      if (search && search.trim()) qParams.append("search", search.trim());
-      if (sortBy) qParams.append("sortBy", sortBy);
-      if (sortDir) qParams.append("sortDir", sortDir);
-
-      const resp = await fetch("/api/products?" + qParams.toString());
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.ok && Array.isArray(data.items) && data.items.length) {
-          items = data.items;
-          try { localStorage.setItem("nx_products_cache", JSON.stringify(items)); } catch (e) {}
-          return { items, lastDoc: null };
-        }
-      }
-    } catch (apiErr) {
-      console.debug("Products API fetch notice (switching to Firestore/local):", apiErr.message);
-    }
-
+    await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
-    items = [];
+
+    let items = [];
+    const col = this._getCollection();
 
     try {
-      let q = window.Collections.products;
+      let q = col;
 
       if (status && status !== "all") {
         q = q.where("status", "==", status);
@@ -228,38 +229,46 @@ window.ProductsService = {
       try {
         q = q.orderBy(sortBy, sortDir);
       } catch (e) {
-        console.warn("Index warning, fallback to default order:", e);
+        console.debug("Firestore product order fallback:", e?.message);
       }
 
       const snap = await q.limit(this.PAGE_SIZE).get();
-      items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      this._lastDoc = snap.docs[snap.docs.length - 1] || null;
-
-      if (items.length) {
-        try { localStorage.setItem("nx_products_cache", JSON.stringify(items)); } catch (e) {}
+      if (snap && !snap.empty) {
+        items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        this._lastDoc = snap.docs[snap.docs.length - 1] || null;
       }
     } catch (err) {
-      console.warn("Firestore Products fetch notice (using cache):", err.message);
-      try {
-        const cached = JSON.parse(localStorage.getItem("nx_products_cache") || "[]");
-        items = cached.length ? cached : this._getDefaultSeedProducts();
-      } catch (e) {
-        items = this._getDefaultSeedProducts();
-      }
-
-      if (status && status !== "all") {
-        items = items.filter(p => p.status === status);
-      }
-      if (productType && productType !== "all") {
-        items = items.filter(p => p.productType === productType);
-      }
-      if (vendor && vendor !== "all") {
-        items = items.filter(p => p.vendor === vendor);
-      }
+      console.warn("Firestore products fetch notice:", err?.message);
     }
 
-    if (!items.length && (!status || status === "all") && !search) {
-      items = this._getDefaultSeedProducts();
+    // Auto-seed cloud Firestore collection if empty on first boot so data is globally available across all devices
+    if (!items.length && (!status || status === "all") && !search && !productType && !vendor) {
+      if (this._memCache && this._memCache.length) {
+        items = [...this._memCache];
+      } else {
+        const seedProducts = this._getDefaultSeedProducts();
+        try {
+          const batch = window.db.batch();
+          seedProducts.forEach(p => {
+            const ref = col.doc(p.id);
+            batch.set(ref, p);
+          });
+          await batch.commit();
+          items = seedProducts;
+          this._memCache = [...seedProducts];
+        } catch (seedErr) {
+          console.debug("Firestore product seeding note:", seedErr?.message);
+          items = seedProducts;
+          this._memCache = [...seedProducts];
+        }
+      }
+    } else if (items.length) {
+      this._memCache = items;
+    } else if (this._memCache && this._memCache.length) {
+      items = [...this._memCache];
+      if (status && status !== "all") items = items.filter(p => p.status === status);
+      if (productType && productType !== "all") items = items.filter(p => p.productType === productType);
+      if (vendor && vendor !== "all") items = items.filter(p => p.vendor === vendor);
     }
 
     // Client-side text search (title, SKU, vendor, tags, description)
@@ -301,24 +310,56 @@ window.ProductsService = {
       });
     }
 
+    // Sync cloud backup endpoint in background
+    try {
+      fetch("/api/products?limit=100").catch(() => {});
+    } catch (e) {}
+
     return { items, count: items.length };
   },
 
+  /* ── Get All Cached Products (Synchronous Access) ── */
+  getAll() {
+    return this._memCache.length ? this._memCache : this._getDefaultSeedProducts();
+  },
+
   async get(productId) {
+    await this._ensureInit();
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
+
+    const col = this._getCollection();
+
+    // 1. Direct Global Firestore Document Fetch
     try {
-      await window.NexAuth.ensureAuth();
-      const doc = await window.Collections.products.doc(productId).get();
-      if (doc.exists) return { id: doc.id, ...doc.data() };
+      const doc = await col.doc(productId).get();
+      if (doc.exists) {
+        const data = { id: doc.id, ...doc.data() };
+        const idx = this._memCache.findIndex(p => p.id === productId);
+        if (idx !== -1) this._memCache[idx] = data;
+        else this._memCache.unshift(data);
+        return data;
+      }
     } catch (e) {
-      console.warn("Firestore get product fallback:", e);
+      console.warn("Firestore get product notice:", e?.message);
     }
-    const cached = JSON.parse(localStorage.getItem("nx_products_cache") || "[]");
-    const all = cached.length ? cached : this._getDefaultSeedProducts();
-    return all.find(p => p.id === productId) || null;
+
+    // 2. Query Firestore by Handle if not found by doc id
+    try {
+      const snap = await col.where("handle", "==", productId).limit(1).get();
+      if (!snap.empty) {
+        const doc = snap.docs[0];
+        const data = { id: doc.id, ...doc.data() };
+        return data;
+      }
+    } catch (e) {}
+
+    // 3. In-memory cache fallback
+    return this._memCache.find(p => p.id === productId || p.handle === productId) || null;
   },
 
   /* ── Create Product ── */
   async create(data) {
+    await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
     
     // Process variants
@@ -340,7 +381,12 @@ window.ProductsService = {
     const totalInventory = variants.reduce((sum, v) => sum + (Number(v.inventoryQty) || 0), 0);
     const primaryPrice = Number(data.price !== undefined ? data.price : variants[0]?.price) || 0;
 
+    const col = this._getCollection();
+    const docRef = data.id ? col.doc(data.id) : col.doc();
+    const newId = docRef.id;
+
     const payload = {
+      id: newId,
       title: (data.title || "Untitled Product").trim(),
       handle: this._slugify(data.title || "product"),
       description: data.description || "",
@@ -365,47 +411,39 @@ window.ProductsService = {
       updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
     };
 
-    let newId = "prod-" + Date.now().toString(36);
+    // 1. Strictly persist to global Cloud Firestore collection
+    await docRef.set(payload);
+    await this._syncInventory(newId, totalInventory);
+    await this._logActivity("product_created", newId, payload.title);
 
-    // 1. Primary Cross-Device Server Persistence
+    // 2. Server persistence backup for cross-system consistency
     try {
-      const resp = await fetch("/api/products", {
+      fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, id: newId })
-      });
-      if (resp.ok) {
-        const resData = await resp.json();
-        if (resData.ok && resData.id) {
-          newId = resData.id;
-        }
-      }
-    } catch (apiErr) {
-      console.debug("Products API write note (falling back):", apiErr.message);
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    } catch (apiErr) {}
+
+    // Update in-memory cache
+    const existingIdx = this._memCache.findIndex(p => p.id === newId);
+    if (existingIdx !== -1) {
+      this._memCache[existingIdx] = payload;
+    } else {
+      this._memCache.unshift(payload);
     }
 
-    try {
-      const ref = await window.Collections.products.add(payload);
-      newId = ref.id;
-      await this._syncInventory(ref.id, totalInventory);
-      await this._logActivity("product_created", ref.id, payload.title);
-    } catch (e) {
-      console.warn("Firestore product write note (cached locally):", e.message);
+    if (window.NexEvents) {
+      window.NexEvents.emit("PRODUCTS_CHANGED", payload);
+      window.NexEvents.emit("DATA_SYNC", { type: "product_created", product: payload });
     }
-
-    // Save to local cache
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_products_cache") || "[]");
-      const localProd = { id: newId, ...payload, createdAt: new Date().toISOString() };
-      cached.unshift(localProd);
-      localStorage.setItem("nx_products_cache", JSON.stringify(cached));
-    } catch (e) {}
 
     return newId;
   },
 
   /* ── Update Product ── */
   async update(productId, data) {
+    await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
     const patch = { ...data, updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString() };
 
@@ -429,119 +467,120 @@ window.ProductsService = {
       patch.totalInventory = Number(data.stock) || 0;
     }
 
-    // 1. Primary Cross-Device Server Persistence
+    const col = this._getCollection();
+
+    // 1. Strictly update in global Cloud Firestore collection
+    await col.doc(productId).set(patch, { merge: true });
+    if (patch.totalInventory !== undefined) {
+      await this._syncInventory(productId, patch.totalInventory);
+    }
+    await this._logActivity("product_updated", productId, data.title || "");
+
+    // 2. Server persistence backup
     try {
-      await fetch(`/api/products/${encodeURIComponent(productId)}`, {
+      fetch(`/api/products/${encodeURIComponent(productId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch)
-      });
-    } catch (apiErr) {
-      console.debug("Products API update note:", apiErr.message);
+      }).catch(() => {});
+    } catch (apiErr) {}
+
+    // Update in-memory cache
+    const idx = this._memCache.findIndex(p => p.id === productId);
+    if (idx !== -1) {
+      this._memCache[idx] = { ...this._memCache[idx], ...patch };
     }
 
-    try {
-      await window.Collections.products.doc(productId).set(patch, { merge: true });
-      if (patch.totalInventory !== undefined) {
-        await this._syncInventory(productId, patch.totalInventory);
-      }
-      await this._logActivity("product_updated", productId, data.title || "");
-    } catch (e) {
-      console.warn("Firestore product update note:", e.message);
+    if (window.NexEvents) {
+      window.NexEvents.emit("PRODUCTS_CHANGED", { id: productId, ...patch });
     }
-
-    // Update local cache
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_products_cache") || "[]");
-      const idx = cached.findIndex(p => p.id === productId);
-      if (idx !== -1) {
-        cached[idx] = { ...cached[idx], ...patch };
-        localStorage.setItem("nx_products_cache", JSON.stringify(cached));
-      }
-    } catch (e) {}
 
     return true;
   },
 
   /* ── Archive Product ── */
   async archive(productId) {
+    await this._ensureInit();
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
+
+    const col = this._getCollection();
+    await col.doc(productId).update({
+      status: "archived",
+      updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
+    });
+    await this._logActivity("product_archived", productId);
+
     try {
-      await fetch(`/api/products/${encodeURIComponent(productId)}`, {
+      fetch(`/api/products/${encodeURIComponent(productId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "archived" })
-      });
+      }).catch(() => {});
     } catch (e) {}
 
-    try {
-      await window.NexAuth.ensureAuth();
-      await window.Collections.products.doc(productId).update({
-        status: "archived",
-        updatedAt: window.serverTimestamp()
-      });
-      await this._logActivity("product_archived", productId);
-    } catch (e) {}
+    const idx = this._memCache.findIndex(p => p.id === productId);
+    if (idx !== -1) {
+      this._memCache[idx].status = "archived";
+    }
 
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_products_cache") || "[]");
-      const idx = cached.findIndex(p => p.id === productId);
-      if (idx !== -1) {
-        cached[idx].status = "archived";
-        localStorage.setItem("nx_products_cache", JSON.stringify(cached));
-      }
-    } catch (e) {}
+    if (window.NexEvents) {
+      window.NexEvents.emit("PRODUCTS_CHANGED", { id: productId, status: "archived" });
+    }
 
     return true;
   },
 
   /* ── Unarchive / Activate Product ── */
   async activate(productId) {
+    await this._ensureInit();
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
+
+    const col = this._getCollection();
+    await col.doc(productId).update({
+      status: "active",
+      updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
+    });
+    await this._logActivity("product_activated", productId);
+
     try {
-      await fetch(`/api/products/${encodeURIComponent(productId)}`, {
+      fetch(`/api/products/${encodeURIComponent(productId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "active" })
-      });
+      }).catch(() => {});
     } catch (e) {}
 
-    try {
-      await window.NexAuth.ensureAuth();
-      await window.Collections.products.doc(productId).update({
-        status: "active",
-        updatedAt: window.serverTimestamp()
-      });
-      await this._logActivity("product_activated", productId);
-    } catch (e) {}
+    const idx = this._memCache.findIndex(p => p.id === productId);
+    if (idx !== -1) {
+      this._memCache[idx].status = "active";
+    }
 
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_products_cache") || "[]");
-      const idx = cached.findIndex(p => p.id === productId);
-      if (idx !== -1) {
-        cached[idx].status = "active";
-        localStorage.setItem("nx_products_cache", JSON.stringify(cached));
-      }
-    } catch (e) {}
+    if (window.NexEvents) {
+      window.NexEvents.emit("PRODUCTS_CHANGED", { id: productId, status: "active" });
+    }
 
     return true;
   },
 
   /* ── Delete Product ── */
   async delete(productId) {
-    try {
-      await fetch(`/api/products/${encodeURIComponent(productId)}`, { method: "DELETE" });
-    } catch (e) {}
+    await this._ensureInit();
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
+
+    const col = this._getCollection();
+    // Strictly delete from global Cloud Firestore collection
+    await col.doc(productId).delete();
+    await this._logActivity("product_deleted", productId);
 
     try {
-      await window.NexAuth.ensureAuth();
-      await window.Collections.products.doc(productId).delete();
-      await this._logActivity("product_deleted", productId);
+      fetch(`/api/products/${encodeURIComponent(productId)}`, { method: "DELETE" }).catch(() => {});
     } catch (e) {}
 
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_products_cache") || "[]");
-      const filtered = cached.filter(p => p.id !== productId);
-      localStorage.setItem("nx_products_cache", JSON.stringify(filtered));
-    } catch (e) {}
+    this._memCache = this._memCache.filter(p => p.id !== productId);
+
+    if (window.NexEvents) {
+      window.NexEvents.emit("PRODUCTS_CHANGED", { id: productId, deleted: true });
+    }
 
     return true;
   },
@@ -589,10 +628,13 @@ window.ProductsService = {
 
   /* ── Inventory Adjustment with Ledger Movement ── */
   async adjustInventory(productId, variantId, delta, reason = "manual_adjustment") {
-    try {
-      await window.NexAuth.ensureAuth();
-      const productRef = window.Collections.products.doc(productId);
+    await this._ensureInit();
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
 
+    const col = this._getCollection();
+    const productRef = col.doc(productId);
+
+    try {
       await window.db.runTransaction(async (tx) => {
         const doc = await tx.get(productRef);
         if (!doc.exists) throw new Error("Product not found");
@@ -603,36 +645,31 @@ window.ProductsService = {
             : v
         );
         const totalInventory = variants.reduce((s, v) => s + (Number(v.inventoryQty) || 0), 0);
-        tx.update(productRef, { variants, totalInventory, updatedAt: window.serverTimestamp() });
+        tx.update(productRef, {
+          variants,
+          totalInventory,
+          updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
+        });
       });
 
-      await window.Collections.inventoryMovements.add({
+      const invMovCol = window.Collections?.inventoryMovements || window.db.collection("inventory_movements");
+      await invMovCol.add({
         productId,
         variantId: variantId || "default",
         delta: Number(delta),
         reason,
-        createdAt: window.serverTimestamp(),
+        createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString(),
         by: window.NexAuth?.currentUser?.uid || "operator"
       });
     } catch (e) {
-      console.warn("Firestore inventory adjust note (updating local):", e.message);
+      console.warn("Firestore inventory adjust notice:", e.message);
     }
 
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_products_cache") || "[]");
-      const idx = cached.findIndex(p => p.id === productId);
-      if (idx !== -1) {
-        const p = cached[idx];
-        const variants = (p.variants || []).map(v =>
-          (v.id === variantId || (!variantId && v.id === "default"))
-            ? { ...v, inventoryQty: Math.max(0, (Number(v.inventoryQty) || 0) + Number(delta)) }
-            : v
-        );
-        cached[idx].variants = variants;
-        cached[idx].totalInventory = variants.reduce((s, v) => s + (Number(v.inventoryQty) || 0), 0);
-        localStorage.setItem("nx_products_cache", JSON.stringify(cached));
-      }
-    } catch (e) {}
+    // Refresh memory cache for this product
+    const updated = await this.get(productId);
+    if (updated && window.NexEvents) {
+      window.NexEvents.emit("PRODUCTS_CHANGED", updated);
+    }
 
     return true;
   },
@@ -676,14 +713,16 @@ window.ProductsService = {
 window.AssetSourceService = {
   DEFAULT_SOURCE_URL: "https://handfilm.handsandhead.com/pages/handsandhead",
   
+  _sourceUrl: null,
+
   getSourceUrl() {
-    return localStorage.getItem("nx_asset_source_url") || this.DEFAULT_SOURCE_URL;
+    return this._sourceUrl || this.DEFAULT_SOURCE_URL;
   },
 
   setSourceUrl(url) {
     if (!url || !url.trim()) url = this.DEFAULT_SOURCE_URL;
-    localStorage.setItem("nx_asset_source_url", url.trim());
-    return url.trim();
+    this._sourceUrl = url.trim();
+    return this._sourceUrl;
   },
 
   /* Curated High-Definition Lookbook Asset Feed */
@@ -800,5 +839,8 @@ window.AssetSourceService = {
     return await window.ProductsService.create(newProd);
   }
 };
+
+window.ProductsService.createProduct = window.ProductsService.create.bind(window.ProductsService);
+window.ProductsService.updateProduct = window.ProductsService.update.bind(window.ProductsService);
 
 

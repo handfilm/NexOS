@@ -195,11 +195,11 @@
         "title": "Tan Brown",
         "sku": "HH-WLT-01",
         "price": 2850,
-        "inventoryQty": 48,
+        "inventoryQty": 47,
         "availableForSale": true
       }
     ],
-    "totalInventory": 48,
+    "totalInventory": 47,
     "lowStockThreshold": 10,
     "createdAt": "2026-09-04T13:20:51.208Z",
     "updatedAt": "2026-09-04T13:20:51.208Z"

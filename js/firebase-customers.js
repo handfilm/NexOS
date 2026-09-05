@@ -6,6 +6,29 @@
 window.CustomersService = {
   PAGE_SIZE: 1000,
   _lastDoc: null,
+  _memCache: [],
+  _initPromise: null,
+
+  _getCollection() {
+    return window.Collections?.customers || window.db.collection("customers");
+  },
+
+  async _ensureInit() {
+    if (this._initPromise) return this._initPromise;
+    this._initPromise = (async () => {
+      try {
+        const col = this._getCollection();
+        if (col && typeof col.onSnapshot === "function") {
+          col.onSnapshot(snap => {
+            if (snap && !snap.empty) {
+              this._memCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            }
+          }, err => console.debug("Customers snapshot notice:", err?.message));
+        }
+      } catch (e) {}
+    })();
+    return this._initPromise;
+  },
 
   _getDefaultSeedCustomers() {
     if (window.PERMANENT_SEEDED_CUSTOMERS && Array.isArray(window.PERMANENT_SEEDED_CUSTOMERS) && window.PERMANENT_SEEDED_CUSTOMERS.length > 0) {
@@ -80,33 +103,14 @@ window.CustomersService = {
 
   /* ── Query & List Customers with Search & Filtering ── */
   async list({ search = null, country = null, tag = null, sortBy = "updatedAt", sortDir = "desc" } = {}) {
-    let items = [];
-
-    // 1. Primary Cross-Device Persistent Storage (/api/customers)
-    try {
-      const qParams = new URLSearchParams();
-      if (country && country !== "all") qParams.append("country", country);
-      if (tag && tag !== "all") qParams.append("tag", tag);
-      if (search && search.trim()) qParams.append("search", search.trim());
-      qParams.append("limit", "500");
-
-      const resp = await fetch("/api/customers?" + qParams.toString());
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.ok && Array.isArray(data.items) && data.items.length) {
-          items = data.items;
-          try { localStorage.setItem("nx_customers_cache", JSON.stringify(items)); } catch (e) {}
-          return { items, count: items.length };
-        }
-      }
-    } catch (apiErr) {
-      console.debug("Customers API fetch notice (switching to Firestore/local):", apiErr.message);
-    }
-
+    await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
 
+    let items = [];
+    const col = this._getCollection();
+
     try {
-      let q = window.Collections.customers;
+      let q = col;
 
       if (country && country !== "all") {
         q = q.where("country", "==", country);
@@ -115,32 +119,44 @@ window.CustomersService = {
       try {
         q = q.orderBy(sortBy, sortDir);
       } catch (e) {
-        console.warn("Customers query order fallback:", e);
+        console.debug("Customers query order fallback:", e?.message);
       }
 
       const snap = await q.limit(this.PAGE_SIZE).get();
-      items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      this._lastDoc = snap.docs[snap.docs.length - 1] || null;
-
-      if (items.length) {
-        try { localStorage.setItem("nx_customers_cache", JSON.stringify(items)); } catch (e) {}
+      if (snap && !snap.empty) {
+        items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        this._lastDoc = snap.docs[snap.docs.length - 1] || null;
       }
     } catch (err) {
-      console.warn("Firestore Customers fetch notice (using cache):", err.message);
-      try {
-        const cached = JSON.parse(localStorage.getItem("nx_customers_cache") || "[]");
-        items = cached.length ? cached : this._getDefaultSeedCustomers();
-      } catch (e) {
-        items = this._getDefaultSeedCustomers();
-      }
-
-      if (country && country !== "all") {
-        items = items.filter(c => c.country === country);
-      }
+      console.warn("Firestore customers fetch notice:", err?.message);
     }
 
-    if (!items.length && (!country || country === "all") && !search) {
-      items = this._getDefaultSeedCustomers();
+    // Auto-seed global Firestore collection if empty on first boot so buyer data persists in cloud across all devices
+    if (!items.length && (!country || country === "all") && !search && !tag) {
+      if (this._memCache && this._memCache.length) {
+        items = [...this._memCache];
+      } else {
+        const seedCustomers = this._getDefaultSeedCustomers();
+        try {
+          const batch = window.db.batch();
+          seedCustomers.forEach(c => {
+            const ref = col.doc(c.id);
+            batch.set(ref, c);
+          });
+          await batch.commit();
+          items = seedCustomers;
+          this._memCache = [...seedCustomers];
+        } catch (seedErr) {
+          console.debug("Firestore customer seeding note:", seedErr?.message);
+          items = seedCustomers;
+          this._memCache = [...seedCustomers];
+        }
+      }
+    } else if (items.length) {
+      this._memCache = items;
+    } else if (this._memCache && this._memCache.length) {
+      items = [...this._memCache];
+      if (country && country !== "all") items = items.filter(c => c.country === country);
     }
 
     // Client-side text search (Company, Name, Email, Phone, Country, Tags)
@@ -169,31 +185,53 @@ window.CustomersService = {
       items.sort((a, b) => (a.companyName || a.name || "").localeCompare(b.companyName || b.name || ""));
     }
 
+    // Sync cloud backup endpoint in background
+    try {
+      fetch("/api/customers?limit=100").catch(() => {});
+    } catch (e) {}
+
     return { items, count: items.length };
   },
 
+  /* ── Get All Cached Customers (Synchronous Access) ── */
+  getAll() {
+    return this._memCache.length ? this._memCache : this._getDefaultSeedCustomers();
+  },
+
   async get(customerId) {
+    await this._ensureInit();
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
+
+    const col = this._getCollection();
+
+    // 1. Direct Global Firestore Document Fetch
     try {
-      await window.NexAuth.ensureAuth();
-      const doc = await window.Collections.customers.doc(customerId).get();
-      if (doc.exists) return { id: doc.id, ...doc.data() };
+      const doc = await col.doc(customerId).get();
+      if (doc.exists) {
+        const data = { id: doc.id, ...doc.data() };
+        const idx = this._memCache.findIndex(c => c.id === customerId);
+        if (idx !== -1) this._memCache[idx] = data;
+        else this._memCache.unshift(data);
+        return data;
+      }
     } catch (e) {
-      console.warn("Firestore get customer fallback:", e);
+      console.warn("Firestore get customer notice:", e?.message);
     }
-    const cached = JSON.parse(localStorage.getItem("nx_customers_cache") || "[]");
-    const all = cached.length ? cached : this._getDefaultSeedCustomers();
-    return all.find(c => c.id === customerId) || null;
+
+    return this._memCache.find(c => c.id === customerId) || null;
   },
 
   /* ── Get Customer Details along with their Real Historical Orders ── */
   async getWithOrders(customerId, limit = 20) {
+    await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
     const customer = await this.get(customerId);
     if (!customer) return { customer: null, orders: [] };
 
     let orders = [];
     try {
-      const ordersSnap = await window.Collections.orders
+      const ordersCol = window.Collections?.orders || window.db.collection("orders");
+      const ordersSnap = await ordersCol
         .where("customerId", "==", customerId)
         .limit(limit)
         .get();
@@ -204,7 +242,7 @@ window.CustomersService = {
         return tb - ta;
       });
     } catch (e) {
-      console.warn("Orders subquery note:", e);
+      console.debug("Orders subquery notice:", e?.message);
       try {
         const allOrders = (await window.OrdersService.list()).items || [];
         orders = allOrders.filter(o => o.customerId === customerId || o.customerSnapshot?.companyName === customer.companyName);
@@ -216,6 +254,7 @@ window.CustomersService = {
 
   /* ── Create Customer / Buyer Profile ── */
   async create(data) {
+    await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
     const flags = {
       NL: "🇳🇱", DE: "🇩🇪", GB: "🇬🇧", ES: "🇪🇸", FR: "🇫🇷",
@@ -242,7 +281,12 @@ window.CustomersService = {
       by: window.NexAuth?.profile?.name || "Operator"
     }] : [];
 
+    const col = this._getCollection();
+    const docRef = data.id ? col.doc(data.id) : col.doc();
+    const newId = docRef.id;
+
     const payload = {
+      id: newId,
       name: (data.name || data.contactPerson || data.companyName || "Unnamed Buyer").trim(),
       companyName: (data.companyName || data.name || "Company").trim(),
       email: (data.email || "").trim(),
@@ -264,45 +308,38 @@ window.CustomersService = {
       updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
     };
 
-    let newId = "cust-" + Date.now().toString(36);
+    // 1. Strictly persist to global Cloud Firestore collection
+    await docRef.set(payload);
+    await this._logActivity("customer_created", newId, payload.companyName || payload.name);
 
-    // 1. Primary Cross-Device Server Persistence
+    // 2. Server persistence backup for cross-system consistency
     try {
-      const resp = await fetch("/api/customers", {
+      fetch("/api/customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, id: newId })
-      });
-      if (resp.ok) {
-        const resData = await resp.json();
-        if (resData.ok && resData.id) {
-          newId = resData.id;
-        }
-      }
-    } catch (apiErr) {
-      console.debug("Customers API write note (falling back):", apiErr.message);
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    } catch (apiErr) {}
+
+    // Update in-memory cache
+    const existingIdx = this._memCache.findIndex(c => c.id === newId);
+    if (existingIdx !== -1) {
+      this._memCache[existingIdx] = payload;
+    } else {
+      this._memCache.unshift(payload);
     }
 
-    try {
-      const ref = await window.Collections.customers.add(payload);
-      newId = ref.id;
-      await this._logActivity("customer_created", ref.id, payload.companyName || payload.name);
-    } catch (e) {
-      console.warn("Firestore customer add note (saved locally):", e.message);
+    if (window.NexEvents) {
+      window.NexEvents.emit("CUSTOMERS_CHANGED", payload);
+      window.NexEvents.emit("DATA_SYNC", { type: "customer_created", customer: payload });
     }
-
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_customers_cache") || "[]");
-      const localCust = { id: newId, ...payload, createdAt: new Date().toISOString() };
-      cached.unshift(localCust);
-      localStorage.setItem("nx_customers_cache", JSON.stringify(cached));
-    } catch (e) {}
 
     return newId;
   },
 
   /* ── Update Customer ── */
   async update(customerId, data) {
+    await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
     const patch = { ...data, updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString() };
 
@@ -328,38 +365,37 @@ window.CustomersService = {
       }];
     }
 
-    // 1. Primary Cross-Device Server Persistence
+    const col = this._getCollection();
+
+    // 1. Strictly update in global Cloud Firestore collection
+    await col.doc(customerId).set(patch, { merge: true });
+    await this._logActivity("customer_updated", customerId, data.companyName || data.name || "");
+
+    // 2. Server persistence backup
     try {
-      await fetch(`/api/customers/${encodeURIComponent(customerId)}`, {
+      fetch(`/api/customers/${encodeURIComponent(customerId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch)
-      });
-    } catch (apiErr) {
-      console.debug("Customers API update note:", apiErr.message);
+      }).catch(() => {});
+    } catch (apiErr) {}
+
+    // Update in-memory cache
+    const idx = this._memCache.findIndex(c => c.id === customerId);
+    if (idx !== -1) {
+      this._memCache[idx] = { ...this._memCache[idx], ...patch };
     }
 
-    try {
-      await window.Collections.customers.doc(customerId).set(patch, { merge: true });
-      await this._logActivity("customer_updated", customerId, data.companyName || data.name || "");
-    } catch (e) {
-      console.warn("Firestore customer update fallback:", e.message);
+    if (window.NexEvents) {
+      window.NexEvents.emit("CUSTOMERS_CHANGED", { id: customerId, ...patch });
     }
-
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_customers_cache") || "[]");
-      const idx = cached.findIndex(c => c.id === customerId);
-      if (idx !== -1) {
-        cached[idx] = { ...cached[idx], ...patch };
-        localStorage.setItem("nx_customers_cache", JSON.stringify(cached));
-      }
-    } catch (e) {}
 
     return true;
   },
 
   /* ── Add Note to Customer ── */
   async addNote(customerId, text) {
+    await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
     if (!text || !text.trim()) return;
 
@@ -369,42 +405,43 @@ window.CustomersService = {
       by: window.NexAuth?.profile?.name || window.NexAuth?.currentUser?.email || "Operator"
     };
 
-    try {
-      await window.Collections.customers.doc(customerId).update({
-        notes: window.FieldValue.arrayUnion(noteObj),
-        updatedAt: window.serverTimestamp()
-      });
-    } catch (e) {}
+    const col = this._getCollection();
+    await col.doc(customerId).update({
+      notes: window.FieldValue.arrayUnion(noteObj),
+      updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
+    });
 
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_customers_cache") || "[]");
-      const idx = cached.findIndex(c => c.id === customerId);
-      if (idx !== -1) {
-        cached[idx].notes = [...(cached[idx].notes || []), noteObj];
-        localStorage.setItem("nx_customers_cache", JSON.stringify(cached));
-      }
-    } catch (e) {}
+    const idx = this._memCache.findIndex(c => c.id === customerId);
+    if (idx !== -1) {
+      this._memCache[idx].notes = [...(this._memCache[idx].notes || []), noteObj];
+    }
+
+    if (window.NexEvents) {
+      window.NexEvents.emit("CUSTOMERS_CHANGED", { id: customerId, noteAdded: noteObj });
+    }
 
     return noteObj;
   },
 
   /* ── Delete Customer ── */
   async delete(customerId) {
-    try {
-      await fetch(`/api/customers/${encodeURIComponent(customerId)}`, { method: "DELETE" });
-    } catch (e) {}
+    await this._ensureInit();
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
+
+    const col = this._getCollection();
+    // Strictly delete from global Cloud Firestore collection
+    await col.doc(customerId).delete();
+    await this._logActivity("customer_deleted", customerId);
 
     try {
-      await window.NexAuth.ensureAuth();
-      await window.Collections.customers.doc(customerId).delete();
-      await this._logActivity("customer_deleted", customerId);
+      fetch(`/api/customers/${encodeURIComponent(customerId)}`, { method: "DELETE" }).catch(() => {});
     } catch (e) {}
 
-    try {
-      const cached = JSON.parse(localStorage.getItem("nx_customers_cache") || "[]");
-      const filtered = cached.filter(c => c.id !== customerId);
-      localStorage.setItem("nx_customers_cache", JSON.stringify(filtered));
-    } catch (e) {}
+    this._memCache = this._memCache.filter(c => c.id !== customerId);
+
+    if (window.NexEvents) {
+      window.NexEvents.emit("CUSTOMERS_CHANGED", { id: customerId, deleted: true });
+    }
 
     return true;
   },
@@ -412,12 +449,13 @@ window.CustomersService = {
   /* ── Bump Aggregates on Order Creation ── */
   async _bumpAggregates(customerId, orderTotal, tx = null) {
     try {
-      const ref = window.Collections.customers.doc(customerId);
+      const col = this._getCollection();
+      const ref = col.doc(customerId);
       const patch = {
         totalOrders: window.FieldValue.increment(1),
         totalSpent: window.FieldValue.increment(Number(orderTotal) || 0),
-        lastOrderAt: window.serverTimestamp(),
-        updatedAt: window.serverTimestamp()
+        lastOrderAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString(),
+        updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
       };
       if (tx) tx.update(ref, patch);
       else await ref.update(patch);
@@ -426,13 +464,14 @@ window.CustomersService = {
 
   async _logActivity(type, customerId, name = "") {
     try {
-      await window.Collections.activities.add({
+      const actCol = window.Collections?.activities || window.db.collection("activities");
+      await actCol.add({
         type,
         entity: "customer",
         entityId: customerId,
         title: name,
         by: window.NexAuth?.currentUser?.uid || "operator",
-        createdAt: window.serverTimestamp()
+        createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
       });
     } catch (e) {}
   },
@@ -440,19 +479,20 @@ window.CustomersService = {
   async seedPermanentData() {
     try {
       if (!window.PERMANENT_SEEDED_CUSTOMERS || !window.PERMANENT_SEEDED_CUSTOMERS.length) return;
-      const ver = localStorage.getItem("nx_customers_version_v2");
-      if (ver !== "2.0") {
-        localStorage.setItem("nx_customers_cache", JSON.stringify(window.PERMANENT_SEEDED_CUSTOMERS));
-        localStorage.setItem("nx_customers_version_v2", "2.0");
-        console.log(`[CustomersService] Updated clean sanitized customer dataset (${window.PERMANENT_SEEDED_CUSTOMERS.length} records)`);
-        return;
-      }
-      const cached = JSON.parse(localStorage.getItem("nx_customers_cache") || "[]");
-      if (cached.length < window.PERMANENT_SEEDED_CUSTOMERS.length) {
-        localStorage.setItem("nx_customers_cache", JSON.stringify(window.PERMANENT_SEEDED_CUSTOMERS));
+      const col = this._getCollection();
+      const snap = await col.limit(1).get();
+      if (snap.empty) {
+        const batch = window.db.batch();
+        window.PERMANENT_SEEDED_CUSTOMERS.forEach(c => {
+          const ref = col.doc(c.id);
+          batch.set(ref, c);
+        });
+        await batch.commit();
+        this._memCache = [...window.PERMANENT_SEEDED_CUSTOMERS];
+        console.log(`[CustomersService] Seeded ${window.PERMANENT_SEEDED_CUSTOMERS.length} records into Firestore.`);
       }
     } catch (e) {
-      console.warn("Error seeding permanent customer data:", e);
+      console.debug("Seed permanent customer data note:", e?.message);
     }
   }
 };
@@ -461,6 +501,10 @@ if (typeof window !== "undefined") {
   setTimeout(() => {
     if (window.CustomersService && typeof window.CustomersService.seedPermanentData === "function") {
       window.CustomersService.seedPermanentData();
+    }
+    if (window.CustomersService) {
+      window.CustomersService.createCustomer = window.CustomersService.create.bind(window.CustomersService);
+      window.CustomersService.updateCustomer = window.CustomersService.update.bind(window.CustomersService);
     }
   }, 50);
 }

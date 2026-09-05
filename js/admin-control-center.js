@@ -209,7 +209,7 @@
         </div>
 
         <!-- Quick Access Control Matrix -->
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start;">
+        <div class="admin-matrix-layout" style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start;">
           
           <!-- Fast Navigation Modules -->
           <div>

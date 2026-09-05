@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Hands & Head product catalog entity",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "handle": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "draft", "archived"] },
+        "vendor": { "type": "string" },
+        "productType": { "type": "string" },
+        "totalInventory": { "type": "number" },
+        "lowStockThreshold": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title", "status"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "Hands & Head customer and buyer entity",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "companyName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "country": { "type": "string" },
+        "currency": { "type": "string" },
+        "totalSpent": { "type": "number" },
+        "totalOrders": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "country"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Hands & Head order pipeline entity",
+      "type": "object",
+      "properties": {
+        "orderNumber": { "type": "string" },
+        "customerId": { "type": "string" },
+        "total": { "type": "number" },
+        "subtotal": { "type": "number" },
+        "currency": { "type": "string" },
+        "paymentStatus": { "type": "string", "enum": ["paid", "pending", "refunded"] },
+        "fulfillmentStatus": { "type": "string", "enum": ["fulfilled", "unfulfilled", "partial"] },
+        "status": { "type": "string", "enum": ["open", "completed", "cancelled"] },
+        "paymentMethod": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["orderNumber", "total", "status"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Global Firestore products collection"
+    },
+    "/customers/{customerId}": {
+      "schema": "Customer",
+      "description": "Global Firestore customers collection"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Global Firestore orders collection"
+    }
+  }
+}
