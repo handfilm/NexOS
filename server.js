@@ -1748,6 +1748,44 @@ app.get('/api/sync', (req, res) => {
   }
 });
 
+/* ── FILE & PHOTO UPLOAD API (Device Upload Support) ── */
+app.post('/api/upload', (req, res) => {
+  try {
+    const rawImage = req.body.image || req.body.dataUrl || req.body.file;
+    const reqFilename = req.body.filename || req.body.name;
+    if (!rawImage) {
+      return res.status(400).json({ ok: false, error: 'No image data provided' });
+    }
+
+    // Support Base64 Data URI
+    const matches = rawImage.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (matches && matches.length === 3) {
+      const mimeType = matches[1];
+      const ext = mimeType.split('/')[1]?.replace('jpeg', 'jpg') || 'jpg';
+      const buffer = Buffer.from(matches[2], 'base64');
+      const safeName = (reqFilename || 'photo').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 30);
+      const filename = `prod-${Date.now()}-${safeName || 'img'}.${ext}`;
+      const uploadsDir = path.join(__dirname, 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      fs.writeFileSync(path.join(uploadsDir, filename), buffer);
+      const publicUrl = `/uploads/${filename}`;
+      return res.json({ ok: true, url: publicUrl, filename, size: buffer.length });
+    }
+
+    // Direct URL passthrough
+    if (typeof rawImage === 'string' && (rawImage.startsWith('http://') || rawImage.startsWith('https://') || rawImage.startsWith('/'))) {
+      return res.json({ ok: true, url: rawImage });
+    }
+
+    return res.status(400).json({ ok: false, error: 'Invalid image format. Expected Data URL or URL string.' });
+  } catch (err) {
+    console.error('Upload error:', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.use(express.static(__dirname));
 
 app.get('*', (req, res) => {

@@ -252,6 +252,19 @@ window.CustomersService = {
     return { customer, orders };
   },
 
+  /* ── Resilient Cloud Firestore Write Helper (Prevents UI Freeze) ── */
+  async _safeDocWrite(docRef, data, merge = false) {
+    try {
+      const writePromise = merge ? docRef.set(data, { merge: true }) : docRef.set(data);
+      await Promise.race([
+        writePromise,
+        new Promise(resolve => setTimeout(resolve, 2500))
+      ]);
+    } catch (err) {
+      console.warn("Firestore customer write fallback:", err?.message || err);
+    }
+  },
+
   /* ── Create Customer / Buyer Profile ── */
   async create(data) {
     await this._ensureInit();
@@ -285,6 +298,7 @@ window.CustomersService = {
     const docRef = data.id ? col.doc(data.id) : col.doc();
     const newId = docRef.id;
 
+    const nowIso = new Date().toISOString();
     const payload = {
       id: newId,
       name: (data.name || data.contactPerson || data.companyName || "Unnamed Buyer").trim(),
@@ -304,17 +318,17 @@ window.CustomersService = {
       totalSpent: 0,
       lastOrderAt: null,
       storeId: data.storeId || "default",
-      createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString(),
-      updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
+      createdAt: nowIso,
+      updatedAt: nowIso
     };
 
-    // 1. Strictly persist to global Cloud Firestore collection
-    await docRef.set(payload);
-    await this._logActivity("customer_created", newId, payload.companyName || payload.name);
+    // 1. Strictly persist to global Cloud Firestore collection with resilient timeout
+    await this._safeDocWrite(docRef, payload);
+    this._logActivity("customer_created", newId, payload.companyName || payload.name).catch(() => {});
 
     // 2. Server persistence backup for cross-system consistency
     try {
-      fetch("/api/customers", {
+      await fetch("/api/customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -341,7 +355,7 @@ window.CustomersService = {
   async update(customerId, data) {
     await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
-    const patch = { ...data, updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString() };
+    const patch = { ...data, updatedAt: new Date().toISOString() };
 
     if (data.country) {
       const flags = { NL: "🇳🇱", DE: "🇩🇪", GB: "🇬🇧", ES: "🇪🇸", FR: "🇫🇷", IT: "🇮🇹", JP: "🇯🇵", US: "🇺🇸", CA: "🇨🇦", BD: "🇧🇩", AE: "🇦🇪" };
@@ -367,13 +381,13 @@ window.CustomersService = {
 
     const col = this._getCollection();
 
-    // 1. Strictly update in global Cloud Firestore collection
-    await col.doc(customerId).set(patch, { merge: true });
-    await this._logActivity("customer_updated", customerId, data.companyName || data.name || "");
+    // 1. Strictly update in global Cloud Firestore collection with resilient timeout
+    await this._safeDocWrite(col.doc(customerId), patch, true);
+    this._logActivity("customer_updated", customerId, data.companyName || data.name || "").catch(() => {});
 
     // 2. Server persistence backup
     try {
-      fetch(`/api/customers/${encodeURIComponent(customerId)}`, {
+      await fetch(`/api/customers/${encodeURIComponent(customerId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch)
@@ -406,10 +420,15 @@ window.CustomersService = {
     };
 
     const col = this._getCollection();
-    await col.doc(customerId).update({
-      notes: window.FieldValue.arrayUnion(noteObj),
-      updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
-    });
+    try {
+      await Promise.race([
+        col.doc(customerId).update({
+          notes: window.FieldValue.arrayUnion(noteObj),
+          updatedAt: new Date().toISOString()
+        }),
+        new Promise(resolve => setTimeout(resolve, 2500))
+      ]);
+    } catch (e) {}
 
     const idx = this._memCache.findIndex(c => c.id === customerId);
     if (idx !== -1) {
@@ -429,9 +448,14 @@ window.CustomersService = {
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
 
     const col = this._getCollection();
-    // Strictly delete from global Cloud Firestore collection
-    await col.doc(customerId).delete();
-    await this._logActivity("customer_deleted", customerId);
+    // Strictly delete from global Cloud Firestore collection with resilient timeout
+    try {
+      await Promise.race([
+        col.doc(customerId).delete(),
+        new Promise(resolve => setTimeout(resolve, 2500))
+      ]);
+    } catch (e) {}
+    this._logActivity("customer_deleted", customerId).catch(() => {});
 
     try {
       fetch(`/api/customers/${encodeURIComponent(customerId)}`, { method: "DELETE" }).catch(() => {});

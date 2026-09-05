@@ -498,14 +498,24 @@
     const imgData = capturedImageDataUrl;
     closeCameraModal();
     
-    // Open product form with image pre-loaded
+    // If product sheet is already open in DOM, append photo directly
+    if (document.getElementById('p_gallery_container') && typeof window.addCapturedProductPhoto === 'function') {
+      window.addCapturedProductPhoto(imgData);
+      return;
+    }
+
+    // Otherwise open product form and preload photo
     if (typeof window.openAdvancedProductForm === 'function') {
       window.openAdvancedProductForm();
       setTimeout(() => {
-        const imgInput = document.getElementById('p_img');
-        if (imgInput) imgInput.value = imgData;
+        if (typeof window.addCapturedProductPhoto === 'function') {
+          window.addCapturedProductPhoto(imgData);
+        } else {
+          const imgInput = document.getElementById('p_img');
+          if (imgInput) imgInput.value = imgData;
+        }
         toast('Captured photo loaded into product builder');
-      }, 300);
+      }, 250);
     }
   }
 

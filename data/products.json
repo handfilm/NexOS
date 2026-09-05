@@ -1,5 +1,43 @@
 [
   {
+    "id": "prod-mtoeo9ex-949",
+    "title": "Test Leather Belt",
+    "handle": "test-leather-belt",
+    "status": "active",
+    "vendor": "Hands & Head",
+    "productType": "Leather Goods",
+    "description": "",
+    "tags": [
+      "Leather Goods"
+    ],
+    "pricing": {
+      "price": 1200,
+      "compareAtPrice": null,
+      "cost": null,
+      "currency": "BDT"
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80",
+        "alt": "Test Leather Belt"
+      }
+    ],
+    "variants": [
+      {
+        "id": "v-prod-mtoeo9ex-949",
+        "title": "Standard",
+        "sku": "HH-3780",
+        "price": 1200,
+        "inventoryQty": 15,
+        "availableForSale": true
+      }
+    ],
+    "totalInventory": 15,
+    "lowStockThreshold": 10,
+    "createdAt": "2026-09-05T13:15:32.649Z",
+    "updatedAt": "2026-09-05T13:15:32.649Z"
+  },
+  {
     "id": "prod-tee-01",
     "title": "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
     "handle": "heavyweight-boxy-graphic-tee-dhaka-cyber",

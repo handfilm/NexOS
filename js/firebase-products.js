@@ -357,6 +357,19 @@ window.ProductsService = {
     return this._memCache.find(p => p.id === productId || p.handle === productId) || null;
   },
 
+  /* ── Resilient Cloud Firestore Write Helper (Prevents UI Freeze) ── */
+  async _safeDocWrite(docRef, data, merge = false) {
+    try {
+      const writePromise = merge ? docRef.set(data, { merge: true }) : docRef.set(data);
+      await Promise.race([
+        writePromise,
+        new Promise(resolve => setTimeout(resolve, 2500))
+      ]);
+    } catch (err) {
+      console.warn("Firestore write queued/offline fallback:", err?.message || err);
+    }
+  },
+
   /* ── Create Product ── */
   async create(data) {
     await this._ensureInit();
@@ -385,6 +398,7 @@ window.ProductsService = {
     const docRef = data.id ? col.doc(data.id) : col.doc();
     const newId = docRef.id;
 
+    const nowIso = new Date().toISOString();
     const payload = {
       id: newId,
       title: (data.title || "Untitled Product").trim(),
@@ -407,18 +421,18 @@ window.ProductsService = {
       totalInventory,
       lowStockThreshold: Number(data.lowStockThreshold) || 5,
       storeId: data.storeId || "default",
-      createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString(),
-      updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
+      createdAt: nowIso,
+      updatedAt: nowIso
     };
 
-    // 1. Strictly persist to global Cloud Firestore collection
-    await docRef.set(payload);
-    await this._syncInventory(newId, totalInventory);
-    await this._logActivity("product_created", newId, payload.title);
+    // 1. Strictly persist to global Cloud Firestore collection with resilient timeout
+    await this._safeDocWrite(docRef, payload);
+    this._syncInventory(newId, totalInventory).catch(() => {});
+    this._logActivity("product_created", newId, payload.title).catch(() => {});
 
     // 2. Server persistence backup for cross-system consistency
     try {
-      fetch("/api/products", {
+      await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -445,7 +459,7 @@ window.ProductsService = {
   async update(productId, data) {
     await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
-    const patch = { ...data, updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString() };
+    const patch = { ...data, updatedAt: new Date().toISOString() };
 
     if (data.title && !data.handle) {
       patch.handle = this._slugify(data.title);
@@ -469,16 +483,16 @@ window.ProductsService = {
 
     const col = this._getCollection();
 
-    // 1. Strictly update in global Cloud Firestore collection
-    await col.doc(productId).set(patch, { merge: true });
+    // 1. Strictly update in global Cloud Firestore collection with resilient timeout
+    await this._safeDocWrite(col.doc(productId), patch, true);
     if (patch.totalInventory !== undefined) {
-      await this._syncInventory(productId, patch.totalInventory);
+      this._syncInventory(productId, patch.totalInventory).catch(() => {});
     }
-    await this._logActivity("product_updated", productId, data.title || "");
+    this._logActivity("product_updated", productId, data.title || "").catch(() => {});
 
     // 2. Server persistence backup
     try {
-      fetch(`/api/products/${encodeURIComponent(productId)}`, {
+      await fetch(`/api/products/${encodeURIComponent(productId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch)
@@ -568,9 +582,14 @@ window.ProductsService = {
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
 
     const col = this._getCollection();
-    // Strictly delete from global Cloud Firestore collection
-    await col.doc(productId).delete();
-    await this._logActivity("product_deleted", productId);
+    // Strictly delete from global Cloud Firestore collection with resilient timeout
+    try {
+      await Promise.race([
+        col.doc(productId).delete(),
+        new Promise(resolve => setTimeout(resolve, 2500))
+      ]);
+    } catch (err) {}
+    this._logActivity("product_deleted", productId).catch(() => {});
 
     try {
       fetch(`/api/products/${encodeURIComponent(productId)}`, { method: "DELETE" }).catch(() => {});

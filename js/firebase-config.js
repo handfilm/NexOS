@@ -59,9 +59,11 @@ window.storage = firebase.storage();
 try {
   window.db.settings({
     experimentalForceLongPolling: true,
-    merge: true
+    cacheSizeBytes: (firebase.firestore && firebase.firestore.CACHE_SIZE_UNLIMITED) || 104857600
   });
-} catch (e) {}
+} catch (e) {
+  console.debug("Firestore settings notice:", e?.message);
+}
 
 if (window.db && typeof window.db.enablePersistence === "function") {
   window.db.enablePersistence({ synchronizeTabs: true }).catch(() => {});

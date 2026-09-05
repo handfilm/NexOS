@@ -602,15 +602,199 @@
     }, 280);
   };
 
+  /* ── Image Upload & Device File Processing Helper ── */
+  window._currentProductImages = [];
+
+  window.compressImageFile = function (file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 1200;
+          let w = img.width;
+          let h = img.height;
+          if (w > h) {
+            if (w > MAX) {
+              h = Math.round(h * (MAX / w));
+              w = MAX;
+            }
+          } else {
+            if (h > MAX) {
+              w = Math.round(w * (MAX / h));
+              h = MAX;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.84);
+          resolve({ dataUrl, filename: file.name || "device-photo.jpg" });
+        };
+        img.onerror = () => resolve({ dataUrl: e.target.result, filename: file.name || "device-photo.jpg" });
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  window.handleProductPhotoUpload = async function (files) {
+    if (!files || !files.length) return;
+    const spinner = document.getElementById("p_upload_spinner");
+    if (spinner) spinner.style.display = "block";
+
+    let count = 0;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!file.type || !file.type.startsWith("image/")) continue;
+
+      try {
+        const compressed = await window.compressImageFile(file);
+        if (!compressed || !compressed.dataUrl) continue;
+
+        let finalUrl = compressed.dataUrl;
+
+        // Attempt server-side file persistence
+        try {
+          const res = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              dataUrl: compressed.dataUrl,
+              filename: compressed.filename
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.ok && data.url) {
+              finalUrl = data.url;
+            }
+          }
+        } catch (serverErr) {
+          console.debug("Server upload fallback:", serverErr);
+        }
+
+        if (!Array.isArray(window._currentProductImages)) window._currentProductImages = [];
+        window._currentProductImages.push({
+          url: finalUrl,
+          alt: file.name?.replace(/\.[^/.]+$/, "") || "Product Photo",
+          position: window._currentProductImages.length
+        });
+        count++;
+      } catch (err) {
+        console.error("Failed to process photo:", err);
+      }
+    }
+
+    if (spinner) spinner.style.display = "none";
+    window.renderProductPhotoGallery();
+    window.syncUrlInputFromGallery();
+    if (count > 0) {
+      toast(`Added ${count} photo${count > 1 ? "s" : ""} from device ✓`);
+    }
+  };
+
+  window.renderProductPhotoGallery = function () {
+    const galleryEl = document.getElementById("p_gallery_container");
+    if (!galleryEl) return;
+
+    if (!Array.isArray(window._currentProductImages) || window._currentProductImages.length === 0) {
+      galleryEl.innerHTML = `<div style="font-size:11px;color:var(--ink-3);font-style:italic;padding:6px 0;">No photos added yet. Upload from device or enter image URL below.</div>`;
+      return;
+    }
+
+    galleryEl.innerHTML = window._currentProductImages.map((item, idx) => {
+      const url = typeof item === 'string' ? item : item.url;
+      const isMain = idx === 0;
+      return `
+        <div style="position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:${isMain ? '2px solid var(--gold)' : '1px solid var(--wire)'};background:var(--bg-3);flex-shrink:0;">
+          <img src="${url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'72\\' height=\\'72\\'><rect width=\\'72\\' height=\\'72\\' fill=\\'%23333\\'/><text x=\\'50%\\' y=\\'50%\\' fill=\\'%23888\\' font-size=\\'10\\' text-anchor=\\'middle\\' dy=\\'.3em\\'>broken</text></svg>'"/>
+          ${isMain ? `<span style="position:absolute;bottom:0;left:0;right:0;background:var(--gold);color:#000;font-size:9px;font-weight:800;text-align:center;line-height:14px;letter-spacing:0.5px;">COVER</span>` : `
+            <button type="button" title="Set as Cover photo" onclick="window.makeProductPhotoMain(${idx})" style="position:absolute;bottom:2px;left:2px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:4px;font-size:8px;padding:2px 4px;cursor:pointer;">★</button>
+          `}
+          <button type="button" title="Remove photo" onclick="window.removeProductPhoto(${idx})" style="position:absolute;top:2px;right:2px;background:rgba(200,0,0,0.85);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1;">✕</button>
+        </div>
+      `;
+    }).join("");
+  };
+
+  window.removeProductPhoto = function (idx) {
+    if (!Array.isArray(window._currentProductImages)) return;
+    window._currentProductImages.splice(idx, 1);
+    window.renderProductPhotoGallery();
+    window.syncUrlInputFromGallery();
+  };
+
+  window.makeProductPhotoMain = function (idx) {
+    if (!Array.isArray(window._currentProductImages) || idx <= 0 || idx >= window._currentProductImages.length) return;
+    const item = window._currentProductImages.splice(idx, 1)[0];
+    window._currentProductImages.unshift(item);
+    window.renderProductPhotoGallery();
+    window.syncUrlInputFromGallery();
+  };
+
+  window.syncUrlInputFromGallery = function () {
+    const input = document.getElementById("p_img");
+    if (!input) return;
+    const urls = (window._currentProductImages || []).map(x => typeof x === 'string' ? x : x.url).filter(Boolean);
+    input.value = urls.join(", ");
+  };
+
+  window.syncGalleryFromUrlInput = function (val) {
+    if (!val || !val.trim()) {
+      window._currentProductImages = [];
+      window.renderProductPhotoGallery();
+      return;
+    }
+    const urls = val.split(",").map(u => u.trim()).filter(Boolean);
+    window._currentProductImages = urls.map((u, i) => ({ url: u, alt: "Product Photo", position: i }));
+    window.renderProductPhotoGallery();
+  };
+
+  window.triggerCameraForProduct = function () {
+    if (window.CameraEngine && typeof window.CameraEngine.openModal === 'function') {
+      window.CameraEngine.openModal();
+    } else {
+      const fi = document.getElementById("p_file_input");
+      if (fi) fi.click();
+    }
+  };
+
+  window.addCapturedProductPhoto = function (dataUrl) {
+    if (!dataUrl) return;
+    if (!Array.isArray(window._currentProductImages)) window._currentProductImages = [];
+    window._currentProductImages.push({ url: dataUrl, alt: "Captured Camera Photo", position: window._currentProductImages.length });
+    window.renderProductPhotoGallery();
+    window.syncUrlInputFromGallery();
+    toast("Camera photo attached to product ✓");
+  };
+
   /* ── Product Create / Edit Modal ── */
   window.openAdvancedProductForm = function (productId = null) {
     const p = productId ? (window._lastProductsCache || []).find(x => x.id === productId) : null;
     const v = p?.variants?.[0] || {};
-    const imgUrl = p?.images?.[0]?.url || "";
+    
+    // Initialize current product images array
+    if (Array.isArray(p?.images) && p.images.length) {
+      window._currentProductImages = p.images.map((img, idx) => ({
+        url: typeof img === 'string' ? img : (img.url || ""),
+        alt: typeof img === 'object' && img.alt ? img.alt : (p.title || "Product Photo"),
+        position: idx
+      })).filter(x => x.url);
+    } else if (p?.image) {
+      window._currentProductImages = [{ url: p.image, alt: p.title || "Product Photo", position: 0 }];
+    } else {
+      window._currentProductImages = [];
+    }
+
+    const imgUrlString = window._currentProductImages.map(x => x.url).join(", ");
 
     openSheet(`
       <h3>${p ? 'Edit Product' : 'Add Product'}</h3>
-      <p class="hint">${p ? 'Update product details, pricing, and inventory' : 'Create a new product in the Firestore catalog'}</p>
+      <p class="hint">${p ? 'Update product details, pricing, inventory & photos' : 'Create and publish a new product in the catalog'}</p>
       
       <div style="padding:0 20px 24px;">
         <input type="hidden" id="p_id" value="${p?.id || ''}"/>
@@ -620,7 +804,59 @@
         </div>
         
         <div class="field"><label>Description</label>
-          <textarea id="p_desc" rows="3" placeholder="Product details, leather type, tanning method, and features…">${p?.description || ''}</textarea>
+          <textarea id="p_desc" rows="3" placeholder="Product details, leather type, tanning method, craftsmanship…">${p?.description || ''}</textarea>
+        </div>
+
+        <!-- ── Product Photo & Media Section with Device Upload ── -->
+        <div class="field" style="margin-bottom: 18px;">
+          <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-weight:600;font-size:12px;color:var(--ink);letter-spacing:0.3px;">Product Photos &amp; Media</span>
+            <span class="pill ok" style="font-size:10px;padding:2px 8px;font-weight:700;">Device Upload Ready</span>
+          </label>
+
+          <!-- Upload Dropzone -->
+          <div id="product_photo_dropzone" 
+               style="border: 2px dashed var(--wire-dark); border-radius: 12px; padding: 18px 14px; text-align: center; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.2s ease; margin-bottom: 10px;"
+               onclick="document.getElementById('p_file_input').click()"
+               ondragover="event.preventDefault(); this.style.borderColor='var(--gold)'; this.style.background='rgba(212,175,55,0.06)';"
+               ondragleave="this.style.borderColor='var(--wire-dark)'; this.style.background='rgba(255,255,255,0.02)';"
+               ondrop="event.preventDefault(); this.style.borderColor='var(--wire-dark)'; this.style.background='rgba(255,255,255,0.02)'; window.handleProductPhotoUpload(event.dataTransfer.files);">
+               
+            <input type="file" id="p_file_input" accept="image/*" multiple style="display:none;" onchange="window.handleProductPhotoUpload(this.files)"/>
+            
+            <div style="font-size: 26px; margin-bottom: 4px;">📸</div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px;">
+              Upload Photos from this Device
+            </div>
+            <div style="font-size: 11px; color: var(--ink-3); margin-bottom: 12px;">
+              Drag and drop product photos here, or click to choose from device gallery
+            </div>
+            
+            <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-gold btn-sm" onclick="event.stopPropagation(); document.getElementById('p_file_input').click();">
+                📁 Select from Device
+              </button>
+              <button type="button" class="btn btn-dark btn-sm" onclick="event.stopPropagation(); window.triggerCameraForProduct();">
+                📷 Open Camera
+              </button>
+            </div>
+            
+            <div id="p_upload_spinner" style="display:none; margin-top:10px; font-size:11px; color:var(--gold); font-weight:600;">
+              ⏳ Compressing &amp; uploading photos from device…
+            </div>
+          </div>
+
+          <!-- Live Thumbnails Gallery -->
+          <div id="p_gallery_container" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; min-height: 24px;"></div>
+
+          <!-- Direct Image URL Input (Kept in Sync) -->
+          <div style="background: rgba(0,0,0,0.15); border: 1px solid var(--wire); border-radius: 8px; padding: 8px 12px;">
+            <div style="font-size: 11px; font-weight: 600; color: var(--ink-2); margin-bottom: 4px; display:flex; justify-content:space-between;">
+              <span>Image URL / Remote Link</span>
+              <span style="font-size: 10px; color: var(--ink-3); font-weight: normal;">Multiple URLs separated by comma</span>
+            </div>
+            <input id="p_img" placeholder="https://images.unsplash.com/... or /uploads/..." value="${imgUrlString}" oninput="window.syncGalleryFromUrlInput(this.value)" style="font-size:12px; padding:6px 10px;"/>
+          </div>
         </div>
 
         <div class="field-row">
@@ -648,11 +884,6 @@
           <div class="field"><label>Vendor / Brand</label>
             <input id="p_vendor" placeholder="Hands & Head" value="${p?.vendor || 'Hands & Head'}"/>
           </div>
-        </div>
-
-        <div class="field"><label>Image URL</label>
-          <input id="p_img" placeholder="https://images.unsplash.com/photo-..." value="${imgUrl}"/>
-          <div style="font-size:10px;color:var(--ink-3);margin-top:4px;">Paste any direct image URL. Multiple URLs can be comma-separated.</div>
         </div>
 
         <div class="field-row">
@@ -689,56 +920,82 @@
         </div>
       </div>
     `);
+
+    // Render gallery thumbnails after sheet opens
+    setTimeout(() => {
+      window.renderProductPhotoGallery();
+    }, 50);
   };
 
+  window.openProductFormSheet = window.openAdvancedProductForm;
+
   window.submitAdvancedProduct = async function () {
-    const id = document.getElementById("p_id").value;
-    const title = document.getElementById("p_title").value.trim();
-    const priceStr = document.getElementById("p_price").value.trim();
-    const stockStr = document.getElementById("p_stock").value.trim();
+    const id = document.getElementById("p_id")?.value;
+    const title = document.getElementById("p_title")?.value?.trim();
+    const priceStr = document.getElementById("p_price")?.value?.trim();
+    const stockStr = document.getElementById("p_stock")?.value?.trim();
 
     if (!title) { toast("Please enter a Product Title"); return; }
     if (priceStr === "" || isNaN(Number(priceStr))) { toast("Please enter a valid Price"); return; }
 
     const btn = document.getElementById("p_save_btn");
-    btn.innerText = id ? "Saving…" : "Publishing…";
-    btn.disabled = true;
-
-    const imgInput = document.getElementById("p_img").value.trim();
-    const images = imgInput ? imgInput.split(",").map(u => u.trim()).filter(Boolean).map((u, i) => ({ url: u, alt: title, position: i })) : [];
-
-    const payload = {
-      title,
-      description: document.getElementById("p_desc").value,
-      status: document.getElementById("p_status").value,
-      vendor: document.getElementById("p_vendor").value.trim() || "Hands & Head",
-      productType: document.getElementById("p_type").value.trim() || "Leather Goods",
-      price: Number(priceStr),
-      compareAtPrice: document.getElementById("p_comp_price").value ? Number(document.getElementById("p_comp_price").value) : null,
-      sku: document.getElementById("p_sku").value.trim() || ("HH-" + Math.floor(1000 + Math.random() * 9000)),
-      stock: Number(stockStr) || 0,
-      tags: document.getElementById("p_tags").value.split(",").map(t => t.trim()).filter(Boolean),
-      images
-    };
+    if (btn) {
+      btn.innerText = id ? "Saving…" : "Publishing…";
+      btn.disabled = true;
+    }
 
     try {
+      // Gather images: prioritized from window._currentProductImages, or fallback to input
+      let images = [];
+      if (Array.isArray(window._currentProductImages) && window._currentProductImages.length > 0) {
+        images = window._currentProductImages.map((img, idx) => ({
+          url: typeof img === 'string' ? img : (img.url || ""),
+          alt: (typeof img === 'object' && img.alt) ? img.alt : title,
+          position: idx
+        })).filter(img => img.url);
+      }
+      
+      const imgInput = document.getElementById("p_img")?.value?.trim();
+      if (!images.length && imgInput) {
+        images = imgInput.split(",").map(u => u.trim()).filter(Boolean).map((u, i) => ({ url: u, alt: title, position: i }));
+      }
+
+      const payload = {
+        title,
+        description: document.getElementById("p_desc")?.value || "",
+        status: document.getElementById("p_status")?.value || "active",
+        vendor: document.getElementById("p_vendor")?.value?.trim() || "Hands & Head",
+        productType: document.getElementById("p_type")?.value?.trim() || "Leather Goods",
+        price: Number(priceStr),
+        compareAtPrice: document.getElementById("p_comp_price")?.value ? Number(document.getElementById("p_comp_price").value) : null,
+        sku: document.getElementById("p_sku")?.value?.trim() || ("HH-" + Math.floor(1000 + Math.random() * 9000)),
+        stock: Number(stockStr) || 0,
+        tags: (document.getElementById("p_tags")?.value || "").split(",").map(t => t.trim()).filter(Boolean),
+        images
+      };
+
       if (id) {
         await window.ProductsService.update(id, payload);
         toast("Product updated successfully ✓");
       } else {
         await window.ProductsService.create(payload);
-        toast("Product created and published ✓");
+        toast("Product published to catalog ✓");
       }
       closeSheet();
       const container = document.getElementById("mod-Products");
-      if (container) window.render.Products(container);
+      if (container && window.render?.Products) window.render.Products(container);
     } catch (e) {
-      console.error(e);
-      toast("Error: " + e.message);
-      btn.innerText = id ? "Save Changes" : "Publish Product";
-      btn.disabled = false;
+      console.error("Product publication error:", e);
+      toast("Error: " + (e.message || "Failed to publish product"));
+    } finally {
+      if (btn) {
+        btn.innerText = id ? "Save Changes" : "Publish Product";
+        btn.disabled = false;
+      }
     }
   };
+
+  window.submitAdvancedProductPatch = window.submitAdvancedProduct;
 
   /* ── Quick Stock Adjustment Modal ── */
   window.openStockModal = function (productId) {
@@ -1764,26 +2021,30 @@
     `);
   };
 
+  window.openCustomerFormSheet = window.openAdvancedCustomerForm;
+
   window.submitAdvancedCustomer = async function () {
-    const id = document.getElementById("c_id").value;
-    const companyName = document.getElementById("c_company").value.trim();
+    const id = document.getElementById("c_id")?.value;
+    const companyName = document.getElementById("c_company")?.value?.trim();
     if (!companyName) { toast("Please provide a Company or Buyer name"); return; }
 
     const btn = document.getElementById("c_save_btn");
-    btn.innerText = id ? "Saving…" : "Creating…";
-    btn.disabled = true;
+    if (btn) {
+      btn.innerText = id ? "Saving…" : "Creating…";
+      btn.disabled = true;
+    }
 
     const payload = {
       companyName,
       name: companyName,
-      contactPerson: document.getElementById("c_contact").value.trim() || companyName,
-      email: document.getElementById("c_email").value.trim(),
-      phone: document.getElementById("c_phone").value.trim(),
-      country: document.getElementById("c_country").value,
-      currency: document.getElementById("c_currency").value,
-      moq: parseInt(document.getElementById("c_moq").value, 10) >= 0 ? parseInt(document.getElementById("c_moq").value, 10) : 0,
-      paymentTerms: document.getElementById("c_terms").value || 'Cash on Delivery (COD)',
-      addressLine1: document.getElementById("c_addr").value.trim()
+      contactPerson: document.getElementById("c_contact")?.value?.trim() || companyName,
+      email: document.getElementById("c_email")?.value?.trim() || "",
+      phone: document.getElementById("c_phone")?.value?.trim() || "",
+      country: document.getElementById("c_country")?.value || "BD",
+      currency: document.getElementById("c_currency")?.value || "BDT",
+      moq: parseInt(document.getElementById("c_moq")?.value, 10) >= 0 ? parseInt(document.getElementById("c_moq")?.value, 10) : 0,
+      paymentTerms: document.getElementById("c_terms")?.value || 'Cash on Delivery (COD)',
+      addressLine1: document.getElementById("c_addr")?.value?.trim() || ""
     };
 
     try {
@@ -1796,13 +2057,18 @@
       }
       closeSheet();
       const container = document.getElementById("mod-CRM") || document.getElementById("mod-Customers");
-      if (container) window.render.CRM(container);
+      if (container && window.render?.CRM) window.render.CRM(container);
     } catch (e) {
-      toast("Error: " + e.message);
-      btn.innerText = id ? "Save Changes" : "Create Customer";
-      btn.disabled = false;
+      toast("Error: " + (e.message || "Failed to save customer"));
+    } finally {
+      if (btn) {
+        btn.innerText = id ? "Save Changes" : "Create Customer";
+        btn.disabled = false;
+      }
     }
   };
+
+  window.submitAdvancedCustomerPatch = window.submitAdvancedCustomer;
 
   window.deleteCustomerPrompt = async function (customerId) {
     if (!confirm("Are you sure you want to delete this customer record?")) return;
@@ -3106,13 +3372,19 @@ ${notes}
       toast("Order executed & inventory updated ✓");
       closeSheet();
       const container = document.getElementById("mod-Orders");
-      if (container) window.render.Orders(container);
+      if (container && window.render?.Orders) window.render.Orders(container);
     } catch (e) {
-      toast(e.message);
-      btn.innerText = "Confirm & Execute Order";
-      btn.disabled = false;
+      toast("Error: " + (e.message || "Failed to create order"));
+    } finally {
+      if (btn) {
+        btn.innerText = "Confirm & Execute Order";
+        btn.disabled = false;
+      }
     }
   };
+
+  window.openOrderFormSheet = window.openAdvancedOrderForm;
+  window.submitAdvancedOrderPatch = window.submitAdvancedOrder;
 
   console.log("✅ Hands & Head Firestore integration layer initialized (Products, CRM, Orders).");
 })();

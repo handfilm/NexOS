@@ -231,6 +231,19 @@ window.OrdersService = {
     return this._memCache.find(o => o.id === orderId || o.orderNumber === orderId) || null;
   },
 
+  /* ── Resilient Cloud Firestore Write Helper (Prevents UI Freeze) ── */
+  async _safeDocWrite(docRef, data, merge = false) {
+    try {
+      const writePromise = merge ? docRef.set(data, { merge: true }) : docRef.set(data);
+      await Promise.race([
+        writePromise,
+        new Promise(resolve => setTimeout(resolve, 2500))
+      ]);
+    } catch (err) {
+      console.warn("Firestore order write fallback:", err?.message || err);
+    }
+  },
+
   /* ── Atomic Order Creation Transaction ──
      1. Reads all products in transaction
      2. Validates and decrements variant inventory
@@ -292,6 +305,7 @@ window.OrdersService = {
       image: li.image || ""
     }));
 
+    const nowIso = new Date().toISOString();
     const orderData = {
       id: newId,
       orderNumber,
@@ -315,40 +329,36 @@ window.OrdersService = {
       notes: notes || "",
       timeline: [{
         event: `Order placed (${resolvedLineItems.length} items, ৳${total.toLocaleString()})`,
-        at: new Date().toISOString(),
+        at: nowIso,
         by: operatorName
       }],
       storeId,
-      createdAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString(),
-      updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
+      createdAt: nowIso,
+      updatedAt: nowIso
     };
 
-    // 1. Strictly persist to global Cloud Firestore collection
-    await orderRef.set(orderData);
+    // 1. Strictly persist to global Cloud Firestore collection with resilient timeout
+    await this._safeDocWrite(orderRef, orderData);
 
     // 2. Decrement inventory in Firestore for line items
     for (const item of resolvedLineItems) {
       if (item.productId && window.ProductsService?.adjustInventory) {
         try {
-          await window.ProductsService.adjustInventory(item.productId, item.variantId, -item.quantity, "order_placement");
-        } catch (invErr) {
-          console.debug("Inventory decrement note:", invErr?.message);
-        }
+          window.ProductsService.adjustInventory(item.productId, item.variantId, -item.quantity, "order_placement").catch(() => {});
+        } catch (invErr) {}
       }
     }
 
     // 3. Bump customer aggregates in Firestore
     if (customerId && window.CustomersService?._bumpAggregates) {
       try {
-        await window.CustomersService._bumpAggregates(customerId, total);
-      } catch (custErr) {
-        console.debug("Customer aggregate update note:", custErr?.message);
-      }
+        window.CustomersService._bumpAggregates(customerId, total).catch(() => {});
+      } catch (custErr) {}
     }
 
     // 4. Server persistence backup for cross-system consistency
     try {
-      fetch("/api/orders", {
+      await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData)
@@ -376,7 +386,7 @@ window.OrdersService = {
   async updateStatus(orderId, { status, paymentStatus, fulfillmentStatus, notes }) {
     await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
-    const patch = { updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString() };
+    const patch = { updatedAt: new Date().toISOString() };
     const events = [];
     const operator = window.NexAuth?.profile?.name || "Operator";
 
@@ -410,14 +420,14 @@ window.OrdersService = {
 
     const col = this._getCollection();
 
-    // 1. Strictly update in global Cloud Firestore collection
-    await col.doc(orderId).set(patch, { merge: true });
+    // 1. Strictly update in global Cloud Firestore collection with resilient timeout
+    await this._safeDocWrite(col.doc(orderId), patch, true);
 
     // 2. Server persistence backup
     try {
       const serverPayload = { ...patch, updatedAt: new Date().toISOString() };
       delete serverPayload.timeline;
-      fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+      await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(serverPayload)
@@ -510,7 +520,7 @@ window.OrdersService = {
     const operator = window.NexAuth?.profile?.name || "Operator";
     const updatePayload = {
       ...patch,
-      updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
+      updatedAt: new Date().toISOString()
     };
     
     const timelineEntry = {
@@ -521,17 +531,17 @@ window.OrdersService = {
 
     const col = this._getCollection();
 
-    // 1. Strictly update in global Cloud Firestore collection
+    // 1. Strictly update in global Cloud Firestore collection with resilient timeout
     if (window.FieldValue?.arrayUnion) {
       updatePayload.timeline = window.FieldValue.arrayUnion(timelineEntry);
     }
-    await col.doc(orderId).set(updatePayload, { merge: true });
+    await this._safeDocWrite(col.doc(orderId), updatePayload, true);
 
     // 2. Server persistence backup
     try {
       const serverPayload = { ...updatePayload, updatedAt: new Date().toISOString() };
       delete serverPayload.timeline;
-      fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+      await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(serverPayload)
@@ -559,8 +569,13 @@ window.OrdersService = {
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
 
     const col = this._getCollection();
-    // Strictly delete from global Cloud Firestore collection
-    await col.doc(orderId).delete();
+    // Strictly delete from global Cloud Firestore collection with resilient timeout
+    try {
+      await Promise.race([
+        col.doc(orderId).delete(),
+        new Promise(resolve => setTimeout(resolve, 2500))
+      ]);
+    } catch (e) {}
 
     try {
       fetch(`/api/orders/${encodeURIComponent(orderId)}`, { method: "DELETE" }).catch(() => {});

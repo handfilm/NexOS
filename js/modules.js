@@ -156,31 +156,16 @@
       </div>`).join('') : `<div class="empty" style="grid-column:1/3;">No products yet</div>`}</div>`;
   };
 
-  window.openAdvancedProductForm = function() {
-    openSheet(`<h3>Add Product</h3><div style="padding:0 20px 20px;">
-      <div class="field"><label>Title</label><input id="p_title" placeholder="Full-Grain Leather Wallet"/></div>
-      <div class="field"><label>Description</label><textarea id="p_desc" placeholder="Product description / SEO caption…"></textarea></div>
-      <div class="field"><label>Media URL</label><input id="p_img" placeholder="https://cdn.../image.jpg"/></div>
-      <div class="field-row">
-        <div class="field"><label>Price (৳)</label><input id="p_price" type="number" placeholder="0.00"/></div>
-        <div class="field"><label>Product Type</label><input id="p_type" placeholder="Wallet"/></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>SKU</label><input id="p_sku" placeholder="FGW-001"/></div>
-        <div class="field"><label>Stock Qty</label><input id="p_stock" type="number" placeholder="0"/></div>
-      </div>
-      <div class="field"><label>Vendor</label><input id="p_vendor" value="HANDFILM"/></div>
-      <button class="btn btn-gold" id="p_save_btn" onclick="window.submitAdvancedProduct()" style="margin-top:8px;">Publish Product</button>
-    </div>`);
+  window.openAdvancedProductForm = function(productId) {
+    if (typeof window.openProductFormSheet === 'function') {
+      return window.openProductFormSheet(productId);
+    }
   };
 
   window.submitAdvancedProduct = async function() {
-    const title = document.getElementById("p_title").value.trim();
-    const price = document.getElementById("p_price").value.trim();
-    if (!title||!price){toast("Title and Price required");return;}
-    document.getElementById("p_save_btn").innerText="Publishing…";
-    const res = await callSpine("createProduct",{ID:"P-"+Date.now().toString().slice(-4),Name:title,SKU:document.getElementById("p_sku").value||"RAW",Price:price,Stock:document.getElementById("p_stock").value||"100",Image:document.getElementById("p_img").value,Type:document.getElementById("p_type").value||"None",Vendor:document.getElementById("p_vendor").value||"HANDFILM"});
-    if(res.status==="success"){toast("Product Published ✓");closeSheet();}
+    if (window.ProductsService && typeof window.submitAdvancedProductPatch === 'function') {
+      return window.submitAdvancedProductPatch();
+    }
   };
 
   /* ═══════════════════════════════════════════════════════════
@@ -460,30 +445,16 @@
 
   window.render.Customers = window.render.CRM;
 
-  window.openAdvancedCustomerForm = function() {
-    openSheet(`<h3>New Company</h3><div style="padding:0 20px 20px;">
-      <div class="field"><label>Company Name</label><input id="c_company" placeholder="Leder GmbH"/></div>
-      <div class="field-row">
-        <div class="field"><label>Country</label><select id="c_country"><option value="NL">🇳🇱 Netherlands</option><option value="DE">🇩🇪 Germany</option><option value="GB">🇬🇧 UK</option><option value="ES">🇪🇸 Spain</option><option value="JP">🇯🇵 Japan</option></select></div>
-        <div class="field"><label>Currency</label><select id="c_currency"><option>EUR</option><option>GBP</option><option>JPY</option><option>USD</option></select></div>
-      </div>
-      <div class="field"><label>Email</label><input id="c_email" placeholder="buyer@company.com"/></div>
-      <div class="field"><label>Contact Phone</label><input id="c_phone" placeholder="+880 17..."/></div>
-      <div class="field-row">
-        <div class="field"><label>MOQ (Units)</label><input id="c_moq" type="number" min="0" placeholder="0" value="0"/></div>
-        <div class="field"><label>Payment Terms</label><select id="c_terms"><option>Cash on Delivery (COD)</option><option>COD</option><option>bKash / Mobile Wallet</option><option>Net 30</option><option>Net 45</option><option>Net 60</option></select></div>
-      </div>
-      <div class="field"><label>Product Interest</label><input id="c_interest" placeholder="Wallets, Belts…"/></div>
-      <button class="btn btn-gold" id="c_save_btn" onclick="window.submitAdvancedCustomer()" style="margin-top:8px;">Save Company</button>
-    </div>`);
+  window.openAdvancedCustomerForm = function(rawCustomerId) {
+    if (typeof window.openCustomerFormSheet === 'function') {
+      return window.openCustomerFormSheet(rawCustomerId);
+    }
   };
 
   window.submitAdvancedCustomer = async function() {
-    const name = document.getElementById("c_company").value.trim();
-    if (!name) { toast("Company name required"); return; }
-    document.getElementById("c_save_btn").innerText = "Saving…";
-    const res = await callSpine("createCustomer",{ID:"C-"+Date.now().toString().slice(-4),Name:name,Email:document.getElementById("c_email").value,Phone:document.getElementById("c_phone").value,Address:document.getElementById("c_country").value});
-    if(res.status==="success"){toast("Company Saved ✓");closeSheet();}
+    if (typeof window.submitAdvancedCustomerPatch === 'function') {
+      return window.submitAdvancedCustomerPatch();
+    }
   };
 
   /* ═══════════════════════════════════════════════════════════
@@ -1366,26 +1337,16 @@
     ]) + `<div class="orders-container" style="margin:0 20px;">${items.length ? ordersListHtml(items) : '<div class="empty">No orders in pipeline</div>'}</div><div style="height:8px;"></div>`;
   };
 
-  window.openAdvancedOrderForm = function() {
-    openSheet(`<h3>Create Order</h3><div style="padding:0 20px 20px;">
-      <div class="field"><label>Products / SKU</label><input id="o_items" placeholder="Scan or type SKU…"/></div>
-      <div class="field"><label>Buyer / Company</label><input id="o_customer" placeholder="Search buyer…"/></div>
-      <div class="field-row">
-        <div class="field"><label>Subtotal (৳)</label><input id="o_total" type="number" placeholder="0"/></div>
-        <div class="field"><label>Discount (৳)</label><input id="o_discount" type="number" placeholder="0"/></div>
-      </div>
-      <div class="field"><label>Notes</label><input id="o_notes" placeholder="Order notes…"/></div>
-      <button class="btn btn-gold" id="o_save_btn" onclick="window.submitAdvancedOrder()" style="margin-top:8px;">Confirm & Inject</button>
-    </div>`);
+  window.openAdvancedOrderForm = function(rawPreselectedCustomerId) {
+    if (typeof window.openOrderFormSheet === 'function') {
+      return window.openOrderFormSheet(rawPreselectedCustomerId);
+    }
   };
 
   window.submitAdvancedOrder = async function() {
-    const items = document.getElementById("o_items").value.trim();
-    const total = document.getElementById("o_total").value.trim();
-    if(!items||!total){toast("Product and Total required");return;}
-    document.getElementById("o_save_btn").innerText="Injecting…";
-    const res = await callSpine("createOrder",{OrderID:"NX-"+Math.floor(Math.random()*9000+1000),Customer:document.getElementById("o_customer").value||"Walk-In",Items:items,Total:total});
-    if(res.status==="success"){toast("Order Injected ✓");closeSheet();}
+    if (typeof window.submitAdvancedOrderPatch === 'function') {
+      return window.submitAdvancedOrderPatch();
+    }
   };
 
   /* ── CSV Import ── */
