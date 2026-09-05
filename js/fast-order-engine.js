@@ -418,48 +418,80 @@
     if (modal) renderFastOrderModalContent(modal);
   };
 
+  let _foSearchTimer = null;
   window.onFOCustomerPhoneInput = function(phone) {
     FastOrderEngine.draft.customer.phone = phone;
     const sugBox = document.getElementById('foCustomerSuggestions');
     if (!sugBox) return;
 
-    const matches = FastOrderEngine.searchCustomer(phone);
-    if (matches.length > 0) {
+    clearTimeout(_foSearchTimer);
+    const localMatches = FastOrderEngine.searchCustomer(phone);
+    if (localMatches.length > 0) {
       sugBox.style.display = 'block';
-      sugBox.innerHTML = matches.slice(0, 4).map(c => `
+      sugBox.innerHTML = localMatches.slice(0, 5).map(c => `
         <div class="fo-sug-item" onclick="window.selectFOCustomer('${c.id}')">
-          <div style="font-weight:700;font-size:12px;color:var(--ink);">${c.name}</div>
-          <div style="font-size:11px;color:var(--coral);font-family:var(--mono);">${c.phone} · ${c.district || 'Dhaka'}</div>
-          <div style="font-size:10.5px;color:var(--ink-3);">${c.address || 'No address saved'}</div>
+          <div style="font-weight:700;font-size:12px;color:var(--ink);">${c.name || c.companyName}</div>
+          <div style="font-size:11px;color:var(--coral);font-family:var(--mono);">${c.phone} · ${c.district || c.country || 'Dhaka'}</div>
+          <div style="font-size:10.5px;color:var(--ink-3);">${c.address || c.addressLine1 || 'Address on file'}</div>
         </div>
       `).join('');
+    } else if (phone && phone.trim().length >= 3) {
+      _foSearchTimer = setTimeout(async () => {
+        try {
+          const res = await fetch('/api/customers?search=' + encodeURIComponent(phone.trim()) + '&limit=5');
+          const data = await res.json();
+          if (data && data.ok && data.items?.length) {
+            sugBox.style.display = 'block';
+            sugBox.innerHTML = data.items.map(c => `
+              <div class="fo-sug-item" onclick="window.selectFOCustomer('${c.id}')">
+                <div style="font-weight:700;font-size:12px;color:var(--ink);">${c.name || c.companyName}</div>
+                <div style="font-size:11px;color:var(--coral);font-family:var(--mono);">${c.phone} · ${c.country || 'BD'}</div>
+                <div style="font-size:10.5px;color:var(--ink-3);">${c.addressLine1 || (c.addresses && c.addresses[0]?.line1) || 'Address on file'}</div>
+              </div>
+            `).join('');
+          } else {
+            sugBox.style.display = 'none';
+          }
+        } catch (e) {
+          sugBox.style.display = 'none';
+        }
+      }, 150);
     } else {
       sugBox.style.display = 'none';
     }
   };
 
-  window.selectFOCustomer = function(custId) {
+  window.selectFOCustomer = async function(custId) {
     let allCust = [];
     if (window.CustomersService) allCust = window.CustomersService.getAll() || [];
-    const cust = allCust.find(c => c.id === custId);
+    let cust = allCust.find(c => String(c.id) === String(custId));
+    if (!cust) {
+      try {
+        const res = await fetch('/api/customers/' + encodeURIComponent(custId));
+        const data = await res.json();
+        if (data && data.ok && data.item) cust = data.item;
+      } catch (e) {}
+    }
     if (cust) {
+      const line1 = cust.addressLine1 || (cust.addresses && cust.addresses[0]?.line1) || cust.address || '';
+      const city = (cust.addresses && cust.addresses[0]?.city) || cust.district || 'Dhaka';
       FastOrderEngine.draft.customer = {
         id: cust.id,
-        phone: cust.phone,
-        name: cust.name,
-        address: cust.address || '',
-        district: cust.district || 'Dhaka',
-        area: cust.area || '',
-        notes: cust.notes || ''
+        phone: cust.phone || '',
+        name: cust.name || cust.companyName || '',
+        address: line1,
+        district: city,
+        area: (cust.addresses && cust.addresses[0]?.line2) || cust.area || '',
+        notes: Array.isArray(cust.notes) ? (cust.notes[0]?.text || '') : (cust.notes || '')
       };
-      if (cust.district && cust.district !== 'Dhaka') {
+      if (city && city !== 'Dhaka') {
         FastOrderEngine.setDeliveryPreset('outside_dhaka');
       } else {
         FastOrderEngine.setDeliveryPreset('inside_dhaka');
       }
+      const modal = document.getElementById('fastOrderModal');
+      if (modal) renderFastOrderModalContent(modal);
     }
-    const modal = document.getElementById('fastOrderModal');
-    if (modal) renderFastOrderModalContent(modal);
   };
 
   window.onFODistrictChange = function(district) {

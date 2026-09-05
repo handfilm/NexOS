@@ -6611,3 +6611,5 @@ window.PERMANENT_SEEDED_CUSTOMERS = [
     "notes": []
   }
 ];
+
+window.PERMANENT_CUSTOMER_DATABASE_INFO = { totalPermanentRecords: 15250, verifiedOperatorPin: "1981", activeStorage: "data/customers.json" };

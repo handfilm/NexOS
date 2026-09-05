@@ -139,11 +139,14 @@ a { color:var(--coral); text-decoration:none; }
 .marquee-inner span::before { content:'●  '; font-size:8px; color:var(--coral); }
 @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
 
-/* ── Top Bar (Soft Neumorphic Elevation) ── */
+/* ── Top Bar (Glassmorphism + Neumorphic Refinement) ── */
 .topbar {
   flex:0 0 auto; position:relative; z-index:10;
-  background:var(--bg-neu);
-  box-shadow:0 4px 14px var(--neu-dark-shadow-sm);
+  background:rgba(235, 241, 248, 0.78);
+  backdrop-filter:blur(24px) saturate(200%);
+  -webkit-backdrop-filter:blur(24px) saturate(200%);
+  border-bottom:1px solid rgba(255, 255, 255, 0.75);
+  box-shadow:0 8px 24px rgba(160, 175, 198, 0.22);
   display:flex; align-items:center; justify-content:space-between;
   padding:0 20px; padding-top:max(0px,env(safe-area-inset-top));
   height:calc(64px + max(0px,env(safe-area-inset-top)));
@@ -165,22 +168,29 @@ a { color:var(--coral); text-decoration:none; }
 .tbar-left, .tbar-right { display:flex; align-items:center; gap:12px; position:relative; z-index:2; }
 .tbar-right { justify-content:flex-end; }
 
-/* ── Tactile Neumorphic Buttons ── */
+/* ── Balanced Glassmorphic & Neumorphic Buttons with Dynamic Hover ── */
 .tbar-btn {
   width:42px; height:42px; border-radius:14px;
-  background:var(--bg-neu);
+  background:rgba(255, 255, 255, 0.65);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255, 255, 255, 0.85);
   box-shadow:var(--neu-flat-sm);
   display:flex; align-items:center; justify-content:center;
   color:var(--ink-2);
-  transition:all 0.25s var(--ease-bouncy);
+  cursor:pointer;
+  transition:all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position:relative;
 }
 .tbar-btn:hover {
   color:var(--coral);
-  transform:translateY(-2px);
-  box-shadow:var(--neu-hover);
+  transform:translateY(-2.5px) scale(1.05);
+  background:rgba(255, 255, 255, 0.95);
+  box-shadow:0 8px 20px rgba(255, 91, 53, 0.22), var(--neu-hover);
+  border-color:rgba(255, 91, 53, 0.4);
 }
 .tbar-btn:active {
-  transform:translateY(1px);
+  transform:translateY(1px) scale(0.96);
   box-shadow:var(--neu-pressed);
 }
 .tbar-btn svg { width:20px; height:20px; stroke:currentColor; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
@@ -188,13 +198,16 @@ a { color:var(--coral); text-decoration:none; }
 .mode-badge {
   font-size:10px; font-weight:700; letter-spacing:1.5px;
   color:var(--coral); padding:7px 14px; text-transform:uppercase; font-family:var(--mono);
-  border-radius:20px; background:var(--bg-neu);
+  border-radius:20px; background:rgba(255, 255, 255, 0.7);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255, 255, 255, 0.85);
   box-shadow:var(--neu-flat-sm);
-  transition:all 0.25s var(--ease-bouncy);
+  transition:all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .mode-badge:hover {
-  transform:translateY(-1.5px);
-  box-shadow:var(--neu-hover);
+  transform:translateY(-2px) scale(1.03);
+  box-shadow:0 6px 16px rgba(255, 91, 53, 0.2), var(--neu-hover);
+  border-color:rgba(255, 91, 53, 0.35);
 }
 .mode-badge:active { box-shadow:var(--neu-pressed); }
 
@@ -608,7 +621,7 @@ a { color:var(--coral); text-decoration:none; }
 .inv-bar { height:100%; border-radius:var(--r-pill); }
 .inv-count { font-family:var(--mono); font-weight:700; font-size:15px; width:45px; text-align:right; }
 
-/* ── Bottom Floating Capsule Tabbar (Glassmorphic + Neumorphic) ── */
+/* ── Bottom Floating Capsule Tabbar (Advanced Glassmorphic + Dynamic Hover) ── */
 .tabbar {
   position:fixed; bottom:0; left:0; right:0; z-index:50;
   pointer-events:none; display:flex; justify-content:center;
@@ -616,58 +629,163 @@ a { color:var(--coral); text-decoration:none; }
 }
 .pill-bar {
   pointer-events:auto;
-  background:rgba(235, 241, 248, 0.86);
-  backdrop-filter:blur(24px) saturate(190%);
-  -webkit-backdrop-filter:blur(24px) saturate(190%);
-  border-radius:var(--r-pill);
-  border:1px solid rgba(255, 255, 255, 0.85);
-  box-shadow:12px 14px 28px rgba(160, 175, 198, 0.45), -8px -8px 24px #FFFFFF;
+  background:rgba(235, 241, 248, 0.76);
+  backdrop-filter:blur(28px) saturate(210%);
+  -webkit-backdrop-filter:blur(28px) saturate(210%);
+  border-radius:32px;
+  border:1px solid rgba(255, 255, 255, 0.88);
+  box-shadow:0 16px 36px rgba(140, 160, 185, 0.38), inset 0 2px 6px rgba(255, 255, 255, 0.95);
   display:flex; align-items:center; gap:8px; padding:7px 12px;
   max-width:440px; width:100%; justify-content:space-between;
 }
 
 .tb {
-  width:46px; height:46px; border-radius:50%;
-  background:rgba(235, 241, 248, 0.85);
-  border:1px solid rgba(255, 255, 255, 0.7);
+  flex:1; max-width:54px; height:46px; border-radius:18px;
+  background:rgba(255, 255, 255, 0.55);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255, 255, 255, 0.8);
   box-shadow:var(--neu-flat-xs);
   display:flex; align-items:center; justify-content:center;
-  color:var(--ink-3); transition:all 0.28s var(--ease-bouncy);
-  position:relative;
+  color:var(--ink-3); transition:all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position:relative; cursor:pointer;
 }
 .tb:hover {
   color:var(--coral);
   transform:translateY(-3px) scale(1.08);
-  background:rgba(255, 255, 255, 0.95);
-  box-shadow:var(--neu-hover), 0 0 14px var(--coral-glow);
-  border-color:rgba(255, 91, 53, 0.35);
+  background:rgba(255, 255, 255, 0.96);
+  box-shadow:0 8px 22px rgba(255, 91, 53, 0.28), var(--neu-hover);
+  border-color:rgba(255, 91, 53, 0.4);
 }
 .tb:active {
-  transform:translateY(1px) scale(0.95);
+  transform:translateY(1px) scale(0.96);
   box-shadow:var(--neu-pressed);
 }
 .tb.on {
   color:var(--coral);
-  background:rgba(235, 241, 248, 1);
-  box-shadow:var(--neu-pressed);
-  border-color:rgba(255, 91, 53, 0.3);
+  background:rgba(255, 255, 255, 0.96);
+  box-shadow:0 4px 14px rgba(255, 91, 53, 0.22), var(--neu-pressed);
+  border-color:rgba(255, 91, 53, 0.45);
 }
 .tb svg { width:20px; height:20px; stroke:currentColor; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
 
-/* Center Camera Floating Button */
+/* Center Camera Floating Button with Dynamic Glass Sheen */
 .tb.cam-fab {
-  width:54px; height:54px;
+  width:54px; height:54px; flex:none;
+  border-radius:20px;
   background:var(--coral-gradient);
-  box-shadow:var(--coral-shadow);
+  box-shadow:0 10px 24px rgba(255, 91, 53, 0.45);
   color:#FFFFFF; margin:0 4px;
-  border:1px solid rgba(255, 255, 255, 0.4);
+  border:1px solid rgba(255, 255, 255, 0.5);
   transform:translateY(-4px);
+  transition:all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .tb.cam-fab:hover {
   transform:translateY(-8px) scale(1.08);
-  box-shadow:0 12px 28px rgba(255, 91, 53, 0.6);
+  box-shadow:0 16px 32px rgba(255, 91, 53, 0.65);
 }
 .tb.cam-fab:active {
+  transform:translateY(-2px) scale(0.96);
+  box-shadow:0 6px 16px rgba(255, 91, 53, 0.4);
+}
+
+/* ── Dynamic Shipment & Order Status Indicators ── */
+.order-status-badge {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:9px;
+  font-weight:700;
+  font-family:var(--mono);
+  padding:3px 8px;
+  border-radius:6px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  transition:all 0.22s ease;
+  white-space:nowrap;
+  user-select:none;
+}
+.order-status-badge .badge-dot {
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+
+/* Green for Shipped / Delivered / Fulfilled */
+.order-status-badge.status-shipped,
+.order-status-badge.status-delivered,
+.order-status-badge.status-fulfilled {
+  background:rgba(16, 185, 129, 0.14);
+  color:#059669;
+  border:1px solid rgba(16, 185, 129, 0.4);
+  box-shadow:0 0 10px rgba(16, 185, 129, 0.22);
+}
+.order-status-badge.status-shipped .badge-dot,
+.order-status-badge.status-delivered .badge-dot,
+.order-status-badge.status-fulfilled .badge-dot {
+  background:#10b981;
+  box-shadow:0 0 6px #10b981;
+  animation:badgePulseGreen 1.8s infinite;
+}
+
+/* Cyan for In Transit / Out for Delivery / Processing */
+.order-status-badge.status-in_transit,
+.order-status-badge.status-out_for_delivery,
+.order-status-badge.status-processing {
+  background:rgba(6, 182, 212, 0.14);
+  color:#0891b2;
+  border:1px solid rgba(6, 182, 212, 0.4);
+  box-shadow:0 0 10px rgba(6, 182, 212, 0.22);
+}
+.order-status-badge.status-in_transit .badge-dot,
+.order-status-badge.status-out_for_delivery .badge-dot,
+.order-status-badge.status-processing .badge-dot {
+  background:#06b6d4;
+  box-shadow:0 0 6px #06b6d4;
+  animation:badgePulseCyan 1.8s infinite;
+}
+
+/* Orange/Amber for Pending / Unfulfilled / Awaiting Dispatch */
+.order-status-badge.status-pending,
+.order-status-badge.status-unfulfilled,
+.order-status-badge.status-awaiting_dispatch,
+.order-status-badge.status-open {
+  background:rgba(245, 158, 11, 0.14);
+  color:#d97706;
+  border:1px solid rgba(245, 158, 11, 0.4);
+  box-shadow:0 0 10px rgba(245, 158, 11, 0.2);
+}
+.order-status-badge.status-pending .badge-dot,
+.order-status-badge.status-unfulfilled .badge-dot,
+.order-status-badge.status-awaiting_dispatch .badge-dot,
+.order-status-badge.status-open .badge-dot {
+  background:#f59e0b;
+  box-shadow:0 0 6px #f59e0b;
+}
+
+/* Red for Cancelled / Failed / Returned */
+.order-status-badge.status-cancelled,
+.order-status-badge.status-failed,
+.order-status-badge.status-returned {
+  background:rgba(239, 68, 68, 0.14);
+  color:#dc2626;
+  border:1px solid rgba(239, 68, 68, 0.4);
+}
+.order-status-badge.status-cancelled .badge-dot,
+.order-status-badge.status-failed .badge-dot,
+.order-status-badge.status-returned .badge-dot {
+  background:#ef4444;
+}
+
+@keyframes badgePulseGreen {
+  0%, 100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.4; transform:scale(1.35); }
+}
+@keyframes badgePulseCyan {
+  0%, 100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.4; transform:scale(1.35); }
+}
   transform:translateY(-1px) scale(0.96);
   box-shadow:inset 2px 2px 6px rgba(0,0,0,0.3);
 }

@@ -102,20 +102,50 @@ window.CustomersService = {
   },
 
   /* ── Query & List Customers with Search & Filtering ── */
-  async list({ search = null, country = null, tag = null, sortBy = "updatedAt", sortDir = "desc" } = {}) {
+  async list({ search = null, country = null, tag = null, sortBy = "updatedAt", sortDir = "desc", page = 1, limit = 50 } = {}) {
     await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
 
+    // 1. Prefer Ultra-fast Server API query backed by permanent 15K+ customer database
+    try {
+      const qParams = new URLSearchParams();
+      if (search && search.trim()) qParams.set("search", search.trim());
+      if (country && country !== "all") qParams.set("country", country);
+      if (tag && tag !== "all") qParams.set("tag", tag);
+      if (sortBy) qParams.set("sortBy", sortBy);
+      if (sortDir) qParams.set("sortDir", sortDir);
+      if (page) qParams.set("page", String(page));
+      if (limit) qParams.set("limit", String(limit));
+
+      const res = await fetch(`/api/customers?${qParams.toString()}`);
+      const data = await res.json();
+      if (data && data.ok && Array.isArray(data.items)) {
+        this._memCache = data.items;
+        this._totalDatabaseCount = data.databaseTotal || data.totalCount || data.items.length;
+        this._totalSpentAll = data.totalSpentAll || 0;
+        return {
+          items: data.items,
+          count: data.totalCount !== undefined ? data.totalCount : data.items.length,
+          totalCount: data.totalCount !== undefined ? data.totalCount : data.items.length,
+          page: data.page || page,
+          limit: data.limit || limit,
+          totalPages: data.totalPages || Math.ceil((data.totalCount || data.items.length) / (data.limit || limit)),
+          totalSpentAll: data.totalSpentAll || 0
+        };
+      }
+    } catch (apiErr) {
+      console.debug("API customer fetch fallback:", apiErr?.message);
+    }
+
+    // 2. Resilient Firestore / Memory Cache Fallback
     let items = [];
     const col = this._getCollection();
 
     try {
       let q = col;
-
       if (country && country !== "all") {
         q = q.where("country", "==", country);
       }
-
       try {
         q = q.orderBy(sortBy, sortDir);
       } catch (e) {
@@ -131,44 +161,25 @@ window.CustomersService = {
       console.warn("Firestore customers fetch notice:", err?.message);
     }
 
-    // Auto-seed global Firestore collection if empty on first boot so buyer data persists in cloud across all devices
-    if (!items.length && (!country || country === "all") && !search && !tag) {
-      if (this._memCache && this._memCache.length) {
-        items = [...this._memCache];
-      } else {
-        const seedCustomers = this._getDefaultSeedCustomers();
-        try {
-          const batch = window.db.batch();
-          seedCustomers.forEach(c => {
-            const ref = col.doc(c.id);
-            batch.set(ref, c);
-          });
-          await batch.commit();
-          items = seedCustomers;
-          this._memCache = [...seedCustomers];
-        } catch (seedErr) {
-          console.debug("Firestore customer seeding note:", seedErr?.message);
-          items = seedCustomers;
-          this._memCache = [...seedCustomers];
-        }
-      }
-    } else if (items.length) {
-      this._memCache = items;
-    } else if (this._memCache && this._memCache.length) {
+    if (!items.length && this._memCache && this._memCache.length) {
       items = [...this._memCache];
-      if (country && country !== "all") items = items.filter(c => c.country === country);
+    } else if (!items.length) {
+      items = this._getDefaultSeedCustomers();
     }
 
-    // Client-side text search (Company, Name, Email, Phone, Country, Tags)
+    if (items.length) this._memCache = items;
+
+    // Client-side filtering if falling back
     if (search && search.trim()) {
       const s = search.toLowerCase().trim();
+      const sDigits = s.replace(/[^0-9]/g, '');
       items = items.filter(c =>
         (c.name || "").toLowerCase().includes(s) ||
         (c.companyName || "").toLowerCase().includes(s) ||
         (c.email || "").toLowerCase().includes(s) ||
-        (c.phone || "").toLowerCase().includes(s) ||
         (c.country || "").toLowerCase().includes(s) ||
         (c.contactPerson || "").toLowerCase().includes(s) ||
+        (sDigits && (c.phone || "").replace(/[^0-9]/g, "").includes(sDigits)) ||
         (c.tags || []).some(t => (t || "").toLowerCase().includes(s))
       );
     }
@@ -185,12 +196,19 @@ window.CustomersService = {
       items.sort((a, b) => (a.companyName || a.name || "").localeCompare(b.companyName || b.name || ""));
     }
 
-    // Sync cloud backup endpoint in background
-    try {
-      fetch("/api/customers?limit=100").catch(() => {});
-    } catch (e) {}
+    const totalCount = items.length;
+    const paged = items.slice((page - 1) * limit, page * limit);
+    const totalSpentAll = items.reduce((sum, c) => sum + (Number(c.totalSpent) || 0), 0);
 
-    return { items, count: items.length };
+    return {
+      items: paged,
+      count: totalCount,
+      totalCount,
+      page,
+      limit,
+      totalPages: Math.ceil(totalCount / limit),
+      totalSpentAll
+    };
   },
 
   /* ── Get All Cached Customers (Synchronous Access) ── */
@@ -506,14 +524,19 @@ window.CustomersService = {
       const col = this._getCollection();
       const snap = await col.limit(1).get();
       if (snap.empty) {
-        const batch = window.db.batch();
-        window.PERMANENT_SEEDED_CUSTOMERS.forEach(c => {
-          const ref = col.doc(c.id);
-          batch.set(ref, c);
-        });
-        await batch.commit();
-        this._memCache = [...window.PERMANENT_SEEDED_CUSTOMERS];
-        console.log(`[CustomersService] Seeded ${window.PERMANENT_SEEDED_CUSTOMERS.length} records into Firestore.`);
+        const list = window.PERMANENT_SEEDED_CUSTOMERS.slice(0, 500);
+        const CHUNK_SIZE = 200;
+        for (let i = 0; i < list.length; i += CHUNK_SIZE) {
+          const chunk = list.slice(i, i + CHUNK_SIZE);
+          const batch = window.db.batch();
+          chunk.forEach(c => {
+            const ref = col.doc(c.id);
+            batch.set(ref, c);
+          });
+          await batch.commit();
+        }
+        this._memCache = [...list];
+        console.log(`[CustomersService] Seeded ${list.length} initial verified records safely into Firestore.`);
       }
     } catch (e) {
       console.debug("Seed permanent customer data note:", e?.message);

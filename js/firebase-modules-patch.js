@@ -1727,53 +1727,63 @@
     if (!target) return;
     target.innerHTML = loading("Loading Customer Directory…");
     const state = window._viewState.customers;
+    state.page = state.page || 1;
+    state.limit = state.limit || 50;
 
     try {
-      const { items } = await window.CustomersService.list({
+      const res = await window.CustomersService.list({
         search: state.search,
         country: state.country,
         sortBy: state.sortBy,
-        sortDir: state.sortDir
+        sortDir: state.sortDir,
+        page: state.page,
+        limit: state.limit
       });
+      const items = res.items || [];
+      const totalCount = res.totalCount !== undefined ? res.totalCount : (res.count || items.length);
+      const totalPages = res.totalPages || Math.ceil(totalCount / state.limit) || 1;
+      const totalSpentAll = res.totalSpentAll !== undefined ? res.totalSpentAll : items.reduce((s, c) => s + (c.totalSpent || 0), 0);
       window._lastCustomersCache = items;
 
-      const totalSpentAll = items.reduce((s, c) => s + (c.totalSpent || 0), 0);
-
-      target.innerHTML = modHeader("Customer Directory", `${items.length} buyer profiles · ৳${totalSpentAll.toLocaleString()} lifetime spend`, [
+      target.innerHTML = modHeader("Customer Directory", `${totalCount.toLocaleString()} buyer profiles · ৳${totalSpentAll.toLocaleString()} lifetime spend · PIN 1981 Live Database`, [
         { label: "📥 Bulk Import (CSV/Excel)", fn: "window.BulkImportEngine.openCustomerImportModal()", primary: false },
         { label: "+ Add Customer", fn: "window.openAdvancedCustomerForm()", primary: true }
       ]) + `
         <!-- Filter and Search Toolbar -->
         <div style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-          <input type="text" placeholder="Search name, company, email, phone…" 
+          <input type="text" placeholder="Search 15K+ buyers by name, phone, company, email…" 
                  value="${state.search || ''}" 
-                 oninput="window._viewState.customers.search = this.value; window.debounceCustomerSearch();" 
-                 style="flex:1;min-width:180px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
+                 oninput="window._viewState.customers.search = this.value; window._viewState.customers.page = 1; window.debounceCustomerSearch();" 
+                 style="flex:1;min-width:220px;height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 12px;font-size:12px;border-radius:8px;outline:none;transition:border-color 0.15s;"/>
           
-          <select onchange="window._viewState.customers.country = this.value; window.render.CRM(document.getElementById('mod-CRM'));" 
-                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+          <select onchange="window._viewState.customers.country = this.value; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" 
+                  style="height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:11px;border-radius:8px;">
             <option value="all" ${state.country === 'all' ? 'selected' : ''}>All Countries</option>
+            <option value="BD" ${state.country === 'BD' ? 'selected' : ''}>🇧🇩 Bangladesh</option>
             <option value="NL" ${state.country === 'NL' ? 'selected' : ''}>🇳🇱 Netherlands</option>
             <option value="DE" ${state.country === 'DE' ? 'selected' : ''}>🇩🇪 Germany</option>
             <option value="GB" ${state.country === 'GB' ? 'selected' : ''}>🇬🇧 United Kingdom</option>
             <option value="US" ${state.country === 'US' ? 'selected' : ''}>🇺🇸 United States</option>
-            <option value="BD" ${state.country === 'BD' ? 'selected' : ''}>🇧🇩 Bangladesh</option>
           </select>
 
-          <select onchange="window._viewState.customers.sortBy = this.value; window.render.CRM(document.getElementById('mod-CRM'));" 
-                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+          <select onchange="window._viewState.customers.sortBy = this.value; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" 
+                  style="height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:11px;border-radius:8px;">
             <option value="updatedAt" ${state.sortBy === 'updatedAt' ? 'selected' : ''}>Sort: Recent</option>
             <option value="totalSpent" ${state.sortBy === 'totalSpent' ? 'selected' : ''}>Sort: Total Spent</option>
             <option value="totalOrders" ${state.sortBy === 'totalOrders' ? 'selected' : ''}>Sort: Orders</option>
-            <option value="name" ${state.sortBy === 'name' ? 'selected' : ''}>Sort: Company</option>
+            <option value="name" ${state.sortBy === 'name' ? 'selected' : ''}>Sort: Company / Name</option>
           </select>
+
+          <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);padding:0 4px;">
+            Page ${state.page} / ${totalPages}
+          </div>
         </div>
 
-        <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:8px;">
+        <div style="padding:0 20px 10px;display:flex;flex-direction:column;gap:8px;">
           ${items.length ? items.map(c => `
-            <div class="company-card" onclick="window.openCompanyDetail('${encodeURIComponent(c.id)}')" style="cursor:pointer;transition:transform 0.15s, border-color 0.15s;">
+            <div class="company-card" onclick="window.openCompanyDetail('${encodeURIComponent(c.id)}')" style="cursor:pointer;transition:transform 0.15s, border-color 0.15s;padding:12px 14px;border-radius:10px;background:var(--bg-card, var(--bg-2));border:1px solid var(--wire);">
               <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-                <div style="font-size:24px;line-height:1;">${c.flag || '🏢'}</div>
+                <div style="font-size:22px;line-height:1;">${c.flag || '🏢'}</div>
                 <div style="flex:1;min-width:0;">
                   <div class="company-name" style="font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                     ${c.companyName || c.name}
@@ -1783,7 +1793,7 @@
                   </div>
                 </div>
                 <div style="text-align:right;">
-                  <span class="pill ok" style="font-size:9px;">${c.totalOrders || 0} Orders</span>
+                  <span class="pill ok" style="font-size:9px;padding:2px 6px;">${c.totalOrders || 0} Orders</span>
                   <div style="font-size:12px;font-weight:700;color:var(--gold);margin-top:4px;font-family:var(--mono);">
                     ৳${(c.totalSpent || 0).toLocaleString()}
                   </div>
@@ -1791,26 +1801,53 @@
               </div>
               
               <div class="company-meta" style="display:flex;flex-wrap:wrap;gap:6px;font-size:10px;">
-                <div class="company-tag">${c.paymentTerms || 'Cash on Delivery (COD)'}</div>
-                <div class="company-tag">MOQ: ${c.moq !== undefined ? c.moq : 0} units</div>
-                ${c.email ? `<div class="company-tag">✉ ${c.email}</div>` : ''}
-                ${c.phone ? `<div class="company-tag">📞 ${c.phone}</div>` : ''}
+                <div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">${c.paymentTerms || 'Cash on Delivery (COD)'}</div>
+                ${c.moq !== undefined && c.moq > 0 ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">MOQ: ${c.moq} units</div>` : ''}
+                ${c.phone ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">📞 ${c.phone}</div>` : ''}
+                ${c.email ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">✉ ${c.email}</div>` : ''}
+                ${c.addressLine1 ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-3);border:1px solid var(--wire);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📍 ${c.addressLine1}</div>` : ''}
               </div>
             </div>
           `).join('') : `
             <div class="empty" style="padding:40px;text-align:center;">
-              <div style="font-size:24px;margin-bottom:8px;color:var(--gold-dim);">👥</div>
-              <div style="font-size:13px;color:var(--ink);">No customers found</div>
-              <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">Click "+ Add Customer" to create your first buyer profile.</div>
+              <div style="font-size:28px;margin-bottom:8px;color:var(--gold-dim);">👥</div>
+              <div style="font-size:13px;font-weight:600;color:var(--ink);">No customers found matching your filter</div>
+              <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">Try searching another name, phone number, or select All Countries.</div>
             </div>
           `}
         </div>
+
+        <!-- Sleek Pagination Bar -->
+        ${totalPages > 1 ? `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 24px;border-top:1px solid var(--wire);margin-top:8px;">
+            <div style="font-size:11.5px;color:var(--ink-3);font-family:var(--mono);">
+              Showing ${(state.page - 1) * state.limit + 1}–${Math.min(state.page * state.limit, totalCount)} of ${totalCount.toLocaleString()} buyers
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button onclick="window.changeCustomerPage(1)" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">« First</button>
+              <button onclick="window.changeCustomerPage(${state.page - 1})" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">‹ Prev</button>
+              <span style="font-size:11.5px;font-family:var(--mono);padding:0 8px;color:var(--ink);">Page ${state.page} of ${totalPages}</span>
+              <button onclick="window.changeCustomerPage(${state.page + 1})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">Next ›</button>
+              <button onclick="window.changeCustomerPage(${totalPages})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">Last »</button>
+            </div>
+          </div>
+        ` : ''}
       `;
     } catch (err) {
       target.innerHTML = `<div style="padding:20px;color:var(--warn);">Failed to load CRM: ${err.message}</div>`;
     }
   };
   window.render.Customers = window.render.CRM;
+
+  window.changeCustomerPage = function (newPage) {
+    if (newPage < 1) return;
+    window._viewState.customers.page = newPage;
+    const container = document.getElementById("mod-CRM") || document.getElementById("mod-Customers");
+    if (container) {
+      container.scrollTop = 0;
+      window.render.CRM(container);
+    }
+  };
 
   let _searchCustomerTimer = null;
   window.debounceCustomerSearch = function () {
@@ -2150,6 +2187,58 @@
     }
   };
 
+  window.getShipmentStatusInfo = function(o) {
+    if (!o) return { code: 'pending', label: 'PENDING', class: 'status-pending' };
+    if (o.status === 'cancelled') {
+      return { code: 'cancelled', label: 'CANCELLED', class: 'status-cancelled' };
+    }
+    const raw = String(o.fulfillmentStatus || o.shippingStatus || (o.status === 'completed' ? 'delivered' : 'unfulfilled')).toLowerCase().trim();
+    if (['shipped', 'delivered', 'fulfilled', 'dispatched'].includes(raw)) {
+      return {
+        code: raw,
+        label: raw === 'delivered' ? 'DELIVERED' : raw === 'fulfilled' ? 'FULFILLED' : 'SHIPPED',
+        class: 'status-shipped'
+      };
+    }
+    if (['in_transit', 'transit', 'out_for_delivery', 'processing', 'picked_up'].includes(raw)) {
+      return {
+        code: raw,
+        label: raw === 'out_for_delivery' ? 'OUT FOR DELIVERY' : 'IN TRANSIT',
+        class: 'status-in_transit'
+      };
+    }
+    if (['failed', 'returned', 'rto'].includes(raw)) {
+      return {
+        code: raw,
+        label: raw.toUpperCase(),
+        class: 'status-failed'
+      };
+    }
+    return {
+      code: 'pending',
+      label: 'PENDING',
+      class: 'status-pending'
+    };
+  };
+
+  window.quickUpdateOrderShipment = async function (orderId, newStatus) {
+    try {
+      await window.OrdersService.updateStatus(orderId, {
+        fulfillmentStatus: newStatus,
+        shippingStatus: newStatus,
+        status: newStatus === 'cancelled' ? 'cancelled' : 'open'
+      });
+      toast(`✓ Order status updated: ${newStatus.replace('_', ' ').toUpperCase()}`);
+      if (window._currentViewingOrder && window._currentViewingOrder.id === orderId) {
+        window.openOrderDetail(orderId);
+      }
+      const container = document.getElementById("mod-Orders");
+      if (container) window.render.Orders(container);
+    } catch (e) {
+      toast("Status update error: " + e.message);
+    }
+  };
+
   window.render.Orders = async function (container) {
     const target = container || document.getElementById("mod-Orders") || document.getElementById("body");
     if (!target) return;
@@ -2157,12 +2246,25 @@
     const state = window._viewState.orders;
 
     try {
-      const { items } = await window.OrdersService.list({
+      let { items } = await window.OrdersService.list({
         status: state.status,
         paymentStatus: state.paymentStatus,
         fulfillmentStatus: state.fulfillmentStatus,
         search: state.search
       });
+
+      if (state.shipmentStatus && state.shipmentStatus !== 'all') {
+        if (state.shipmentStatus === 'shipped') {
+          items = items.filter(o => ['shipped', 'delivered', 'fulfilled', 'dispatched'].includes(String(o.fulfillmentStatus || '').toLowerCase()) && o.status !== 'cancelled');
+        } else if (state.shipmentStatus === 'in_transit') {
+          items = items.filter(o => ['in_transit', 'transit', 'out_for_delivery', 'processing'].includes(String(o.fulfillmentStatus || '').toLowerCase()) && o.status !== 'cancelled');
+        } else if (state.shipmentStatus === 'pending') {
+          items = items.filter(o => (!o.fulfillmentStatus || o.fulfillmentStatus === 'unfulfilled' || o.fulfillmentStatus === 'pending') && o.status !== 'cancelled');
+        } else if (state.shipmentStatus === 'cancelled') {
+          items = items.filter(o => o.status === 'cancelled');
+        }
+      }
+
       window._lastOrdersCache = items;
 
       const totalRevenue = items.reduce((s, o) => s + (o.status !== 'cancelled' ? (o.total || 0) : 0), 0);
@@ -2191,6 +2293,16 @@
                  oninput="window._viewState.orders.search = this.value; window.debounceOrderSearch();" 
                  style="flex:1;min-width:180px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
           
+          <!-- Dynamic Shipment Status Filter -->
+          <select onchange="window._viewState.orders.shipmentStatus = this.value; window.render.Orders(document.getElementById('mod-Orders'));" 
+                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+            <option value="all" ${state.shipmentStatus === 'all' || !state.shipmentStatus ? 'selected' : ''}>All Shipments</option>
+            <option value="shipped" ${state.shipmentStatus === 'shipped' ? 'selected' : ''}>🟢 Shipped / Fulfilled</option>
+            <option value="in_transit" ${state.shipmentStatus === 'in_transit' ? 'selected' : ''}>🔵 In Transit</option>
+            <option value="pending" ${state.shipmentStatus === 'pending' ? 'selected' : ''}>🟠 Pending (Unfulfilled)</option>
+            <option value="cancelled" ${state.shipmentStatus === 'cancelled' ? 'selected' : ''}>🔴 Cancelled</option>
+          </select>
+
           <select onchange="window._viewState.orders.status = this.value; window.render.Orders(document.getElementById('mod-Orders'));" 
                   style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
             <option value="all" ${state.status === 'all' ? 'selected' : ''}>All Status</option>
@@ -2212,6 +2324,7 @@
           ${items.length ? items.map(o => {
             const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString() : (new Date(o.createdAt || Date.now())).toLocaleDateString();
             const isSelected = window._selectedOrderIds.has(o.id);
+            const shipInfo = window.getShipmentStatusInfo(o);
             return `
               <div class="orow ${isSelected ? 'is-selected' : ''}" onclick="window.openOrderDetail('${o.id}')" style="cursor:pointer;transition:all 0.15s ease;display:flex;align-items:center;">
                 <!-- Row Multi-Select Checkbox -->
@@ -2244,11 +2357,15 @@
                   <button class="btn btn-xs btn-dark" style="font-size:9.5px;padding:3px 7px;" onclick="event.stopPropagation(); window.copyOrderForCourier('${o.id}');" title="Copy courier delivery slip">
                     📋 Slip
                   </button>
+
+                  <!-- Dynamic Shipment Status Indicator with Live Color Shift -->
+                  <span class="order-status-badge ${shipInfo.class}" title="Current Shipment Status: ${shipInfo.label}">
+                    <span class="badge-dot"></span>
+                    ${shipInfo.label}
+                  </span>
+
                   <span class="pill ${o.paymentStatus === 'paid' ? 'ok' : 'amber'}" style="font-size:8px;">
                     ${(o.paymentStatus || 'pending').toUpperCase()}
-                  </span>
-                  <span class="pill ${o.status === 'completed' ? 'ok' : o.status === 'cancelled' ? 'warn' : 'amber'}" style="font-size:8px;">
-                    ${(o.status || 'open').toUpperCase()}
                   </span>
                 </div>
               </div>
@@ -2542,6 +2659,7 @@
       const courierName = o.courier || o.courierPartner || 'Steadfast Courier';
       const trackingNumber = o.trackingNumber || o.consignmentId || '';
       const customizationNotes = o.customization || o.notes || '';
+      const shipInfo = window.getShipmentStatusInfo(o);
 
       document.getElementById("sheet").innerHTML = `
         <div class="grab"></div>
@@ -2561,12 +2679,15 @@
               </p>
             </div>
             
-            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <!-- Dynamic Shipment Status Indicator with Live Color Shift -->
+              <span class="order-status-badge ${shipInfo.class}" style="font-size:11.5px;padding:4px 12px;" title="Current Shipment Status: ${shipInfo.label}">
+                <span class="badge-dot"></span>
+                ${shipInfo.label}
+              </span>
+
               <span class="pill ${isPaid ? 'ok' : 'amber'}" style="font-size:10px;font-weight:800;padding:4px 10px;">
                 ${isPaid ? '✓ PAID IN FULL' : '💵 CASH ON DELIVERY'}
-              </span>
-              <span class="pill ${isCancelled ? 'warn' : fulfill === 'delivered' ? 'ok' : fulfill === 'shipped' ? 'blue' : 'amber'}" style="font-size:10px;font-weight:800;padding:4px 10px;">
-                ${isCancelled ? 'CANCELLED' : fulfill.toUpperCase()}
               </span>
             </div>
           </div>
@@ -2897,8 +3018,30 @@
 
           <!-- Status Controls & Order Lifecycle -->
           <div class="card" style="margin-bottom:16px;padding:14px;background:var(--bg-neu-light);border:1px solid var(--wire);">
-            <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
-              Order Status Controls
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;">
+                Shipment &amp; Order Status Controls
+              </div>
+              <div class="order-status-badge ${shipInfo.class}" style="font-size:9.5px;padding:2px 8px;">
+                <span class="badge-dot"></span>
+                ${shipInfo.label}
+              </div>
+            </div>
+
+            <!-- Quick Shipment Status Buttons for Instant Updates & Color Testing -->
+            <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+              <button type="button" class="btn btn-xs" style="background:#ECFDF5;border:1px solid #10B981;color:#047857;font-weight:800;border-radius:6px;padding:4px 8px;" onclick="window.quickUpdateOrderShipment('${o.id}', 'shipped')">
+                🟢 Mark Shipped
+              </button>
+              <button type="button" class="btn btn-xs" style="background:#ECFEFF;border:1px solid #06B6D4;color:#0E7490;font-weight:800;border-radius:6px;padding:4px 8px;" onclick="window.quickUpdateOrderShipment('${o.id}', 'in_transit')">
+                🔵 Mark In Transit
+              </button>
+              <button type="button" class="btn btn-xs" style="background:#FFFBEB;border:1px solid #F59E0B;color:#B45309;font-weight:800;border-radius:6px;padding:4px 8px;" onclick="window.quickUpdateOrderShipment('${o.id}', 'unfulfilled')">
+                🟠 Mark Pending
+              </button>
+              <button type="button" class="btn btn-xs" style="background:#FEF2F2;border:1px solid #EF4444;color:#B91C1C;font-weight:800;border-radius:6px;padding:4px 8px;" onclick="window.cancelOrderPrompt('${o.id}')">
+                🔴 Cancel Order
+              </button>
             </div>
 
             <div class="field-row">
@@ -2910,12 +3053,13 @@
                   <option value="refunded" ${o.paymentStatus === 'refunded' ? 'selected' : ''}>Refunded</option>
                 </select>
               </div>
-              <div class="field"><label>Fulfillment Status</label>
+              <div class="field"><label>Fulfillment / Shipment Status</label>
                 <select id="ord_fulfill">
-                  <option value="unfulfilled" ${o.fulfillmentStatus === 'unfulfilled' ? 'selected' : ''}>Unfulfilled (Ready to Pack)</option>
-                  <option value="fulfilled" ${o.fulfillmentStatus === 'fulfilled' ? 'selected' : ''}>In Atelier (Packed)</option>
-                  <option value="shipped" ${o.fulfillmentStatus === 'shipped' ? 'selected' : ''}>Shipped (Dispatched)</option>
-                  <option value="delivered" ${o.fulfillmentStatus === 'delivered' ? 'selected' : ''}>Delivered</option>
+                  <option value="unfulfilled" ${o.fulfillmentStatus === 'unfulfilled' ? 'selected' : ''}>🟠 Unfulfilled (Pending)</option>
+                  <option value="fulfilled" ${o.fulfillmentStatus === 'fulfilled' ? 'selected' : ''}>🟢 Fulfilled (Packed in Atelier)</option>
+                  <option value="in_transit" ${o.fulfillmentStatus === 'in_transit' ? 'selected' : ''}>🔵 In Transit (Out for Delivery)</option>
+                  <option value="shipped" ${o.fulfillmentStatus === 'shipped' ? 'selected' : ''}>🟢 Shipped (Courier Dispatched)</option>
+                  <option value="delivered" ${o.fulfillmentStatus === 'delivered' ? 'selected' : ''}>🟢 Delivered</option>
                 </select>
               </div>
             </div>
