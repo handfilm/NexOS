@@ -1,6 +1,6 @@
 {
   "name": "Hands & Head",
-  "description": "Headless B2B Platform and Seller OS for leather export, fashion catalog, CRM, order management, and professional PDF invoice generation.",
+  "description": "Headless B2B Platform and Seller OS for leather export, fashion catalog, CRM, WhatsApp bulk broadcast engine, order management, and professional PDF invoice generation.",
   "requestFramePermissions": [
     "camera",
     "microphone"

@@ -3487,25 +3487,582 @@ div:has(> table)::-webkit-scrollbar-thumb {
   }
 }
 
-/* ── Tablet Viewport Adaptations (641px - 1024px) ── */
-@media (min-width: 641px) and (max-width: 1024px) {
-  .admin-matrix-layout {
-    grid-template-columns: 1fr !important;
-    gap: 16px;
+/* ═══════════════════════════════════════════════════════════════
+   WHATSAPP BULK BROADCAST STUDIO & DIGITAL LOOKBOOK STYLES
+   ═══════════════════════════════════════════════════════════════ */
+.btn-emerald {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(16, 185, 129, 0.4) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+.btn-emerald:hover {
+  background: linear-gradient(135deg, #25D366 0%, #10b981 100%) !important;
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.wa-campaign-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 12, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.2s ease;
+}
+
+.wa-campaign-modal-container {
+  width: 100%;
+  max-width: 1120px;
+  max-height: 94vh;
+  height: 820px;
+  background: var(--bg-1);
+  border: 1px solid var(--wire);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.wa-modal-header {
+  padding: 14px 20px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--wire);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wa-logo-bubble {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(37, 211, 102, 0.15);
+  color: #25D366;
+  border: 1px solid rgba(37, 211, 102, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wa-wizard-steps {
+  display: flex;
+  background: var(--bg-3);
+  border-bottom: 1px solid var(--wire);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.wa-wizard-steps::-webkit-scrollbar { display: none; }
+
+.wa-step-btn {
+  flex: 1;
+  min-width: 140px;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.wa-step-btn.active {
+  color: var(--ink);
+  background: var(--bg-1);
+  border-bottom-color: #25D366;
+}
+.wa-step-btn .step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 1px solid var(--wire);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-family: var(--mono);
+}
+.wa-step-btn.active .step-num {
+  background: #25D366;
+  color: #000;
+  border-color: #25D366;
+  font-weight: 700;
+}
+
+.wa-modal-body {
+  flex: 1;
+  padding: 18px 22px;
+  overflow-y: auto;
+  background: var(--bg-1);
+}
+
+.wa-modal-footer {
+  padding: 12px 20px;
+  background: var(--bg-2);
+  border-top: 1px solid var(--wire);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Step 1: Products Grid */
+.wa-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  overflow-y: auto;
+  flex: 1;
+  max-height: 520px;
+  padding-right: 4px;
+}
+
+.wa-prod-select-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--wire);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  position: relative;
+}
+.wa-prod-select-card:hover {
+  border-color: var(--gold-dim);
+  transform: translateY(-1px);
+}
+.wa-prod-select-card.selected {
+  background: rgba(37, 211, 102, 0.08);
+  border-color: #25D366;
+  box-shadow: 0 0 10px rgba(37, 211, 102, 0.15);
+}
+.wa-prod-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--wire);
+  background: var(--bg-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+.wa-prod-select-card.selected .wa-prod-check {
+  background: #25D366;
+  border-color: #25D366;
+  color: #000;
+}
+.wa-prod-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #000;
+  border: 1px solid var(--wire);
+  flex-shrink: 0;
+}
+
+/* Step 2: Cohorts & Customer List */
+.wa-cohort-pills {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.wa-cohort-pills::-webkit-scrollbar { display: none; }
+.wa-cohort-pill {
+  padding: 6px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--wire);
+  color: var(--ink-2);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.wa-cohort-pill:hover {
+  border-color: var(--gold);
+  color: var(--ink);
+}
+.wa-cohort-pill.active {
+  background: var(--gold);
+  color: #000;
+  border-color: var(--gold);
+  font-weight: 700;
+}
+
+.wa-customers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  max-height: 480px;
+  padding-right: 4px;
+}
+.wa-cust-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--wire);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.wa-cust-row:hover {
+  border-color: var(--gold-dim);
+}
+.wa-cust-row.selected {
+  background: rgba(37, 211, 102, 0.08);
+  border-color: #25D366;
+}
+
+/* Step 3: Layout & Smartphone Mockup */
+.wa-step3-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 18px;
+  height: 100%;
+}
+.wa-copy-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+.wa-tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px;
+  max-height: 165px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.wa-tpl-btn {
+  padding: 8px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--wire);
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+  transition: all 0.15s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 52px;
+}
+.wa-tpl-btn:hover {
+  border-color: var(--gold-dim);
+}
+.wa-tpl-btn.active {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: var(--gold);
+}
+.wa-tpl-actions {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+}
+.wa-tpl-action-del {
+  background: transparent;
+  border: none;
+  color: var(--ink-3);
+  padding: 2px 4px;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.15s;
+}
+.wa-tpl-action-del:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+/* Dynamic Placeholders Bar & Clickable Insertion Chips */
+.wa-placeholders-bar {
+  background: var(--bg-2);
+  border: 1px solid var(--wire);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.wa-placeholders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.wa-placeholder-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.wa-placeholder-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--bg-3);
+  border: 1px solid var(--wire);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--gold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.wa-placeholder-chip:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--gold);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.wa-placeholder-chip:active {
+  transform: translateY(0);
+}
+
+/* Save Template Dialog */
+.wa-tpl-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.15s ease;
+}
+.wa-tpl-dialog-box {
+  background: var(--bg-1);
+  border: 1px solid var(--wire);
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+  width: 100%;
+  max-width: 460px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.wa-phone-preview-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.wa-phone-frame {
+  width: 100%;
+  max-width: 330px;
+  height: 520px;
+  background: #111b21;
+  border-radius: 28px;
+  border: 8px solid #2a3942;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+.wa-phone-header {
+  background: #202c33;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.wa-phone-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #00a884;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wa-phone-chat-bg {
+  flex: 1;
+  padding: 12px 10px;
+  overflow-y: auto;
+  background: #0b141a;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.wa-chat-bubble {
+  background: #005c4b;
+  color: #e9edef;
+  border-radius: 8px 8px 0 8px;
+  padding: 10px 12px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  align-self: flex-end;
+  max-width: 95%;
+  word-break: break-word;
+}
+.wa-bubble-text {
+  color: #e9edef;
+}
+.wa-bubble-time {
+  font-size: 9.5px;
+  color: rgba(255,255,255,0.6);
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* Step 4: Active Runner */
+.wa-active-runner-card {
+  margin-top: 14px;
+  padding: 16px;
+  background: var(--bg-3);
+  border: 1px solid var(--wire);
+  border-radius: 10px;
+}
+
+/* Digital Lookbook Fullscreen Modal */
+.lookbook-fullscreen-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 9, 14, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 10000;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+}
+.lookbook-inner {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.lookbook-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--wire);
+}
+.lookbook-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+.lookbook-card {
+  background: var(--bg-2);
+  border: 1px solid var(--wire);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.lookbook-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold-dim);
+}
+.lookbook-img-wrap {
+  width: 100%;
+  height: 220px;
+  position: relative;
+  background: #000;
+  overflow: hidden;
+}
+.lookbook-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+.lookbook-card:hover .lookbook-img-wrap img {
+  transform: scale(1.03);
+}
+.lookbook-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--gold);
+  font-size: 8.5px;
+  font-family: var(--mono);
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+.lookbook-content {
+  padding: 14px 16px;
+}
+
+/* ── Mobile Responsive Adjustments ── */
+@media (max-width: 768px) {
+  .wa-campaign-modal-container {
+    max-height: 98vh;
+    height: 98vh;
+    border-radius: 10px;
   }
-  .sheet {
-    max-width: min(92vw, 680px) !important;
+  .wa-modal-header {
+    padding: 10px 14px;
+  }
+  .wa-modal-body {
+    padding: 12px 14px;
+  }
+  .wa-step3-layout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .wa-phone-preview-col {
+    display: none;
+  }
+  .wa-products-grid {
+    grid-template-columns: 1fr;
   }
 }
 
-/* ── Large Screens & Ultra-Wide Auto-Fit (1440px+) ── */
-@media (min-width: 1440px) {
-  .app-container, .hero, .sec-h, .bento-grid, .action-rail, .order-panel, .orders-container, .compliance-grid, .eu-markets, .eu-portal-header, .module-container, .module-nav-bar, .notif-panel, .chat-container {
-    max-width: 1680px;
-    padding-left: 36px;
-    padding-right: 36px;
-  }
-}
 
 
 

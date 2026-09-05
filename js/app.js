@@ -1174,6 +1174,7 @@ const NAV_SECTIONS = [
     badge: "COMMERCE",
     desc: "Omnichannel commerce, inventory tracking & scanning tools",
     items: [
+      { label: "WhatsApp Broadcast Studio", icon: I.megaphone, fn: "window.openWhatsAppCampaignStudio()", desc: "Send bulk products & digital lookbooks to 15K+ buyers via WhatsApp", ext: "WHATSAPP", extClass: "ok" },
       { label: "Shopify Suite", icon: I.tag, app: "ShopifySuite", desc: "Tokyo Atelier showroom, webhooks & draft orders", ext: "SHOPIFY" },
       { label: "Daraz Sync", icon: I.chart, app: "DarazSync", desc: "South Asia marketplace bridge & catalog sync", ext: "DARAZ" },
       { label: "Inventory Stock", icon: I.box, app: "Inventory", desc: "Real-time stock matrix & raw hide levels", ext: "STOCK" },
@@ -1286,7 +1287,10 @@ const MODULE_MAP = {
   "Webhooks": "ShopifySuite",
   "DraftOrders": "ShopifySuite",
   "InventoryMatrix": "ShopifySuite",
-  "PriceRules": "ShopifySuite"
+  "PriceRules": "ShopifySuite",
+  "WhatsAppStudio": "WhatsAppStudio",
+  "WhatsApp Broadcast": "WhatsAppStudio",
+  "WhatsApp Broadcast Studio": "WhatsAppStudio"
 };
 
 let _drawerFilterQuery = "";
@@ -1797,6 +1801,29 @@ function exitProduction() {
 
 /* ── Toast ── */
 function toast(m) { const t=document.getElementById("toast"); if(!t)return; t.innerText=m; t.classList.add("on"); setTimeout(()=>t.classList.remove("on"),2500); }
+
+/* ── Global Broadcast & Lookbook Fallbacks ── */
+window.openWhatsAppCampaignStudio = window.openWhatsAppCampaignStudio || function(options = {}) {
+  if (window.WhatsAppCampaignStudio && typeof window.WhatsAppCampaignStudio.open === 'function') {
+    return window.WhatsAppCampaignStudio.open(options);
+  }
+  setTimeout(() => {
+    if (window.WhatsAppCampaignStudio && typeof window.WhatsAppCampaignStudio.open === 'function') {
+      window.WhatsAppCampaignStudio.open(options);
+    }
+  }, 100);
+};
+
+window.openLookbookViewer = window.openLookbookViewer || function(productIds = []) {
+  if (window.WhatsAppCampaignStudio && typeof window.WhatsAppCampaignStudio.openLookbookViewer === 'function') {
+    return window.WhatsAppCampaignStudio.openLookbookViewer(productIds);
+  }
+  setTimeout(() => {
+    if (window.WhatsAppCampaignStudio && typeof window.WhatsAppCampaignStudio.openLookbookViewer === 'function') {
+      window.WhatsAppCampaignStudio.openLookbookViewer(productIds);
+    }
+  }, 100);
+};
 
 /* ── Utility ── */
 function startCamera(mode = 'photo') {

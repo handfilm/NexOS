@@ -126,6 +126,7 @@
       const isAllSelected = items.length > 0 && items.every(p => window._selectedProductIds.has(p.id));
 
       target.innerHTML = modHeader("Products", `${items.length} total · ${activeCount} active · ${totalUnits} units in stock`, [
+        { label: "📲 WhatsApp Broadcast", fn: "window.openWhatsAppCampaignStudio()", primary: false },
         { label: "📥 Bulk Import (CSV/Excel)", fn: "window.BulkImportEngine.openProductImportModal()", primary: false },
         { label: "⚡ Fast Order", fn: "window.openFastOrderModal()", primary: false },
         { label: "📥 Drive Sync", fn: "openAppModule('DriveSync')", primary: false },
@@ -234,6 +235,9 @@
           <div id="products-selected-count-badge" class="batch-count-badge">
             ✓ ${window._selectedProductIds.size} Selected
           </div>
+          <button class="batch-action-btn btn-emerald" onclick="window.openWhatsAppCampaignStudio({ productIds: Array.from(window._selectedProductIds) })" style="display:inline-flex;align-items:center;gap:5px;">
+            📲 WhatsApp Broadcast
+          </button>
           <button class="batch-action-btn btn-batch-primary" onclick="window.BulkProductManager.applyBulkAction('bulk_ai')">
             ✨ Gemini AI Enrich
           </button>
@@ -1746,6 +1750,7 @@
       window._lastCustomersCache = items;
 
       target.innerHTML = modHeader("Customer Directory", `${totalCount.toLocaleString()} buyer profiles · ৳${totalSpentAll.toLocaleString()} lifetime spend · PIN 1981 Live Database`, [
+        { label: "📲 WhatsApp Broadcast", fn: "window.openWhatsAppCampaignStudio({ cohort: 'all' })", primary: false },
         { label: "📥 Bulk Import (CSV/Excel)", fn: "window.BulkImportEngine.openCustomerImportModal()", primary: false },
         { label: "+ Add Customer", fn: "window.openAdvancedCustomerForm()", primary: true }
       ]) + `
@@ -1774,6 +1779,10 @@
             <option value="name" ${state.sortBy === 'name' ? 'selected' : ''}>Sort: Company / Name</option>
           </select>
 
+          <button class="btn btn-emerald btn-sm" onclick="window.openWhatsAppCampaignStudio({ cohort: '${state.country !== 'all' ? (state.country === 'BD' ? 'bd' : ['NL','DE','GB'].includes(state.country) ? 'europe' : 'all') : 'all'}' })" style="height:36px;padding:0 12px;display:inline-flex;align-items:center;gap:5px;font-size:11px;">
+            📲 Broadcast to Cohort
+          </button>
+
           <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);padding:0 4px;">
             Page ${state.page} / ${totalPages}
           </div>
@@ -1792,11 +1801,14 @@
                     ${c.country || '—'} · ${c.contactPerson ? `${c.contactPerson} · ` : ''}${c.currency || 'BDT'}
                   </div>
                 </div>
-                <div style="text-align:right;">
+                <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
                   <span class="pill ok" style="font-size:9px;padding:2px 6px;">${c.totalOrders || 0} Orders</span>
-                  <div style="font-size:12px;font-weight:700;color:var(--gold);margin-top:4px;font-family:var(--mono);">
+                  <div style="font-size:12px;font-weight:700;color:var(--gold);font-family:var(--mono);">
                     ৳${(c.totalSpent || 0).toLocaleString()}
                   </div>
+                  <button class="btn btn-emerald btn-xs" style="padding:2px 8px;font-size:9.5px;margin-top:2px;" onclick="event.stopPropagation(); window.openWhatsAppCampaignStudio({ customerIds: ['${c.id}'] });" title="Send Curated Products via WhatsApp">
+                    📲 Broadcast
+                  </button>
                 </div>
               </div>
               
@@ -1875,7 +1887,10 @@
             <h3 style="margin:0;font-size:18px;">${c.flag || '🏢'} ${c.companyName || c.name}</h3>
             <p class="hint" style="margin:2px 0 0;">${c.country || 'Global'} · ${c.paymentTerms || 'Cash on Delivery (COD)'} · ${c.currency || 'BDT'}</p>
           </div>
-          <button class="btn btn-dark btn-sm" onclick="window.openAdvancedCustomerForm('${encodeURIComponent(c.id)}')">Edit</button>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-emerald btn-sm" onclick="closeSheet(); window.openWhatsAppCampaignStudio({ customerIds: ['${encodeURIComponent(c.id)}'] });" style="display:inline-flex;align-items:center;gap:4px;">📲 Broadcast</button>
+            <button class="btn btn-dark btn-sm" onclick="window.openAdvancedCustomerForm('${encodeURIComponent(c.id)}')">Edit</button>
+          </div>
         </div>
 
         <div style="padding:0 20px 24px;">
@@ -1942,9 +1957,10 @@
             `).join('') : '<div class="empty" style="padding:14px;">No linked orders recorded yet</div>'}
           </div>
 
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-gold" style="flex:1;" onclick="closeSheet(); window.openAdvancedOrderForm('${encodeURIComponent(c.id)}')">Create Order for Buyer →</button>
-            ${c.email ? `<button class="btn btn-dark" onclick="window.open('mailto:${c.email}')">Email Buyer</button>` : ''}
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-emerald" style="flex:1;min-height:38px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="closeSheet(); window.openWhatsAppCampaignStudio({ customerIds: ['${encodeURIComponent(c.id)}'] });">📲 WhatsApp Broadcast</button>
+            <button class="btn btn-gold" style="flex:1;min-height:38px;" onclick="closeSheet(); window.openAdvancedOrderForm('${encodeURIComponent(c.id)}')">Create Order →</button>
+            ${c.email ? `<button class="btn btn-dark" style="min-height:38px;" onclick="window.open('mailto:${c.email}')">Email</button>` : ''}
           </div>
         </div>
       `;
