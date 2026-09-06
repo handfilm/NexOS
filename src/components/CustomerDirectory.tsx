@@ -14,6 +14,7 @@ import { normalizeBangladeshPhone } from '../utils/phoneNormalizer';
 import { Customer360Drawer } from './Customer360Drawer';
 import { QuickSaleModal, QuickSaleCustomer } from './QuickSaleModal';
 import { SmartAudienceBuilder } from './SmartAudienceBuilder';
+import { SmartAudienceFilter, AudienceFilterCriteria } from './SmartAudienceFilter';
 
 export interface Customer {
   id: string;
@@ -42,7 +43,17 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [countryFilter, setCountryFilter] = useState<string>('all');
+
+  // Audience Filter State with Server-Side Pagination
+  const [filterCriteria, setFilterCriteria] = useState<AudienceFilterCriteria>({
+    minSpend: 0,
+    cohortTag: 'all',
+    country: 'all',
+    search: '',
+    orderCountFilter: 'all'
+  });
+  const [matchingCount, setMatchingCount] = useState<number>(0);
+  const [totalDatabaseCount, setTotalDatabaseCount] = useState<number>(16420);
 
   // Intelligence Modules Modals State
   const [active360CustomerId, setActive360CustomerId] = useState<string | null>(null);
@@ -53,23 +64,32 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
 
   const PAGE_LIMIT = 50; // Strict limit to prevent mobile/browser memory exhaustion
 
-  const fetchPage = async (cursor: DocumentSnapshot | null = null, direction: 'next' | 'prev' | 'reset' = 'reset') => {
+  const fetchPage = async (
+    cursor: DocumentSnapshot | null = null,
+    direction: 'next' | 'prev' | 'reset' = 'reset',
+    activeCriteria: AudienceFilterCriteria = filterCriteria
+  ) => {
     setLoading(true);
     try {
       const db = getFirestore();
-      let q = query(
-        collection(db, 'customers'),
-        orderBy('updatedAt', 'desc'),
-        limit(PAGE_LIMIT)
-      );
+      let q: any = collection(db, 'customers');
 
-      if (countryFilter !== 'all') {
-        q = query(
-          collection(db, 'customers'),
-          where('country', '==', countryFilter),
-          orderBy('updatedAt', 'desc'),
-          limit(PAGE_LIMIT)
-        );
+      // Server-side filtering in Firestore
+      if (activeCriteria.country !== 'all') {
+        q = query(q, where('country', '==', activeCriteria.country));
+      }
+      if (activeCriteria.minSpend > 0) {
+        q = query(q, where('totalSpent', '>=', activeCriteria.minSpend));
+      }
+      if (activeCriteria.cohortTag !== 'all') {
+        q = query(q, where('tags', 'array-contains', activeCriteria.cohortTag));
+      }
+
+      // Order By & Pagination Limit
+      if (activeCriteria.minSpend > 0) {
+        q = query(q, orderBy('totalSpent', 'desc'), limit(PAGE_LIMIT));
+      } else {
+        q = query(q, orderBy('updatedAt', 'desc'), limit(PAGE_LIMIT));
       }
 
       if (cursor) {
@@ -110,9 +130,20 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
       setCurrentCursor(docs[docs.length - 1] || null);
     } catch (err: any) {
       console.error('Firestore cursor query failed, falling back to local cache/api:', err);
-      // Resilient fallback to API with limit 50
+      // Resilient fallback to API with server-side criteria & limit 50
       try {
-        const res = await fetch(`/api/customers?limit=${PAGE_LIMIT}&page=${page}&country=${countryFilter}`);
+        const targetPage = direction === 'next' ? page + 1 : direction === 'prev' ? Math.max(1, page - 1) : 1;
+        const queryParams = new URLSearchParams({
+          limit: String(PAGE_LIMIT),
+          page: String(targetPage),
+          country: activeCriteria.country,
+          minSpend: String(activeCriteria.minSpend),
+          cohortTag: activeCriteria.cohortTag,
+          orderCountFilter: activeCriteria.orderCountFilter,
+          search: activeCriteria.search
+        });
+
+        const res = await fetch(`/api/customers?${queryParams.toString()}`);
         const data = await res.json();
         if (data && data.items) {
           setCustomers(
@@ -122,6 +153,15 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
             }))
           );
           setHasMore(data.items.length === PAGE_LIMIT);
+          if (data.totalCount !== undefined) {
+            setMatchingCount(data.totalCount);
+          }
+          if (data.databaseTotal !== undefined) {
+            setTotalDatabaseCount(data.databaseTotal);
+          }
+          if (direction === 'next') setPage((p) => p + 1);
+          else if (direction === 'prev') setPage((p) => Math.max(1, p - 1));
+          else if (direction === 'reset') setPage(1);
         }
       } catch (e) {}
     } finally {
@@ -130,8 +170,29 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
   };
 
   useEffect(() => {
-    fetchPage(null, 'reset');
-  }, [countryFilter]);
+    fetchPage(null, 'reset', filterCriteria);
+  }, []);
+
+  const handleFilterCriteriaChange = (newCriteria: AudienceFilterCriteria) => {
+    setFilterCriteria(newCriteria);
+    setCurrentCursor(null);
+    setCursorStack([]);
+    fetchPage(null, 'reset', newCriteria);
+  };
+
+  const handleResetFilterCriteria = () => {
+    const defaultCrit: AudienceFilterCriteria = {
+      minSpend: 0,
+      cohortTag: 'all',
+      country: 'all',
+      search: '',
+      orderCountFilter: 'all'
+    };
+    setFilterCriteria(defaultCrit);
+    setCurrentCursor(null);
+    setCursorStack([]);
+    fetchPage(null, 'reset', defaultCrit);
+  };
 
   // Global Bridge for Seller OS integration
   useEffect(() => {
@@ -228,20 +289,8 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
             🎯 {showAudienceBuilder ? 'Hide Builder' : 'Audience Builder'}
           </button>
 
-          <select
-            value={countryFilter}
-            onChange={(e) => setCountryFilter(e.target.value)}
-            className="rounded border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none truncate"
-          >
-            <option value="all">All Markets</option>
-            <option value="BD">🇧🇩 Bangladesh</option>
-            <option value="NL">🇳🇱 Netherlands</option>
-            <option value="DE">🇩🇪 Germany</option>
-            <option value="GB">🇬🇧 United Kingdom</option>
-          </select>
-
           <button
-            onClick={() => fetchPage(null, 'reset')}
+            onClick={() => fetchPage(null, 'reset', filterCriteria)}
             className="rounded border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800 truncate"
           >
             ↺ Refresh
@@ -251,10 +300,32 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
 
       {/* Embedded Audience Builder Section if toggled */}
       {showAudienceBuilder && (
-        <div className="mb-6">
+        <div className="mb-4">
           <SmartAudienceBuilder onClose={() => setShowAudienceBuilder(false)} />
         </div>
       )}
+
+      {/* Smart Audience Filter Component with Live Dynamic Badge */}
+      <div className="mb-4">
+        <SmartAudienceFilter
+          criteria={filterCriteria}
+          onChange={handleFilterCriteriaChange}
+          onReset={handleResetFilterCriteria}
+          matchingCount={matchingCount}
+          totalDatabaseCount={totalDatabaseCount}
+          loadingCount={loading}
+          onBroadcastToAudience={(crit, count) => {
+            if (typeof window !== 'undefined' && (window as any).openWhatsAppCampaignStudio) {
+              (window as any).openWhatsAppCampaignStudio({
+                cohort: crit.cohortTag !== 'all' ? crit.cohortTag : 'all',
+                minSpend: crit.minSpend,
+                country: crit.country !== 'all' ? crit.country : undefined,
+                audienceCount: count
+              });
+            }
+          }}
+        />
+      </div>
 
       {/* Table Container */}
       <div className="overflow-x-auto border border-zinc-800/80 rounded-lg">

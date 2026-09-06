@@ -145,16 +145,19 @@ window.CustomersService = {
   },
 
   /* ── Query & List Customers with Search & Filtering ── */
-  async list({ search = null, country = null, tag = null, sortBy = "updatedAt", sortDir = "desc", page = 1, limit = 50 } = {}) {
+  async list({ search = null, country = null, tag = null, cohortTag = null, minSpend = null, orderCountFilter = null, sortBy = "updatedAt", sortDir = "desc", page = 1, limit = 50 } = {}) {
     await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
 
-    // 1. Prefer Ultra-fast Server API query backed by permanent 15K+ customer database
+    // 1. Prefer Ultra-fast Server API query backed by permanent 16K+ customer database
     try {
       const qParams = new URLSearchParams();
       if (search && search.trim()) qParams.set("search", search.trim());
       if (country && country !== "all") qParams.set("country", country);
-      if (tag && tag !== "all") qParams.set("tag", tag);
+      const activeCohort = cohortTag || tag;
+      if (activeCohort && activeCohort !== "all") qParams.set("cohortTag", activeCohort);
+      if (minSpend && Number(minSpend) > 0) qParams.set("minSpend", String(minSpend));
+      if (orderCountFilter && orderCountFilter !== "all") qParams.set("orderCountFilter", orderCountFilter);
       if (sortBy) qParams.set("sortBy", sortBy);
       if (sortDir) qParams.set("sortDir", sortDir);
       if (page) qParams.set("page", String(page));
@@ -174,6 +177,7 @@ window.CustomersService = {
           items: normalizedItems,
           count: data.totalCount !== undefined ? data.totalCount : normalizedItems.length,
           totalCount: data.totalCount !== undefined ? data.totalCount : normalizedItems.length,
+          databaseTotal: data.databaseTotal || 16420,
           page: data.page || page,
           limit: data.limit || limit,
           totalPages: data.totalPages || Math.ceil((data.totalCount || normalizedItems.length) / (data.limit || limit)),

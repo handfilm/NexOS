@@ -2933,6 +2933,8 @@
       const res = await window.CustomersService.list({
         search: state.search,
         country: state.country,
+        cohortTag: state.cohortTag,
+        minSpend: state.minSpend,
         sortBy: state.sortBy,
         sortDir: state.sortDir,
         page: state.page,
@@ -2940,47 +2942,108 @@
       });
       const items = res.items || [];
       const totalCount = res.totalCount !== undefined ? res.totalCount : (res.count || items.length);
+      const totalDatabaseCount = res.databaseTotal || 16420;
       const totalPages = res.totalPages || Math.ceil(totalCount / state.limit) || 1;
       const totalSpentAll = res.totalSpentAll !== undefined ? res.totalSpentAll : items.reduce((s, c) => s + (c.totalSpent || 0), 0);
       window._lastCustomersCache = items;
 
+      const pctOfTotal = totalDatabaseCount > 0 ? ((totalCount / totalDatabaseCount) * 100).toFixed(1) : "0.0";
+      const activeFiltersCount = (state.country && state.country !== 'all' ? 1 : 0) + 
+                                 (state.cohortTag && state.cohortTag !== 'all' ? 1 : 0) + 
+                                 (state.minSpend && state.minSpend > 0 ? 1 : 0) + 
+                                 (state.search && state.search.trim() ? 1 : 0);
+
       target.innerHTML = modHeader("Customer Directory", `${totalCount.toLocaleString()} buyer profiles · ৳${totalSpentAll.toLocaleString()} lifetime spend · PIN 1981 Live Database`, [
-        { label: "📲 WhatsApp Broadcast", fn: "window.openWhatsAppCampaignStudio({ cohort: 'all' })", primary: false },
+        { label: "📲 WhatsApp Broadcast", fn: `window.openWhatsAppCampaignStudio({ cohort: '${state.cohortTag || 'all'}', minSpend: ${state.minSpend || 0} })`, primary: false },
         { label: "⚡ Apollo & Drive Ingest", fn: "window.BulkImportEngine.openApolloDriveIngestionModal()", primary: false },
         { label: "📥 Bulk Import (CSV/Excel)", fn: "window.BulkImportEngine.openCustomerImportModal()", primary: false },
         { label: "+ Add Customer", fn: "window.openAdvancedCustomerForm()", primary: true }
       ]) + `
-        <!-- Filter and Search Toolbar -->
-        <div style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-          <input type="text" placeholder="Search 15K+ buyers by name, phone, company, email…" 
-                 value="${state.search || ''}" 
-                 oninput="window._viewState.customers.search = this.value; window._viewState.customers.page = 1; window.debounceCustomerSearch();" 
-                 style="flex:1;min-width:220px;height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 12px;font-size:12px;border-radius:8px;outline:none;transition:border-color 0.15s;"/>
-          
-          <select onchange="window._viewState.customers.country = this.value; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" 
-                  style="height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:11px;border-radius:8px;">
-            <option value="all" ${state.country === 'all' ? 'selected' : ''}>All Countries</option>
-            <option value="BD" ${state.country === 'BD' ? 'selected' : ''}>🇧🇩 Bangladesh</option>
-            <option value="NL" ${state.country === 'NL' ? 'selected' : ''}>🇳🇱 Netherlands</option>
-            <option value="DE" ${state.country === 'DE' ? 'selected' : ''}>🇩🇪 Germany</option>
-            <option value="GB" ${state.country === 'GB' ? 'selected' : ''}>🇬🇧 United Kingdom</option>
-            <option value="US" ${state.country === 'US' ? 'selected' : ''}>🇺🇸 United States</option>
-          </select>
+        <!-- SMART AUDIENCE FILTER & LIVE DYNAMIC BADGE -->
+        <div style="margin:0 20px 14px;padding:12px 16px;background:var(--bg-2, #141413);border:1px solid var(--wire);border-radius:10px;font-family:var(--mono);">
+          <!-- Top Row: Live Dynamic Badge & Broadcast Action -->
+          <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.06);">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div id="crm-live-badge" style="display:inline-flex;align-items:center;gap:7px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);padding:4px 10px;border-radius:6px;">
+                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;"></span>
+                <span style="font-size:11px;font-weight:700;color:var(--gold, #f59e0b);letter-spacing:0.5px;text-transform:uppercase;">
+                  ${totalCount.toLocaleString()} Matching Patrons
+                </span>
+                <span style="font-size:10px;color:var(--ink-3);">
+                  (${pctOfTotal}% of ${totalDatabaseCount.toLocaleString()} Ledger)
+                </span>
+              </div>
 
-          <select onchange="window._viewState.customers.sortBy = this.value; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" 
-                  style="height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:11px;border-radius:8px;">
-            <option value="updatedAt" ${state.sortBy === 'updatedAt' ? 'selected' : ''}>Sort: Recent</option>
-            <option value="totalSpent" ${state.sortBy === 'totalSpent' ? 'selected' : ''}>Sort: Total Spent</option>
-            <option value="totalOrders" ${state.sortBy === 'totalOrders' ? 'selected' : ''}>Sort: Orders</option>
-            <option value="name" ${state.sortBy === 'name' ? 'selected' : ''}>Sort: Company / Name</option>
-          </select>
+              ${activeFiltersCount > 0 ? `
+                <button onclick="window._viewState.customers.minSpend = 0; window._viewState.customers.cohortTag = 'all'; window._viewState.customers.country = 'all'; window._viewState.customers.search = ''; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" style="background:rgba(255,255,255,0.05);border:1px solid var(--wire);color:var(--ink-2);font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;">
+                  ✕ Clear ${activeFiltersCount} Filters
+                </button>
+              ` : ''}
+            </div>
 
-          <button class="btn btn-emerald btn-sm" onclick="window.openWhatsAppCampaignStudio({ cohort: '${state.country !== 'all' ? (state.country === 'BD' ? 'bd' : ['NL','DE','GB'].includes(state.country) ? 'europe' : 'all') : 'all'}' })" style="height:36px;padding:0 12px;display:inline-flex;align-items:center;gap:5px;font-size:11px;">
-            📲 Broadcast to Cohort
-          </button>
+            <button class="btn btn-emerald btn-xs" onclick="window.openWhatsAppCampaignStudio({ cohort: '${state.cohortTag || 'all'}', minSpend: ${state.minSpend || 0}, audienceCount: ${totalCount} })" style="padding:4px 12px;font-size:11px;display:inline-flex;align-items:center;gap:5px;font-weight:600;">
+              📲 Broadcast to Filtered Audience
+            </button>
+          </div>
 
-          <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);padding:0 4px;">
-            Page ${state.page} / ${totalPages}
+          <!-- Middle Row: Search & Cohort & Country Selectors -->
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;">
+            <input type="text" placeholder="Search 16K+ buyers by name, phone, company, email…" 
+                   value="${state.search || ''}" 
+                   oninput="window._viewState.customers.search = this.value; window._viewState.customers.page = 1; window.debounceCustomerSearch();" 
+                   style="flex:1;min-width:200px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:11px;border-radius:6px;outline:none;"/>
+            
+            <select onchange="window._viewState.customers.cohortTag = this.value; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" 
+                    style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+              <option value="all" ${!state.cohortTag || state.cohortTag === 'all' ? 'selected' : ''}>🌐 All Cohort Tags</option>
+              <option value="vip" ${state.cohortTag === 'vip' ? 'selected' : ''}>👑 VIP Patron (৳50K+)</option>
+              <option value="wholesale" ${state.cohortTag === 'wholesale' ? 'selected' : ''}>🏢 Wholesale & B2B</option>
+              <option value="atelier" ${state.cohortTag === 'atelier' ? 'selected' : ''}>🌿 Atelier Direct</option>
+              <option value="leather" ${state.cohortTag === 'leather' ? 'selected' : ''}>💼 Leather Collectors</option>
+              <option value="repeat" ${state.cohortTag === 'repeat' ? 'selected' : ''}>🔁 Repeat Buyers (2+)</option>
+              <option value="europe" ${state.cohortTag === 'europe' ? 'selected' : ''}>🇪🇺 EU & Export</option>
+              <option value="corporate" ${state.cohortTag === 'corporate' ? 'selected' : ''}>🎁 Corporate Accounts</option>
+              <option value="dormant90" ${state.cohortTag === 'dormant90' ? 'selected' : ''}>⏳ Dormant (90d+)</option>
+            </select>
+
+            <select onchange="window._viewState.customers.country = this.value; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" 
+                    style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+              <option value="all" ${state.country === 'all' ? 'selected' : ''}>All Countries</option>
+              <option value="BD" ${state.country === 'BD' ? 'selected' : ''}>🇧🇩 Bangladesh</option>
+              <option value="NL" ${state.country === 'NL' ? 'selected' : ''}>🇳🇱 Netherlands</option>
+              <option value="DE" ${state.country === 'DE' ? 'selected' : ''}>🇩🇪 Germany</option>
+              <option value="GB" ${state.country === 'GB' ? 'selected' : ''}>🇬🇧 United Kingdom</option>
+              <option value="US" ${state.country === 'US' ? 'selected' : ''}>🇺🇸 United States</option>
+            </select>
+
+            <select onchange="window._viewState.customers.sortBy = this.value; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" 
+                    style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+              <option value="updatedAt" ${state.sortBy === 'updatedAt' ? 'selected' : ''}>Sort: Recent</option>
+              <option value="totalSpent" ${state.sortBy === 'totalSpent' ? 'selected' : ''}>Sort: Total Spent</option>
+              <option value="totalOrders" ${state.sortBy === 'totalOrders' ? 'selected' : ''}>Sort: Orders</option>
+              <option value="name" ${state.sortBy === 'name' ? 'selected' : ''}>Sort: Company / Name</option>
+            </select>
+
+            <div style="font-size:11px;color:var(--ink-3);padding:0 4px;">
+              Page ${state.page} / ${totalPages}
+            </div>
+          </div>
+
+          <!-- Bottom Row: Min Spend Preset Buttons -->
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.06);">
+            <span style="font-size:10.5px;color:var(--ink-3);font-weight:600;margin-right:2px;">Min Spend:</span>
+            ${[
+              { label: 'Any Spend', val: 0 },
+              { label: '৳5,000+', val: 5000 },
+              { label: '৳15,000+', val: 15000 },
+              { label: '৳50,000+ (VIP)', val: 50000 },
+              { label: '৳100,000+ (Wholesale)', val: 100000 }
+            ].map(p => `
+              <button onclick="window._viewState.customers.minSpend = ${p.val}; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));"
+                      style="padding:2px 8px;font-size:10px;border-radius:4px;cursor:pointer;border:1px solid ${(!state.minSpend && p.val === 0) || state.minSpend === p.val ? 'var(--gold)' : 'var(--wire)'};background:${(!state.minSpend && p.val === 0) || state.minSpend === p.val ? 'var(--gold)' : 'var(--bg-3)'};color:${(!state.minSpend && p.val === 0) || state.minSpend === p.val ? '#000' : 'var(--ink-2)'};font-weight:${(!state.minSpend && p.val === 0) || state.minSpend === p.val ? '700' : '400'};">
+                ${p.label}
+              </button>
+            `).join('')}
           </div>
         </div>
 

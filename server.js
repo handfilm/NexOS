@@ -1303,17 +1303,111 @@ app.get('/api/customers/stats', (req, res) => {
   }
 });
 
-app.get('/api/customers', (req, res) => {
+app.get('/api/customers/count', (req, res) => {
   try {
     const allItems = getCustomersList();
     let items = allItems;
-    const { search, country, tag, limit, page, sortBy, sortDir } = req.query;
+    const { search, country, tag, cohort, cohortTag, minSpend, orderCountFilter } = req.query;
 
     if (country && country !== 'all') {
       items = items.filter(c => (c.country || '').toUpperCase() === country.toUpperCase());
     }
-    if (tag && tag !== 'all') {
-      items = items.filter(c => (c.tags || []).includes(tag));
+    const activeTag = cohortTag || cohort || tag;
+    if (activeTag && activeTag !== 'all') {
+      const tLower = activeTag.toLowerCase();
+      items = items.filter(c => {
+        if (tLower === 'dormant90') {
+          const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString();
+          return (c.lastOrderAt && c.lastOrderAt < ninetyDaysAgo) || (c.updatedAt && c.updatedAt < ninetyDaysAgo);
+        }
+        if (Array.isArray(c.tags)) {
+          return c.tags.some(t => String(t).toLowerCase().includes(tLower));
+        }
+        return (c.cohort && String(c.cohort).toLowerCase().includes(tLower)) ||
+               (c.marketTier && String(c.marketTier).toLowerCase().includes(tLower));
+      });
+    }
+    if (minSpend && Number(minSpend) > 0) {
+      items = items.filter(c => (Number(c.totalSpent) || 0) >= Number(minSpend));
+    }
+    if (orderCountFilter && orderCountFilter !== 'all') {
+      if (orderCountFilter === '1') {
+        items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) === 1);
+      } else if (orderCountFilter === '2plus') {
+        items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) >= 2);
+      } else if (orderCountFilter === '5plus') {
+        items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) >= 5);
+      } else if (orderCountFilter === 'dormant90') {
+        const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString();
+        items = items.filter(c => (c.lastOrderAt && c.lastOrderAt < ninetyDaysAgo) || (c.updatedAt && c.updatedAt < ninetyDaysAgo));
+      }
+    }
+    if (search && search.trim()) {
+      const q = search.toLowerCase().trim();
+      const qDigits = q.replace(/[^0-9]/g, '');
+      items = items.filter(c => {
+        const nameMatch = (c.name || '').toLowerCase().includes(q) ||
+                          (c.companyName || '').toLowerCase().includes(q) ||
+                          (c.contactPerson || '').toLowerCase().includes(q) ||
+                          (c.email || '').toLowerCase().includes(q) ||
+                          (c.addressLine1 || '').toLowerCase().includes(q);
+        if (nameMatch) return true;
+        if (qDigits && (c.phone || '').replace(/[^0-9]/g, '').includes(qDigits)) return true;
+        if (String(c.id).includes(q)) return true;
+        return false;
+      });
+    }
+
+    res.json({
+      ok: true,
+      count: items.length,
+      totalCount: items.length,
+      databaseTotal: allItems.length,
+      totalSpent: items.reduce((sum, c) => sum + (Number(c.totalSpent) || 0), 0)
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/api/customers', (req, res) => {
+  try {
+    const allItems = getCustomersList();
+    let items = allItems;
+    const { search, country, tag, cohort, cohortTag, minSpend, orderCountFilter, limit, page, sortBy, sortDir } = req.query;
+
+    if (country && country !== 'all') {
+      items = items.filter(c => (c.country || '').toUpperCase() === country.toUpperCase());
+    }
+    const activeTag = cohortTag || cohort || tag;
+    if (activeTag && activeTag !== 'all') {
+      const tLower = activeTag.toLowerCase();
+      items = items.filter(c => {
+        if (tLower === 'dormant90') {
+          const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString();
+          return (c.lastOrderAt && c.lastOrderAt < ninetyDaysAgo) || (c.updatedAt && c.updatedAt < ninetyDaysAgo);
+        }
+        if (Array.isArray(c.tags)) {
+          return c.tags.some(t => String(t).toLowerCase().includes(tLower));
+        }
+        return (c.cohort && String(c.cohort).toLowerCase().includes(tLower)) ||
+               (c.marketTier && String(c.marketTier).toLowerCase().includes(tLower));
+      });
+    }
+    if (minSpend && Number(minSpend) > 0) {
+      items = items.filter(c => (Number(c.totalSpent) || 0) >= Number(minSpend));
+    }
+    if (orderCountFilter && orderCountFilter !== 'all') {
+      if (orderCountFilter === '1') {
+        items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) === 1);
+      } else if (orderCountFilter === '2plus') {
+        items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) >= 2);
+      } else if (orderCountFilter === '5plus') {
+        items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) >= 5);
+      } else if (orderCountFilter === 'dormant90') {
+        const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString();
+        items = items.filter(c => (c.lastOrderAt && c.lastOrderAt < ninetyDaysAgo) || (c.updatedAt && c.updatedAt < ninetyDaysAgo));
+      }
     }
     if (search && search.trim()) {
       const q = search.toLowerCase().trim();
