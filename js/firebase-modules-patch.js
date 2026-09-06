@@ -15,7 +15,7 @@
   };
 
   function modHeader(title, subtitle, actions = []) {
-    const btns = actions.map(a => `<button class="btn btn-sm ${a.primary ? 'btn-gold' : 'btn-dark'}" onclick="${a.fn}">${a.label}</button>`).join('');
+    const btns = actions.map(a => `<button class="btn btn-sm ${a.primary ? 'btn-gold' : 'btn-dark'} truncate text-[clamp(10px,1.2vw,13px)]" onclick="${a.fn}">${a.label}</button>`).join('');
     return `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px 10px;">
         <div>
@@ -1751,6 +1751,7 @@
 
       target.innerHTML = modHeader("Customer Directory", `${totalCount.toLocaleString()} buyer profiles · ৳${totalSpentAll.toLocaleString()} lifetime spend · PIN 1981 Live Database`, [
         { label: "📲 WhatsApp Broadcast", fn: "window.openWhatsAppCampaignStudio({ cohort: 'all' })", primary: false },
+        { label: "⚡ Apollo & Drive Ingest", fn: "window.BulkImportEngine.openApolloDriveIngestionModal()", primary: false },
         { label: "📥 Bulk Import (CSV/Excel)", fn: "window.BulkImportEngine.openCustomerImportModal()", primary: false },
         { label: "+ Add Customer", fn: "window.openAdvancedCustomerForm()", primary: true }
       ]) + `

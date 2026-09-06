@@ -3,6 +3,49 @@
    Customers & Buyer CRM Service — Firestore Powered + Resilient Cache
    ═══════════════════════════════════════════════════════════════ */
 
+/* ── CANONICAL BANGLADESH PHONE NORMALIZER ── */
+window.normalizeBangladeshPhone = function (raw) {
+  if (raw === null || raw === undefined) return "";
+  let s = String(raw).trim();
+  if (!s) return "";
+
+  // Strip excel quotes, apostrophes, dashes, spaces, parentheses, slashes
+  s = s.replace(/^['"]+|['"]+$/g, '').replace(/[\s\-\(\)\.\/]+/g, '');
+  let digits = s.replace(/[^0-9]/g, '');
+  if (!digits) return "";
+
+  // Fix common typo: 88001XXXXXXXXX -> 8801XXXXXXXXX
+  if (digits.startsWith("88001") && digits.length === 14) {
+    digits = "8801" + digits.slice(5);
+  }
+
+  // 11 digits starting with 01 (e.g. 01712345678) -> +8801712345678
+  if (digits.length === 11 && digits.startsWith("01")) {
+    return "+88" + digits;
+  }
+
+  // 13 digits starting with 8801 (e.g. 8801712345678) -> +8801712345678
+  if (digits.length === 13 && digits.startsWith("8801")) {
+    return "+" + digits;
+  }
+
+  // 10 digits starting with 1 (e.g. 1712345678) -> +8801712345678
+  if (digits.length === 10 && digits.startsWith("1")) {
+    return "+880" + digits;
+  }
+
+  // If originally formatted with leading +, preserve international prefix
+  if (s.startsWith("+")) {
+    return "+" + digits;
+  }
+
+  if (digits.length >= 8) {
+    return "+" + digits;
+  }
+
+  return s;
+};
+
 window.CustomersService = {
   PAGE_SIZE: 1000,
   _lastDoc: null,
@@ -120,16 +163,20 @@ window.CustomersService = {
       const res = await fetch(`/api/customers?${qParams.toString()}`);
       const data = await res.json();
       if (data && data.ok && Array.isArray(data.items)) {
-        this._memCache = data.items;
-        this._totalDatabaseCount = data.databaseTotal || data.totalCount || data.items.length;
+        const normalizedItems = data.items.map(c => ({
+          ...c,
+          phone: window.normalizeBangladeshPhone(c.phone || c.mobile || c.tel)
+        }));
+        this._memCache = normalizedItems;
+        this._totalDatabaseCount = data.databaseTotal || data.totalCount || normalizedItems.length;
         this._totalSpentAll = data.totalSpentAll || 0;
         return {
-          items: data.items,
-          count: data.totalCount !== undefined ? data.totalCount : data.items.length,
-          totalCount: data.totalCount !== undefined ? data.totalCount : data.items.length,
+          items: normalizedItems,
+          count: data.totalCount !== undefined ? data.totalCount : normalizedItems.length,
+          totalCount: data.totalCount !== undefined ? data.totalCount : normalizedItems.length,
           page: data.page || page,
           limit: data.limit || limit,
-          totalPages: data.totalPages || Math.ceil((data.totalCount || data.items.length) / (data.limit || limit)),
+          totalPages: data.totalPages || Math.ceil((data.totalCount || normalizedItems.length) / (data.limit || limit)),
           totalSpentAll: data.totalSpentAll || 0
         };
       }
@@ -209,6 +256,55 @@ window.CustomersService = {
       totalPages: Math.ceil(totalCount / limit),
       totalSpentAll
     };
+  },
+
+  /* ── FIRESTORE SCALE: Memory-Safe Cursor Pagination (limit(50) with startAfter) ── */
+  async listWithCursor({ limit = 50, startAfterDoc = null, country = null, sortBy = "updatedAt", sortDir = "desc" } = {}) {
+    await this._ensureInit();
+    try { await window.NexAuth.ensureAuth(); } catch (e) {}
+
+    const col = this._getCollection();
+    try {
+      let q = col;
+      if (country && country !== "all") {
+        q = q.where("country", "==", country);
+      }
+      try {
+        q = q.orderBy(sortBy, sortDir);
+      } catch (e) {
+        console.debug("Cursor query order fallback:", e?.message);
+      }
+
+      if (startAfterDoc) {
+        q = q.startAfter(startAfterDoc);
+      }
+
+      q = q.limit(limit);
+
+      const snap = await q.get();
+      const docs = snap.docs || [];
+      const items = docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          phone: window.normalizeBangladeshPhone(data.phone || data.mobile || data.tel)
+        };
+      });
+
+      const lastDoc = docs.length > 0 ? docs[docs.length - 1] : null;
+      const hasMore = docs.length === limit;
+
+      return {
+        items,
+        lastDoc,
+        hasMore,
+        count: items.length
+      };
+    } catch (err) {
+      console.warn("listWithCursor failed, falling back to API/paged list:", err?.message);
+      return this.list({ country, sortBy, sortDir, page: 1, limit });
+    }
   },
 
   /* ── Get All Cached Customers (Synchronous Access) ── */

@@ -337,19 +337,19 @@
           customerId: matchField(['customer id', 'id', 'customer_id', 'client id']),
           firstName: matchField(['first name', 'firstname', 'given name']),
           lastName: matchField(['last name', 'lastname', 'surname', 'family name']),
-          companyName: matchField(['default address company', 'company', 'company name', 'business name', 'buyer', 'account']),
-          email: matchField(['email', 'mail', 'e-mail', 'contact email']),
-          phone: matchField(['phone', 'mobile', 'cell', 'tel', 'whatsapp']),
+          companyName: matchField(['company name for emails', 'company', 'account name', 'default address company', 'company name', 'business name', 'buyer', 'account']),
+          email: matchField(['email', 'email address', 'work email', 'mail', 'e-mail', 'contact email']),
+          phone: matchField(['work direct phone', 'mobile phone', 'corporate phone', 'company phone', 'phone', 'mobile', 'cell', 'tel', 'whatsapp']),
           defaultAddressPhone: matchField(['default address phone', 'address phone']),
-          address1: matchField(['default address address1', 'address1', 'street', 'address line 1', 'address', 'shipping address']),
+          address1: matchField(['company address', 'default address address1', 'address1', 'street', 'address line 1', 'address', 'shipping address']),
           address2: matchField(['default address address2', 'address2', 'apartment', 'suite', 'address line 2']),
-          city: matchField(['default address city', 'city', 'town', 'district', 'area']),
-          country: matchField(['default address country code', 'country', 'country code', 'nation']),
+          city: matchField(['company city', 'default address city', 'city', 'town', 'district', 'area']),
+          country: matchField(['company country', 'default address country code', 'country', 'country code', 'nation']),
           zip: matchField(['default address zip', 'zip', 'postal code', 'postcode']),
           totalSpent: matchField(['total spent', 'total_spent', 'spent', 'lifetime spend', 'amount']),
           totalOrders: matchField(['total orders', 'total_orders', 'orders count', 'orders']),
-          notes: matchField(['note', 'notes', 'comments', 'memo', 'info']),
-          tags: matchField(['tags', 'tag', 'labels', 'keywords'])
+          notes: matchField(['title', 'seniority', 'note', 'notes', 'comments', 'memo', 'info']),
+          tags: matchField(['industry', 'keywords', 'technologies', 'tags', 'tag', 'labels'])
         };
       }
     },
@@ -449,9 +449,8 @@
                   const first = cleanVal(r[this.columnMapping.firstName]);
                   const last = cleanVal(r[this.columnMapping.lastName]);
                   const name = [first, last].filter(Boolean).join(' ') || cleanVal(r[this.columnMapping.companyName]) || 'Unnamed Customer';
-                  let phone = cleanVal(r[this.columnMapping.phone]) || cleanVal(r[this.columnMapping.defaultAddressPhone]) || '—';
-                  if (phone.startsWith("'+")) phone = phone.substring(1);
-                  if (phone.startsWith("'")) phone = phone.substring(1);
+                  const rawPhone = cleanVal(r[this.columnMapping.phone]) || cleanVal(r[this.columnMapping.defaultAddressPhone]) || '';
+                  const phone = window.normalizeBangladeshPhone ? (window.normalizeBangladeshPhone(rawPhone) || rawPhone || '—') : (rawPhone || '—');
                   const city = cleanVal(r[this.columnMapping.city]) || 'Dhaka';
                   const orders = parseInt(cleanVal(r[this.columnMapping.totalOrders])) || 0;
                   const spent = parseFloat(cleanVal(r[this.columnMapping.totalSpent])) || 0;
@@ -584,10 +583,8 @@
 
             const fullName = [firstName, lastName].filter(Boolean).join(' ') || company || `Customer #${i + 1}`;
             const email = cleanVal(row[this.columnMapping.email]);
-            let phone = cleanVal(row[this.columnMapping.phone]) || cleanVal(row[this.columnMapping.defaultAddressPhone]);
-            if (phone.startsWith("'+")) phone = phone.substring(1);
-            if (phone.startsWith("'")) phone = phone.substring(1);
-            phone = phone.replace(/^\+880\s*0?/, '+880').trim();
+            const rawPhone = cleanVal(row[this.columnMapping.phone]) || cleanVal(row[this.columnMapping.defaultAddressPhone]);
+            const phone = window.normalizeBangladeshPhone ? window.normalizeBangladeshPhone(rawPhone) : rawPhone;
 
             const addr1 = cleanVal(row[this.columnMapping.address1]);
             const addr2 = cleanVal(row[this.columnMapping.address2]);
@@ -746,6 +743,278 @@
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+      }
+    },
+
+    /* ── 10. Tokenized Media File Parser: RAWX-JKT-001__BLACK__01.webp ── */
+    parseTokenizedFilename(filename) {
+      if (!filename) return null;
+      const clean = String(filename).trim().split(/[\\/]/).pop() || '';
+      // Pattern: SKU__COLOR__SEQUENCE.ext
+      const regex = /^([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)__([0-9]{1,3})\.([a-zA-Z0-9]+)$/i;
+      const match = clean.match(regex);
+      if (match) {
+        return {
+          raw: clean,
+          sku: match[1].toUpperCase(),
+          colorVariant: match[2].toUpperCase().replace(/_/g, ' '),
+          sequence: parseInt(match[3], 10),
+          extension: match[4].toLowerCase()
+        };
+      }
+      // Fallback: SKU__SEQUENCE.ext
+      const fallback = clean.match(/^([a-zA-Z0-9_-]+)__([0-9]{1,3})\.([a-zA-Z0-9]+)$/i);
+      if (fallback) {
+        return {
+          raw: clean,
+          sku: fallback[1].toUpperCase(),
+          colorVariant: 'DEFAULT',
+          sequence: parseInt(fallback[2], 10),
+          extension: fallback[3].toLowerCase()
+        };
+      }
+      return null;
+    },
+
+    /* ── 11. Apollo CSV & Drive Ingestion Modal ── */
+    openApolloDriveIngestionModal() {
+      const modal = document.getElementById('bulkImportModal');
+      const title = document.getElementById('bulkImportModalTitle');
+      const body = document.getElementById('bulkImportModalBody');
+      if (!modal || !body) return;
+
+      if (title) title.innerText = 'Apollo CSV & Drive Media Ingestion Hub';
+      this.currentType = 'apollo-drive';
+
+      body.innerHTML = `
+        <div style="font-family:var(--mono);color:var(--ink-2);font-size:12px;">
+          <!-- Mode Tabs -->
+          <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--wire);padding-bottom:12px;">
+            <button id="tabApolloLeads" class="btn btn-gold btn-sm truncate text-[clamp(10px,1.2vw,13px)]" onclick="window.BulkImportEngine.renderApolloTab()" style="flex:1;">
+              1. Apollo CSV Leads Ingest
+            </button>
+            <button id="tabDriveMedia" class="btn btn-dark btn-sm truncate text-[clamp(10px,1.2vw,13px)]" onclick="window.BulkImportEngine.renderDriveTab()" style="flex:1;">
+              2. Drive Media Parser (RAWX-JKT-001__BLACK__01.webp)
+            </button>
+          </div>
+
+          <div id="apolloDriveContainer"></div>
+        </div>
+      `;
+
+      modal.style.display = 'block';
+      this.renderApolloTab();
+    },
+
+    renderApolloTab() {
+      const container = document.getElementById('apolloDriveContainer');
+      const t1 = document.getElementById('tabApolloLeads');
+      const t2 = document.getElementById('tabDriveMedia');
+      if (t1 && t2) {
+        t1.className = 'btn btn-gold btn-sm truncate text-[clamp(10px,1.2vw,13px)]';
+        t2.className = 'btn btn-dark btn-sm truncate text-[clamp(10px,1.2vw,13px)]';
+      }
+      if (!container) return;
+
+      container.innerHTML = `
+        <div style="background:var(--bg-3);border:1px solid var(--wire);border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div style="font-weight:700;color:var(--ink);margin-bottom:4px;">Paste Apollo.io Export CSV</div>
+          <p style="font-size:11px;color:var(--ink-3);margin:0 0 8px;">Auto-detects Company, Direct Phone, Mobile, Contact Name, and canonicalizes to +88017XXXXXXXX.</p>
+          <textarea id="apolloCsvArea" rows="6" placeholder="First Name,Last Name,Company,Email,Work Direct Phone,Mobile Phone,City,Country..." 
+            style="width:100%;background:#0d0d0c;border:1px solid var(--wire);color:var(--ink);font-family:var(--mono);font-size:11px;padding:8px;border-radius:6px;box-sizing:border-box;"></textarea>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
+            <button class="btn btn-gold btn-sm truncate text-[clamp(10px,1.2vw,13px)]" onclick="window.BulkImportEngine.processApolloPastedText()">
+              Auto-Map &amp; Preview Leads →
+            </button>
+          </div>
+        </div>
+        <div id="apolloPreviewResult"></div>
+      `;
+    },
+
+    renderDriveTab() {
+      const container = document.getElementById('apolloDriveContainer');
+      const t1 = document.getElementById('tabApolloLeads');
+      const t2 = document.getElementById('tabDriveMedia');
+      if (t1 && t2) {
+        t1.className = 'btn btn-dark btn-sm truncate text-[clamp(10px,1.2vw,13px)]';
+        t2.className = 'btn btn-gold btn-sm truncate text-[clamp(10px,1.2vw,13px)]';
+      }
+      if (!container) return;
+
+      container.innerHTML = `
+        <div style="background:var(--bg-3);border:1px solid var(--wire);border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div style="font-weight:700;color:var(--ink);margin-bottom:4px;">Google Drive Tokenized Media Filename Parser</div>
+          <p style="font-size:11px;color:var(--ink-3);margin:0 0 8px;">
+            Extracts SKU, Variant, Sequence number (e.g. <code style="color:var(--gold);">RAWX-JKT-001__BLACK__01.webp</code>) and links to Firestore products.
+          </p>
+          <textarea id="driveFilesArea" rows="6" placeholder="RAWX-JKT-001__BLACK__01.webp&#10;RAWX-JKT-001__BLACK__02.webp&#10;RAWX-JKT-001__TAN__01.webp" 
+            style="width:100%;background:#0d0d0c;border:1px solid var(--wire);color:var(--ink);font-family:var(--mono);font-size:11px;padding:8px;border-radius:6px;box-sizing:border-box;"></textarea>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
+            <button class="btn btn-gold btn-sm truncate text-[clamp(10px,1.2vw,13px)]" onclick="window.BulkImportEngine.processDriveFilenames()">
+              Parse Tokenized Assets →
+            </button>
+          </div>
+        </div>
+        <div id="drivePreviewResult"></div>
+      `;
+    },
+
+    processApolloPastedText() {
+      const text = document.getElementById('apolloCsvArea')?.value?.trim();
+      if (!text) {
+        if (window.toast) window.toast('Please paste Apollo CSV text first');
+        return;
+      }
+
+      this.currentType = 'customers';
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      if (lines.length < 2) {
+        if (window.toast) window.toast('Need at least 1 header row and 1 data row');
+        return;
+      }
+
+      const firstLine = lines[0];
+      const delimiter = firstLine.includes('\t') ? '\t' : firstLine.includes(';') ? ';' : ',';
+
+      const parseCSVLine = (line, delim) => {
+        const row = [];
+        let inQuote = false;
+        let cur = '';
+        for (let c = 0; c < line.length; c++) {
+          const char = line[c];
+          if (char === '"' && !inQuote) inQuote = true;
+          else if (char === '"' && inQuote) {
+            if (line[c + 1] === '"') { cur += '"'; c++; }
+            else inQuote = false;
+          } else if (char === delim && !inQuote) {
+            row.push(cur.trim().replace(/^['"]+|['"]+$/g, ''));
+            cur = '';
+          } else {
+            cur += char;
+          }
+        }
+        row.push(cur.trim().replace(/^['"]+|['"]+$/g, ''));
+        return row;
+      };
+
+      this.headers = parseCSVLine(lines[0], delimiter).filter(Boolean);
+      this.parsedRows = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const parts = parseCSVLine(lines[i], delimiter);
+        const row = {};
+        this.headers.forEach((h, idx) => {
+          row[h] = parts[idx] !== undefined ? parts[idx] : '';
+        });
+        this.parsedRows.push(row);
+      }
+
+      this.autoMapColumns();
+      this.renderPreviewStage();
+    },
+
+    async processDriveFilenames() {
+      const text = document.getElementById('driveFilesArea')?.value?.trim();
+      const resContainer = document.getElementById('drivePreviewResult');
+      if (!text || !resContainer) return;
+
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const parsed = [];
+
+      lines.forEach(line => {
+        const token = this.parseTokenizedFilename(line);
+        if (token) parsed.push(token);
+      });
+
+      if (parsed.length === 0) {
+        resContainer.innerHTML = '<div style="color:var(--warn);padding:8px;">⚠️ No filenames matched the tokenized format (SKU__COLOR__01.webp)</div>';
+        return;
+      }
+
+      parsed.sort((a, b) => a.sku.localeCompare(b.sku) || a.sequence - b.sequence);
+
+      resContainer.innerHTML = `
+        <div style="background:var(--bg-card);border:1px solid var(--wire);border-radius:8px;padding:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-weight:700;color:var(--ink);">Parsed ${parsed.length} Tokenized Assets</span>
+            <button id="btnCommitDriveMedia" class="btn btn-emerald btn-xs truncate text-[clamp(10px,1.2vw,13px)]" onclick="window.BulkImportEngine.commitDriveMedia()">
+              ✓ Stage to Firestore Catalog
+            </button>
+          </div>
+          <div style="max-height:180px;overflow-y:auto;border:1px solid var(--wire);border-radius:6px;">
+            <table style="width:100%;border-collapse:collapse;font-size:11px;">
+              <thead>
+                <tr style="background:var(--bg-3);border-bottom:1px solid var(--wire);text-align:left;">
+                  <th style="padding:4px 8px;">SKU</th>
+                  <th style="padding:4px 8px;">Variant / Color</th>
+                  <th style="padding:4px 8px;">Seq</th>
+                  <th style="padding:4px 8px;">Ext</th>
+                  <th style="padding:4px 8px;">Source File</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${parsed.map(p => `
+                  <tr style="border-bottom:1px solid var(--wire);">
+                    <td style="padding:4px 8px;color:var(--gold);font-weight:700;">${p.sku}</td>
+                    <td style="padding:4px 8px;color:var(--ink);">${p.colorVariant}</td>
+                    <td style="padding:4px 8px;font-family:var(--mono);">#${p.sequence}</td>
+                    <td style="padding:4px 8px;color:var(--ink-3);text-transform:uppercase;">${p.extension}</td>
+                    <td style="padding:4px 8px;color:var(--ink-3);font-family:var(--mono);">${p.raw}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      this._stagedDriveMedia = parsed;
+    },
+
+    async commitDriveMedia() {
+      if (!this._stagedDriveMedia || this._stagedDriveMedia.length === 0) return;
+      const btn = document.getElementById('btnCommitDriveMedia');
+      if (btn) { btn.innerText = 'Linking…'; btn.disabled = true; }
+
+      try {
+        const db = window.db;
+        const batch = db.batch();
+        const grouped = {};
+
+        this._stagedDriveMedia.forEach(m => {
+          if (!grouped[m.sku]) grouped[m.sku] = [];
+          grouped[m.sku].push(m);
+        });
+
+        for (const [sku, tokens] of Object.entries(grouped)) {
+          const snap = await db.collection('products').where('variants.sku', '==', sku).get();
+          if (!snap.empty) {
+            const doc = snap.docs[0];
+            const existing = doc.data().images || [];
+            const newImages = tokens.map(t => ({
+              id: `img-${t.sku}-${t.sequence}`,
+              url: `https://drive.google.com/thumbnail?id=${t.raw}`,
+              alt: `${t.sku} ${t.colorVariant} ${t.sequence}`,
+              sequence: t.sequence,
+              variant: t.colorVariant
+            }));
+            batch.update(doc.ref, {
+              images: [...existing, ...newImages],
+              updatedAt: window.serverTimestamp ? window.serverTimestamp() : new Date().toISOString()
+            });
+          }
+        }
+
+        await batch.commit();
+        if (window.toast) window.toast(`Linked ${this._stagedDriveMedia.length} media assets in Firestore ✓`);
+        const resContainer = document.getElementById('drivePreviewResult');
+        if (resContainer) {
+          resContainer.innerHTML = `<div style="padding:12px;color:var(--emerald);font-weight:700;">🎉 Successfully staged ${this._stagedDriveMedia.length} media items across ${Object.keys(grouped).length} SKUs into Firestore!</div>`;
+        }
+      } catch (err) {
+        if (window.toast) window.toast(`Staging error: ${err.message}`);
       }
     }
   };

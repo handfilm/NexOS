@@ -185,18 +185,46 @@
       }
     },
 
-    /* ── Real Google Sign-In with Popup ── */
+    /* ── Whitelisted Operator Emails for Firebase Google Sign-In ── */
+    WHITELISTED_EMAILS: [
+      "rakib.himon@gmail.com",
+      "admin@handsandhead.com",
+      "operator@handsandhead.com",
+      "lead@handsandhead.com",
+      "seller@handsandhead.com",
+      "tanvir@handsandhead.com"
+    ],
+
+    /* ── Real Google Sign-In with Popup & Email Whitelist ── */
     async loginWithGoogle() {
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: "select_account" });
         const cred = await window.auth.signInWithPopup(provider);
+        const email = (cred.user?.email || "").toLowerCase().trim();
+
+        // Check against authorized email whitelist
+        let customWhitelist = [];
+        try {
+          customWhitelist = JSON.parse(localStorage.getItem("hh_operator_whitelist") || "[]");
+        } catch (e) {}
+        const allWhitelisted = [...this.WHITELISTED_EMAILS, ...customWhitelist].map(e => e.toLowerCase().trim());
+
+        const isWhitelisted = allWhitelisted.includes(email);
+        if (!isWhitelisted) {
+          await window.auth.signOut();
+          return {
+            ok: false,
+            error: `Access Denied: ${email} is not in the authorized Hands & Head operator whitelist. Please use the 4-digit PIN bypass (1981).`
+          };
+        }
+
         this.currentUser = cred.user;
 
         const prof = await this._loadProfile(cred.user.uid, {
           name: cred.user.displayName || "Google Operator",
           email: cred.user.email,
-          role: "owner"
+          role: "admin"
         });
         await this._loadStore(prof.storeId || "default");
         window.NexEvents.emit(window.NexEvents.EVENTS.AUTH_CHANGED, { user: cred.user, profile: this.profile });
@@ -627,6 +655,19 @@
     toast("Signed out successfully");
     closeSheet();
     location.reload();
+  };
+
+  /* ── Gate Integration: Google Whitelist Bypass ── */
+  window.tryGateWithGoogle = async function () {
+    if (window.toast) window.toast("Verifying authorized Google Whitelist…");
+    const res = await window.NexAuth.loginWithGoogle();
+    if (res.ok) {
+      if (window.toast) window.toast(`Whitelisted Access Granted: ${res.profile.name || res.user.email} ✓`);
+      if (typeof window.closeGate === "function") window.closeGate();
+      if (typeof window.setMode === "function") window.setMode("operator");
+    } else {
+      if (window.toast) window.toast(res.error);
+    }
   };
 
   console.log("🔐 NexAuth enterprise authentication & store ownership initialized.");
