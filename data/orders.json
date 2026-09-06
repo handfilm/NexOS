@@ -1,5 +1,58 @@
 [
   {
+    "id": "ord-qs-mtpl6a86",
+    "orderNumber": "QS-555554",
+    "source": "POS Quick Sale",
+    "customerId": "cust-mtpl6a8h",
+    "customerSnapshot": {
+      "id": "cust-mtpl6a8h",
+      "name": "Tariqul Islam",
+      "phone": "+8801711234567",
+      "canonicalPhone": "+8801711234567",
+      "rawPhone": "+8801711234567",
+      "email": "tariqul@example.com",
+      "country": "BD",
+      "currency": "BDT",
+      "address": "Dhaka Counter Sale"
+    },
+    "lineItems": [
+      {
+        "productId": "prod-crd-02",
+        "variantId": "default",
+        "title": "Full-Grain Leather Cardholder",
+        "sku": "HH-CRD-02",
+        "quantity": 2,
+        "price": 1850
+      }
+    ],
+    "subtotal": 3700,
+    "shipping": 0,
+    "discount": 0,
+    "tax": 0,
+    "total": 3700,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "status": "completed",
+    "paymentMethod": "bKash (merchant)",
+    "paidAmount": 0,
+    "dueAmount": 3700,
+    "notes": "Testing campaign attribution",
+    "campaignId": "camp-drop-01",
+    "campaignName": "Ramadan Leather Lookbook VIP Broadcast",
+    "attributed": true,
+    "attributionStatus": "ATTRIBUTED",
+    "timeline": [
+      {
+        "event": "Quick Sale Completed (৳3,700 via bKash (merchant))",
+        "at": "2026-09-06T09:05:17.382Z",
+        "by": "Operator"
+      }
+    ],
+    "createdAt": "2026-09-06T09:05:17.382Z",
+    "updatedAt": "2026-09-06T09:05:17.382Z"
+  },
+  {
     "id": "ord-1048",
     "orderNumber": "NX-1048",
     "customerSnapshot": {

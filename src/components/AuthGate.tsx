@@ -25,19 +25,33 @@ export const AuthGate: React.FC<AuthGateProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // 4-Digit PIN Bypass Verification (Default: 1981)
-  const handlePinSubmit = (e?: React.FormEvent) => {
+  // 4-Digit PIN Server-Side Verification
+  const handlePinSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setError(null);
-    if (pin.trim() === '1981' || pin.trim() === '2024') {
-      onSuccess({
-        email: 'operator@handsandhead.com',
-        role: 'operator',
-        authMethod: 'pin'
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: pin.trim() })
       });
-    } else {
-      setError('Access Denied — Invalid 4-Digit Operator PIN');
+      const data = await res.json();
+      if (data.ok) {
+        onSuccess({
+          email: data.email || 'operator@handsandhead.com',
+          role: data.role || 'operator',
+          authMethod: 'pin'
+        });
+      } else {
+        setError(data.error || 'Access Denied — Invalid 4-Digit Operator PIN');
+        setPin('');
+      }
+    } catch (err: any) {
+      setError('Operator verification service unreachable. Please retry.');
       setPin('');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -105,7 +119,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({
         <form onSubmit={handlePinSubmit} className="space-y-4">
           <div>
             <label className="block text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5 text-center">
-              Enter 4-Digit PIN (Default: 1981)
+              Enter 4-Digit Operator PIN
             </label>
             <input
               type="password"

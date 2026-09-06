@@ -314,14 +314,20 @@
         "title": "Aniline Tan",
         "sku": "HH-CRD-02",
         "price": 1450,
-        "inventoryQty": 65,
+        "inventoryQty": 63,
         "availableForSale": true
       }
     ],
-    "totalInventory": 65,
+    "totalInventory": 63,
     "lowStockThreshold": 12,
     "createdAt": "2026-09-04T13:20:51.208Z",
-    "updatedAt": "2026-09-04T13:20:51.208Z"
+    "updatedAt": "2026-09-04T13:20:51.208Z",
+    "unitsSold": 2,
+    "totalRevenue": 3700,
+    "lastSoldAt": "2026-09-06T09:05:17.382Z",
+    "buyerCustomerIds": [
+      "cust-mtpl6a8h"
+    ]
   },
   {
     "id": "prod-blt-01",

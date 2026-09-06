@@ -2398,6 +2398,386 @@
   };
   window.renderDriveSync = window.render.DriveSync;
 
+  /* ── 4. DATA QUALITY & LEDGER AUDIT CENTER ── */
+  window._dataQualityState = {
+    activeTab: 'duplicates',
+    audit: null,
+    loading: false
+  };
+
+  window.render.DataQuality = async function (container) {
+    const target = container || document.getElementById("mod-DataQuality") || document.getElementById("body");
+    if (!target) return;
+
+    target.innerHTML = `<div style="padding:40px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--ink-2);"><span class="spin">●</span> Auditing system spine &amp; customer phone indices…</div>`;
+
+    try {
+      const res = await fetch('/api/data-quality/audit');
+      const data = await res.json();
+      if (!data || !data.ok) throw new Error(data?.error || 'Failed to load audit dataset');
+
+      window._dataQualityState.audit = data;
+      const s = data.summary || {};
+      const tab = window._dataQualityState.activeTab || 'duplicates';
+      const duplicates = data.duplicateCustomers || [];
+      const phones = data.unnormalizedPhones || [];
+      const catalogGaps = data.productsMissingMedia || [];
+      const orphans = data.orphanOrders || [];
+
+      const integrityScore = Math.max(88, Math.min(99.9, 100 - ((s.totalDiscrepancies || 0) * 0.08))).toFixed(1);
+
+      let contentHtml = '';
+
+      if (tab === 'duplicates') {
+        if (!duplicates.length) {
+          contentHtml = `
+            <div style="background:var(--bg-2);border:1px solid var(--wire);padding:32px;border-radius:10px;text-align:center;">
+              <div style="color:var(--emerald);font-size:24px;margin-bottom:6px;">✓</div>
+              <div style="font-weight:700;color:var(--ink);font-size:13px;text-transform:uppercase;">Zero Duplicate Collisions Found</div>
+              <div style="color:var(--ink-3);font-size:11px;margin-top:4px;">All customer records possess distinct, validated phone numbers.</div>
+            </div>
+          `;
+        } else {
+          contentHtml = `
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="font-size:11px;color:var(--ink-3);display:flex;justify-content:space-between;align-items:center;">
+                <span>Colliding customer profiles sharing the same canonical Bangladesh phone.</span>
+                <span style="font-family:var(--mono);color:var(--gold);">Atomic Multi-Profile Merge</span>
+              </div>
+              ${duplicates.map(grp => {
+                const sorted = [...grp.customers].sort((a, b) => (b.totalSpent || 0) - (a.totalSpent || 0));
+                const primary = sorted[0];
+                const mergeTargets = sorted.slice(1);
+                return `
+                  <div style="background:var(--bg-2);border:1px solid var(--wire);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--wire);padding-bottom:8px;flex-wrap:wrap;gap:8px;">
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="background:rgba(212,175,55,0.15);color:var(--gold);padding:2px 8px;border-radius:4px;font-family:var(--mono);font-size:11px;font-weight:700;">${grp.phone}</span>
+                        <span style="font-size:12px;color:var(--ink-2);font-weight:600;">${grp.count} Colliding Profiles</span>
+                      </div>
+                      <button class="btn btn-gold btn-sm" onclick="window.dqMergeGroup('${primary.id}', ${JSON.stringify(mergeTargets.map(t => t.id)).replace(/"/g, '&quot;')})" style="font-size:11px;padding:4px 10px;font-weight:700;">
+                        ⚡ Merge into Primary (${primary.name})
+                      </button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:8px;">
+                      ${grp.customers.map((c, idx) => {
+                        const isPrimary = c.id === primary.id;
+                        return `
+                          <div style="background:${isPrimary ? 'rgba(212,175,55,0.06)' : 'var(--bg-3)'};border:1px solid ${isPrimary ? 'var(--gold)' : 'var(--wire)'};border-radius:6px;padding:10px;font-size:11px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                              <span style="font-weight:700;color:var(--ink);">${c.name}</span>
+                              ${isPrimary ? '<span class="pill gold" style="font-size:8px;">PRIMARY</span>' : `<span style="font-size:9px;color:var(--ink-3);">#${idx + 1}</span>`}
+                            </div>
+                            <div style="font-family:var(--mono);color:var(--ink-3);font-size:10px;margin-top:2px;">ID: ${c.id}</div>
+                            <div style="display:flex;gap:12px;margin-top:4px;font-size:10.5px;">
+                              <span>Orders: <b style="color:var(--ink);">${c.totalOrders || 0}</b></span>
+                              <span>Spend: <b style="color:var(--gold);">৳${(c.totalSpent || 0).toLocaleString()}</b></span>
+                            </div>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }
+      } else if (tab === 'phones') {
+        if (!phones.length) {
+          contentHtml = `
+            <div style="background:var(--bg-2);border:1px solid var(--wire);padding:32px;border-radius:10px;text-align:center;">
+              <div style="color:var(--emerald);font-size:24px;margin-bottom:6px;">✓</div>
+              <div style="font-weight:700;color:var(--ink);font-size:13px;text-transform:uppercase;">All Phone Records Canonical</div>
+              <div style="color:var(--ink-3);font-size:11px;margin-top:4px;">100% of recorded customer phones follow the E.164 (+8801...) format.</div>
+            </div>
+          `;
+        } else {
+          contentHtml = `
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <span style="font-size:11px;color:var(--ink-3);">Customer mobile records requiring standardization to standard BD E.164.</span>
+                <button class="btn btn-emerald btn-sm" onclick="window.dqBatchStandardizePhones()" style="font-size:11px;padding:4px 10px;font-weight:700;">
+                  ✓ Standardize All Valid BD Mobiles
+                </button>
+              </div>
+              <div style="background:var(--bg-2);border:1px solid var(--wire);border-radius:8px;overflow:hidden;">
+                <table style="width:100%;border-collapse:collapse;font-size:11.5px;text-align:left;">
+                  <thead>
+                    <tr style="background:var(--bg-3);border-bottom:1px solid var(--wire);color:var(--ink-3);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);">
+                      <th style="padding:8px 12px;">Customer</th>
+                      <th style="padding:8px 12px;">Raw Input</th>
+                      <th style="padding:8px 12px;">Canonical Suggestion</th>
+                      <th style="padding:8px 12px;text-align:right;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${phones.map(item => {
+                      const isValid = item.suggestedCanonical && item.suggestedCanonical.startsWith('+8801') && item.suggestedCanonical.length === 14;
+                      return `
+                        <tr style="border-bottom:1px solid var(--wire);">
+                          <td style="padding:8px 12px;">
+                            <div style="font-weight:700;color:var(--ink);">${item.name}</div>
+                            <div style="font-size:9.5px;color:var(--ink-3);font-family:var(--mono);">${item.id}</div>
+                          </td>
+                          <td style="padding:8px 12px;">
+                            <span style="color:var(--coral);font-family:var(--mono);">${item.rawPhone || '(empty)'}</span>
+                          </td>
+                          <td style="padding:8px 12px;">
+                            ${isValid ? `<span style="color:var(--emerald);font-family:var(--mono);font-weight:700;">${item.suggestedCanonical}</span>` : '<span style="color:var(--ink-3);font-style:italic;">Ambiguous / Non-BD</span>'}
+                          </td>
+                          <td style="padding:8px 12px;text-align:right;">
+                            <div style="display:inline-flex;gap:6px;">
+                              ${isValid ? `<button class="btn btn-emerald btn-xs" onclick="window.dqStandardizePhone('${item.id}', '${item.suggestedCanonical}')" style="font-size:10px;padding:2px 8px;">✓ Standardize</button>` : ''}
+                              <button class="btn btn-dark btn-xs" onclick="window.dqFlagCustomer('${item.id}')" style="font-size:10px;padding:2px 8px;">Flag</button>
+                            </div>
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+        }
+      } else if (tab === 'catalog') {
+        contentHtml = `
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="font-size:11px;color:var(--ink-3);">Products missing high-resolution photography or valid retail pricing.</div>
+            ${catalogGaps.length ? `
+              <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:10px;">
+                ${catalogGaps.map(p => `
+                  <div style="background:var(--bg-2);border:1px solid var(--wire);border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                      <div style="font-weight:700;color:var(--ink);font-size:12px;">${p.title}</div>
+                      <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);margin-top:2px;">ID: ${p.id}</div>
+                      <div style="display:flex;gap:8px;margin-top:4px;font-size:10.5px;">
+                        <span style="color:${p.price > 0 ? 'var(--ink-2)' : 'var(--coral)'};font-weight:${p.price > 0 ? '400' : '700'};">
+                          Price: ৳${(p.price || 0).toLocaleString()}
+                        </span>
+                        <span style="color:${p.hasImages ? 'var(--ink-2)' : 'var(--gold)'};font-weight:${p.hasImages ? '400' : '700'};">
+                          ${p.hasImages ? 'Images ✓' : 'NO IMAGES'}
+                        </span>
+                      </div>
+                    </div>
+                    <button class="btn btn-dark btn-sm" onclick="window.openAdvancedProductForm('${p.id}')" style="font-size:10.5px;">Edit SKU →</button>
+                  </div>
+                `).join('')}
+              </div>
+            ` : `
+              <div style="background:var(--bg-2);border:1px solid var(--wire);padding:32px;border-radius:10px;text-align:center;">
+                <div style="color:var(--emerald);font-size:24px;margin-bottom:6px;">✓</div>
+                <div style="font-weight:700;color:var(--ink);font-size:13px;text-transform:uppercase;">All Products Meet Standards</div>
+                <div style="color:var(--ink-3);font-size:11px;margin-top:4px;">All catalog SKUs have active pricing and imagery.</div>
+              </div>
+            `}
+          </div>
+        `;
+      } else if (tab === 'orphans') {
+        contentHtml = `
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="font-size:11px;color:var(--ink-3);">Historical orders without confirmed customer linkage.</div>
+            ${orphans.length ? `
+              <div style="background:var(--bg-2);border:1px solid var(--wire);border-radius:8px;overflow:hidden;">
+                <table style="width:100%;border-collapse:collapse;font-size:11.5px;text-align:left;">
+                  <thead>
+                    <tr style="background:var(--bg-3);border-bottom:1px solid var(--wire);color:var(--ink-3);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);">
+                      <th style="padding:8px 12px;">Order #</th>
+                      <th style="padding:8px 12px;">Buyer</th>
+                      <th style="padding:8px 12px;">Phone</th>
+                      <th style="padding:8px 12px;">Total</th>
+                      <th style="padding:8px 12px;text-align:right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${orphans.map(o => `
+                      <tr style="border-bottom:1px solid var(--wire);">
+                        <td style="padding:8px 12px;font-family:var(--mono);font-weight:700;color:var(--ink);">${o.orderNumber}</td>
+                        <td style="padding:8px 12px;color:var(--ink-2);">${o.buyerName}</td>
+                        <td style="padding:8px 12px;font-family:var(--mono);color:var(--ink-3);">${o.phone}</td>
+                        <td style="padding:8px 12px;font-family:var(--mono);font-weight:700;color:var(--gold);">৳${(o.total || 0).toLocaleString()}</td>
+                        <td style="padding:8px 12px;text-align:right;">
+                          <button class="btn btn-dark btn-xs" onclick="window.openOrderDetail('${o.id}')" style="font-size:10px;padding:2px 8px;">View Order →</button>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            ` : `
+              <div style="background:var(--bg-2);border:1px solid var(--wire);padding:32px;border-radius:10px;text-align:center;">
+                <div style="color:var(--emerald);font-size:24px;margin-bottom:6px;">✓</div>
+                <div style="font-weight:700;color:var(--ink);font-size:13px;text-transform:uppercase;">Zero Orphan Orders</div>
+                <div style="color:var(--ink-3);font-size:11px;margin-top:4px;">100% of orders are linked to registered customer profiles.</div>
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      target.innerHTML = `
+        <div style="padding:20px;max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:18px;">
+          <!-- Top Bar -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--wire);padding-bottom:14px;">
+            <div>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                <span style="width:7px;height:7px;border-radius:50%;background:var(--emerald);display:inline-block;"></span>
+                <span style="font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:1px;text-transform:uppercase;">System Spine &amp; Audit</span>
+              </div>
+              <h2 style="margin:0;font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;">Data Quality &amp; Ledger Audit Center</h2>
+              <p style="margin:4px 0 0;font-size:12px;color:var(--ink-2);">Phone standardization, customer deduplication, and catalog audit for 16,000+ records</p>
+            </div>
+            <button class="btn btn-dark btn-sm" onclick="window.render.DataQuality(document.getElementById('mod-DataQuality'))" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:6px 12px;">
+              ↻ Re-run Audit
+            </button>
+          </div>
+
+          <!-- KPI Metric Strip -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));gap:10px;">
+            <div style="background:var(--bg-2);border:1px solid var(--wire);border-radius:8px;padding:12px;">
+              <div style="font-size:9.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;">Database Health</div>
+              <div style="font-size:22px;font-weight:800;color:var(--emerald);margin-top:2px;">${integrityScore}%</div>
+              <div style="font-size:10px;color:var(--ink-3);margin-top:2px;">Automated Spine Score</div>
+            </div>
+            <div onclick="window._dataQualityState.activeTab='duplicates'; window.render.DataQuality(document.getElementById('mod-DataQuality'));" style="background:${tab === 'duplicates' ? 'rgba(212,175,55,0.08)' : 'var(--bg-2)'};border:1px solid ${tab === 'duplicates' ? 'var(--gold)' : 'var(--wire)'};border-radius:8px;padding:12px;cursor:pointer;">
+              <div style="font-size:9.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;">Duplicate Groups</div>
+              <div style="font-size:22px;font-weight:800;color:var(--gold);margin-top:2px;">${s.duplicateGroupsCount ?? 0}</div>
+              <div style="font-size:10px;color:var(--ink-3);margin-top:2px;">Colliding BD phones</div>
+            </div>
+            <div onclick="window._dataQualityState.activeTab='phones'; window.render.DataQuality(document.getElementById('mod-DataQuality'));" style="background:${tab === 'phones' ? 'rgba(212,175,55,0.08)' : 'var(--bg-2)'};border:1px solid ${tab === 'phones' ? 'var(--gold)' : 'var(--wire)'};border-radius:8px;padding:12px;cursor:pointer;">
+              <div style="font-size:9.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;">Un-normalized Phones</div>
+              <div style="font-size:22px;font-weight:800;color:var(--gold);margin-top:2px;">${s.unnormalizedPhonesCount ?? 0}</div>
+              <div style="font-size:10px;color:var(--ink-3);margin-top:2px;">Non-E.164 formats</div>
+            </div>
+            <div onclick="window._dataQualityState.activeTab='catalog'; window.render.DataQuality(document.getElementById('mod-DataQuality'));" style="background:${tab === 'catalog' ? 'rgba(212,175,55,0.08)' : 'var(--bg-2)'};border:1px solid ${tab === 'catalog' ? 'var(--gold)' : 'var(--wire)'};border-radius:8px;padding:12px;cursor:pointer;">
+              <div style="font-size:9.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;">Catalog Gaps</div>
+              <div style="font-size:22px;font-weight:800;color:var(--ink);margin-top:2px;">${s.productsMissingMediaCount ?? 0}</div>
+              <div style="font-size:10px;color:var(--ink-3);margin-top:2px;">Missing photo/price</div>
+            </div>
+            <div onclick="window._dataQualityState.activeTab='orphans'; window.render.DataQuality(document.getElementById('mod-DataQuality'));" style="background:${tab === 'orphans' ? 'rgba(212,175,55,0.08)' : 'var(--bg-2)'};border:1px solid ${tab === 'orphans' ? 'var(--gold)' : 'var(--wire)'};border-radius:8px;padding:12px;cursor:pointer;">
+              <div style="font-size:9.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;">Orphan Orders</div>
+              <div style="font-size:22px;font-weight:800;color:var(--ink);margin-top:2px;">${s.orphanOrdersCount ?? 0}</div>
+              <div style="font-size:10px;color:var(--ink-3);margin-top:2px;">Unlinked orders</div>
+            </div>
+          </div>
+
+          <!-- Tab Bar -->
+          <div style="display:flex;gap:8px;border-bottom:1px solid var(--wire);padding-bottom:2px;overflow-x:auto;">
+            <button onclick="window._dataQualityState.activeTab='duplicates'; window.render.DataQuality(document.getElementById('mod-DataQuality'));" class="btn btn-sm ${tab === 'duplicates' ? 'btn-gold' : 'btn-dark'}" style="font-size:11px;font-weight:700;">
+              Duplicate Resolver (${duplicates.length})
+            </button>
+            <button onclick="window._dataQualityState.activeTab='phones'; window.render.DataQuality(document.getElementById('mod-DataQuality'));" class="btn btn-sm ${tab === 'phones' ? 'btn-gold' : 'btn-dark'}" style="font-size:11px;font-weight:700;">
+              Phone Standardization (${phones.length})
+            </button>
+            <button onclick="window._dataQualityState.activeTab='catalog'; window.render.DataQuality(document.getElementById('mod-DataQuality'));" class="btn btn-sm ${tab === 'catalog' ? 'btn-gold' : 'btn-dark'}" style="font-size:11px;font-weight:700;">
+              Catalog Integrity (${catalogGaps.length})
+            </button>
+            <button onclick="window._dataQualityState.activeTab='orphans'; window.render.DataQuality(document.getElementById('mod-DataQuality'));" class="btn btn-sm ${tab === 'orphans' ? 'btn-gold' : 'btn-dark'}" style="font-size:11px;font-weight:700;">
+              Orphan Orders (${orphans.length})
+            </button>
+          </div>
+
+          <!-- Tab View Content -->
+          <div id="dq_tab_content">
+            ${contentHtml}
+          </div>
+        </div>
+      `;
+    } catch (err) {
+      target.innerHTML = `
+        <div style="padding:40px;text-align:center;font-family:var(--mono);color:var(--coral);">
+          <h3>Audit Error</h3>
+          <p style="font-size:12px;color:var(--ink-2);">${err.message}</p>
+          <button class="btn btn-gold btn-sm" onclick="window.render.DataQuality(document.getElementById('mod-DataQuality'))" style="margin-top:12px;">Retry</button>
+        </div>
+      `;
+    }
+  };
+
+  window.dqMergeGroup = async function (primaryId, mergeIds) {
+    if (!primaryId || !mergeIds || !mergeIds.length) return;
+    if (!confirm(`Merge ${mergeIds.length} duplicate record(s) into primary customer profile? Orders and spend will be consolidated.`)) return;
+    try {
+      toast("Merging profiles…");
+      const res = await fetch('/api/data-quality/merge-customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ primaryCustomerId: primaryId, mergeCustomerIds: mergeIds })
+      });
+      const d = await res.json();
+      if (d && d.ok) {
+        toast(`Merged ${mergeIds.length} profiles ✓`);
+        window.render.DataQuality(document.getElementById('mod-DataQuality'));
+      } else {
+        toast(d?.error || "Merge failed");
+      }
+    } catch (e) {
+      toast("Error: " + e.message);
+    }
+  };
+
+  window.dqStandardizePhone = async function (customerId, canonicalPhone) {
+    try {
+      const res = await fetch('/api/data-quality/standardize-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId, canonicalPhone })
+      });
+      const d = await res.json();
+      if (d && d.ok) {
+        toast("Standardized phone ✓");
+        window.render.DataQuality(document.getElementById('mod-DataQuality'));
+      } else {
+        toast(d?.error || "Failed");
+      }
+    } catch (e) {
+      toast("Error: " + e.message);
+    }
+  };
+
+  window.dqFlagCustomer = async function (customerId) {
+    try {
+      const res = await fetch('/api/data-quality/flag-customer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId, requiresReview: true, reviewReason: 'Manual operator review requested' })
+      });
+      const d = await res.json();
+      if (d && d.ok) {
+        toast("Flagged for review ✓");
+        window.render.DataQuality(document.getElementById('mod-DataQuality'));
+      }
+    } catch (e) {
+      toast("Error: " + e.message);
+    }
+  };
+
+  window.dqBatchStandardizePhones = async function () {
+    const audit = window._dataQualityState.audit;
+    if (!audit || !audit.unnormalizedPhones) return;
+    const valid = audit.unnormalizedPhones.filter(i => i.suggestedCanonical && i.suggestedCanonical.startsWith('+8801'));
+    if (!valid.length) {
+      toast("No valid suggested BD mobiles to batch standardize");
+      return;
+    }
+    if (!confirm(`Batch standardize ${valid.length} phone numbers to canonical E.164 (+8801...)?`)) return;
+    toast(`Standardizing ${valid.length} numbers…`);
+    let count = 0;
+    for (const item of valid) {
+      try {
+        await fetch('/api/data-quality/standardize-phone', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customerId: item.id, canonicalPhone: item.suggestedCanonical })
+        });
+        count++;
+      } catch (e) {}
+    }
+    toast(`Standardized ${count} phone records ✓`);
+    window.render.DataQuality(document.getElementById('mod-DataQuality'));
+  };
+
   // Initialize auto-scan countdown
   try {
     const cached = localStorage.getItem("hh_drive_sync_assets");

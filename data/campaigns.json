@@ -1,0 +1,28 @@
+[
+  {
+    "id": "camp-drop-01",
+    "name": "Ramadan Leather Lookbook VIP Broadcast",
+    "timestamp": "2026-09-04T09:04:58.391Z",
+    "audienceFilters": {
+      "minSpend": 5000,
+      "cohortTag": "vip"
+    },
+    "recipientCount": 342,
+    "recipientPhones": [
+      "+8801711234567",
+      "+8801912010701",
+      "+8801819234567"
+    ],
+    "messageTemplate": "Salam {name}, discover the handcrafted Hands & Head Ramadan Leather Essentials with complimentary city courier delivery.",
+    "featuredProducts": [
+      "prod-tee-01",
+      "prod-crd-02"
+    ],
+    "promoCode": "RAMADAN25",
+    "attributionToken": "tok_ramadan25",
+    "status": "dispatched",
+    "attributedRevenue": 22150,
+    "attributedOrdersCount": 5,
+    "createdAt": "2026-09-04T09:04:58.391Z"
+  }
+]

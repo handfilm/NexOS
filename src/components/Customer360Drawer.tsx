@@ -29,6 +29,15 @@ export interface CustomerProfile {
   totalOrders?: number;
   ordersCount?: number;
   totalSpent?: number;
+  aov?: number;
+  lifecycleStage?: 'VIP' | 'Repeat' | 'New' | 'Dormant' | 'Active';
+  segmentBadges?: string[];
+  daysSinceLastOrder?: number | null;
+  purchaseFrequencyMonthly?: number;
+  returnRatePct?: number;
+  preferredCategories?: string[];
+  priceSensitivity?: string;
+  addresses?: Array<{ line1?: string; city?: string; postalCode?: string; country?: string }>;
   lastOrderAt?: string;
   tags?: string[];
   categoryPreferences?: string[];
@@ -48,6 +57,7 @@ export interface CustomerProfile {
     timestamp: string;
     status?: string;
   }>;
+  orders?: CustomerOrderRecord[];
 }
 
 export interface CustomerOrderRecord {
@@ -89,7 +99,7 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
   const [loadingProfile, setLoadingProfile] = useState<boolean>(false);
   const [newNote, setNewNote] = useState<string>('');
   const [addingNote, setAddingNote] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'timeline' | 'orders' | 'products' | 'notes'>('timeline');
+  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'timeline' | 'behavioral' | 'products'>('profile');
 
   // Load customer profile and first 50 orders cursor
   useEffect(() => {
@@ -104,6 +114,64 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
 
     async function loadCustomerData() {
       setLoadingProfile(true);
+      try {
+        // 1. Primary: Unified Commerce Spine REST API (/api/customers/:id)
+        const res = await fetch(`/api/customers/${encodeURIComponent(customerId)}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.ok && json.item && isMounted) {
+            const item = json.item;
+            const profile: CustomerProfile = {
+              id: item.id,
+              name: item.name || item.companyName || 'Valued Buyer',
+              companyName: item.companyName || item.name || '',
+              contactPerson: item.contactPerson || item.name || '',
+              phone: normalizeBangladeshPhone(item.phone || item.mobile || item.tel),
+              email: item.email || '',
+              country: item.country || 'BD',
+              flag: item.flag || (item.country === 'BD' ? '🇧🇩' : '🌐'),
+              totalOrders: Number(item.ordersCount ?? item.totalOrders ?? (item.orders?.length || 0)),
+              ordersCount: Number(item.ordersCount ?? item.totalOrders ?? (item.orders?.length || 0)),
+              totalSpent: Number(item.totalSpent || 0),
+              aov: Number(item.aov || (item.ordersCount ? Math.round(item.totalSpent / item.ordersCount) : 0)),
+              lifecycleStage: item.lifecycleStage || 'Active',
+              segmentBadges: Array.isArray(item.segmentBadges) ? item.segmentBadges : ['Active Patron'],
+              daysSinceLastOrder: item.daysSinceLastOrder !== undefined ? item.daysSinceLastOrder : null,
+              purchaseFrequencyMonthly: item.purchaseFrequencyMonthly || 0,
+              returnRatePct: item.returnRatePct || 0,
+              preferredCategories: Array.isArray(item.preferredCategories) ? item.preferredCategories : ['Leather Goods'],
+              priceSensitivity: item.priceSensitivity || (item.totalSpent > 50000 ? 'Ultra-Luxury / Inelastic' : item.totalSpent > 15000 ? 'Premium Tier' : 'Standard Value'),
+              addresses: Array.isArray(item.addresses) ? item.addresses : item.addressLine1 ? [{ line1: item.addressLine1, city: item.city || 'Dhaka', country: item.country || 'BD' }] : [],
+              lastOrderAt: item.lastOrderAt || item.updatedAt || '',
+              tags: Array.isArray(item.tags) ? item.tags : ['B2B', 'Retail'],
+              categoryPreferences: Array.isArray(item.categoryPreferences) ? item.categoryPreferences : item.preferredCategories || ['Full-Grain Leather', 'Accessories'],
+              notes: Array.isArray(item.notes) ? item.notes : [],
+              communicationTimeline: Array.isArray(item.communicationTimeline) ? item.communicationTimeline : []
+            };
+
+            setCustomer(profile);
+
+            if (Array.isArray(item.orders)) {
+              setOrders(item.orders.map((o: any) => ({
+                id: o.id,
+                orderNumber: o.orderNumber || `HH-${String(o.id).slice(-6).toUpperCase()}`,
+                total: Number(o.total || 0),
+                paymentStatus: o.paymentStatus || 'paid',
+                fulfillmentStatus: o.fulfillmentStatus || 'fulfilled',
+                createdAt: o.createdAt || new Date().toISOString(),
+                lineItems: Array.isArray(o.lineItems) ? o.lineItems : []
+              })));
+            }
+
+            setLoadingProfile(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('[Customer360] Server REST fetch fallback to Firestore:', err);
+      }
+
+      // 2. Secondary fallback: Direct Firestore query
       try {
         const db = getFirestore();
         const docRef = doc(db, 'customers', customerId);
@@ -123,6 +191,13 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
             totalOrders: Number(data.ordersCount ?? data.totalOrders ?? 0),
             ordersCount: Number(data.ordersCount ?? data.totalOrders ?? 0),
             totalSpent: Number(data.totalSpent || 0),
+            aov: Math.round(Number(data.totalSpent || 0) / Math.max(1, Number(data.ordersCount ?? data.totalOrders ?? 1))),
+            lifecycleStage: Number(data.totalSpent || 0) >= 50000 ? 'VIP' : Number(data.ordersCount || 0) >= 2 ? 'Repeat' : 'Active',
+            segmentBadges: Number(data.totalSpent || 0) >= 50000 ? ['VIP Patron', 'Atelier Direct'] : ['Verified Buyer'],
+            daysSinceLastOrder: null,
+            purchaseFrequencyMonthly: 0.5,
+            returnRatePct: 0,
+            preferredCategories: ['Leather Goods', 'Accessories'],
             lastOrderAt: data.lastOrderAt || data.updatedAt || '',
             tags: Array.isArray(data.tags) ? data.tags : ['B2B', 'Retail'],
             categoryPreferences: Array.isArray(data.categoryPreferences)
@@ -263,6 +338,16 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
     };
 
     try {
+      // 1. Primary: REST API update
+      fetch(`/api/customers/${encodeURIComponent(customerId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          notes: [noteEntry, ...(customer?.notes || [])]
+        })
+      }).catch(err => console.warn('[Customer360] Note REST update warning:', err));
+
+      // 2. Secondary: Firestore update
       const db = getFirestore();
       const docRef = doc(db, 'customers', customerId);
       await updateDoc(docRef, {
@@ -458,20 +543,20 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
             </div>
 
             {/* Navigation Sub-Tabs */}
-            <div className="flex border-b border-zinc-800 bg-[#141413] px-4 pt-2 gap-2 text-xs">
+            <div className="flex border-b border-zinc-800 bg-[#141413] px-4 pt-2 gap-2 text-xs overflow-x-auto">
               <button
-                onClick={() => setActiveTab('timeline')}
-                className={`pb-2 px-2.5 font-bold transition-all border-b-2 ${
-                  activeTab === 'timeline'
+                onClick={() => setActiveTab('profile')}
+                className={`pb-2 px-2.5 font-bold transition-all border-b-2 whitespace-nowrap ${
+                  activeTab === 'profile'
                     ? 'border-amber-500 text-amber-500'
                     : 'border-transparent text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                📡 Communication & Timeline ({customer.notes?.length || 0})
+                👤 Profile & Preferences
               </button>
               <button
                 onClick={() => setActiveTab('orders')}
-                className={`pb-2 px-2.5 font-bold transition-all border-b-2 ${
+                className={`pb-2 px-2.5 font-bold transition-all border-b-2 whitespace-nowrap ${
                   activeTab === 'orders'
                     ? 'border-amber-500 text-amber-500'
                     : 'border-transparent text-zinc-400 hover:text-zinc-200'
@@ -480,16 +565,174 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                 📦 Orders Ledger ({orders.length})
               </button>
               <button
+                onClick={() => setActiveTab('timeline')}
+                className={`pb-2 px-2.5 font-bold transition-all border-b-2 whitespace-nowrap ${
+                  activeTab === 'timeline'
+                    ? 'border-amber-500 text-amber-500'
+                    : 'border-transparent text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                📡 Communication & Timeline ({customer.notes?.length || 0})
+              </button>
+              <button
+                onClick={() => setActiveTab('behavioral')}
+                className={`pb-2 px-2.5 font-bold transition-all border-b-2 whitespace-nowrap ${
+                  activeTab === 'behavioral'
+                    ? 'border-amber-500 text-amber-500'
+                    : 'border-transparent text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                📊 Behavioral Metrics
+              </button>
+              <button
                 onClick={() => setActiveTab('products')}
-                className={`pb-2 px-2.5 font-bold transition-all border-b-2 ${
+                className={`pb-2 px-2.5 font-bold transition-all border-b-2 whitespace-nowrap ${
                   activeTab === 'products'
                     ? 'border-amber-500 text-amber-500'
                     : 'border-transparent text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                🏷️ Purchased SKUs ({aggregatedSkus.length})
+                🏷️ SKUs ({aggregatedSkus.length})
               </button>
             </div>
+
+            {/* Tab: Profile & Preferences */}
+            {activeTab === 'profile' && (
+              <div className="p-4 flex-1 flex flex-col space-y-4 text-xs">
+                <div className="bg-[#161615] border border-zinc-800 rounded-lg p-3 space-y-2.5">
+                  <div className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">
+                    CONTACT & REACHABILITY
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="bg-zinc-900/80 p-2 rounded border border-zinc-800/80">
+                      <div className="text-[10px] text-zinc-500">CANONICAL BANGLADESH PHONE</div>
+                      <div className="font-mono text-emerald-400 font-bold mt-0.5 flex items-center justify-between">
+                        <span>{customer.phone || 'No phone recorded'}</span>
+                        {customer.phone && (
+                          <a
+                            href={`https://wa.me/${customer.phone.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-1.5 py-0.5 rounded hover:bg-emerald-900"
+                          >
+                            WhatsApp ↗
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                    <div className="bg-zinc-900/80 p-2 rounded border border-zinc-800/80">
+                      <div className="text-[10px] text-zinc-500">OFFICIAL EMAIL</div>
+                      <div className="text-zinc-200 font-mono mt-0.5 truncate">{customer.email || 'None on file'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-[#161615] border border-zinc-800 rounded-lg p-3 space-y-2.5">
+                  <div className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">
+                    COMMERCIAL & PRICE PROFILE
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="bg-zinc-900/80 p-2 rounded border border-zinc-800/80">
+                      <div className="text-[10px] text-zinc-500">PRICE SENSITIVITY TIER</div>
+                      <div className="font-bold text-amber-400 mt-0.5">{customer.priceSensitivity || 'Standard Value'}</div>
+                    </div>
+                    <div className="bg-zinc-900/80 p-2 rounded border border-zinc-800/80">
+                      <div className="text-[10px] text-zinc-500">LIFECYCLE STAGE</div>
+                      <div className="font-bold text-emerald-400 mt-0.5">{customer.lifecycleStage || 'Active'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-[#161615] border border-zinc-800 rounded-lg p-3 space-y-2">
+                  <div className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">
+                    PREFERRED PRODUCT CATEGORIES
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(customer.preferredCategories || customer.categoryPreferences || ['Leather Goods']).map((cat, idx) => (
+                      <span
+                        key={idx}
+                        className="bg-zinc-900 border border-zinc-800 text-zinc-200 px-2.5 py-1 rounded text-xs"
+                      >
+                        ✓ {cat}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {customer.addresses && customer.addresses.length > 0 && (
+                  <div className="bg-[#161615] border border-zinc-800 rounded-lg p-3 space-y-2">
+                    <div className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">
+                      DELIVERY ADDRESSES
+                    </div>
+                    <div className="space-y-1.5">
+                      {customer.addresses.map((addr, idx) => (
+                        <div key={idx} className="bg-zinc-900/80 p-2 rounded border border-zinc-800 text-zinc-300">
+                          <div>{addr.line1}</div>
+                          <div className="text-zinc-500 text-[11px]">{[addr.city, addr.postalCode, addr.country].filter(Boolean).join(', ')}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab: Behavioral Metrics */}
+            {activeTab === 'behavioral' && (
+              <div className="p-4 flex-1 flex flex-col space-y-4 text-xs">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-[#161615] border border-zinc-800 p-3 rounded-lg">
+                    <div className="text-[10px] text-zinc-500 uppercase">DAYS SINCE LAST ORDER</div>
+                    <div className="text-2xl font-bold text-white font-mono mt-1">
+                      {customer.daysSinceLastOrder !== null && customer.daysSinceLastOrder !== undefined
+                        ? `${customer.daysSinceLastOrder} days`
+                        : '—'}
+                    </div>
+                    <div className="text-[10px] text-zinc-500 mt-1">Recency velocity signal</div>
+                  </div>
+
+                  <div className="bg-[#161615] border border-zinc-800 p-3 rounded-lg">
+                    <div className="text-[10px] text-zinc-500 uppercase">PURCHASE FREQUENCY</div>
+                    <div className="text-2xl font-bold text-amber-400 font-mono mt-1">
+                      {customer.purchaseFrequencyMonthly || 0} / mo
+                    </div>
+                    <div className="text-[10px] text-zinc-500 mt-1">Historical ordering rhythm</div>
+                  </div>
+
+                  <div className="bg-[#161615] border border-zinc-800 p-3 rounded-lg">
+                    <div className="text-[10px] text-zinc-500 uppercase">RETURN RATE</div>
+                    <div className="text-2xl font-bold text-emerald-400 font-mono mt-1">
+                      {customer.returnRatePct || 0}%
+                    </div>
+                    <div className="text-[10px] text-zinc-500 mt-1">Dispute / refund ratio</div>
+                  </div>
+
+                  <div className="bg-[#161615] border border-zinc-800 p-3 rounded-lg">
+                    <div className="text-[10px] text-zinc-500 uppercase">AVERAGE BASKET (AOV)</div>
+                    <div className="text-2xl font-bold text-[#d4af37] font-mono mt-1">
+                      ৳{customer.aov?.toLocaleString() || '0'}
+                    </div>
+                    <div className="text-[10px] text-zinc-500 mt-1">Average cart ticket size</div>
+                  </div>
+                </div>
+
+                <div className="bg-[#161615] border border-zinc-800 p-3 rounded-lg space-y-2">
+                  <div className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">
+                    ATTRIBUTED SEGMENTS & BADGES
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(customer.segmentBadges || ['Active Patron']).map((b, idx) => (
+                      <span
+                        key={idx}
+                        className="bg-amber-950/40 text-amber-400 border border-amber-800/80 px-2.5 py-1 rounded font-bold text-[11px]"
+                      >
+                        ★ {b}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Tab 1: Timeline & Notes */}
             {activeTab === 'timeline' && (
@@ -550,17 +793,18 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
               </div>
             )}
 
-            {/* Tab 2: Orders Ledger with Limit 50 Server Cursor */}
+            {/* Tab 2: Orders Ledger with Limit 50 Server Cursor & Reorder Action */}
             {activeTab === 'orders' && (
               <div className="p-4 flex-1 flex flex-col">
-                <div className="text-[11px] text-zinc-500 mb-2">
-                  Showing customer order records via Firestore server cursor:
+                <div className="text-[11px] text-zinc-500 mb-2 flex items-center justify-between">
+                  <span>Order records and item ledgers:</span>
+                  <span className="text-amber-500 font-mono font-bold">Total: {orders.length}</span>
                 </div>
 
                 <div className="space-y-2 flex-1">
                   {loadingOrders && orders.length === 0 ? (
                     <div className="text-center py-8 text-zinc-500 text-xs">
-                      Querying orders collection (limit 50)…
+                      Querying orders collection…
                     </div>
                   ) : orders.length === 0 ? (
                     <div className="text-center py-8 text-zinc-500 text-xs">
@@ -585,8 +829,25 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                               {o.paymentStatus}
                             </span>
                           </div>
-                          <div className="font-bold text-amber-400 font-mono">
-                            ৳{o.total.toLocaleString()}
+                          <div className="flex items-center gap-2">
+                            <div className="font-bold text-amber-400 font-mono">
+                              ৳{o.total.toLocaleString()}
+                            </div>
+                            {/* Reorder Action */}
+                            {onOpenQuickSale && customer && (
+                              <button
+                                onClick={() => {
+                                  onOpenQuickSale({
+                                    ...customer,
+                                    tags: [...(customer.tags || []), 'REORDER']
+                                  });
+                                }}
+                                title="Reorder items into Quick Sale 2.0 POS"
+                                className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-[10px] font-bold px-2 py-0.5 rounded transition-all"
+                              >
+                                ⚡ REORDER
+                              </button>
+                            )}
                           </div>
                         </div>
 

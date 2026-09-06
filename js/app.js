@@ -1098,7 +1098,8 @@ const NAV_SECTIONS = [
       { label: "Orders", icon: I.orders, app: "Orders", chev: true, desc: "Live order stream & fulfillment tracker", ext: "POS" },
       { label: "Products", icon: I.tag, app: "Products", chev: true, desc: "Inventory catalog, variants & pricing matrix", ext: "CATALOG" },
       { label: "Drive Sync Monitor", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="12 11 12 17 14 15"></polyline></svg>`, app: "DriveSync", chev: true, desc: "Master Google Drive auto-sync, tokenized specs & staging", ext: "SYNC", extClass: "gold" },
-      { label: "Customers", icon: I.inbox, app: "CRM", chev: true, desc: "Global wholesale buyer CRM & accounts", ext: "CRM" }
+      { label: "Customers", icon: I.inbox, app: "CRM", chev: true, desc: "Global wholesale buyer CRM & accounts", ext: "CRM" },
+      { label: "Data Quality Center", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>`, app: "DataQuality", chev: true, desc: "Deterministic BD phone normalization, customer deduplication & audit", ext: "AUDIT", extClass: "gold" }
     ]
   },
   {
@@ -1858,7 +1859,189 @@ function openAiChat(initialQuery) {
     }, 150);
   }
 }
-function openQuickSale() { openSheet(`<h3>Quick Sale</h3><div style="padding:0 20px;"><div class="field"><label>Item</label><input id="qs_item" placeholder="Product…"/></div><div class="field"><label>Price (৳)</label><input id="qs_price" type="number" placeholder="0.00"/></div><button class="btn btn-gold" style="margin-top:8px;" onclick="document.getElementById('q_item').value=document.getElementById('qs_item').value;document.getElementById('q_price').value=document.getElementById('qs_price').value;closeSheet();toast('Loaded into Quick Order');">Load to Quick Order</button></div>`); }
+function openQuickSale(prefill = {}) {
+  const pCustName = prefill.customerName || prefill.name || "";
+  const pCustPhone = prefill.customerPhone || prefill.phone || "";
+  const pCustEmail = prefill.customerEmail || prefill.email || "";
+  const pCustId = prefill.customerId || prefill.id || "";
+  const pItemTitle = prefill.title || prefill.item || (prefill.lineItems?.[0]?.title || "");
+  const pPrice = prefill.price || (prefill.lineItems?.[0]?.price || "");
+  const pQty = prefill.quantity || (prefill.lineItems?.[0]?.quantity || 1);
+  const pSku = prefill.sku || (prefill.lineItems?.[0]?.sku || "HH-ITEM");
+
+  openSheet(`
+    <div style="padding:0 20px 24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div>
+          <div style="font-family:var(--mono);font-size:9.5px;color:var(--coral);font-weight:700;letter-spacing:1px;text-transform:uppercase;">
+            ATOMIC POS TRANSACTION · H&amp;H NEXUS
+          </div>
+          <h3 style="margin:2px 0 0;font-size:18px;">⚡ Quick Sale POS</h3>
+        </div>
+        <span class="pill gold" style="font-size:8.5px;">LIVE ATTRIBUTION</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <!-- Customer Details -->
+        <div class="card" style="padding:12px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:10px;font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;">1. Buyer / Attributed Account</div>
+          <input type="hidden" id="qs_cust_id" value="${pCustId}"/>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="field" style="margin:0;"><label>Buyer / Company *</label><input id="qs_cust_name" value="${pCustName}" placeholder="e.g. Tariqul Islam"/></div>
+            <div class="field" style="margin:0;"><label>Phone (BD Mobile) *</label><input id="qs_cust_phone" value="${pCustPhone}" placeholder="017... or +8801..."/></div>
+          </div>
+          <div class="field" style="margin:0;"><label>Email (Optional for Invoice)</label><input id="qs_cust_email" value="${pCustEmail}" placeholder="buyer@example.com"/></div>
+        </div>
+
+        <!-- Product Line Item -->
+        <div class="card" style="padding:12px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:10px;font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;">2. Product &amp; Pricing</div>
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px;">
+            <div class="field" style="margin:0;"><label>Product Title / Description *</label><input id="qs_item_title" value="${pItemTitle}" placeholder="Handcrafted Leather Asset…"/></div>
+            <div class="field" style="margin:0;"><label>SKU</label><input id="qs_item_sku" value="${pSku}" placeholder="HH-SKU"/></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+            <div class="field" style="margin:0;"><label>Qty</label><input id="qs_qty" type="number" min="1" value="${pQty}" oninput="window.updateQsTotal()"/></div>
+            <div class="field" style="margin:0;"><label>Unit Price (৳)</label><input id="qs_unit_price" type="number" value="${pPrice}" placeholder="0" oninput="window.updateQsTotal()"/></div>
+            <div class="field" style="margin:0;"><label>Total (৳)</label><input id="qs_total_display" readonly style="background:var(--bg-3);color:var(--gold);font-weight:700;font-family:var(--mono);" value="৳0"/></div>
+          </div>
+        </div>
+
+        <!-- Channel, Payment & Campaign -->
+        <div class="card" style="padding:12px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:10px;font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;">3. Channel, Payment &amp; Promo</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="field" style="margin:0;">
+              <label>Sales Channel</label>
+              <select id="qs_channel" style="width:100%;height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);border-radius:6px;padding:0 8px;">
+                <option value="WhatsApp Direct">📲 WhatsApp Direct</option>
+                <option value="Phone Order">📞 Phone Order</option>
+                <option value="Showroom Walk-in">🏬 Showroom Walk-in</option>
+                <option value="BASE Japan">🇯🇵 BASE Japan (Arutemika)</option>
+                <option value="Export B2B">🇪🇺 Export B2B Portal</option>
+              </select>
+            </div>
+            <div class="field" style="margin:0;">
+              <label>Payment Method</label>
+              <select id="qs_payment" style="width:100%;height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);border-radius:6px;padding:0 8px;">
+                <option value="bKash (merchant)">📱 bKash (Merchant)</option>
+                <option value="Cash on Delivery">🚚 Cash on Delivery (COD)</option>
+                <option value="Nagad">📱 Nagad</option>
+                <option value="Bank Transfer">🏦 Bank Transfer</option>
+                <option value="Card">💳 Credit / Debit Card</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="field" style="margin:0;"><label>Promo / Campaign Token</label><input id="qs_promo" placeholder="e.g. RAMADAN25"/></div>
+            <div class="field" style="margin:0;"><label>Order Note</label><input id="qs_notes" placeholder="Operator counter memo…"/></div>
+          </div>
+        </div>
+
+        <button class="btn btn-gold" id="btn_commit_qs" onclick="window.submitAtomicQuickSale()" style="height:42px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;">
+          ⚡ Commit POS Order
+        </button>
+      </div>
+    </div>
+  `);
+
+  window.updateQsTotal = function() {
+    const q = Math.max(1, parseInt(document.getElementById("qs_qty")?.value || "1", 10));
+    const p = Math.max(0, parseFloat(document.getElementById("qs_unit_price")?.value || "0"));
+    const disp = document.getElementById("qs_total_display");
+    if (disp) disp.value = "৳" + (q * p).toLocaleString();
+  };
+  window.updateQsTotal();
+}
+
+window.submitAtomicQuickSale = async function() {
+  const btn = document.getElementById("btn_commit_qs");
+  const name = document.getElementById("qs_cust_name")?.value.trim();
+  const phone = document.getElementById("qs_cust_phone")?.value.trim();
+  const email = document.getElementById("qs_cust_email")?.value.trim() || "";
+  const customerId = document.getElementById("qs_cust_id")?.value.trim() || undefined;
+  const title = document.getElementById("qs_item_title")?.value.trim();
+  const sku = document.getElementById("qs_item_sku")?.value.trim() || "HH-ITEM";
+  const quantity = Math.max(1, parseInt(document.getElementById("qs_qty")?.value || "1", 10));
+  const price = Math.max(0, parseFloat(document.getElementById("qs_unit_price")?.value || "0"));
+  const channel = document.getElementById("qs_channel")?.value || "WhatsApp Direct";
+  const paymentMethod = document.getElementById("qs_payment")?.value || "Cash on Delivery";
+  const promoCode = document.getElementById("qs_promo")?.value.trim() || undefined;
+  const notes = document.getElementById("qs_notes")?.value.trim() || "";
+
+  if (!name) { toast("Customer name required"); return; }
+  if (!phone) { toast("Customer phone required"); return; }
+  if (!title) { toast("Product title required"); return; }
+  if (price <= 0) { toast("Valid price required"); return; }
+
+  if (btn) { btn.disabled = true; btn.innerText = "Writing to Spine…"; }
+
+  try {
+    const res = await fetch('/api/orders/quick-sale', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerId,
+        customerName: name,
+        customerPhone: phone,
+        customerEmail: email,
+        channel,
+        paymentMethod,
+        paymentStatus: 'paid',
+        fulfillmentStatus: 'unfulfilled',
+        promoCode,
+        notes,
+        lineItems: [{
+          title,
+          sku,
+          quantity,
+          price
+        }]
+      })
+    });
+
+    const data = await res.json();
+    if (!data || !data.ok) throw new Error(data?.error || 'Order creation rejected');
+
+    const order = data.order;
+    const orderNum = order.orderNumber || order.id;
+    const total = order.total || (price * quantity);
+    const waText = encodeURIComponent(`*H&H NEXUS ORDER CONFIRMATION*\nOrder: ${orderNum}\nCustomer: ${name}\nItem: ${title} (x${quantity})\nTotal: ৳${total.toLocaleString()}\nStatus: Confirmed & Paid\nThank you for choosing Hands & Head!`);
+    const waUrl = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${waText}`;
+
+    openSheet(`
+      <div style="padding:0 20px 24px;text-align:center;">
+        <div style="width:52px;height:52px;border-radius:50%;background:rgba(16,185,129,0.15);border:1px solid var(--emerald);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--emerald);font-size:24px;">✓</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:1.5px;">ORDER ATOMICALLY COMMITTED</div>
+        <h3 style="margin:4px 0 2px;font-size:20px;font-family:var(--mono);">${orderNum}</h3>
+        <p style="font-size:12px;color:var(--ink-2);margin:0 0 16px;">
+          Consolidated for <b>${name}</b> · Total: <b style="color:var(--gold);">৳${total.toLocaleString()}</b>
+          ${order.campaignAttribution ? `<br/><span style="color:var(--emerald);font-size:11px;">Attributed to Campaign: ${order.campaignAttribution.campaignName || order.campaignAttribution.promoCode}</span>` : ''}
+        </p>
+
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <a href="${waUrl}" target="_blank" class="btn btn-emerald" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:700;">
+            📲 Send WhatsApp Receipt to ${phone}
+          </a>
+          <button class="btn btn-dark" onclick="window.openOrderInvoice('${order.id}'); closeSheet();" style="font-size:12px;">
+            📄 View &amp; Print Official Invoice
+          </button>
+          <button class="btn btn-sm btn-dark" onclick="closeSheet(); if (window.render?.Orders) window.render.Orders(document.getElementById('mod-Orders'));" style="margin-top:6px;font-size:11px;color:var(--ink-3);">
+            Done &amp; Return
+          </button>
+        </div>
+      </div>
+    `);
+
+    toast(`Order ${orderNum} Created ✓`);
+    if (window.render?.Orders && document.getElementById('mod-Orders')) {
+      window.render.Orders(document.getElementById('mod-Orders'));
+    }
+  } catch (err) {
+    alert(`Quick Sale Error: ${err.message}`);
+    if (btn) { btn.disabled = false; btn.innerText = "⚡ Commit POS Order"; }
+  }
+};
 
 /* ── Quick Order Logic ── */
 function setupQuickOrderLogic() {
