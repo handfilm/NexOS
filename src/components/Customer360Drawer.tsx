@@ -15,7 +15,87 @@ import {
   arrayUnion,
   Timestamp
 } from 'firebase/firestore';
-import { normalizeBangladeshPhone } from '../utils/phoneNormalizer';
+import { normalizeBangladeshPhone, parseBangladeshPhone } from '../utils/phoneNormalizer';
+
+export interface SegmentThresholds {
+  vipSpendThreshold: number; // default 25000
+  vipOrdersThreshold: number; // default 3
+  activeRepeatOrdersThreshold: number; // default 2
+  activeRepeatDaysThreshold: number; // default 90
+  dormantDaysThreshold: number; // default 120
+}
+
+export const DEFAULT_SEGMENT_THRESHOLDS: SegmentThresholds = {
+  vipSpendThreshold: 25000,
+  vipOrdersThreshold: 3,
+  activeRepeatOrdersThreshold: 2,
+  activeRepeatDaysThreshold: 90,
+  dormantDaysThreshold: 120
+};
+
+export interface CalculatedSegmentBadge {
+  label: 'VIP Whale' | 'Active Repeat' | 'Dormant' | 'Warm Lead';
+  tone: 'amber' | 'emerald' | 'coral' | 'zinc';
+  description: string;
+}
+
+export function calculateCustomerSegmentBadges(
+  customer: Partial<CustomerProfile>,
+  thresholds: SegmentThresholds = DEFAULT_SEGMENT_THRESHOLDS
+): CalculatedSegmentBadge[] {
+  const totalSpent = Number(customer.totalSpent || 0);
+  const ordersCount = Number(customer.ordersCount ?? customer.totalOrders ?? 0);
+  const daysSinceLastOrder =
+    customer.daysSinceLastOrder !== null && customer.daysSinceLastOrder !== undefined
+      ? Number(customer.daysSinceLastOrder)
+      : customer.lastOrderAt
+      ? Math.max(0, Math.floor((Date.now() - new Date(customer.lastOrderAt).getTime()) / (1000 * 60 * 60 * 24)))
+      : null;
+
+  const badges: CalculatedSegmentBadge[] = [];
+
+  // 1. VIP Whale: LTV > ৳25,000 or Orders >= 3
+  if (totalSpent > thresholds.vipSpendThreshold || ordersCount >= thresholds.vipOrdersThreshold) {
+    badges.push({
+      label: 'VIP Whale',
+      tone: 'amber',
+      description: `LTV > ৳${thresholds.vipSpendThreshold.toLocaleString()} or ${ordersCount} completed orders`
+    });
+  }
+
+  // 2. Active Repeat: Orders >= 2 within last 90 days
+  if (
+    ordersCount >= thresholds.activeRepeatOrdersThreshold &&
+    daysSinceLastOrder !== null &&
+    daysSinceLastOrder <= thresholds.activeRepeatDaysThreshold
+  ) {
+    badges.push({
+      label: 'Active Repeat',
+      tone: 'emerald',
+      description: `${ordersCount} orders with recency < ${thresholds.activeRepeatDaysThreshold}d`
+    });
+  }
+
+  // 3. Dormant: No orders in 120+ days
+  if (ordersCount > 0 && daysSinceLastOrder !== null && daysSinceLastOrder >= thresholds.dormantDaysThreshold) {
+    badges.push({
+      label: 'Dormant',
+      tone: 'coral',
+      description: `Inactive for ${daysSinceLastOrder} days (${thresholds.dormantDaysThreshold}d+ threshold)`
+    });
+  }
+
+  // 4. Warm Lead: Zero orders recorded
+  if (ordersCount === 0) {
+    badges.push({
+      label: 'Warm Lead',
+      tone: 'zinc',
+      description: 'Account created, zero orders recorded'
+    });
+  }
+
+  return badges;
+}
 
 export interface CustomerProfile {
   id: string;
@@ -23,6 +103,10 @@ export interface CustomerProfile {
   companyName?: string;
   contactPerson?: string;
   phone?: string;
+  normalizedPhone?: string;
+  rawPhone?: string;
+  firstOrderAt?: string;
+  completedOrdersCount?: number;
   email?: string;
   country?: string;
   flag?: string;
@@ -94,6 +178,8 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
   const [customer, setCustomer] = useState<CustomerProfile | null>(null);
   const [orders, setOrders] = useState<CustomerOrderRecord[]>([]);
   const [ordersCursor, setOrdersCursor] = useState<DocumentSnapshot | null>(null);
+  const [ordersCursorStack, setOrdersCursorStack] = useState<DocumentSnapshot[]>([]);
+  const [ordersPage, setOrdersPage] = useState<number>(1);
   const [hasMoreOrders, setHasMoreOrders] = useState<boolean>(false);
   const [loadingOrders, setLoadingOrders] = useState<boolean>(false);
   const [loadingProfile, setLoadingProfile] = useState<boolean>(false);
@@ -101,12 +187,16 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
   const [addingNote, setAddingNote] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'timeline' | 'behavioral' | 'products'>('profile');
 
-  // Load customer profile and first 50 orders cursor
+  const ORDERS_PER_PAGE = 10;
+
+  // Load customer profile and first 10 orders cursor
   useEffect(() => {
     if (!isOpen || !customerId) {
       setCustomer(null);
       setOrders([]);
       setOrdersCursor(null);
+      setOrdersCursorStack([]);
+      setOrdersPage(1);
       return;
     }
 
@@ -121,12 +211,17 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
           const json = await res.json();
           if (json.ok && json.item && isMounted) {
             const item = json.item;
+            const phoneInfo = parseBangladeshPhone(item.phone || item.mobile || item.tel);
             const profile: CustomerProfile = {
               id: item.id,
               name: item.name || item.companyName || 'Valued Buyer',
               companyName: item.companyName || item.name || '',
               contactPerson: item.contactPerson || item.name || '',
-              phone: normalizeBangladeshPhone(item.phone || item.mobile || item.tel),
+              phone: phoneInfo.normalizedPhone || normalizeBangladeshPhone(item.phone || item.mobile || item.tel),
+              normalizedPhone: phoneInfo.normalizedPhone || normalizeBangladeshPhone(item.phone || item.mobile || item.tel),
+              rawPhone: phoneInfo.rawPhone || item.phone || '',
+              firstOrderAt: item.firstOrderAt || (item.orders && item.orders[item.orders.length - 1]?.createdAt) || '',
+              completedOrdersCount: Number(item.completedOrdersCount ?? item.ordersCount ?? item.totalOrders ?? (item.orders?.length || 0)),
               email: item.email || '',
               country: item.country || 'BD',
               flag: item.flag || (item.country === 'BD' ? '🇧🇩' : '🌐'),
@@ -151,8 +246,8 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
 
             setCustomer(profile);
 
-            if (Array.isArray(item.orders)) {
-              setOrders(item.orders.map((o: any) => ({
+            if (Array.isArray(item.orders) && item.orders.length > 0) {
+              setOrders(item.orders.slice(0, ORDERS_PER_PAGE).map((o: any) => ({
                 id: o.id,
                 orderNumber: o.orderNumber || `HH-${String(o.id).slice(-6).toUpperCase()}`,
                 total: Number(o.total || 0),
@@ -161,6 +256,7 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                 createdAt: o.createdAt || new Date().toISOString(),
                 lineItems: Array.isArray(o.lineItems) ? o.lineItems : []
               })));
+              setHasMoreOrders(item.orders.length > ORDERS_PER_PAGE);
             }
 
             setLoadingProfile(false);
@@ -179,12 +275,17 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
 
         if (docSnap.exists() && isMounted) {
           const data = docSnap.data() as any;
+          const phoneInfo = parseBangladeshPhone(data.phone || data.mobile || data.tel);
           const profile: CustomerProfile = {
             id: docSnap.id,
             name: data.name || data.companyName || 'Buyer',
             companyName: data.companyName || data.name || '',
             contactPerson: data.contactPerson || data.name || '',
-            phone: normalizeBangladeshPhone(data.phone || data.mobile || data.tel),
+            phone: phoneInfo.normalizedPhone || normalizeBangladeshPhone(data.phone || data.mobile || data.tel),
+            normalizedPhone: phoneInfo.normalizedPhone || normalizeBangladeshPhone(data.phone || data.mobile || data.tel),
+            rawPhone: phoneInfo.rawPhone || data.phone || '',
+            firstOrderAt: data.firstOrderAt || '',
+            completedOrdersCount: Number(data.completedOrdersCount ?? data.ordersCount ?? data.totalOrders ?? 0),
             email: data.email || '',
             country: data.country || 'BD',
             flag: data.flag || (data.country === 'BD' ? '🇧🇩' : '🌐'),
@@ -214,11 +315,14 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
           if (typeof window !== 'undefined' && (window as any).CustomersService) {
             const mem = ((window as any).CustomersService._memCache || []).find((c: any) => c.id === customerId);
             if (mem) {
+              const phoneInfo = parseBangladeshPhone(mem.phone);
               setCustomer({
                 id: mem.id,
                 name: mem.name || mem.companyName || 'Buyer',
                 companyName: mem.companyName || mem.name || '',
-                phone: normalizeBangladeshPhone(mem.phone),
+                phone: phoneInfo.normalizedPhone || normalizeBangladeshPhone(mem.phone),
+                normalizedPhone: phoneInfo.normalizedPhone || normalizeBangladeshPhone(mem.phone),
+                rawPhone: phoneInfo.rawPhone || mem.phone || '',
                 email: mem.email || '',
                 country: mem.country || 'BD',
                 totalOrders: Number(mem.ordersCount ?? mem.totalOrders ?? 0),
@@ -232,8 +336,8 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
           }
         }
 
-        // Fetch first 50 orders for customer using cursor limit
-        await fetchCustomerOrders(customerId, null);
+        // Fetch first 10 orders for customer using cursor limit
+        await fetchCustomerOrders(customerId, null, 'first');
       } catch (err) {
         console.error('[Customer360] Failed to fetch customer profile:', err);
       } finally {
@@ -248,78 +352,96 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
     };
   }, [isOpen, customerId]);
 
-  // Server-side cursor query (limit 50, startAfter) for Orders
-  const fetchCustomerOrders = async (cId: string, cursor: DocumentSnapshot | null) => {
+  // Server-side cursor query (limit 10, startAfter) for Orders timeline
+  const fetchCustomerOrders = async (
+    cId: string,
+    cursor: DocumentSnapshot | null,
+    direction: 'first' | 'next' | 'prev' = 'first'
+  ) => {
     setLoadingOrders(true);
     try {
       const db = getFirestore();
       let q = query(
         collection(db, 'orders'),
-        where('customerSnapshot.email', '==', customer?.email || '__null__'),
+        where('customerId', '==', cId),
         orderBy('createdAt', 'desc'),
-        limit(50)
+        limit(ORDERS_PER_PAGE + 1)
       );
-
-      // Try querying by customerId first if set
-      try {
-        let qCust = query(
-          collection(db, 'orders'),
-          where('customerId', '==', cId),
-          orderBy('createdAt', 'desc'),
-          limit(50)
-        );
-        if (cursor) qCust = query(qCust, startAfter(cursor));
-        const snapCust = await getDocs(qCust);
-
-        if (!snapCust.empty) {
-          mapAndSetOrders(snapCust.docs, cursor);
-          return;
-        }
-      } catch (e) {
-        // Fallback to customer phone or email query
-      }
 
       if (cursor) {
         q = query(q, startAfter(cursor));
       }
 
-      const snap = await getDocs(q);
-      mapAndSetOrders(snap.docs, cursor);
+      let snap = await getDocs(q);
+
+      // Fallback query if customerId had no records but customer has email
+      if (snap.empty && customer?.email) {
+        let qEmail = query(
+          collection(db, 'orders'),
+          where('customerSnapshot.email', '==', customer.email),
+          orderBy('createdAt', 'desc'),
+          limit(ORDERS_PER_PAGE + 1)
+        );
+        if (cursor) qEmail = query(qEmail, startAfter(cursor));
+        snap = await getDocs(qEmail);
+      }
+
+      const docs = snap.docs;
+      const hasMore = docs.length > ORDERS_PER_PAGE;
+      const pageDocs = hasMore ? docs.slice(0, ORDERS_PER_PAGE) : docs;
+
+      const loadedOrders: CustomerOrderRecord[] = pageDocs.map(d => {
+        const data = d.data() as any;
+        return {
+          id: d.id,
+          orderNumber: data.orderNumber || `HH-${d.id.slice(-6).toUpperCase()}`,
+          total: Number(data.total || 0),
+          paymentStatus: data.paymentStatus || 'unpaid',
+          fulfillmentStatus: data.fulfillmentStatus || 'unfulfilled',
+          createdAt: data.createdAt || new Date().toISOString(),
+          lineItems: Array.isArray(data.lineItems) ? data.lineItems : []
+        };
+      });
+
+      setOrders(loadedOrders);
+      setHasMoreOrders(hasMore);
+
+      if (direction === 'next' && ordersCursor) {
+        setOrdersCursorStack(prev => [...prev, ordersCursor]);
+        setOrdersPage(p => p + 1);
+      } else if (direction === 'prev') {
+        setOrdersPage(p => Math.max(1, p - 1));
+      } else if (direction === 'first') {
+        setOrdersCursorStack([]);
+        setOrdersPage(1);
+      }
+
+      setOrdersCursor(pageDocs[pageDocs.length - 1] || null);
     } catch (err) {
       console.warn('[Customer360] Fallback to OrdersService cache:', err);
       if (typeof window !== 'undefined' && (window as any).OrdersService) {
         const memOrders = ((window as any).OrdersService._memCache || []).filter(
           (o: any) => o.customerId === cId || o.customerSnapshot?.name === customer?.name
         );
-        setOrders(memOrders.slice(0, 50));
-        setHasMoreOrders(memOrders.length > 50);
+        const startIndex = (ordersPage - 1) * ORDERS_PER_PAGE;
+        const pageSlice = memOrders.slice(startIndex, startIndex + ORDERS_PER_PAGE);
+        setOrders(pageSlice);
+        setHasMoreOrders(memOrders.length > startIndex + ORDERS_PER_PAGE);
       }
     } finally {
       setLoadingOrders(false);
     }
   };
 
-  const mapAndSetOrders = (docs: DocumentSnapshot[], cursor: DocumentSnapshot | null) => {
-    const loadedOrders: CustomerOrderRecord[] = docs.map(d => {
-      const data = d.data() as any;
-      return {
-        id: d.id,
-        orderNumber: data.orderNumber || `HH-${d.id.slice(-6).toUpperCase()}`,
-        total: Number(data.total || 0),
-        paymentStatus: data.paymentStatus || 'unpaid',
-        fulfillmentStatus: data.fulfillmentStatus || 'unfulfilled',
-        createdAt: data.createdAt || new Date().toISOString(),
-        lineItems: Array.isArray(data.lineItems) ? data.lineItems : []
-      };
-    });
+  const handleNextOrdersPage = () => {
+    if (!hasMoreOrders || loadingOrders || !ordersCursor || !customerId) return;
+    fetchCustomerOrders(customerId, ordersCursor, 'next');
+  };
 
-    if (cursor) {
-      setOrders(prev => [...prev, ...loadedOrders]);
-    } else {
-      setOrders(loadedOrders);
-    }
-    setOrdersCursor(docs[docs.length - 1] || null);
-    setHasMoreOrders(docs.length === 50);
+  const handlePrevOrdersPage = () => {
+    if (ordersPage <= 1 || loadingOrders || !customerId) return;
+    const prevCursor = ordersCursorStack[ordersPage - 3] || null;
+    fetchCustomerOrders(customerId, prevCursor, 'prev');
   };
 
   // Add instant memo / timeline note to customer document
@@ -332,7 +454,7 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
       id: `note-${Date.now()}`,
       text: newNote.trim(),
       type: 'note' as const,
-      by: 'Operator (PIN 1981)',
+      by: 'Nexus Operator',
       createdAt: new Date().toISOString(),
       at: new Date().toISOString()
     };
@@ -439,25 +561,55 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
             <div className="p-4 bg-[#111110] border-b border-zinc-850">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                    <span>{customer.name}</span>
-                    <span className="text-xs text-zinc-400">{customer.flag}</span>
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                      <span>{customer.name}</span>
+                      <span className="text-xs text-zinc-400">{customer.flag}</span>
+                    </h2>
+                  </div>
+
                   {customer.companyName && customer.companyName !== customer.name && (
                     <div className="text-xs text-amber-500/90 font-medium mt-0.5">
                       {customer.companyName}
                     </div>
                   )}
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
+
+                  {/* Segment Badges: VIP Whale, Active Repeat, Dormant, Warm Lead */}
+                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                    {calculateCustomerSegmentBadges(customer).map(badge => {
+                      const badgeStyles = {
+                        amber: 'bg-amber-950/80 border-amber-800/80 text-amber-300',
+                        emerald: 'bg-emerald-950/80 border-emerald-800/80 text-emerald-300',
+                        coral: 'bg-rose-950/80 border-rose-800/80 text-rose-300',
+                        zinc: 'bg-zinc-900 border-zinc-700 text-zinc-300'
+                      }[badge.tone];
+
+                      return (
+                        <span
+                          key={badge.label}
+                          title={badge.description}
+                          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${badgeStyles}`}
+                        >
+                          {badge.label === 'VIP Whale' && '👑 '}
+                          {badge.label === 'Active Repeat' && '🔄 '}
+                          {badge.label === 'Dormant' && '⏳ '}
+                          {badge.label === 'Warm Lead' && '🌱 '}
+                          {badge.label}
+                        </span>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 mt-2.5 text-xs">
                     {/* Canonical Phone Badge */}
-                    <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded text-xs text-emerald-400 font-mono">
-                      <span>📞</span>
-                      <span>{customer.phone || 'No phone recorded'}</span>
-                      {customer.phone && (
+                    <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded text-emerald-400 font-mono">
+                      <span>📞 Canonical:</span>
+                      <span>{customer.normalizedPhone || customer.phone || 'None'}</span>
+                      {(customer.normalizedPhone || customer.phone) && (
                         <button
                           onClick={() => {
                             if (navigator.clipboard) {
-                              navigator.clipboard.writeText(customer.phone!);
+                              navigator.clipboard.writeText(customer.normalizedPhone || customer.phone!);
                             }
                           }}
                           title="Copy canonical phone"
@@ -468,32 +620,58 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                       )}
                     </div>
 
-                    {customer.email && (
-                      <span className="text-xs text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded">
-                        ✉️ {customer.email}
+                    {/* Raw Phone Display */}
+                    {customer.rawPhone && (
+                      <span className="text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded font-mono text-[11px]">
+                        Raw: {customer.rawPhone}
                       </span>
                     )}
 
-                    <span className="text-xs text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded">
-                      🌍 {customer.country}
+                    {/* Location Badge */}
+                    <span className="text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded">
+                      📍 {customer.addresses?.[0]?.city || (customer.country === 'BD' ? 'Dhaka, Bangladesh' : customer.country || 'Bangladesh')}
                     </span>
+
+                    {customer.email && (
+                      <span className="text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded">
+                        ✉️ {customer.email}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* WhatsApp Action Button */}
-                {customer.phone && (
-                  <button
-                    onClick={() => onOpenWhatsApp && onOpenWhatsApp(customer.id, customer.phone!)}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded flex items-center gap-1.5 transition-all shadow-md shrink-0"
-                  >
-                    <span>📲</span>
-                    <span>WhatsApp</span>
-                  </button>
+                {/* Direct WhatsApp Action Button */}
+                {(customer.normalizedPhone || customer.phone) && (
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <button
+                      onClick={() => {
+                        const cleanDigits = (customer.normalizedPhone || customer.phone || '').replace(/[^0-9]/g, '');
+                        if (onOpenWhatsApp) {
+                          onOpenWhatsApp(customer.id, customer.normalizedPhone || customer.phone!);
+                        } else if (cleanDigits) {
+                          const greeting = `Hello ${customer.contactPerson || customer.name}, Hands & Head Nexus regarding your orders and bespoke leather catalog. How can we assist you today?`;
+                          window.open(`https://wa.me/${cleanDigits}?text=${encodeURIComponent(greeting)}`, '_blank');
+                        }
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded flex items-center gap-1.5 transition-all shadow-md"
+                    >
+                      <span>📲</span>
+                      <span>WhatsApp Direct</span>
+                    </button>
+                    <a
+                      href={`https://wa.me/${(customer.normalizedPhone || customer.phone || '').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${customer.contactPerson || customer.name}, Hands & Head Nexus desk here.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-zinc-500 hover:text-emerald-400 underline"
+                    >
+                      Open wa.me link ↗
+                    </a>
+                  </div>
                 )}
               </div>
 
-              {/* 4 Financial & Ledger Intelligence Metrics */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+              {/* 5 Financial & Commerce Aggregates */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-4">
                 <div className="bg-[#161615] border border-zinc-800 p-2.5 rounded">
                   <div className="text-[10px] text-zinc-500 uppercase">LIFETIME VALUE (LTV)</div>
                   <div className="text-base font-bold text-[#d4af37] mt-1 font-mono">
@@ -502,13 +680,32 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                 </div>
 
                 <div className="bg-[#161615] border border-zinc-800 p-2.5 rounded">
-                  <div className="text-[10px] text-zinc-500 uppercase">TOTAL ORDERS</div>
+                  <div className="text-[10px] text-zinc-500 uppercase">COMPLETED ORDERS</div>
                   <div className="text-base font-bold text-white mt-1 font-mono">
-                    {customer.ordersCount ?? customer.totalOrders ?? 0}
+                    {customer.completedOrdersCount ?? customer.ordersCount ?? customer.totalOrders ?? 0}
                   </div>
                 </div>
 
                 <div className="bg-[#161615] border border-zinc-800 p-2.5 rounded">
+                  <div className="text-[10px] text-zinc-500 uppercase">AVG ORDER VALUE (AOV)</div>
+                  <div className="text-base font-bold text-zinc-300 mt-1 font-mono">
+                    ৳
+                    {customer.totalOrders && customer.totalOrders > 0
+                      ? Math.round((customer.totalSpent || 0) / customer.totalOrders).toLocaleString()
+                      : customer.aov || 0}
+                  </div>
+                </div>
+
+                <div className="bg-[#161615] border border-zinc-800 p-2.5 rounded">
+                  <div className="text-[10px] text-zinc-500 uppercase">FIRST PURCHASE</div>
+                  <div className="text-xs font-semibold text-zinc-300 mt-1 truncate">
+                    {customer.firstOrderAt
+                      ? new Date(customer.firstOrderAt).toLocaleDateString()
+                      : (customer.lastOrderAt ? new Date(customer.lastOrderAt).toLocaleDateString() : 'None recorded')}
+                  </div>
+                </div>
+
+                <div className="bg-[#161615] border border-zinc-800 p-2.5 rounded col-span-2 sm:col-span-1">
                   <div className="text-[10px] text-zinc-500 uppercase">LAST PURCHASE</div>
                   <div className="text-xs font-semibold text-zinc-300 mt-1 truncate">
                     {customer.lastOrderAt
@@ -516,29 +713,25 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                       : 'No purchase yet'}
                   </div>
                 </div>
-
-                <div className="bg-[#161615] border border-zinc-800 p-2.5 rounded">
-                  <div className="text-[10px] text-zinc-500 uppercase">AVG ORDER VALUE</div>
-                  <div className="text-base font-bold text-zinc-300 mt-1 font-mono">
-                    ৳
-                    {customer.totalOrders && customer.totalOrders > 0
-                      ? Math.round((customer.totalSpent || 0) / customer.totalOrders).toLocaleString()
-                      : 0}
-                  </div>
-                </div>
               </div>
 
-              {/* Tags & Cohort Classification */}
-              <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-zinc-800/80">
-                <span className="text-[10px] text-zinc-500 uppercase tracking-wide mr-1">COHORTS:</span>
-                {(customer.tags || []).map((t, idx) => (
-                  <span
-                    key={idx}
-                    className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-300 px-2 py-0.5 rounded"
-                  >
-                    #{t}
-                  </span>
-                ))}
+              {/* Tags, Cohorts & Operator Notes Summary */}
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-zinc-800/80 text-xs">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wide mr-1">COHORTS:</span>
+                  {(customer.tags || []).map((t, idx) => (
+                    <span
+                      key={idx}
+                      className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-300 px-2 py-0.5 rounded"
+                    >
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+                <div className="text-zinc-500 text-[11px] flex items-center gap-1">
+                  <span>📝</span>
+                  <span>{customer.notes?.length || 0} Operator Memo(s)</span>
+                </div>
               </div>
             </div>
 
@@ -793,18 +986,26 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
               </div>
             )}
 
-            {/* Tab 2: Orders Ledger with Limit 50 Server Cursor & Reorder Action */}
+            {/* Tab 2: Orders Ledger with Limit 10 Server Cursor & Reorder Action */}
             {activeTab === 'orders' && (
               <div className="p-4 flex-1 flex flex-col">
                 <div className="text-[11px] text-zinc-500 mb-2 flex items-center justify-between">
-                  <span>Order records and item ledgers:</span>
-                  <span className="text-amber-500 font-mono font-bold">Total: {orders.length}</span>
+                  <div className="flex items-center gap-2">
+                    <span>Order timeline & items ledger</span>
+                    <span className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-2 py-0.5 rounded">
+                      Limit 10 per page
+                    </span>
+                  </div>
+                  <span className="text-amber-500 font-mono font-bold">
+                    Page {ordersPage} {hasMoreOrders ? '(more available)' : ''}
+                  </span>
                 </div>
 
                 <div className="space-y-2 flex-1">
                   {loadingOrders && orders.length === 0 ? (
-                    <div className="text-center py-8 text-zinc-500 text-xs">
-                      Querying orders collection…
+                    <div className="text-center py-8 text-zinc-500 text-xs flex flex-col items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                      <span>Querying customer order collection…</span>
                     </div>
                   ) : orders.length === 0 ? (
                     <div className="text-center py-8 text-zinc-500 text-xs">
@@ -814,11 +1015,11 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                     orders.map(o => (
                       <div
                         key={o.id}
-                        className="p-3 bg-[#161615] border border-zinc-850 rounded-lg text-xs"
+                        className="p-3 bg-[#161615] border border-zinc-850 rounded-lg text-xs hover:border-zinc-700 transition-colors"
                       >
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-white">{o.orderNumber}</span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-white font-mono">{o.orderNumber || o.id}</span>
                             <span
                               className={`text-[9px] uppercase px-1.5 py-0.5 rounded font-bold ${
                                 o.paymentStatus === 'paid'
@@ -828,9 +1029,18 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                             >
                               {o.paymentStatus}
                             </span>
+                            <span
+                              className={`text-[9px] uppercase px-1.5 py-0.5 rounded font-bold ${
+                                o.fulfillmentStatus === 'fulfilled'
+                                  ? 'bg-emerald-950/60 border border-emerald-800/60 text-emerald-300'
+                                  : 'bg-zinc-900 border border-zinc-700 text-zinc-300'
+                              }`}
+                            >
+                              {o.fulfillmentStatus}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <div className="font-bold text-amber-400 font-mono">
+                            <div className="font-bold text-amber-400 font-mono text-sm">
                               ৳{o.total.toLocaleString()}
                             </div>
                             {/* Reorder Action */}
@@ -852,13 +1062,13 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                         </div>
 
                         <div className="text-[10px] text-zinc-400 mt-1.5 flex items-center justify-between">
-                          <span>{new Date(o.createdAt).toLocaleString()}</span>
+                          <span>📅 {new Date(o.createdAt).toLocaleString()}</span>
                           <span className="text-zinc-500">
                             {(o.lineItems || []).length} item(s)
                           </span>
                         </div>
 
-                        {/* Line items preview */}
+                        {/* Item Summary preview */}
                         <div className="mt-2 pt-2 border-t border-zinc-800/60 flex flex-wrap gap-1.5">
                           {(o.lineItems || []).map((item, i) => (
                             <span
@@ -874,15 +1084,28 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                   )}
                 </div>
 
-                {hasMoreOrders && (
+                {/* 10-Item Cursor Pagination Controls */}
+                <div className="mt-3 pt-3 border-t border-zinc-800/80 flex items-center justify-between gap-3 text-xs">
                   <button
-                    onClick={() => fetchCustomerOrders(customer.id, ordersCursor)}
-                    disabled={loadingOrders}
-                    className="mt-3 w-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 py-2 rounded text-xs text-zinc-300 font-semibold transition-all"
+                    onClick={handlePrevOrdersPage}
+                    disabled={ordersPage <= 1 || loadingOrders}
+                    className="flex-1 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed border border-zinc-800 py-2 rounded text-zinc-300 font-semibold transition-all text-center"
                   >
-                    {loadingOrders ? 'Loading next 50…' : 'Load Next 50 Orders →'}
+                    ← Previous 10
                   </button>
-                )}
+
+                  <div className="text-zinc-500 font-mono text-[11px] shrink-0">
+                    Page {ordersPage}
+                  </div>
+
+                  <button
+                    onClick={handleNextOrdersPage}
+                    disabled={!hasMoreOrders || loadingOrders}
+                    className="flex-1 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed border border-zinc-800 py-2 rounded text-zinc-300 font-semibold transition-all text-center"
+                  >
+                    Next 10 →
+                  </button>
+                </div>
               </div>
             )}
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { getFirestore, writeBatch, doc, collection, getDocs, query, where } from 'firebase/firestore';
 import { normalizeBangladeshPhone } from '../utils/phoneNormalizer';
+import { formatDriveThumbnailUrl, ProductAsset } from '../utils/assetResolver';
 
 export interface ParsedMediaToken {
   raw: string;
@@ -208,17 +209,34 @@ export const ApolloDriveIngestion: React.FC = () => {
 
         if (!snap.empty) {
           const pDoc = snap.docs[0];
-          const currentImages = pDoc.data().images || [];
-          const newImages = tokens.map((t, idx) => ({
+          const pData = pDoc.data();
+          const currentImages = pData.images || [];
+          const currentAssets: ProductAsset[] = pData.assets || [];
+
+          // Standardized thumbnail URL from assetResolver
+          const newImages = tokens.map((t) => ({
             id: `img-${t.sku}-${t.sequence}`,
-            url: `https://drive.google.com/thumbnail?id=${t.raw}`,
+            url: formatDriveThumbnailUrl(t.raw, 800),
             alt: `${t.sku} ${t.colorVariant} ${t.sequence}`,
             sequence: t.sequence,
             variant: t.colorVariant
           }));
 
+          // Storage-Agnostic Assets (Future-Proof R2 Migration)
+          const newAssets: ProductAsset[] = tokens.map((t, idx) => ({
+            id: `asset-${t.sku}-${t.sequence}`,
+            driveUrl: formatDriveThumbnailUrl(t.raw, 800),
+            cdnUrl: null, // Ready for future Cloudflare R2 migration
+            storageType: 'drive',
+            sequence: t.sequence,
+            isPrimary: t.sequence === 1 || idx === 0,
+            altText: `${t.sku} ${t.colorVariant} View ${t.sequence}`,
+            mimeType: t.extension === 'webp' ? 'image/webp' : `image/${t.extension}`
+          }));
+
           batch.update(pDoc.ref, {
             images: [...currentImages, ...newImages],
+            assets: [...currentAssets, ...newAssets],
             updatedAt: new Date().toISOString()
           });
         }
@@ -372,16 +390,27 @@ export const ApolloDriveIngestion: React.FC = () => {
               <table className="w-full text-left text-xs border-collapse">
                 <thead className="bg-zinc-950 text-zinc-400 text-[10px] sticky top-0">
                   <tr>
+                    <th className="p-2">Preview</th>
                     <th className="p-2">Target SKU</th>
                     <th className="p-2">Color / Variant</th>
                     <th className="p-2">Sequence</th>
                     <th className="p-2">Ext</th>
-                    <th className="p-2">Original Filename</th>
+                    <th className="p-2">Drive Filename / Asset ID</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-850">
                   {stagedMedia.map((m, idx) => (
                     <tr key={idx}>
+                      <td className="p-2">
+                        <img
+                          src={formatDriveThumbnailUrl(m.raw, 80)}
+                          alt={m.sku}
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                          }}
+                          className="w-7 h-7 object-cover rounded bg-zinc-900 border border-zinc-800"
+                        />
+                      </td>
                       <td className="p-2 text-amber-400 font-bold">{m.sku}</td>
                       <td className="p-2 text-zinc-300">{m.colorVariant}</td>
                       <td className="p-2 text-zinc-400">#{m.sequence}</td>

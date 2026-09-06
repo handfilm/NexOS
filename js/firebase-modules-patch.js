@@ -3333,7 +3333,7 @@
                                  (state.minSpend && state.minSpend > 0 ? 1 : 0) + 
                                  (state.search && state.search.trim() ? 1 : 0);
 
-      target.innerHTML = modHeader("Customer Directory", `${totalCount.toLocaleString()} buyer profiles · ৳${totalSpentAll.toLocaleString()} lifetime spend · PIN 1981 Live Database`, [
+      target.innerHTML = modHeader("Customer Directory", `${totalCount.toLocaleString()} buyer profiles · ৳${totalSpentAll.toLocaleString()} lifetime spend · Verified Operator Database`, [
         { label: "📲 WhatsApp Broadcast", fn: `window.openWhatsAppCampaignStudio({ cohort: '${state.cohortTag || 'all'}', minSpend: ${state.minSpend || 0} })`, primary: false },
         { label: "⚡ Apollo & Drive Ingest", fn: "window.BulkImportEngine.openApolloDriveIngestionModal()", primary: false },
         { label: "📥 Bulk Import (CSV/Excel)", fn: "window.BulkImportEngine.openCustomerImportModal()", primary: false },

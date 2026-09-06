@@ -16,6 +16,11 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { normalizeBangladeshPhone } from '../utils/phoneNormalizer';
+import {
+  BroadcastQueueRunner,
+  BroadcastCampaignRecord,
+  BroadcastRecipient
+} from '../services/broadcastService';
 
 export interface CampaignHistoryRecord {
   id: string;
@@ -68,6 +73,19 @@ export const SmartAudienceBuilder: React.FC<SmartAudienceBuilderProps> = ({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'builder' | 'history'>('builder');
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  // Controlled Broadcast Queue Runner State
+  const [queueRunner, setQueueRunner] = useState<BroadcastQueueRunner | null>(null);
+  const [queueProgress, setQueueProgress] = useState<{
+    currentIndex: number;
+    total: number;
+    initiatedCount: number;
+    failedCount: number;
+    currentRecipient?: BroadcastRecipient;
+    status: 'RUNNING' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+  } | null>(null);
+  const [dispatchDelaySec, setDispatchDelaySec] = useState<number>(3);
+  const [showQueueModal, setShowQueueModal] = useState<boolean>(false);
 
   // Dynamic variable insertion
   const insertVariable = (variable: string) => {
@@ -271,6 +289,64 @@ export const SmartAudienceBuilder: React.FC<SmartAudienceBuilderProps> = ({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Launch Controlled Queue Runner with Rate Throttling (2-4s)
+  const handleStartThrottledBroadcast = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!campaignTitle.trim()) return;
+
+    // Filter recipients with valid phone numbers
+    const validRecipients = (sampleAudience || [])
+      .map(c => ({
+        id: c.id || `c-${Math.random().toString(36).slice(2, 7)}`,
+        name: c.name || c.companyName || 'Valued Client',
+        phone: c.normalizedPhone || (c.phone ? normalizeBangladeshPhone(c.phone) : '')
+      }))
+      .filter(r => r.phone && r.phone.length >= 8);
+
+    if (validRecipients.length === 0) {
+      setSuccessBanner('⚠️ No valid phone numbers found in selected cohort to queue.');
+      return;
+    }
+
+    const runner = new BroadcastQueueRunner({
+      campaignName: campaignTitle.trim(),
+      messageTemplate: messageTemplate,
+      recipients: validRecipients,
+      delayMs: dispatchDelaySec * 1000,
+      promoCode: promoCode,
+      productReferences: preSelectedProductIds,
+      audienceFilter: {
+        cohortTag,
+        minSpend,
+        category: selectedCategory
+      },
+      onProgress: (prog) => {
+        setQueueProgress({ ...prog });
+        if (prog.status === 'COMPLETED') {
+          const camp = runner.getCampaignRecord();
+          setCampaignHistory(prev => [
+            {
+              id: camp.id,
+              title: camp.name,
+              cohortFilter: `${selectedCategory.toUpperCase()} · Min ৳${minSpend.toLocaleString()} · #${cohortTag.toUpperCase()}`,
+              audienceCount: camp.recipientCount,
+              messageTemplate: camp.messageTemplate,
+              timestamp: camp.timestamp,
+              status: 'dispatched',
+              category: selectedCategory,
+              minSpend: minSpend
+            },
+            ...prev
+          ]);
+        }
+      }
+    });
+
+    setQueueRunner(runner);
+    setShowQueueModal(true);
+    runner.start();
   };
 
   // Live variable sample replacement for preview
@@ -633,19 +709,59 @@ export const SmartAudienceBuilder: React.FC<SmartAudienceBuilderProps> = ({
                 </div>
               </div>
 
-              {/* Submit & Commit Button */}
-              <button
-                type="submit"
-                disabled={isSubmitting || audienceCount === 0}
-                className="w-full bg-[#c81d11] hover:bg-red-700 disabled:opacity-50 text-white font-bold py-3 rounded text-xs transition-all flex items-center justify-center gap-2 shadow-lg"
-              >
-                <span>🚀</span>
-                <span>
-                  {isSubmitting
-                    ? 'Committing to broadcast_campaigns…'
-                    : `SUBMIT & DISPATCH TO ${audienceCount.toLocaleString()} BUYERS`}
-                </span>
-              </button>
+              {/* Throttled Queue Delay Configuration */}
+              <div className="bg-[#161615] border border-zinc-800 p-3 rounded-lg flex items-center justify-between text-xs font-mono">
+                <div>
+                  <div className="text-[10px] uppercase text-amber-500 font-bold">
+                    Controlled Dispatch Throttle
+                  </div>
+                  <div className="text-[10px] text-zinc-400">
+                    Human cadence interval between WhatsApp dispatches
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {[2, 3, 4].map(sec => (
+                    <button
+                      key={sec}
+                      type="button"
+                      onClick={() => setDispatchDelaySec(sec)}
+                      className={`px-2.5 py-1 text-[11px] rounded font-bold transition-all ${
+                        dispatchDelaySec === sec
+                          ? 'bg-amber-500 text-black font-extrabold shadow'
+                          : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      {sec}.0s{sec === 3 ? ' (Ideal)' : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleStartThrottledBroadcast}
+                  disabled={sampleAudience.length === 0}
+                  className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-bold py-3 rounded text-xs transition-all flex items-center justify-center gap-2 shadow-lg"
+                >
+                  <span>⚡</span>
+                  <span>LAUNCH CONTROLLED QUEUE ({sampleAudience.length} LEADS)</span>
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting || audienceCount === 0}
+                  className="bg-[#c81d11] hover:bg-red-700 disabled:opacity-40 text-white font-bold py-3 rounded text-xs transition-all flex items-center justify-center gap-2 shadow-lg"
+                >
+                  <span>🚀</span>
+                  <span>
+                    {isSubmitting
+                      ? 'Committing…'
+                      : `DIRECT COMMIT (${audienceCount.toLocaleString()} BUYERS)`}
+                  </span>
+                </button>
+              </div>
             </form>
           </div>
         </div>
@@ -700,6 +816,161 @@ export const SmartAudienceBuilder: React.FC<SmartAudienceBuilderProps> = ({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Controlled Queue Runner Modal / Overlay */}
+      {showQueueModal && queueProgress && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#161615] border border-zinc-800 rounded-xl max-w-lg w-full p-5 font-mono shadow-2xl space-y-4 text-zinc-300 animate-in fade-in duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    queueProgress.status === 'RUNNING'
+                      ? 'bg-emerald-500 animate-ping'
+                      : queueProgress.status === 'PAUSED'
+                      ? 'bg-amber-500'
+                      : queueProgress.status === 'COMPLETED'
+                      ? 'bg-blue-500'
+                      : 'bg-zinc-600'
+                  }`}
+                />
+                <span className="text-xs font-bold text-white uppercase tracking-wider">
+                  Controlled WhatsApp Queue Runner
+                </span>
+              </div>
+              <span
+                className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
+                  queueProgress.status === 'RUNNING'
+                    ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                    : queueProgress.status === 'PAUSED'
+                    ? 'bg-amber-950 text-amber-400 border border-amber-800'
+                    : queueProgress.status === 'COMPLETED'
+                    ? 'bg-blue-950 text-blue-400 border border-blue-800'
+                    : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+                }`}
+              >
+                {queueProgress.status}
+              </span>
+            </div>
+
+            {/* Cadence Info */}
+            <div className="text-[11px] text-zinc-400 flex items-center justify-between">
+              <span>Throttle Cadence: <strong className="text-amber-400">{dispatchDelaySec}.0s</strong> per dispatch</span>
+              <span>Total Batch: <strong className="text-white">{queueProgress.total}</strong> recipients</span>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[10px] text-zinc-400 font-mono">
+                <span>Progress: {queueProgress.initiatedCount + queueProgress.failedCount} / {queueProgress.total}</span>
+                <span>
+                  {Math.round(
+                    ((queueProgress.initiatedCount + queueProgress.failedCount) /
+                      Math.max(queueProgress.total, 1)) *
+                      100
+                  )}
+                  %
+                </span>
+              </div>
+              <div className="w-full bg-zinc-900 border border-zinc-800 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-emerald-500 h-full transition-all duration-300"
+                  style={{
+                    width: `${Math.round(
+                      ((queueProgress.initiatedCount + queueProgress.failedCount) /
+                        Math.max(queueProgress.total, 1)) *
+                        100
+                    )}%`
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Truth-Based Counters */}
+            <div className="grid grid-cols-3 gap-2 text-center text-xs">
+              <div className="bg-zinc-900/90 border border-zinc-800 p-2 rounded">
+                <div className="text-[9px] uppercase text-zinc-500">Queued</div>
+                <div className="text-sm font-bold text-zinc-300 mt-0.5">
+                  {Math.max(
+                    0,
+                    queueProgress.total - queueProgress.initiatedCount - queueProgress.failedCount
+                  )}
+                </div>
+              </div>
+              <div className="bg-emerald-950/40 border border-emerald-900/50 p-2 rounded">
+                <div className="text-[9px] uppercase text-emerald-400">Opened / Initiated</div>
+                <div className="text-sm font-bold text-emerald-300 mt-0.5">
+                  {queueProgress.initiatedCount}
+                </div>
+              </div>
+              <div className="bg-red-950/40 border border-red-900/50 p-2 rounded">
+                <div className="text-[9px] uppercase text-red-400">Failed / Invalid</div>
+                <div className="text-sm font-bold text-red-300 mt-0.5">
+                  {queueProgress.failedCount}
+                </div>
+              </div>
+            </div>
+
+            {/* Current Lead Card */}
+            <div className="bg-[#111110] border border-zinc-800 p-3 rounded-lg text-xs space-y-1">
+              <div className="text-[10px] uppercase text-zinc-500">Current Queue Item:</div>
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-zinc-200">
+                  {queueProgress.currentRecipient?.name || 'Processing…'}
+                </div>
+                <div className="text-amber-400 font-mono text-[11px]">
+                  {queueProgress.currentRecipient?.normalizedPhone || '—'}
+                </div>
+              </div>
+              <div className="text-[10px] text-zinc-500">
+                Status: <span className="text-zinc-300">{queueProgress.currentRecipient?.status || 'QUEUED'}</span>
+              </div>
+            </div>
+
+            {/* Operator Control Actions */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-800">
+              {queueProgress.status === 'RUNNING' && (
+                <button
+                  type="button"
+                  onClick={() => queueRunner?.pause()}
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-black font-bold rounded text-xs transition-all"
+                >
+                  ⏸ Pause Queue
+                </button>
+              )}
+
+              {queueProgress.status === 'PAUSED' && (
+                <button
+                  type="button"
+                  onClick={() => queueRunner?.resume()}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-xs transition-all"
+                >
+                  ▶ Resume Queue
+                </button>
+              )}
+
+              {queueProgress.status === 'RUNNING' || queueProgress.status === 'PAUSED' ? (
+                <button
+                  type="button"
+                  onClick={() => queueRunner?.cancel()}
+                  className="px-4 py-2 bg-zinc-850 hover:bg-red-950 border border-zinc-750 hover:border-red-800 text-zinc-300 hover:text-red-300 font-medium rounded text-xs transition-all"
+                >
+                  ✕ Cancel Queue
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowQueueModal(false)}
+                  className="px-5 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded text-xs transition-all"
+                >
+                  ✓ Close Queue View
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

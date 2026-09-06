@@ -71,6 +71,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
   const [orderNotes, setOrderNotes] = useState<string>('Quick Sale POS attribution');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [completedOrder, setCompletedOrder] = useState<any | null>(null);
 
   // Initialize selected customer if passed in props
   useEffect(() => {
@@ -79,6 +80,15 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
       setCustomerSearch(preSelectedCustomer.name || preSelectedCustomer.companyName || '');
     }
   }, [preSelectedCustomer]);
+
+  // Reset modal state when opening
+  useEffect(() => {
+    if (isOpen) {
+      setCompletedOrder(null);
+      setStatusMessage(null);
+      setIsProcessing(false);
+    }
+  }, [isOpen]);
 
   // Load initial customer & product lists with server-side limit 50
   useEffect(() => {
@@ -286,7 +296,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
           {
             event: 'Instant Quick Sale 2.0 POS Created',
             at: timestamp,
-            by: 'Operator (PIN 1981)',
+            by: 'Nexus Operator',
             notes: orderNotes
           }
         ]
@@ -295,8 +305,21 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
       // 1. Create order document in batch
       batch.set(orderRef, orderRecord);
 
-      // 2. Increment Customer's ordersCount, totalOrders, and totalSpent atomically
-      // 3. Add purchase record to Customer 360 timeline
+      // 2. Decrement inventory from product catalog atomically
+      if (selectedProduct.id) {
+        try {
+          const productRef = doc(db, 'products', selectedProduct.id);
+          batch.update(productRef, {
+            totalInventory: increment(-quantity),
+            updatedAt: timestamp
+          });
+        } catch (invErr) {
+          console.warn('[QuickSale] Non-fatal product inventory update note:', invErr);
+        }
+      }
+
+      // 3. Increment Customer's ordersCount, totalOrders, and totalSpent atomically
+      // 4. Add purchase record to Customer 360 timeline
       const timelineMemo = {
         id: `qs-${Date.now()}`,
         text: `⚡ Quick Sale 2.0: ${selectedProduct.title} (${quantity}x) — ৳${orderTotal.toLocaleString()} [${paymentMode}]`,
@@ -318,20 +341,23 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
         notes: arrayUnion(timelineMemo)
       });
 
-      // 4. Commit atomic batch
+      // 5. Commit atomic batch
       await batch.commit();
 
+      // 6. Non-blocking server cache synchronization
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderRecord)
+      }).catch(err => console.warn('[QuickSale] Server sync notice:', err));
+
       setStatusMessage('Order attributed! Attributed to Customer 360 ledger.');
+      setCompletedOrder(orderRecord);
 
       if (onSuccess) {
         onSuccess(orderRecord);
       }
-
-      setTimeout(() => {
-        setIsProcessing(false);
-        setStatusMessage(null);
-        onClose();
-      }, 1200);
+      setIsProcessing(false);
     } catch (err: any) {
       console.error('[QuickSale] Atomic transaction failure:', err);
       setStatusMessage(`Transaction error: ${err?.message || 'Check Firestore permissions'}`);
@@ -364,14 +390,105 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
           </button>
         </div>
 
-        {statusMessage && (
+        {statusMessage && !completedOrder && (
           <div className="bg-emerald-950 border-b border-emerald-800 px-4 py-2 text-xs text-emerald-300 flex items-center gap-2">
             <span className="animate-spin">●</span>
             <span>{statusMessage}</span>
           </div>
         )}
 
-        {/* Form Body */}
+        {/* Post-Sale Receipt & Attribution Confirmation */}
+        {completedOrder ? (
+          <div className="p-6 flex-1 flex flex-col items-center justify-center text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-2xl text-emerald-400">
+              ✓
+            </div>
+
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-emerald-400 font-bold">
+                TRANSACTION ATOMICALLY COMMITTED
+              </div>
+              <h3 className="text-xl font-bold text-white font-mono mt-1">
+                {completedOrder.orderNumber}
+              </h3>
+              <p className="text-xs text-zinc-400 mt-1">
+                Attributed to <span className="text-zinc-200 font-bold">{completedOrder.customerSnapshot?.name}</span> · ৳{completedOrder.total?.toLocaleString()}
+              </p>
+            </div>
+
+            {/* Receipt Details Box */}
+            <div className="w-full bg-[#161615] border border-zinc-800 rounded-lg p-3 text-left font-mono text-xs space-y-1.5 text-zinc-300">
+              <div className="flex justify-between text-zinc-400 text-[10px]">
+                <span>ITEM</span>
+                <span>QTY · PRICE</span>
+              </div>
+              <div className="flex justify-between font-bold text-white">
+                <span>{completedOrder.lineItems?.[0]?.title}</span>
+                <span>{completedOrder.lineItems?.[0]?.quantity}x · ৳{completedOrder.total?.toLocaleString()}</span>
+              </div>
+              <div className="pt-2 border-t border-zinc-800 text-[11px] flex justify-between text-zinc-400">
+                <span>Payment Mode:</span>
+                <span className="text-emerald-400 font-bold">{completedOrder.paymentMode}</span>
+              </div>
+              <div className="flex justify-between text-[11px] text-zinc-400">
+                <span>Customer Phone:</span>
+                <span className="text-zinc-200">{completedOrder.customerSnapshot?.phone}</span>
+              </div>
+            </div>
+
+            {/* Actions: Dispatch WhatsApp Receipt & Close */}
+            <div className="w-full space-y-2 pt-2">
+              {completedOrder.customerSnapshot?.phone && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const cleanPhone = (completedOrder.customerSnapshot?.phone || '').replace(/[^0-9]/g, '');
+                    const itemTitle = completedOrder.lineItems?.[0]?.title || 'Bespoke Item';
+                    const qty = completedOrder.lineItems?.[0]?.quantity || 1;
+                    const price = completedOrder.total || 0;
+                    const receiptMsg =
+                      `*HANDS & HEAD NEXUS · ORDER RECEIPT*\n` +
+                      `━━━━━━━━━━━━━━━━━━━━\n` +
+                      `Invoice / Order: ${completedOrder.orderNumber}\n` +
+                      `Customer: ${completedOrder.customerSnapshot?.name || 'Valued Client'}\n` +
+                      `Item: ${itemTitle} (${qty}x)\n` +
+                      `Amount: ৳${price.toLocaleString()} [${completedOrder.paymentMode || 'Paid'}]\n` +
+                      `Status: ${completedOrder.fulfillmentStatus || 'Fulfilled'}\n` +
+                      `Date: ${new Date(completedOrder.createdAt).toLocaleDateString()}\n` +
+                      `━━━━━━━━━━━━━━━━━━━━\n` +
+                      `Thank you for your patronage with Hands & Head Atelier.`;
+                    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(receiptMsg)}`, '_blank');
+                  }}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded text-xs transition-all flex items-center justify-center gap-2 shadow-lg"
+                >
+                  <span>📲</span>
+                  <span>Dispatch WhatsApp Receipt to Customer</span>
+                </button>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCompletedOrder(null);
+                    setStatusMessage(null);
+                  }}
+                  className="flex-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 py-2 rounded text-xs font-semibold transition-all"
+                >
+                  + New Quick Sale
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-2 rounded text-xs font-semibold transition-all"
+                >
+                  Done & Return to Nexus
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+        /* Form Body */
         <form onSubmit={handleProcessSale} className="p-4 overflow-y-auto space-y-4 flex-1">
           {/* 1. Customer Selection */}
           <div className="bg-[#161615] border border-zinc-800 p-3.5 rounded-lg space-y-2">
@@ -589,6 +706,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
             </span>
           </button>
         </form>
+        )}
       </div>
     </div>
   );

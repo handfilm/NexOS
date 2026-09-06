@@ -1158,9 +1158,18 @@ if (!fs.existsSync(ORDERS_FILE) || safeReadJson(ORDERS_FILE, []).length === 0) {
   safeWriteJson(ORDERS_FILE, seedOrders);
 }
 
-/* ── PIN Authentication Verification ── */
+/* ── PIN & Google Authentication Verification ── */
 const OPERATOR_PIN = process.env.OPERATOR_PIN || '1981';
 const PRODUCTION_PIN = process.env.PRODUCTION_PIN || '2024';
+
+const OPERATOR_WHITELIST = [
+  'rakib.himon@gmail.com',
+  'admin@handsandhead.com',
+  'operator@handsandhead.com',
+  'lead@handsandhead.com',
+  'seller@handsandhead.com',
+  'handfilm.ai@gmail.com'
+];
 
 app.post('/api/auth/pin', (req, res) => {
   const { pin } = req.body || {};
@@ -1192,6 +1201,33 @@ app.post('/api/auth/pin', (req, res) => {
     });
   }
   return res.status(401).json({ ok: false, error: 'Access Denied — Invalid 4-Digit Operator PIN' });
+});
+
+app.get('/api/auth/whitelist', (req, res) => {
+  res.json({ ok: true, whitelist: OPERATOR_WHITELIST });
+});
+
+app.post('/api/auth/verify-google', (req, res) => {
+  const { email } = req.body || {};
+  if (!email) {
+    return res.status(400).json({ ok: false, error: 'Email is required' });
+  }
+  const cleanEmail = String(email).toLowerCase().trim();
+  const isWhitelisted = OPERATOR_WHITELIST.map(e => e.toLowerCase().trim()).includes(cleanEmail);
+  if (!isWhitelisted) {
+    return res.status(403).json({
+      ok: false,
+      error: `Access Denied: ${cleanEmail} is not on the authorized operator whitelist.`
+    });
+  }
+  res.json({
+    ok: true,
+    role: 'admin',
+    name: cleanEmail.split('@')[0],
+    email: cleanEmail,
+    token: 'session_google_' + Date.now().toString(36),
+    permissions: ['read', 'write', 'admin', 'export', 'pos', 'campaigns']
+  });
 });
 
 /* ── 1. PRODUCTS REST API (Enterprise Pagination & Cursor Support) ── */
@@ -2915,6 +2951,39 @@ app.get('/api/campaigns/:id', (req, res) => {
         attributedOrders: attrOrders
       }
     });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Broadcast Campaigns Alias Routes
+app.get('/api/broadcast_campaigns', (req, res) => {
+  const list = getCampaignsList();
+  res.json({ ok: true, items: list, count: list.length });
+});
+
+app.post('/api/broadcast_campaigns', (req, res) => {
+  try {
+    const body = req.body || {};
+    const campaigns = getCampaignsList();
+    const newId = body.id || 'camp-' + Date.now().toString(36);
+    const record = {
+      id: newId,
+      name: body.name || `WhatsApp Broadcast — ${new Date().toLocaleDateString('en-GB')}`,
+      audienceFilter: body.audienceFilter || body.audienceFilters || {},
+      recipientCount: Number(body.recipientCount || 0),
+      initiatedCount: Number(body.initiatedCount || 0),
+      failedCount: Number(body.failedCount || 0),
+      messageTemplate: body.messageTemplate || '',
+      productReferences: Array.isArray(body.productReferences) ? body.productReferences : [],
+      promoCode: body.promoCode ? String(body.promoCode).trim().toUpperCase() : null,
+      attributionStatus: body.promoCode ? 'DETERMINISTIC_PROMO' : 'NOT TRACKED',
+      status: body.status || 'COMPLETED',
+      timestamp: body.timestamp || new Date().toISOString()
+    };
+    campaigns.unshift(record);
+    setCampaignsList(campaigns);
+    res.json({ ok: true, item: record, id: newId });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }

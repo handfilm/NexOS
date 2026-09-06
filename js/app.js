@@ -50,8 +50,8 @@
 const WHATSAPP = "8801974518600";
 const PINS = {
   lite:       null,
-  expert:     "1981",
-  production: "2024"   // Hiron's Production View PIN
+  expert:     null,
+  production: null
 };
 
 /* ── Local Storage ── */
@@ -1756,14 +1756,6 @@ async function tryGate() {
     isValid = await window.NexAuth.verifyOperatorPin(pin);
   }
 
-  // 3. Constant fallback
-  if (!isValid && typeof PINS !== 'undefined' && PINS[role]) {
-    isValid = (pin === PINS[role]);
-  }
-  if (!isValid && (pin === "1981" || pin === "2024")) {
-    isValid = true;
-  }
-
   if (isValid) {
     mode = role;
     expScreen = "dashboard";
@@ -1775,7 +1767,7 @@ async function tryGate() {
     closeGate();
     applyTheme(role);
     render();
-    toast(role === 'production' ? "Production View Active ✓" : "Operator OS Unlocked (PIN 1981 Verified) ✓");
+    toast(role === 'production' ? "Production View Active ✓" : "Operator OS Unlocked ✓");
   } else {
     toast("Access Denied — Incorrect Operator PIN");
     const g = document.getElementById("gate");

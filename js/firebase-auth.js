@@ -22,14 +22,7 @@
     return "legacy_" + Math.abs(hash).toString(16);
   }
 
-  // Pre-calculated hashes for default PINs ("1981", "2024", "0000")
-  const DEFAULT_PIN_HASHES = new Set([
-    "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", // 1234
-    "95c962b3227fa733d3c7343e8d2e67df1bb285e6834b64a27ea802f06b986e68", // 1981
-    "f2d81a260dea8a100dd5179847193b8529d32ec58b049baa2755a558f359d966", // 2024
-    "4a7d1ed414474e4033ac29ccb8653d9bce568fcd1feed561f672a65e454e9fa0"  // 0000
-  ]);
-
+  // Secure Server-Side Verified Operator PIN Gate
   window.NexAuth = {
     currentUser: null,       // Firebase Auth User
     profile: null,           // Firestore users/{uid} document
@@ -215,7 +208,7 @@
           await window.auth.signOut();
           return {
             ok: false,
-            error: `Access Denied: ${email} is not in the authorized Hands & Head operator whitelist. Please use the 4-digit PIN bypass (1981).`
+            error: `Access Denied: ${email} is not in the authorized Hands & Head operator whitelist. Please use 4-digit PIN verification.`
           };
         }
 
@@ -329,18 +322,23 @@
       return this.profile;
     },
 
-    /* ── Operator 4-Digit PIN Management (Client-side Cryptographic Verification) ── */
+    /* ── Operator 4-Digit PIN Management (Server-Side Verification) ── */
     async verifyOperatorPin(pin) {
       if (!pin || pin.length !== 4) return false;
-      const hash = await sha256(pin);
-      const uid = this.currentUser?.uid || "default";
-      const customHash = localStorage.getItem(`nx_pin_hash_${uid}`);
-
-      if (customHash) {
-        return hash === customHash;
+      try {
+        const res = await fetch("/api/auth/pin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          return !!data.ok;
+        }
+      } catch (err) {
+        console.debug("Remote PIN auth fallback:", err?.message);
       }
-      // Check default fallback hashes ("1981", "2024", "0000", "1234")
-      return DEFAULT_PIN_HASHES.has(hash);
+      return false;
     },
 
     async setOperatorPin(newPin) {

@@ -6612,4 +6612,4 @@ window.PERMANENT_SEEDED_CUSTOMERS = [
   }
 ];
 
-window.PERMANENT_CUSTOMER_DATABASE_INFO = { totalPermanentRecords: 15250, verifiedOperatorPin: "1981", activeStorage: "data/customers.json" };
+window.PERMANENT_CUSTOMER_DATABASE_INFO = { totalPermanentRecords: 15250, verifiedOperatorAuth: true, activeStorage: "data/customers.json" };
