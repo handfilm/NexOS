@@ -1270,7 +1270,104 @@
       searchQuery: "",
       statusFilter: "all", // 'all' | 'uncommitted' | 'committed'
       colorFilter: "all",
+      categoryFilter: "all",
       selectedIds: new Set()
+    },
+
+    detectCategory(rawName, code = "") {
+      const text = `${rawName || ""} ${code || ""}`.toUpperCase();
+
+      // 1. Jackets & Outerwear: JACKET, JKT, BIKER, BOMBER, BLAZER, COAT, OVERCOAT, VEST
+      if (/(?:^|[_\W-])(JACKET|JKTS?|BIKER|BOMBER|BLAZER|COAT|OVERCOAT|OUTERWEAR|TRENCH|WAISTCOAT)(?:$|[_\W-])/i.test(text) ||
+          text.includes("JACKET") || text.includes("JKT-") || text.includes("-JKT") || text.includes("_JKT_")) {
+        return {
+          category: "Jackets & Outerwear",
+          productType: "Leather Jackets",
+          categoryTag: "jacket",
+          categoryIcon: "🧥",
+          suggestedPrice: 7500
+        };
+      }
+
+      // 2. Wallets & Cardholders: WALLET, WLT, CARDHOLDER, CARD_HOLDER, PURSE, BILLFOLD, MONEYCLIP, CLUTCH
+      if (/(?:^|[_\W-])(WALLETS?|WLTS?|CARDHOLDER|CARD[\s_-]*HOLDERS?|PURSES?|BILLFOLD|MONEY[\s_-]*CLIP|CLUTCH)(?:$|[_\W-])/i.test(text) ||
+          text.includes("WALLET") || text.includes("WLT-") || text.includes("-WLT") || text.includes("_WLT_") || text.includes("CARDHOLDER")) {
+        return {
+          category: "Wallets & Small Leather Goods",
+          productType: "Wallets",
+          categoryTag: "wallet",
+          categoryIcon: "👛",
+          suggestedPrice: 1850
+        };
+      }
+
+      // 3. Belts: BELT, BLT, WAIST_BELT, STRAP
+      if (/(?:^|[_\W-])(BELTS?|BLTS?|WAIST[\s_-]*BELTS?)(?:$|[_\W-])/i.test(text) ||
+          text.includes("BELT") || text.includes("BLT-") || text.includes("-BLT") || text.includes("_BLT_")) {
+        return {
+          category: "Belts & Straps",
+          productType: "Leather Belts",
+          categoryTag: "belt",
+          categoryIcon: "🎗️",
+          suggestedPrice: 2200
+        };
+      }
+
+      // 4. Bags & Backpacks: BAG, BACKPACK, TOTE, DUFFLE, DUFFEL, MESSENGER, BRIEFCASE, SATCHEL, CROSSBODY, POUCH, HOLDALL
+      if (/(?:^|[_\W-])(BAGS?|BACKPACKS?|TOTES?|DUFFLES?|DUFFELS?|MESSENGER|BRIEFCASE|SATCHEL|CROSSBODY|POUCH(?:ES)?|HOLDALL)(?:$|[_\W-])/i.test(text) ||
+          text.includes("BAG") || text.includes("BACKPACK") || text.includes("TOTE") || text.includes("BRIEFCASE")) {
+        return {
+          category: "Bags & Backpacks",
+          productType: "Leather Bags",
+          categoryTag: "bag",
+          categoryIcon: "🎒",
+          suggestedPrice: 4200
+        };
+      }
+
+      // 5. Footwear & Shoes: SHOE, BOOT, LOAFER, SANDAL, SNEAKER, FOOTWEAR, DERBY, OXFORD
+      if (/(?:^|[_\W-])(SHOES?|BOOTS?|LOAFERS?|SANDALS?|SNEAKERS?|FOOTWEAR|DERBY|OXFORDS?)(?:$|[_\W-])/i.test(text) ||
+          text.includes("SHOE") || text.includes("BOOT") || text.includes("SANDAL") || text.includes("LOAFER")) {
+        return {
+          category: "Footwear & Shoes",
+          productType: "Footwear",
+          categoryTag: "footwear",
+          categoryIcon: "👞",
+          suggestedPrice: 3800
+        };
+      }
+
+      // 6. Accessories & Gifts: GLOVE, MITTEN, KEYCHAIN, KEYRING, FOB, ACCESSORY, ACC, GIFT
+      if (/(?:^|[_\W-])(GLOVES?|MITTENS?|KEYCHAINS?|KEYRINGS?|FOBS?|ACCESSOR(?:Y|IES)|GIFTS?)(?:$|[_\W-])/i.test(text) ||
+          text.includes("GLOVE") || text.includes("KEYCHAIN") || text.includes("GIFT")) {
+        return {
+          category: "Accessories & Gifts",
+          productType: "Accessories",
+          categoryTag: "accessory",
+          categoryIcon: "🎁",
+          suggestedPrice: 1500
+        };
+      }
+
+      // 7. RAWX Designer / Signature Collection
+      if (text.includes("RAWX") || text.includes("RAW-") || text.includes("RAWHIDE")) {
+        return {
+          category: "RAWX Atelier Collection",
+          productType: "Designer Leather",
+          categoryTag: "rawx",
+          categoryIcon: "✨",
+          suggestedPrice: 5500
+        };
+      }
+
+      // Default fallback
+      return {
+        category: "Export Leather Goods",
+        productType: "Leather Goods",
+        categoryTag: "leather-goods",
+        categoryIcon: "🏷️",
+        suggestedPrice: 4200
+      };
     },
 
     tokenizeFilename(rawName) {
@@ -1278,73 +1375,66 @@
       const ext = clean.includes(".") ? clean.split(".").pop().toLowerCase() : "jpg";
       const base = clean.replace(/\.[^/.]+$/, "");
 
+      let code = "";
+      let color = "DEFAULT";
+      let size = "ALL";
+      let sequence = 1;
+
       // 1. CODE__COLOR__SIZE__SEQUENCE (e.g. RAWX-JKT-001__BLACK__L__01)
       const m4 = base.match(/^([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)__([0-9]{1,3})$/i);
       if (m4) {
-        return {
-          code: m4[1].toUpperCase(),
-          color: m4[2].toUpperCase().replace(/_/g, " "),
-          size: m4[3].toUpperCase(),
-          sequence: parseInt(m4[4], 10),
-          ext,
-          category: "Jackets & Outerwear",
-          suggestedPrice: 5500
-        };
+        code = m4[1].toUpperCase();
+        color = m4[2].toUpperCase().replace(/_/g, " ");
+        size = m4[3].toUpperCase();
+        sequence = parseInt(m4[4], 10);
+      } else {
+        // 2. CODE__COLOR__SEQUENCE (e.g. RAWX-JKT-001__BLACK__01)
+        const m3 = base.match(/^([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)__([0-9]{1,3})$/i);
+        if (m3) {
+          code = m3[1].toUpperCase();
+          color = m3[2].toUpperCase().replace(/_/g, " ");
+          size = "STANDARD";
+          sequence = parseInt(m3[3], 10);
+        } else {
+          // 3. ALL BRANDS_ (XX)
+          const mBrand = base.match(/^ALL[\s_]*BRANDS[\s_]*\(?([0-9]+)\)?/i);
+          if (mBrand) {
+            const num = parseInt(mBrand[1], 10);
+            const palette = ["BLACK", "TAN", "COGNAC", "CHOCOLATE", "NAVY", "BURGUNDY", "OLIVE", "NATURAL"];
+            color = palette[(num - 1) % palette.length];
+            code = `HH-MASTER-${String(num).padStart(3, "0")}`;
+            size = "M/L/XL";
+            sequence = 1;
+          } else if (/^[0-9]{10,15}$/.test(base)) {
+            // 4. Raw timestamp/ID e.g. 1788335511411
+            code = `RAWX-${base.slice(-6)}`;
+            color = "RAW TAN";
+            size = "ONE-SIZE";
+            sequence = 1;
+          } else {
+            code = base.toUpperCase().replace(/[^A-Z0-9_-]/g, "-").slice(0, 22) || "HH-PRODUCT";
+            color = "CLASSIC BLACK";
+            size = "ALL";
+            sequence = 1;
+          }
+        }
       }
 
-      // 2. CODE__COLOR__SEQUENCE (e.g. RAWX-JKT-001__BLACK__01)
-      const m3 = base.match(/^([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)__([0-9]{1,3})$/i);
-      if (m3) {
-        return {
-          code: m3[1].toUpperCase(),
-          color: m3[2].toUpperCase().replace(/_/g, " "),
-          size: "STANDARD",
-          sequence: parseInt(m3[3], 10),
-          ext,
-          category: "Export Leather Goods",
-          suggestedPrice: 4800
-        };
-      }
-
-      // 3. ALL BRANDS_ (XX)
-      const mBrand = base.match(/^ALL[\s_]*BRANDS[\s_]*\(?([0-9]+)\)?/i);
-      if (mBrand) {
-        const num = parseInt(mBrand[1], 10);
-        const palette = ["BLACK", "TAN", "COGNAC", "CHOCOLATE", "NAVY", "BURGUNDY", "OLIVE", "NATURAL"];
-        const color = palette[(num - 1) % palette.length];
-        const categories = ["Leather Bags & Packs", "Bespoke Leatherwear", "Travel Accessories", "Small Leather Goods"];
-        return {
-          code: `HH-MASTER-${String(num).padStart(3, "0")}`,
-          color,
-          size: "M/L/XL",
-          sequence: 1,
-          ext,
-          category: categories[(num - 1) % categories.length],
-          suggestedPrice: 4200 + (num % 5) * 400
-        };
-      }
-
-      // 4. Raw timestamp/ID e.g. 1788335511411
-      if (/^[0-9]{10,15}$/.test(base)) {
-        return {
-          code: `RAWX-${base.slice(-6)}`,
-          color: "RAW TAN",
-          size: "ONE-SIZE",
-          sequence: 1,
-          ext,
-          category: "Rawhide Atelier Spec",
-          suggestedPrice: 4500
-        };
-      }
+      // Auto-detect product category from filename pattern
+      const cat = this.detectCategory(rawName, code);
 
       return {
-        code: base.toUpperCase().replace(/[^A-Z0-9_-]/g, "-").slice(0, 22) || "HH-PRODUCT",
-        color: "CLASSIC BLACK",
-        size: "ALL",
-        sequence: 1,
+        code,
+        color,
+        size,
+        sequence,
         ext,
-        category: "Export Leather Goods",
-        suggestedPrice: 4200
+        category: cat.category,
+        suggestedCategory: cat.category,
+        productType: cat.productType,
+        categoryTag: cat.categoryTag,
+        categoryIcon: cat.categoryIcon,
+        suggestedPrice: cat.suggestedPrice
       };
     },
 
@@ -1358,17 +1448,24 @@
         const data = await res.json();
 
         if (data.ok && Array.isArray(data.assets)) {
-          // Reconcile with current catalog cache
+          // Reconcile with current catalog cache and ensure categories are tokenized
           const catalog = window._lastProductsCache || [];
           const catalogSkus = new Set(catalog.map(p => (p.sku || "").toUpperCase()).filter(Boolean));
           const catalogImages = new Set(catalog.flatMap(p => (p.images || []).map(img => typeof img === 'string' ? img : img.url)));
 
           this.state.assets = data.assets.map(a => {
+            const detected = this.detectCategory(a.filename || a.name, a.code);
             const isCommitted = catalogSkus.has(a.code.toUpperCase()) || catalogImages.has(a.thumbnailUrl);
             const matchedProduct = isCommitted ? catalog.find(p => (p.sku || "").toUpperCase() === a.code.toUpperCase() || (p.images || []).some(img => (typeof img === 'string' ? img : img.url) === a.thumbnailUrl)) : null;
 
             return {
               ...a,
+              category: a.suggestedCategory || a.category || detected.category,
+              suggestedCategory: a.suggestedCategory || a.category || detected.category,
+              productType: a.productType || detected.productType,
+              categoryTag: a.categoryTag || detected.categoryTag,
+              categoryIcon: a.categoryIcon || detected.categoryIcon,
+              suggestedPrice: a.suggestedPrice || detected.suggestedPrice || 4200,
               isCommitted,
               productId: matchedProduct ? matchedProduct.id : null
             };
@@ -1466,6 +1563,8 @@
           a.code.toLowerCase().includes(q) ||
           a.color.toLowerCase().includes(q) ||
           a.filename.toLowerCase().includes(q) ||
+          (a.suggestedCategory && a.suggestedCategory.toLowerCase().includes(q)) ||
+          (a.productType && a.productType.toLowerCase().includes(q)) ||
           (a.size && a.size.toLowerCase().includes(q))
         );
       }
@@ -1476,6 +1575,12 @@
       }
       if (this.state.colorFilter && this.state.colorFilter !== "all") {
         list = list.filter(a => a.color.toUpperCase() === this.state.colorFilter.toUpperCase());
+      }
+      if (this.state.categoryFilter && this.state.categoryFilter !== "all") {
+        list = list.filter(a => 
+          (a.suggestedCategory || a.category || "").toUpperCase() === this.state.categoryFilter.toUpperCase() ||
+          (a.categoryTag || "").toUpperCase() === this.state.categoryFilter.toUpperCase()
+        );
       }
       return list;
     },
@@ -1488,18 +1593,24 @@
       }
 
       try {
-        toast(`Staging ${asset.code} to Firestore catalog…`);
+        const detected = this.detectCategory(asset.filename, asset.code);
+        const cat = asset.suggestedCategory || asset.category || detected.category;
+        const prodType = asset.productType || detected.productType;
+        const price = asset.suggestedPrice || detected.suggestedPrice || 4200;
+        const catTag = asset.categoryTag || detected.categoryTag || "leather-goods";
+
+        toast(`Staging ${asset.code} [${cat}] to Firestore catalog…`);
         const payload = {
-          title: `${asset.code} Leather Spec - ${asset.color}`,
-          handle: `${asset.code.toLowerCase()}-${asset.color.toLowerCase()}`,
+          title: `${asset.code} ${prodType} - ${asset.color}`,
+          handle: `${asset.code.toLowerCase()}-${asset.color.toLowerCase()}`.replace(/[^a-z0-9-]+/g, '-'),
           sku: asset.code,
-          category: asset.suggestedCategory || "Export Leather Goods",
-          productType: "Leather Goods",
+          category: cat,
+          productType: prodType,
           status: "active",
           vendor: "Hands & Head Master Atelier",
           pricing: {
-            price: asset.suggestedPrice || 4500,
-            compareAt: Math.round((asset.suggestedPrice || 4500) * 1.25),
+            price: price,
+            compareAt: Math.round(price * 1.25),
             currency: "BDT"
           },
           inventory: {
@@ -1510,7 +1621,7 @@
           images: [
             {
               url: asset.thumbnailUrl,
-              alt: `${asset.code} ${asset.color}`,
+              alt: `${asset.code} ${asset.color} ${prodType}`,
               isPrimary: true
             }
           ],
@@ -1519,7 +1630,7 @@
               id: "var-1",
               title: `${asset.color} / ${asset.size}`,
               sku: `${asset.code}-${asset.color.slice(0, 3)}-${asset.size}`,
-              price: asset.suggestedPrice || 4500,
+              price: price,
               inventory: 50,
               options: { Color: asset.color, Size: asset.size }
             }
@@ -1528,13 +1639,15 @@
             { name: "Color", values: [asset.color] },
             { name: "Size", values: [asset.size] }
           ],
-          tags: ["drive-sync", "master-drive", asset.code, asset.color.toLowerCase(), "export-spec"],
+          tags: ["drive-sync", "master-drive", asset.code, asset.color.toLowerCase(), catTag, cat.toLowerCase().replace(/[^a-z0-9]+/g, '-'), "export-spec"],
           driveSource: {
             fileId: asset.fileId,
             folderId: this.state.folderId,
             driveUrl: asset.driveUrl,
             filename: asset.filename,
             sequence: asset.sequence,
+            category: cat,
+            productType: prodType,
             syncedAt: new Date().toISOString()
           }
         };
@@ -1549,7 +1662,7 @@
           window._lastProductsCache = items;
         }
 
-        toast(`✓ Product ${asset.code} committed to catalog!`);
+        toast(`✓ Product ${asset.code} committed as [${cat}]!`);
         this.refreshCurrentView();
       } catch (e) {
         console.error("Commit asset error:", e);
@@ -1568,33 +1681,39 @@
         return;
       }
 
-      if (!confirm(`Commit ${targets.length} tokenized asset(s) to Firestore products collection?`)) return;
+      if (!confirm(`Commit ${targets.length} tokenized asset(s) with auto-assigned categories to Firestore products collection?`)) return;
 
       toast(`Batch staging ${targets.length} products…`);
       let successCount = 0;
       for (const asset of targets) {
         try {
+          const detected = this.detectCategory(asset.filename, asset.code);
+          const cat = asset.suggestedCategory || asset.category || detected.category;
+          const prodType = asset.productType || detected.productType;
+          const price = asset.suggestedPrice || detected.suggestedPrice || 4200;
+          const catTag = asset.categoryTag || detected.categoryTag || "leather-goods";
+
           const payload = {
-            title: `${asset.code} Leather Spec - ${asset.color}`,
-            handle: `${asset.code.toLowerCase()}-${asset.color.toLowerCase()}`,
+            title: `${asset.code} ${prodType} - ${asset.color}`,
+            handle: `${asset.code.toLowerCase()}-${asset.color.toLowerCase()}`.replace(/[^a-z0-9-]+/g, '-'),
             sku: asset.code,
-            category: asset.suggestedCategory || "Export Leather Goods",
-            productType: "Leather Goods",
+            category: cat,
+            productType: prodType,
             status: "active",
             vendor: "Hands & Head Master Atelier",
             pricing: {
-              price: asset.suggestedPrice || 4500,
-              compareAt: Math.round((asset.suggestedPrice || 4500) * 1.25),
+              price: price,
+              compareAt: Math.round(price * 1.25),
               currency: "BDT"
             },
             inventory: { quantity: 50, trackQuantity: true },
             totalInventory: 50,
-            images: [{ url: asset.thumbnailUrl, alt: `${asset.code} ${asset.color}`, isPrimary: true }],
+            images: [{ url: asset.thumbnailUrl, alt: `${asset.code} ${asset.color} ${prodType}`, isPrimary: true }],
             variants: [{
               id: "var-1",
               title: `${asset.color} / ${asset.size}`,
               sku: `${asset.code}-${asset.color.slice(0, 3)}-${asset.size}`,
-              price: asset.suggestedPrice || 4500,
+              price: price,
               inventory: 50,
               options: { Color: asset.color, Size: asset.size }
             }],
@@ -1602,13 +1721,15 @@
               { name: "Color", values: [asset.color] },
               { name: "Size", values: [asset.size] }
             ],
-            tags: ["drive-sync", "master-drive", asset.code, asset.color.toLowerCase()],
+            tags: ["drive-sync", "master-drive", asset.code, asset.color.toLowerCase(), catTag, cat.toLowerCase().replace(/[^a-z0-9]+/g, '-'), "export-spec"],
             driveSource: {
               fileId: asset.fileId,
               folderId: this.state.folderId,
               driveUrl: asset.driveUrl,
               filename: asset.filename,
               sequence: asset.sequence,
+              category: cat,
+              productType: prodType,
               syncedAt: new Date().toISOString()
             }
           };
@@ -1627,7 +1748,7 @@
       }
 
       this.state.selectedIds.clear();
-      toast(`✓ Successfully staged ${successCount} products to Firestore!`);
+      toast(`✓ Successfully staged ${successCount} products with auto-assigned categories!`);
       this.refreshCurrentView();
     },
 
@@ -1811,8 +1932,20 @@
               <input id="edit_asset_price" type="number" value="${asset.suggestedPrice || 4200}" style="width:100%;height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
             </div>
             <div style="flex:1;">
-              <label style="font-size:11px;font-family:var(--mono);color:var(--ink-2);">Category:</label>
+              <label style="font-size:11px;font-family:var(--mono);color:var(--ink-2);">Category (Auto-Detected):</label>
               <input id="edit_asset_cat" value="${asset.suggestedCategory || 'Export Leather Goods'}" style="width:100%;height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size:10px;font-family:var(--mono);color:var(--ink-3);">Quick Category Presets:</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
+              <span class="btn btn-sm btn-dark" style="font-size:10px;padding:3px 8px;cursor:pointer;" onclick="document.getElementById('edit_asset_cat').value='Jackets & Outerwear';document.getElementById('edit_asset_price').value=7500;">🧥 Jackets</span>
+              <span class="btn btn-sm btn-dark" style="font-size:10px;padding:3px 8px;cursor:pointer;" onclick="document.getElementById('edit_asset_cat').value='Wallets & Small Leather Goods';document.getElementById('edit_asset_price').value=1850;">👛 Wallets</span>
+              <span class="btn btn-sm btn-dark" style="font-size:10px;padding:3px 8px;cursor:pointer;" onclick="document.getElementById('edit_asset_cat').value='Belts & Straps';document.getElementById('edit_asset_price').value=2200;">🎗️ Belts</span>
+              <span class="btn btn-sm btn-dark" style="font-size:10px;padding:3px 8px;cursor:pointer;" onclick="document.getElementById('edit_asset_cat').value='Bags & Backpacks';document.getElementById('edit_asset_price').value=4200;">🎒 Bags</span>
+              <span class="btn btn-sm btn-dark" style="font-size:10px;padding:3px 8px;cursor:pointer;" onclick="document.getElementById('edit_asset_cat').value='Footwear & Shoes';document.getElementById('edit_asset_price').value=3800;">👞 Shoes</span>
+              <span class="btn btn-sm btn-dark" style="font-size:10px;padding:3px 8px;cursor:pointer;" onclick="document.getElementById('edit_asset_cat').value='Accessories & Gifts';document.getElementById('edit_asset_price').value=1500;">🎁 Gifts</span>
             </div>
           </div>
 
@@ -1853,6 +1986,15 @@
       const selectedCount = this.state.selectedIds.size;
       const isAllSelected = assets.length > 0 && assets.every(a => this.state.selectedIds.has(a.id));
 
+      const catCounts = {
+        jackets: this.state.assets.filter(a => (a.suggestedCategory || '').toLowerCase().includes('jacket')).length,
+        wallets: this.state.assets.filter(a => (a.suggestedCategory || '').toLowerCase().includes('wallet')).length,
+        belts: this.state.assets.filter(a => (a.suggestedCategory || '').toLowerCase().includes('belt')).length,
+        bags: this.state.assets.filter(a => (a.suggestedCategory || '').toLowerCase().includes('bag')).length,
+        footwear: this.state.assets.filter(a => (a.suggestedCategory || '').toLowerCase().includes('footwear') || (a.suggestedCategory || '').toLowerCase().includes('shoe')).length,
+        accessories: this.state.assets.filter(a => (a.suggestedCategory || '').toLowerCase().includes('accessor') || (a.suggestedCategory || '').toLowerCase().includes('gift')).length
+      };
+
       target.innerHTML = `
         ${options.insideProductsModule ? "" : modHeader("Drive Sync Monitor", `Master Google Drive Assets · ${totalCount} Detected · ${uncommittedCount} Ready to Commit`, [
           { label: "⚡ Scan Master Drive", fn: "window.DriveSyncMonitor.scan(true)", primary: true },
@@ -1891,7 +2033,16 @@
                 <span class="pill ok" style="font-size:8.5px;font-weight:700;">CONNECTED</span>
               </div>
               <div style="font-size:11px;color:var(--ink-3);">
-                Master assets photo folder for frontend catalog · Tokenized SKU, color shade, size matrix &amp; sequence parser
+                Master assets photo folder for frontend catalog · Tokenized SKU, color shade, size matrix &amp; pattern-matched categories
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center;">
+                <span style="font-size:10px;font-family:var(--mono);color:var(--gold-dim);font-weight:700;">AUTO-CATEGORIES:</span>
+                <span class="pill" style="font-size:9.5px;background:var(--bg-neu);border:1px solid var(--wire);">🧥 ${catCounts.jackets} Jackets</span>
+                <span class="pill" style="font-size:9.5px;background:var(--bg-neu);border:1px solid var(--wire);">👛 ${catCounts.wallets} Wallets</span>
+                <span class="pill" style="font-size:9.5px;background:var(--bg-neu);border:1px solid var(--wire);">🎗️ ${catCounts.belts} Belts</span>
+                <span class="pill" style="font-size:9.5px;background:var(--bg-neu);border:1px solid var(--wire);">🎒 ${catCounts.bags} Bags</span>
+                ${catCounts.footwear ? `<span class="pill" style="font-size:9.5px;background:var(--bg-neu);border:1px solid var(--wire);">👞 ${catCounts.footwear} Footwear</span>` : ''}
+                ${catCounts.accessories ? `<span class="pill" style="font-size:9.5px;background:var(--bg-neu);border:1px solid var(--wire);">🎁 ${catCounts.accessories} Gifts</span>` : ''}
               </div>
             </div>
 
@@ -1929,7 +2080,7 @@
             <span style="font-size:11px;font-weight:700;color:var(--ink-2);font-family:var(--mono);">Select All (${assets.length})</span>
           </label>
 
-          <input type="text" placeholder="Search Drive assets by SKU code, color, filename…" 
+          <input type="text" placeholder="Search Drive assets by SKU code, category, color, filename…" 
                  value="${this.state.searchQuery || ''}" 
                  oninput="window.DriveSyncMonitor.state.searchQuery = this.value; window.DriveSyncMonitor.refreshCurrentView();" 
                  style="flex:1;min-width:180px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
@@ -1939,6 +2090,18 @@
             <option value="all" ${this.state.statusFilter === 'all' ? 'selected' : ''}>All Assets (${totalCount})</option>
             <option value="uncommitted" ${this.state.statusFilter === 'uncommitted' ? 'selected' : ''}>⚡ Ready to Commit (${uncommittedCount})</option>
             <option value="committed" ${this.state.statusFilter === 'committed' ? 'selected' : ''}>✓ Synced in Catalog (${committedCount})</option>
+          </select>
+
+          <select onchange="window.DriveSyncMonitor.state.categoryFilter = this.value; window.DriveSyncMonitor.refreshCurrentView();" 
+                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+            <option value="all" ${this.state.categoryFilter === 'all' ? 'selected' : ''}>All Categories</option>
+            <option value="Jackets & Outerwear" ${this.state.categoryFilter === 'Jackets & Outerwear' ? 'selected' : ''}>🧥 Jackets & Outerwear</option>
+            <option value="Wallets & Small Leather Goods" ${this.state.categoryFilter === 'Wallets & Small Leather Goods' ? 'selected' : ''}>👛 Wallets & Small Goods</option>
+            <option value="Belts & Straps" ${this.state.categoryFilter === 'Belts & Straps' ? 'selected' : ''}>🎗️ Belts & Straps</option>
+            <option value="Bags & Backpacks" ${this.state.categoryFilter === 'Bags & Backpacks' ? 'selected' : ''}>🎒 Bags & Backpacks</option>
+            <option value="Footwear & Shoes" ${this.state.categoryFilter === 'Footwear & Shoes' ? 'selected' : ''}>👞 Footwear & Shoes</option>
+            <option value="Accessories & Gifts" ${this.state.categoryFilter === 'Accessories & Gifts' ? 'selected' : ''}>🎁 Accessories & Gifts</option>
+            <option value="RAWX Atelier Collection" ${this.state.categoryFilter === 'RAWX Atelier Collection' ? 'selected' : ''}>✨ RAWX Collection</option>
           </select>
 
           <select onchange="window.DriveSyncMonitor.state.colorFilter = this.value; window.DriveSyncMonitor.refreshCurrentView();" 
@@ -2025,7 +2188,9 @@
                     <div style="font-family:var(--mono);font-size:13px;font-weight:800;color:var(--coral);">
                       ৳${(a.suggestedPrice || 4200).toLocaleString()}
                     </div>
-                    <span style="font-size:10px;color:var(--ink-3);">${a.suggestedCategory || 'Export Leather'}</span>
+                    <span class="pill" style="font-size:9.5px;font-weight:700;background:rgba(217,119,6,0.12);border:1px solid rgba(217,119,6,0.3);color:var(--gold-dim);display:inline-flex;align-items:center;gap:4px;" title="Auto-assigned category: ${a.suggestedCategory || a.category}">
+                      ${a.categoryIcon || '🏷️'} ${a.suggestedCategory || a.category || 'Export Leather'}
+                    </span>
                   </div>
 
                   <!-- Action Buttons -->

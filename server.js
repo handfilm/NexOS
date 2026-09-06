@@ -1893,72 +1893,168 @@ app.post('/api/upload', (req, res) => {
 });
 
 /* ── Google Drive Sync Monitor & Tokenizer API Route ── */
+function detectCategoryFromDriveFilename(rawName, code = '') {
+  const text = `${rawName} ${code}`.toUpperCase();
+
+  // 1. Jackets & Outerwear: JACKET, JKT, BIKER, BOMBER, BLAZER, COAT, OVERCOAT, VEST
+  if (/(?:^|[_\W-])(JACKET|JKTS?|BIKER|BOMBER|BLAZER|COAT|OVERCOAT|OUTERWEAR|TRENCH|WAISTCOAT)(?:$|[_\W-])/i.test(text) ||
+      text.includes('JACKET') || text.includes('JKT-') || text.includes('-JKT') || text.includes('_JKT_')) {
+    return {
+      category: 'Jackets & Outerwear',
+      productType: 'Leather Jackets',
+      categoryTag: 'jacket',
+      categoryIcon: '🧥',
+      suggestedPrice: 7500
+    };
+  }
+
+  // 2. Wallets & Cardholders: WALLET, WLT, CARDHOLDER, CARD_HOLDER, PURSE, BILLFOLD, MONEYCLIP, CLUTCH
+  if (/(?:^|[_\W-])(WALLETS?|WLTS?|CARDHOLDER|CARD[\s_-]*HOLDERS?|PURSES?|BILLFOLD|MONEY[\s_-]*CLIP|CLUTCH)(?:$|[_\W-])/i.test(text) ||
+      text.includes('WALLET') || text.includes('WLT-') || text.includes('-WLT') || text.includes('_WLT_') || text.includes('CARDHOLDER')) {
+    return {
+      category: 'Wallets & Small Leather Goods',
+      productType: 'Wallets',
+      categoryTag: 'wallet',
+      categoryIcon: '👛',
+      suggestedPrice: 1850
+    };
+  }
+
+  // 3. Belts: BELT, BLT, WAIST_BELT, STRAP
+  if (/(?:^|[_\W-])(BELTS?|BLTS?|WAIST[\s_-]*BELTS?)(?:$|[_\W-])/i.test(text) ||
+      text.includes('BELT') || text.includes('BLT-') || text.includes('-BLT') || text.includes('_BLT_')) {
+    return {
+      category: 'Belts & Straps',
+      productType: 'Leather Belts',
+      categoryTag: 'belt',
+      categoryIcon: '🎗️',
+      suggestedPrice: 2200
+    };
+  }
+
+  // 4. Bags & Backpacks: BAG, BACKPACK, TOTE, DUFFLE, DUFFEL, MESSENGER, BRIEFCASE, SATCHEL, CROSSBODY, POUCH, HOLDALL
+  if (/(?:^|[_\W-])(BAGS?|BACKPACKS?|TOTES?|DUFFLES?|DUFFELS?|MESSENGER|BRIEFCASE|SATCHEL|CROSSBODY|POUCH(?:ES)?|HOLDALL)(?:$|[_\W-])/i.test(text) ||
+      text.includes('BAG') || text.includes('BACKPACK') || text.includes('TOTE') || text.includes('BRIEFCASE')) {
+    return {
+      category: 'Bags & Backpacks',
+      productType: 'Leather Bags',
+      categoryTag: 'bag',
+      categoryIcon: '🎒',
+      suggestedPrice: 4200
+    };
+  }
+
+  // 5. Footwear & Shoes: SHOE, BOOT, LOAFER, SANDAL, SNEAKER, FOOTWEAR, DERBY, OXFORD
+  if (/(?:^|[_\W-])(SHOES?|BOOTS?|LOAFERS?|SANDALS?|SNEAKERS?|FOOTWEAR|DERBY|OXFORDS?)(?:$|[_\W-])/i.test(text) ||
+      text.includes('SHOE') || text.includes('BOOT') || text.includes('SANDAL') || text.includes('LOAFER')) {
+    return {
+      category: 'Footwear & Shoes',
+      productType: 'Footwear',
+      categoryTag: 'footwear',
+      categoryIcon: '👞',
+      suggestedPrice: 3800
+    };
+  }
+
+  // 6. Accessories & Gifts: GLOVE, MITTEN, KEYCHAIN, KEYRING, FOB, ACCESSORY, ACC, GIFT
+  if (/(?:^|[_\W-])(GLOVES?|MITTENS?|KEYCHAINS?|KEYRINGS?|FOBS?|ACCESSOR(?:Y|IES)|GIFTS?)(?:$|[_\W-])/i.test(text) ||
+      text.includes('GLOVE') || text.includes('KEYCHAIN') || text.includes('GIFT')) {
+    return {
+      category: 'Accessories & Gifts',
+      productType: 'Accessories',
+      categoryTag: 'accessory',
+      categoryIcon: '🎁',
+      suggestedPrice: 1500
+    };
+  }
+
+  // 7. RAWX Designer / Signature Collection
+  if (text.includes('RAWX') || text.includes('RAW-') || text.includes('RAWHIDE')) {
+    return {
+      category: 'RAWX Atelier Collection',
+      productType: 'Designer Leather',
+      categoryTag: 'rawx',
+      categoryIcon: '✨',
+      suggestedPrice: 5500
+    };
+  }
+
+  // Default fallback
+  return {
+    category: 'Export Leather Goods',
+    productType: 'Leather Goods',
+    categoryTag: 'leather-goods',
+    categoryIcon: '🏷️',
+    suggestedPrice: 4200
+  };
+}
+
 function tokenizeDriveFilename(rawName) {
   const clean = String(rawName || '').trim().split(/[\\/]/).pop() || '';
   const ext = clean.includes('.') ? clean.split('.').pop().toLowerCase() : 'jpg';
   const base = clean.replace(/\.[^/.]+$/, "");
 
+  let code = '';
+  let color = 'DEFAULT';
+  let size = 'ALL';
+  let sequence = 1;
+
   // Pattern 1: CODE__COLOR__SIZE__SEQUENCE (e.g. RAWX-JKT-001__BLACK__L__01)
   const m4 = base.match(/^([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)__([0-9]{1,3})$/i);
   if (m4) {
-    return {
-      raw: clean,
-      code: m4[1].toUpperCase(),
-      color: m4[2].toUpperCase().replace(/_/g, ' '),
-      size: m4[3].toUpperCase(),
-      sequence: parseInt(m4[4], 10),
-      extension: ext
-    };
+    code = m4[1].toUpperCase();
+    color = m4[2].toUpperCase().replace(/_/g, ' ');
+    size = m4[3].toUpperCase();
+    sequence = parseInt(m4[4], 10);
+  } else {
+    // Pattern 2: CODE__COLOR__SEQUENCE (e.g. RAWX-JKT-001__BLACK__01)
+    const m3 = base.match(/^([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)__([0-9]{1,3})$/i);
+    if (m3) {
+      code = m3[1].toUpperCase();
+      color = m3[2].toUpperCase().replace(/_/g, ' ');
+      size = 'STANDARD';
+      sequence = parseInt(m3[3], 10);
+    } else {
+      // Pattern 3: ALL BRANDS_ (XX)
+      const mBrand = base.match(/^ALL[\s_]*BRANDS[\s_]*\(?([0-9]+)\)?/i);
+      if (mBrand) {
+        const num = parseInt(mBrand[1], 10);
+        const colors = ['BLACK', 'TAN', 'COGNAC', 'CHOCOLATE', 'NAVY', 'BURGUNDY', 'OLIVE', 'NATURAL'];
+        code = `HH-MASTER-${String(num).padStart(3, '0')}`;
+        color = colors[(num - 1) % colors.length];
+        size = 'M/L/XL';
+        sequence = 1;
+      } else if (/^[0-9]{10,15}$/.test(base)) {
+        // Pattern 4: Numeric timestamp e.g. 1788335511411
+        code = `RAWX-${base.slice(-6)}`;
+        color = 'RAW LEATHER';
+        size = 'CUSTOM';
+        sequence = 1;
+      } else {
+        code = base.toUpperCase().replace(/[^A-Z0-9_-]/g, '-').slice(0, 24) || 'HH-PROD-NEW';
+        color = 'DEFAULT';
+        size = 'ALL';
+        sequence = 1;
+      }
+    }
   }
 
-  // Pattern 2: CODE__COLOR__SEQUENCE (e.g. RAWX-JKT-001__BLACK__01)
-  const m3 = base.match(/^([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)__([0-9]{1,3})$/i);
-  if (m3) {
-    return {
-      raw: clean,
-      code: m3[1].toUpperCase(),
-      color: m3[2].toUpperCase().replace(/_/g, ' '),
-      size: 'STANDARD',
-      sequence: parseInt(m3[3], 10),
-      extension: ext
-    };
-  }
-
-  // Pattern 3: ALL BRANDS_ (XX)
-  const mBrand = base.match(/^ALL[\s_]*BRANDS[\s_]*\(?([0-9]+)\)?/i);
-  if (mBrand) {
-    const num = parseInt(mBrand[1], 10);
-    const colors = ['BLACK', 'TAN', 'COGNAC', 'CHOCOLATE', 'NAVY', 'BURGUNDY', 'OLIVE', 'NATURAL'];
-    const assignedColor = colors[(num - 1) % colors.length];
-    return {
-      raw: clean,
-      code: `HH-MASTER-${String(num).padStart(3, '0')}`,
-      color: assignedColor,
-      size: 'M/L/XL',
-      sequence: 1,
-      extension: ext
-    };
-  }
-
-  // Pattern 4: Numeric timestamp e.g. 1788335511411
-  if (/^[0-9]{10,15}$/.test(base)) {
-    return {
-      raw: clean,
-      code: `RAWX-${base.slice(-6)}`,
-      color: 'RAW LEATHER',
-      size: 'CUSTOM',
-      sequence: 1,
-      extension: ext
-    };
-  }
+  // Detect category from filename and extracted code
+  const cat = detectCategoryFromDriveFilename(rawName, code);
 
   return {
     raw: clean,
-    code: base.toUpperCase().replace(/[^A-Z0-9_-]/g, '-').slice(0, 24) || 'HH-PROD-NEW',
-    color: 'DEFAULT',
-    size: 'ALL',
-    sequence: 1,
-    extension: ext
+    code,
+    color,
+    size,
+    sequence,
+    extension: ext,
+    category: cat.category,
+    suggestedCategory: cat.category,
+    productType: cat.productType,
+    categoryTag: cat.categoryTag,
+    categoryIcon: cat.categoryIcon,
+    suggestedPrice: cat.suggestedPrice
   };
 }
 
@@ -1994,20 +2090,27 @@ app.get('/api/drive-sync/scan', async (req, res) => {
         size: meta.size,
         sequence: meta.sequence,
         extension: meta.extension,
-        suggestedPrice: 4200,
-        suggestedCategory: 'Export Leather Goods',
+        category: meta.category,
+        suggestedCategory: meta.suggestedCategory,
+        productType: meta.productType,
+        categoryTag: meta.categoryTag,
+        categoryIcon: meta.categoryIcon,
+        suggestedPrice: meta.suggestedPrice,
         stagedAt: new Date().toISOString()
       });
     }
 
-    // Default high-fidelity tokenized assets if needed
+    // Default high-fidelity tokenized assets demonstrating common patterns
     if (assets.length === 0) {
       const samples = [
         { name: 'RAWX-JKT-001__BLACK__L__01.webp', id: '1y6pBe5B-ugN-CqFDrsy53Ift-2sQHO2y' },
         { name: 'RAWX-JKT-001__BLACK__L__02.webp', id: '1YdaxTPfFs48FjElFOFtd5KX9VLgYhY8i' },
         { name: 'RAWX-JKT-001__TAN__M__01.webp', id: '14-DV3S2OeB49C89DEPIYoO3RlS9GUztF' },
-        { name: 'HH-BAG-02__COGNAC__ONE__01.jpg', id: '1_28Jersifcjh42O_iGGJeqpF5QqrtdsG' },
-        { name: 'HH-BELT-05__CHOCOLATE__38__01.webp', id: '1aQ2vRDWsgTOfg37Mgz5FurBWz4rOpzR_' }
+        { name: 'HH-WALLET-02__TAN__ONE__01.jpg', id: '1Y98kX2B-wlt-Wallet-Tan-Handmade-Spec' },
+        { name: 'HH-WALLET-03__CHOCOLATE__ONE__01.jpg', id: '1W87kJ3C-wlt-Leather-Bifold-Wallet' },
+        { name: 'HH-BELT-05__CHOCOLATE__38__01.webp', id: '1aQ2vRDWsgTOfg37Mgz5FurBWz4rOpzR_' },
+        { name: 'HH-BELT-08__BLACK__34__01.webp', id: '1bQ98RSD-blt-Italian-Leather-Dress-Belt' },
+        { name: 'HH-BAG-02__COGNAC__ONE__01.jpg', id: '1_28Jersifcjh42O_iGGJeqpF5QqrtdsG' }
       ];
       samples.forEach(s => {
         const meta = tokenizeDriveFilename(s.name);
@@ -2018,8 +2121,6 @@ app.get('/api/drive-sync/scan', async (req, res) => {
           thumbnailUrl: `https://lh3.googleusercontent.com/d/${s.id}`,
           driveUrl: `https://drive.google.com/file/d/${s.id}/view?usp=sharing`,
           ...meta,
-          suggestedPrice: 4800,
-          suggestedCategory: 'Leather Export',
           stagedAt: new Date().toISOString()
         });
       });
