@@ -1097,6 +1097,7 @@ const NAV_SECTIONS = [
       { label: "Home", icon: I.home, app: "Home", desc: "Main operator terminal & pinned shelf", ext: "DASH" },
       { label: "Orders", icon: I.orders, app: "Orders", chev: true, desc: "Live order stream & fulfillment tracker", ext: "POS" },
       { label: "Products", icon: I.tag, app: "Products", chev: true, desc: "Inventory catalog, variants & pricing matrix", ext: "CATALOG" },
+      { label: "Drive Sync Monitor", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="12 11 12 17 14 15"></polyline></svg>`, app: "DriveSync", chev: true, desc: "Master Google Drive auto-sync, tokenized specs & staging", ext: "SYNC", extClass: "gold" },
       { label: "Customers", icon: I.inbox, app: "CRM", chev: true, desc: "Global wholesale buyer CRM & accounts", ext: "CRM" }
     ]
   },
@@ -1226,6 +1227,10 @@ const MODULE_MAP = {
   "Dashboard": "Home",
   "Orders": "Orders",
   "Products": "Products",
+  "DriveSync": "DriveSync",
+  "Drive Sync": "DriveSync",
+  "Drive Sync Monitor": "DriveSync",
+  "Drive": "DriveSync",
   "Customers": "CRM",
   "CRM": "CRM",
   "Buyer CRM": "CRM",

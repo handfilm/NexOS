@@ -100,6 +100,12 @@
     }
   };
 
+  window.setProductsSubTab = function (subTab) {
+    window._viewState.products.subTab = subTab;
+    const target = document.getElementById("mod-Products") || document.getElementById("body");
+    if (target) window.render.Products(target);
+  };
+
   window.render.Products = async function (container) {
     const target = container || document.getElementById("mod-Products") || document.getElementById("body");
     if (!target) return;
@@ -124,14 +130,45 @@
       const activeCount = items.filter(p => p.status === 'active').length;
       const totalUnits = items.reduce((s, p) => s + (p.totalInventory || 0), 0);
       const isAllSelected = items.length > 0 && items.every(p => window._selectedProductIds.has(p.id));
+      const activeSubTab = state.subTab || 'catalog';
+
+      // If user selected Drive Sync Monitor sub-tab, render inside Products module!
+      if (activeSubTab === 'drive_sync' && window.DriveSyncMonitor) {
+        window.DriveSyncMonitor.render(target, { insideProductsModule: true, catalogCount: items.length, activeCount, totalUnits });
+        return;
+      }
+      // If user selected Master Drive Folder (Embed) sub-tab, render embedded view inside Products module!
+      if (activeSubTab === 'drive_embed' && window.DriveSyncMonitor) {
+        window.DriveSyncMonitor.renderEmbed(target, { insideProductsModule: true, catalogCount: items.length, activeCount, totalUnits });
+        return;
+      }
 
       target.innerHTML = modHeader("Products", `${items.length} total · ${activeCount} active · ${totalUnits} units in stock`, [
         { label: "📲 WhatsApp Broadcast", fn: "window.openWhatsAppCampaignStudio()", primary: false },
         { label: "📥 Bulk Import (CSV/Excel)", fn: "window.BulkImportEngine.openProductImportModal()", primary: false },
         { label: "⚡ Fast Order", fn: "window.openFastOrderModal()", primary: false },
-        { label: "📥 Drive Sync", fn: "openAppModule('DriveSync')", primary: false },
+        { label: "⚡ Drive Sync Monitor", fn: "window.setProductsSubTab('drive_sync')", primary: false },
         { label: "+ Add Product", fn: "window.openAdvancedProductForm()", primary: true }
       ]) + `
+        <!-- Products Sub-Menu Navigation (Master Folder & Sync) -->
+        <div class="products-sub-nav" style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--wire);margin-bottom:14px;">
+          <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('catalog')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+            <span>🏷️ Products Catalog (${items.length})</span>
+          </button>
+          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_sync')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+            <span>⚡ Drive Sync Monitor (Master Drive)</span>
+            <span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;display:inline-block;"></span>
+          </button>
+          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_embed')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+            <span>📁 Master Drive Folder (Embed)</span>
+          </button>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+            <a href="https://drive.google.com/drive/folders/1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT?usp=drive_link" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark truncate" style="min-width:auto;height:32px;padding:0 12px;font-size:11px;gap:5px;text-decoration:none;color:var(--gold-dim);">
+              <span>↗ Open in Google Drive</span>
+            </a>
+          </div>
+        </div>
+
         <!-- Filter, Multi-Select & Search Toolbar -->
         <div style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
           <!-- Select All Checkbox Component -->
@@ -1211,6 +1248,908 @@
       await window.renderHomeProductGallery(mount);
     }
   };
+
+  /* ═══════════════════════════════════════════════════════════
+     DRIVE SYNC MONITOR MODULE (Google Drive Master Folder Asset Sync)
+     ═══════════════════════════════════════════════════════════ */
+  window.DriveSyncMonitor = {
+    MASTER_FOLDER_URL: "https://drive.google.com/drive/folders/1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT?usp=drive_link",
+    MASTER_FOLDER_ID: "1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT",
+    MASTER_EMBED_URL: "https://drive.google.com/embeddedfolderview?id=1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT#grid",
+
+    state: {
+      folderId: "1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT",
+      folderUrl: "https://drive.google.com/drive/folders/1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT?usp=drive_link",
+      assets: [],
+      isScanning: false,
+      lastScanTime: null,
+      scanIntervalSec: 60,
+      countdownSec: 60,
+      timerHandle: null,
+      countdownHandle: null,
+      searchQuery: "",
+      statusFilter: "all", // 'all' | 'uncommitted' | 'committed'
+      colorFilter: "all",
+      selectedIds: new Set()
+    },
+
+    tokenizeFilename(rawName) {
+      const clean = String(rawName || "").trim().split(/[\\/]/).pop() || "";
+      const ext = clean.includes(".") ? clean.split(".").pop().toLowerCase() : "jpg";
+      const base = clean.replace(/\.[^/.]+$/, "");
+
+      // 1. CODE__COLOR__SIZE__SEQUENCE (e.g. RAWX-JKT-001__BLACK__L__01)
+      const m4 = base.match(/^([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)__([0-9]{1,3})$/i);
+      if (m4) {
+        return {
+          code: m4[1].toUpperCase(),
+          color: m4[2].toUpperCase().replace(/_/g, " "),
+          size: m4[3].toUpperCase(),
+          sequence: parseInt(m4[4], 10),
+          ext,
+          category: "Jackets & Outerwear",
+          suggestedPrice: 5500
+        };
+      }
+
+      // 2. CODE__COLOR__SEQUENCE (e.g. RAWX-JKT-001__BLACK__01)
+      const m3 = base.match(/^([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)__([0-9]{1,3})$/i);
+      if (m3) {
+        return {
+          code: m3[1].toUpperCase(),
+          color: m3[2].toUpperCase().replace(/_/g, " "),
+          size: "STANDARD",
+          sequence: parseInt(m3[3], 10),
+          ext,
+          category: "Export Leather Goods",
+          suggestedPrice: 4800
+        };
+      }
+
+      // 3. ALL BRANDS_ (XX)
+      const mBrand = base.match(/^ALL[\s_]*BRANDS[\s_]*\(?([0-9]+)\)?/i);
+      if (mBrand) {
+        const num = parseInt(mBrand[1], 10);
+        const palette = ["BLACK", "TAN", "COGNAC", "CHOCOLATE", "NAVY", "BURGUNDY", "OLIVE", "NATURAL"];
+        const color = palette[(num - 1) % palette.length];
+        const categories = ["Leather Bags & Packs", "Bespoke Leatherwear", "Travel Accessories", "Small Leather Goods"];
+        return {
+          code: `HH-MASTER-${String(num).padStart(3, "0")}`,
+          color,
+          size: "M/L/XL",
+          sequence: 1,
+          ext,
+          category: categories[(num - 1) % categories.length],
+          suggestedPrice: 4200 + (num % 5) * 400
+        };
+      }
+
+      // 4. Raw timestamp/ID e.g. 1788335511411
+      if (/^[0-9]{10,15}$/.test(base)) {
+        return {
+          code: `RAWX-${base.slice(-6)}`,
+          color: "RAW TAN",
+          size: "ONE-SIZE",
+          sequence: 1,
+          ext,
+          category: "Rawhide Atelier Spec",
+          suggestedPrice: 4500
+        };
+      }
+
+      return {
+        code: base.toUpperCase().replace(/[^A-Z0-9_-]/g, "-").slice(0, 22) || "HH-PRODUCT",
+        color: "CLASSIC BLACK",
+        size: "ALL",
+        sequence: 1,
+        ext,
+        category: "Export Leather Goods",
+        suggestedPrice: 4200
+      };
+    },
+
+    async scan(manual = false) {
+      if (this.state.isScanning) return;
+      this.state.isScanning = true;
+      if (manual && typeof toast === "function") toast("Scanning Google Drive Master Folder…");
+
+      try {
+        const res = await fetch(`/api/drive-sync/scan?folderId=${encodeURIComponent(this.state.folderId)}`);
+        const data = await res.json();
+
+        if (data.ok && Array.isArray(data.assets)) {
+          // Reconcile with current catalog cache
+          const catalog = window._lastProductsCache || [];
+          const catalogSkus = new Set(catalog.map(p => (p.sku || "").toUpperCase()).filter(Boolean));
+          const catalogImages = new Set(catalog.flatMap(p => (p.images || []).map(img => typeof img === 'string' ? img : img.url)));
+
+          this.state.assets = data.assets.map(a => {
+            const isCommitted = catalogSkus.has(a.code.toUpperCase()) || catalogImages.has(a.thumbnailUrl);
+            const matchedProduct = isCommitted ? catalog.find(p => (p.sku || "").toUpperCase() === a.code.toUpperCase() || (p.images || []).some(img => (typeof img === 'string' ? img : img.url) === a.thumbnailUrl)) : null;
+
+            return {
+              ...a,
+              isCommitted,
+              productId: matchedProduct ? matchedProduct.id : null
+            };
+          });
+
+          this.state.lastScanTime = new Date();
+          this.state.countdownSec = this.state.scanIntervalSec;
+          try {
+            localStorage.setItem("hh_drive_sync_assets", JSON.stringify(this.state.assets));
+          } catch(e) {}
+
+          if (manual && typeof toast === "function") {
+            toast(`Drive Sync: ${this.state.assets.length} master assets indexed ✓`);
+          }
+
+          // Rerender active view if DriveSync or Products with drive_sync tab is open
+          this.refreshCurrentView();
+        }
+      } catch (err) {
+        console.error("Drive sync scan error:", err);
+        if (manual && typeof toast === "function") toast("Drive scan failed: " + err.message);
+      } finally {
+        this.state.isScanning = false;
+      }
+    },
+
+    startAutoScan() {
+      if (this.state.countdownHandle) clearInterval(this.state.countdownHandle);
+
+      // Countdown tick every second for real-time UI feel
+      this.state.countdownHandle = setInterval(() => {
+        if (this.state.scanIntervalSec <= 0) return;
+        this.state.countdownSec--;
+        if (this.state.countdownSec <= 0) {
+          this.state.countdownSec = this.state.scanIntervalSec;
+          this.scan(false);
+        }
+        const timerEl = document.getElementById("drive_sync_timer_display");
+        if (timerEl) {
+          timerEl.innerText = `Auto-scan in ${this.state.countdownSec}s`;
+        }
+      }, 1000);
+    },
+
+    setScanInterval(seconds) {
+      this.state.scanIntervalSec = parseInt(seconds, 10);
+      this.state.countdownSec = this.state.scanIntervalSec;
+      if (this.state.scanIntervalSec > 0) {
+        this.startAutoScan();
+        toast(`Auto-scan interval set to ${this.state.scanIntervalSec}s ✓`);
+      } else {
+        if (this.state.countdownHandle) clearInterval(this.state.countdownHandle);
+        toast("Auto-scan paused (Manual mode)");
+      }
+      this.refreshCurrentView();
+    },
+
+    refreshCurrentView() {
+      const driveMod = document.getElementById("mod-DriveSync");
+      if (driveMod) {
+        this.render(driveMod);
+        return;
+      }
+      const prodMod = document.getElementById("mod-Products");
+      if (prodMod && window._viewState?.products?.subTab === "drive_sync") {
+        this.render(prodMod, { insideProductsModule: true });
+      }
+    },
+
+    toggleSelectAll(checked) {
+      const filtered = this.getFilteredAssets();
+      if (checked) {
+        filtered.forEach(a => this.state.selectedIds.add(a.id));
+      } else {
+        this.state.selectedIds.clear();
+      }
+      this.refreshCurrentView();
+    },
+
+    toggleAssetSelection(assetId, event) {
+      if (event) event.stopPropagation();
+      if (this.state.selectedIds.has(assetId)) {
+        this.state.selectedIds.delete(assetId);
+      } else {
+        this.state.selectedIds.add(assetId);
+      }
+      this.refreshCurrentView();
+    },
+
+    getFilteredAssets() {
+      let list = this.state.assets || [];
+      const q = (this.state.searchQuery || "").trim().toLowerCase();
+      if (q) {
+        list = list.filter(a =>
+          a.code.toLowerCase().includes(q) ||
+          a.color.toLowerCase().includes(q) ||
+          a.filename.toLowerCase().includes(q) ||
+          (a.size && a.size.toLowerCase().includes(q))
+        );
+      }
+      if (this.state.statusFilter === "uncommitted") {
+        list = list.filter(a => !a.isCommitted);
+      } else if (this.state.statusFilter === "committed") {
+        list = list.filter(a => a.isCommitted);
+      }
+      if (this.state.colorFilter && this.state.colorFilter !== "all") {
+        list = list.filter(a => a.color.toUpperCase() === this.state.colorFilter.toUpperCase());
+      }
+      return list;
+    },
+
+    async commitAsset(assetId) {
+      const asset = this.state.assets.find(a => a.id === assetId);
+      if (!asset) {
+        toast("Asset not found");
+        return;
+      }
+
+      try {
+        toast(`Staging ${asset.code} to Firestore catalog…`);
+        const payload = {
+          title: `${asset.code} Leather Spec - ${asset.color}`,
+          handle: `${asset.code.toLowerCase()}-${asset.color.toLowerCase()}`,
+          sku: asset.code,
+          category: asset.suggestedCategory || "Export Leather Goods",
+          productType: "Leather Goods",
+          status: "active",
+          vendor: "Hands & Head Master Atelier",
+          pricing: {
+            price: asset.suggestedPrice || 4500,
+            compareAt: Math.round((asset.suggestedPrice || 4500) * 1.25),
+            currency: "BDT"
+          },
+          inventory: {
+            quantity: 50,
+            trackQuantity: true
+          },
+          totalInventory: 50,
+          images: [
+            {
+              url: asset.thumbnailUrl,
+              alt: `${asset.code} ${asset.color}`,
+              isPrimary: true
+            }
+          ],
+          variants: [
+            {
+              id: "var-1",
+              title: `${asset.color} / ${asset.size}`,
+              sku: `${asset.code}-${asset.color.slice(0, 3)}-${asset.size}`,
+              price: asset.suggestedPrice || 4500,
+              inventory: 50,
+              options: { Color: asset.color, Size: asset.size }
+            }
+          ],
+          options: [
+            { name: "Color", values: [asset.color] },
+            { name: "Size", values: [asset.size] }
+          ],
+          tags: ["drive-sync", "master-drive", asset.code, asset.color.toLowerCase(), "export-spec"],
+          driveSource: {
+            fileId: asset.fileId,
+            folderId: this.state.folderId,
+            driveUrl: asset.driveUrl,
+            filename: asset.filename,
+            sequence: asset.sequence,
+            syncedAt: new Date().toISOString()
+          }
+        };
+
+        const res = await window.ProductsService.create(payload);
+        asset.isCommitted = true;
+        asset.productId = res?.id || "committed";
+
+        // Refresh cache
+        if (window.ProductsService) {
+          const { items } = await window.ProductsService.list();
+          window._lastProductsCache = items;
+        }
+
+        toast(`✓ Product ${asset.code} committed to catalog!`);
+        this.refreshCurrentView();
+      } catch (e) {
+        console.error("Commit asset error:", e);
+        toast("Failed to commit asset: " + e.message);
+      }
+    },
+
+    async batchCommitSelected() {
+      const selectedIds = Array.from(this.state.selectedIds);
+      const targets = selectedIds.length 
+        ? this.state.assets.filter(a => selectedIds.includes(a.id) && !a.isCommitted)
+        : this.state.assets.filter(a => !a.isCommitted).slice(0, 10);
+
+      if (!targets.length) {
+        toast("All selected assets are already committed to the catalog!");
+        return;
+      }
+
+      if (!confirm(`Commit ${targets.length} tokenized asset(s) to Firestore products collection?`)) return;
+
+      toast(`Batch staging ${targets.length} products…`);
+      let successCount = 0;
+      for (const asset of targets) {
+        try {
+          const payload = {
+            title: `${asset.code} Leather Spec - ${asset.color}`,
+            handle: `${asset.code.toLowerCase()}-${asset.color.toLowerCase()}`,
+            sku: asset.code,
+            category: asset.suggestedCategory || "Export Leather Goods",
+            productType: "Leather Goods",
+            status: "active",
+            vendor: "Hands & Head Master Atelier",
+            pricing: {
+              price: asset.suggestedPrice || 4500,
+              compareAt: Math.round((asset.suggestedPrice || 4500) * 1.25),
+              currency: "BDT"
+            },
+            inventory: { quantity: 50, trackQuantity: true },
+            totalInventory: 50,
+            images: [{ url: asset.thumbnailUrl, alt: `${asset.code} ${asset.color}`, isPrimary: true }],
+            variants: [{
+              id: "var-1",
+              title: `${asset.color} / ${asset.size}`,
+              sku: `${asset.code}-${asset.color.slice(0, 3)}-${asset.size}`,
+              price: asset.suggestedPrice || 4500,
+              inventory: 50,
+              options: { Color: asset.color, Size: asset.size }
+            }],
+            options: [
+              { name: "Color", values: [asset.color] },
+              { name: "Size", values: [asset.size] }
+            ],
+            tags: ["drive-sync", "master-drive", asset.code, asset.color.toLowerCase()],
+            driveSource: {
+              fileId: asset.fileId,
+              folderId: this.state.folderId,
+              driveUrl: asset.driveUrl,
+              filename: asset.filename,
+              sequence: asset.sequence,
+              syncedAt: new Date().toISOString()
+            }
+          };
+          await window.ProductsService.create(payload);
+          asset.isCommitted = true;
+          successCount++;
+        } catch(e) {
+          console.error("Batch item error:", e);
+        }
+      }
+
+      // Refresh catalog cache
+      if (window.ProductsService) {
+        const { items } = await window.ProductsService.list();
+        window._lastProductsCache = items;
+      }
+
+      this.state.selectedIds.clear();
+      toast(`✓ Successfully staged ${successCount} products to Firestore!`);
+      this.refreshCurrentView();
+    },
+
+    openSendToCustomerModal(assetId) {
+      const asset = this.state.assets.find(a => a.id === assetId);
+      if (!asset) return;
+
+      const customers = window._lastCustomersCache || [];
+      const defaultPitch = `Salam! Check out this new export leather specimen from HANDS & HEAD:\n\n` +
+        `🏷️ Code: ${asset.code}\n` +
+        `🎨 Color: ${asset.color}\n` +
+        `📏 Size: ${asset.size}\n` +
+        `💰 Wholesale Price: ৳${(asset.suggestedPrice || 4200).toLocaleString()}\n` +
+        `📸 High-Res Photo: ${asset.thumbnailUrl}\n` +
+        `📁 Master Drive Source: ${asset.driveUrl}\n\n` +
+        `Direct Order & Inquiries: shop.handsandhead.com`;
+
+      openSheet(`
+        <div class="asset-hub-header">
+          <div>
+            <div style="font-family:var(--mono);font-size:9.5px;color:var(--coral);font-weight:800;letter-spacing:1px;text-transform:uppercase;">
+              CUSTOMER OUTREACH &amp; WHATSAPP
+            </div>
+            <h3 style="margin:2px 0 0;font-size:18px;">Send ${asset.code} to Buyer</h3>
+          </div>
+          <button class="btn btn-dark btn-sm" onclick="closeSheet()">Close</button>
+        </div>
+
+        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px;max-height:80vh;overflow-y:auto;">
+          <!-- Product Spec Summary Card -->
+          <div style="display:flex;gap:12px;background:var(--bg-3);border:1px solid var(--wire);border-radius:10px;padding:12px;align-items:center;">
+            <img src="${asset.thumbnailUrl}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--wire);background:#000;" onerror="this.src='/uploads/placeholder.png'"/>
+            <div style="flex:1;">
+              <div style="font-family:var(--mono);font-size:13px;font-weight:800;color:var(--ink);">${asset.code}</div>
+              <div style="font-size:11px;color:var(--ink-2);margin-top:2px;">Color: <b>${asset.color}</b> · Size: <b>${asset.size}</b></div>
+              <div style="font-size:12px;color:var(--coral);font-weight:700;font-family:var(--mono);margin-top:2px;">৳${(asset.suggestedPrice || 4200).toLocaleString()}</div>
+            </div>
+            <a href="${asset.driveUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark" style="font-size:10px;padding:4px 8px;text-decoration:none;">Drive Asset ↗</a>
+          </div>
+
+          <!-- Channel 1: 1-Click WhatsApp Quick Link -->
+          <div style="background:var(--bg-neu);border:1px solid var(--wire);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;">
+            <div style="font-size:11.5px;font-weight:700;color:var(--ink);font-family:var(--mono);display:flex;align-items:center;gap:6px;">
+              <span>📲 Option 1: WhatsApp 1-Click Share</span>
+            </div>
+            <textarea id="whatsapp_pitch_text" rows="5" style="width:100%;font-family:var(--mono);font-size:11px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:8px;border-radius:6px;">${defaultPitch}</textarea>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-sm btn-gold truncate" style="flex:1;" onclick="window.DriveSyncMonitor.launchWhatsAppWeb('${asset.id}')">
+                📲 Open WhatsApp Web
+              </button>
+              <button class="btn btn-sm btn-dark truncate" style="flex:1;" onclick="window.DriveSyncMonitor.copyPitchText()">
+                📋 Copy Pitch Text
+              </button>
+            </div>
+          </div>
+
+          <!-- Channel 2: Select Customer from CRM (16K+ Database) -->
+          <div style="background:var(--bg-neu);border:1px solid var(--wire);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;">
+            <div style="font-size:11.5px;font-weight:700;color:var(--ink);font-family:var(--mono);">
+              👤 Option 2: Select Direct Buyer (16K+ CRM Database)
+            </div>
+            <input type="text" id="buyer_search_input" placeholder="Search buyer by name, phone or company…" 
+                   oninput="window.DriveSyncMonitor.filterBuyerList(this.value)" 
+                   style="width:100%;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:11px;border-radius:6px;"/>
+            <div id="buyer_list_suggestions" style="max-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;">
+              ${customers.slice(0, 6).map(c => {
+                const normPhone = window.normalizeBangladeshPhone ? window.normalizeBangladeshPhone(c.phone) : (c.phone || '');
+                return `
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--bg-3);border:1px solid var(--wire);border-radius:6px;font-size:11px;">
+                    <div>
+                      <div style="font-weight:700;color:var(--ink);">${c.name || 'Anonymous Buyer'} ${c.company ? `(${c.company})` : ''}</div>
+                      <div style="font-family:var(--mono);color:var(--ink-2);font-size:10px;">${normPhone || 'No Phone'}</div>
+                    </div>
+                    <button class="btn btn-sm btn-gold" style="font-size:10px;padding:4px 8px;min-width:auto;height:26px;" onclick="window.DriveSyncMonitor.sendDirectToCustomer('${asset.id}', '${normPhone}')">
+                      Send WhatsApp
+                    </button>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Channel 3: Stage to WhatsApp Campaign Studio -->
+          <button class="btn btn-dark btn-sm truncate" style="height:36px;font-size:11.5px;" onclick="closeSheet();window.openWhatsAppCampaignStudio();">
+            📢 Stage into WhatsApp Broadcast Campaign Hub →
+          </button>
+        </div>
+      `);
+    },
+
+    launchWhatsAppWeb(assetId) {
+      const txt = document.getElementById("whatsapp_pitch_text")?.value || "";
+      const url = `https://wa.me/?text=${encodeURIComponent(txt)}`;
+      window.open(url, "_blank");
+    },
+
+    copyPitchText() {
+      const txt = document.getElementById("whatsapp_pitch_text")?.value || "";
+      navigator.clipboard.writeText(txt).then(() => toast("Pitch copied to clipboard ✓"));
+    },
+
+    filterBuyerList(query) {
+      const q = (query || "").toLowerCase();
+      const customers = window._lastCustomersCache || [];
+      const container = document.getElementById("buyer_list_suggestions");
+      if (!container) return;
+
+      const filtered = customers.filter(c => 
+        (c.name && c.name.toLowerCase().includes(q)) || 
+        (c.phone && c.phone.includes(q)) ||
+        (c.company && c.company.toLowerCase().includes(q))
+      ).slice(0, 8);
+
+      if (!filtered.length) {
+        container.innerHTML = `<div style="padding:10px;font-size:11px;color:var(--ink-3);">No matching buyers found in local cache</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(c => {
+        const normPhone = window.normalizeBangladeshPhone ? window.normalizeBangladeshPhone(c.phone) : (c.phone || '');
+        return `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--bg-3);border:1px solid var(--wire);border-radius:6px;font-size:11px;">
+            <div>
+              <div style="font-weight:700;color:var(--ink);">${c.name || 'Anonymous Buyer'} ${c.company ? `(${c.company})` : ''}</div>
+              <div style="font-family:var(--mono);color:var(--ink-2);font-size:10px;">${normPhone || 'No Phone'}</div>
+            </div>
+            <button class="btn btn-sm btn-gold" style="font-size:10px;padding:4px 8px;min-width:auto;height:26px;" onclick="window.DriveSyncMonitor.sendDirectToCustomer('${this.state.activeAssetId || ''}', '${normPhone}')">
+              Send WhatsApp
+            </button>
+          </div>
+        `;
+      }).join('');
+    },
+
+    sendDirectToCustomer(assetId, rawPhone) {
+      const cleanPhone = (rawPhone || "").replace(/[^0-9]/g, "");
+      const txt = document.getElementById("whatsapp_pitch_text")?.value || "";
+      if (!cleanPhone) {
+        toast("No valid phone number for this customer");
+        return;
+      }
+      const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(txt)}`;
+      window.open(url, "_blank");
+    },
+
+    openQuickEditModal(assetId) {
+      const asset = this.state.assets.find(a => a.id === assetId);
+      if (!asset) return;
+
+      openSheet(`
+        <div class="asset-hub-header">
+          <div>
+            <div style="font-family:var(--mono);font-size:9.5px;color:var(--coral);font-weight:800;letter-spacing:1px;text-transform:uppercase;">
+              TOKENIZED SPEC EDIT
+            </div>
+            <h3 style="margin:2px 0 0;font-size:18px;">Customize ${asset.code} Spec</h3>
+          </div>
+          <button class="btn btn-dark btn-sm" onclick="closeSheet()">Close</button>
+        </div>
+
+        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <label style="font-size:11px;font-family:var(--mono);color:var(--ink-2);">Product Code (SKU):</label>
+            <input id="edit_asset_code" value="${asset.code}" style="width:100%;height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
+          </div>
+
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label style="font-size:11px;font-family:var(--mono);color:var(--ink-2);">Color Variant:</label>
+              <input id="edit_asset_color" value="${asset.color}" style="width:100%;height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
+            </div>
+            <div style="flex:1;">
+              <label style="font-size:11px;font-family:var(--mono);color:var(--ink-2);">Size:</label>
+              <input id="edit_asset_size" value="${asset.size}" style="width:100%;height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label style="font-size:11px;font-family:var(--mono);color:var(--ink-2);">Wholesale Price (BDT):</label>
+              <input id="edit_asset_price" type="number" value="${asset.suggestedPrice || 4200}" style="width:100%;height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
+            </div>
+            <div style="flex:1;">
+              <label style="font-size:11px;font-family:var(--mono);color:var(--ink-2);">Category:</label>
+              <input id="edit_asset_cat" value="${asset.suggestedCategory || 'Export Leather Goods'}" style="width:100%;height:36px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
+            </div>
+          </div>
+
+          <button class="btn btn-gold btn-sm" style="margin-top:10px;height:40px;" onclick="window.DriveSyncMonitor.saveQuickEdit('${asset.id}')">
+            Save &amp; Commit to Products Catalog ✓
+          </button>
+        </div>
+      `);
+    },
+
+    async saveQuickEdit(assetId) {
+      const asset = this.state.assets.find(a => a.id === assetId);
+      if (!asset) return;
+
+      asset.code = document.getElementById("edit_asset_code")?.value.trim() || asset.code;
+      asset.color = document.getElementById("edit_asset_color")?.value.trim() || asset.color;
+      asset.size = document.getElementById("edit_asset_size")?.value.trim() || asset.size;
+      asset.suggestedPrice = Number(document.getElementById("edit_asset_price")?.value) || asset.suggestedPrice;
+      asset.suggestedCategory = document.getElementById("edit_asset_cat")?.value.trim() || asset.suggestedCategory;
+
+      closeSheet();
+      await this.commitAsset(asset.id);
+    },
+
+    render(container, options = {}) {
+      const target = container || document.getElementById("mod-DriveSync") || document.getElementById("body");
+      if (!target) return;
+
+      // Ensure background scan has run at least once
+      if (!this.state.assets.length && !this.state.isScanning) {
+        this.scan(false);
+      }
+
+      const assets = this.getFilteredAssets();
+      const totalCount = this.state.assets.length;
+      const committedCount = this.state.assets.filter(a => a.isCommitted).length;
+      const uncommittedCount = totalCount - committedCount;
+      const selectedCount = this.state.selectedIds.size;
+      const isAllSelected = assets.length > 0 && assets.every(a => this.state.selectedIds.has(a.id));
+
+      target.innerHTML = `
+        ${options.insideProductsModule ? "" : modHeader("Drive Sync Monitor", `Master Google Drive Assets · ${totalCount} Detected · ${uncommittedCount} Ready to Commit`, [
+          { label: "⚡ Scan Master Drive", fn: "window.DriveSyncMonitor.scan(true)", primary: true },
+          { label: "🏷️ Products Catalog", fn: "openAppModule('Products')", primary: false },
+          { label: "📥 Batch Commit", fn: "window.DriveSyncMonitor.batchCommitSelected()", primary: false }
+        ])}
+
+        <!-- Products Sub-Menu Navigation -->
+        <div class="products-sub-nav" style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--wire);margin-bottom:14px;">
+          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('catalog')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+            <span>🏷️ Products Catalog (${options.catalogCount || (window._lastProductsCache || []).length})</span>
+          </button>
+          <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('drive_sync')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+            <span>⚡ Drive Sync Monitor (Master Drive)</span>
+            <span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;display:inline-block;"></span>
+          </button>
+          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_embed')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+            <span>📁 Master Drive Folder (Embed)</span>
+          </button>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+            <a href="${this.MASTER_FOLDER_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark truncate" style="min-width:auto;height:32px;padding:0 12px;font-size:11px;gap:5px;text-decoration:none;color:var(--gold-dim);">
+              <span>↗ Open in Google Drive</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Master Drive KPI & Monitor Status Banner -->
+        <div style="padding:0 20px 14px;">
+          <div style="background:var(--bg-3);border:1px solid var(--wire);border-radius:12px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="live-dot" style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;"></span>
+                <span style="font-family:var(--mono);font-size:12px;font-weight:800;color:var(--ink);letter-spacing:1px;text-transform:uppercase;">
+                  MASTER DRIVE FOLDER ACTIVE: 1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT
+                </span>
+                <span class="pill ok" style="font-size:8.5px;font-weight:700;">CONNECTED</span>
+              </div>
+              <div style="font-size:11px;color:var(--ink-3);">
+                Master assets photo folder for frontend catalog · Tokenized SKU, color shade, size matrix &amp; sequence parser
+              </div>
+            </div>
+
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+              <!-- Auto-scan timer display & interval selector -->
+              <div style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-neu);border:1px solid var(--wire);padding:0 10px;height:34px;border-radius:8px;">
+                <span id="drive_sync_timer_display" style="font-family:var(--mono);font-size:11px;color:var(--gold-dim);font-weight:700;">
+                  Auto-scan in ${this.state.countdownSec}s
+                </span>
+                <select onchange="window.DriveSyncMonitor.setScanInterval(this.value)" style="background:transparent;border:none;color:var(--ink);font-size:10px;font-family:var(--mono);outline:none;cursor:pointer;">
+                  <option value="30" ${this.state.scanIntervalSec === 30 ? 'selected' : ''}>Every 30s</option>
+                  <option value="60" ${this.state.scanIntervalSec === 60 ? 'selected' : ''}>Every 60s</option>
+                  <option value="300" ${this.state.scanIntervalSec === 300 ? 'selected' : ''}>Every 5m</option>
+                  <option value="0" ${this.state.scanIntervalSec === 0 ? 'selected' : ''}>Manual Only</option>
+                </select>
+              </div>
+
+              <button class="btn btn-sm btn-gold truncate" onclick="window.DriveSyncMonitor.scan(true)" style="height:34px;font-size:clamp(10px,1.2vw,12px);">
+                ⚡ Scan Master Drive Now
+              </button>
+
+              <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.batchCommitSelected()" style="height:34px;font-size:clamp(10px,1.2vw,12px);">
+                📥 Batch Add to Products (${uncommittedCount})
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <label style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-3);border:1px solid var(--wire);padding:0 10px;height:34px;border-radius:6px;cursor:pointer;user-select:none;">
+            <input type="checkbox" id="cb_select_all_drive" class="item-select-checkbox" 
+                   ${isAllSelected ? 'checked' : ''} 
+                   onchange="window.DriveSyncMonitor.toggleSelectAll(this.checked)"/>
+            <span style="font-size:11px;font-weight:700;color:var(--ink-2);font-family:var(--mono);">Select All (${assets.length})</span>
+          </label>
+
+          <input type="text" placeholder="Search Drive assets by SKU code, color, filename…" 
+                 value="${this.state.searchQuery || ''}" 
+                 oninput="window.DriveSyncMonitor.state.searchQuery = this.value; window.DriveSyncMonitor.refreshCurrentView();" 
+                 style="flex:1;min-width:180px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
+
+          <select onchange="window.DriveSyncMonitor.state.statusFilter = this.value; window.DriveSyncMonitor.refreshCurrentView();" 
+                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+            <option value="all" ${this.state.statusFilter === 'all' ? 'selected' : ''}>All Assets (${totalCount})</option>
+            <option value="uncommitted" ${this.state.statusFilter === 'uncommitted' ? 'selected' : ''}>⚡ Ready to Commit (${uncommittedCount})</option>
+            <option value="committed" ${this.state.statusFilter === 'committed' ? 'selected' : ''}>✓ Synced in Catalog (${committedCount})</option>
+          </select>
+
+          <select onchange="window.DriveSyncMonitor.state.colorFilter = this.value; window.DriveSyncMonitor.refreshCurrentView();" 
+                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+            <option value="all">All Colors</option>
+            <option value="BLACK">Black</option>
+            <option value="TAN">Tan</option>
+            <option value="BROWN">Brown</option>
+            <option value="COGNAC">Cognac</option>
+            <option value="NAVY">Navy</option>
+            <option value="BURGUNDY">Burgundy</option>
+            <option value="CHOCOLATE">Chocolate</option>
+            <option value="OLIVE">Olive</option>
+            <option value="RAW LEATHER">Raw Leather</option>
+          </select>
+        </div>
+
+        <!-- Floating Selection Action Bar -->
+        ${selectedCount > 0 ? `
+          <div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:900;background:var(--bg-neu);border:1px solid var(--wire);box-shadow:0 12px 30px rgba(0,0,0,0.6);border-radius:12px;padding:8px 16px;display:flex;gap:12px;align-items:center;">
+            <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink);">✓ ${selectedCount} Selected</span>
+            <button class="btn btn-sm btn-gold truncate" onclick="window.DriveSyncMonitor.batchCommitSelected()">
+              📥 Commit to Products Catalog
+            </button>
+            <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.state.selectedIds.clear();window.DriveSyncMonitor.refreshCurrentView();">
+              ✕ Clear
+            </button>
+          </div>
+        ` : ''}
+
+        <!-- Tokenized Product Asset Grid (Shows as Products) -->
+        <div class="pgrid" style="padding:0 20px 80px;">
+          ${assets.length ? assets.map(a => {
+            const isSelected = this.state.selectedIds.has(a.id);
+            return `
+              <div class="pcard ${isSelected ? 'is-selected' : ''}" style="position:relative;display:flex;flex-direction:column;transition:all 0.2s ease;border:1px solid ${a.isCommitted ? 'var(--wire)' : 'rgba(255,91,53,0.3)'};">
+                <!-- Checkbox overlay -->
+                <div style="position:absolute;top:8px;right:8px;z-index:10;" onclick="event.stopPropagation();">
+                  <input type="checkbox" class="item-select-checkbox product-item-cb" 
+                         ${isSelected ? 'checked' : ''} 
+                         onchange="window.DriveSyncMonitor.toggleAssetSelection('${a.id}', event)"/>
+                </div>
+
+                <!-- Status Badge -->
+                <div style="position:absolute;top:8px;left:8px;z-index:10;">
+                  ${a.isCommitted ? `
+                    <span class="pill ok" style="font-size:9px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,0.5);">✓ IN CATALOG</span>
+                  ` : `
+                    <span class="pill warn" style="font-size:9px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,0.5);">⚡ READY TO COMMIT</span>
+                  `}
+                </div>
+
+                <!-- Product Thumbnail -->
+                <div class="pim" onclick="window.DriveSyncMonitor.openSendToCustomerModal('${a.id}')" style="cursor:pointer;overflow:hidden;position:relative;background:#0d0d0c;height:180px;display:flex;align-items:center;justify-content:center;">
+                  <img src="${a.thumbnailUrl}" alt="${a.code}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/uploads/placeholder.png'"/>
+                </div>
+
+                <!-- Product Tokenized Specs -->
+                <div class="pbody" style="padding:12px;display:flex;flex-direction:column;gap:6px;flex:1;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div style="font-family:var(--mono);font-size:13.5px;font-weight:800;color:var(--ink);letter-spacing:0.5px;">
+                      ${a.code}
+                    </div>
+                    <span class="pill" style="font-size:9px;font-weight:700;background:var(--bg-neu);border:1px solid var(--wire);">
+                      Angle #${a.sequence || 1}
+                    </span>
+                  </div>
+
+                  <div style="font-size:11px;color:var(--ink-2);display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+                    <span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg-3);padding:2px 6px;border-radius:4px;border:1px solid var(--wire);">
+                      <span style="width:8px;height:8px;border-radius:50%;background:${this.getColorHex(a.color)};display:inline-block;border:1px solid #fff;"></span>
+                      <b style="font-size:10px;">${a.color}</b>
+                    </span>
+                    <span style="background:var(--bg-3);padding:2px 6px;border-radius:4px;border:1px solid var(--wire);font-size:10px;font-family:var(--mono);">
+                      Size: <b>${a.size}</b>
+                    </span>
+                  </div>
+
+                  <div style="font-size:10px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${a.filename}">
+                    📄 ${a.filename}
+                  </div>
+
+                  <div style="margin-top:auto;padding-top:8px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--wire);">
+                    <div style="font-family:var(--mono);font-size:13px;font-weight:800;color:var(--coral);">
+                      ৳${(a.suggestedPrice || 4200).toLocaleString()}
+                    </div>
+                    <span style="font-size:10px;color:var(--ink-3);">${a.suggestedCategory || 'Export Leather'}</span>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;">
+                    ${a.isCommitted ? `
+                      <button class="btn btn-sm btn-dark truncate" onclick="window.openAdvancedProductForm('${a.productId}')" style="font-size:clamp(10px,1.2vw,11px);padding:4px 8px;height:30px;">
+                        Edit Product
+                      </button>
+                    ` : `
+                      <button class="btn btn-sm btn-gold truncate" onclick="window.DriveSyncMonitor.commitAsset('${a.id}')" style="font-size:clamp(10px,1.2vw,11px);padding:4px 8px;height:30px;">
+                        + Add to Product
+                      </button>
+                    `}
+                    <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.openSendToCustomerModal('${a.id}')" style="font-size:clamp(10px,1.2vw,11px);padding:4px 8px;height:30px;">
+                      📲 Send to Customer
+                    </button>
+                  </div>
+
+                  <div style="display:flex;gap:4px;margin-top:4px;">
+                    <a href="${a.driveUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark truncate" style="flex:1;font-size:10px;height:26px;text-decoration:none;color:var(--gold-dim);padding:0 6px;">
+                      ↗ Google Drive
+                    </a>
+                    <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.openQuickEditModal('${a.id}')" style="flex:1;font-size:10px;height:26px;padding:0 6px;">
+                      ⚙️ Edit Spec
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('') : `
+            <div style="grid-column:1/-1;text-align:center;padding:60px 20px;background:var(--bg-3);border:1px solid var(--wire);border-radius:12px;">
+              <div style="font-size:32px;margin-bottom:8px;">📁</div>
+              <div style="font-family:var(--mono);font-size:14px;color:var(--ink);font-weight:700;">No Drive assets match current filter</div>
+              <div style="font-size:12px;color:var(--ink-3);margin-top:4px;">Click below to trigger a live re-scan of the master Google Drive folder.</div>
+              <button class="btn btn-sm btn-gold" onclick="window.DriveSyncMonitor.scan(true)" style="margin-top:14px;display:inline-flex;width:auto;padding:8px 18px;">
+                ⚡ Scan Master Drive Folder Now
+              </button>
+            </div>
+          `}
+        </div>
+      `;
+    },
+
+    getColorHex(colorName) {
+      const c = (colorName || "").toUpperCase();
+      if (c.includes("BLACK")) return "#111111";
+      if (c.includes("TAN")) return "#d2b48c";
+      if (c.includes("COGNAC")) return "#9a463d";
+      if (c.includes("BROWN") || c.includes("CHOCOLATE")) return "#5c4033";
+      if (c.includes("NAVY")) return "#000080";
+      if (c.includes("BURGUNDY") || c.includes("RED")) return "#800020";
+      if (c.includes("OLIVE")) return "#556b2f";
+      if (c.includes("NATURAL")) return "#e3dac9";
+      return "#888888";
+    },
+
+    renderEmbed(container, options = {}) {
+      const target = container || document.getElementById("mod-DriveSync") || document.getElementById("body");
+      if (!target) return;
+
+      target.innerHTML = `
+        ${options.insideProductsModule ? "" : modHeader("Master Drive Folder (Embed)", "Live Google Drive Master Folder Browser", [
+          { label: "⚡ Drive Sync Monitor", fn: "openAppModule('DriveSync')", primary: true },
+          { label: "🏷️ Products Catalog", fn: "openAppModule('Products')", primary: false }
+        ])}
+
+        <!-- Products Sub-Menu Navigation -->
+        <div class="products-sub-nav" style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--wire);margin-bottom:14px;">
+          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('catalog')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+            <span>🏷️ Products Catalog (${options.catalogCount || (window._lastProductsCache || []).length})</span>
+          </button>
+          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_sync')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+            <span>⚡ Drive Sync Monitor (Master Drive)</span>
+            <span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;display:inline-block;"></span>
+          </button>
+          <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('drive_embed')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+            <span>📁 Master Drive Folder (Embed)</span>
+          </button>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+            <a href="${this.MASTER_FOLDER_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark truncate" style="min-width:auto;height:32px;padding:0 12px;font-size:11px;gap:5px;text-decoration:none;color:var(--gold-dim);">
+              <span>↗ Open in Google Drive</span>
+            </a>
+          </div>
+        </div>
+
+        <div style="padding:0 20px 40px;display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-3);border:1px solid var(--wire);border-radius:10px;padding:10px 16px;">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--ink);">
+              Embedded Live Google Drive Folder: <b>1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT</b>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-sm btn-gold truncate" onclick="window.setProductsSubTab('drive_sync')">
+                ⚡ Switch to Drive Sync Monitor
+              </button>
+              <a href="${this.MASTER_FOLDER_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark truncate" style="text-decoration:none;">
+                ↗ Open External
+              </a>
+            </div>
+          </div>
+
+          <div style="width:100%;height:680px;border-radius:12px;overflow:hidden;border:1px solid var(--wire);background:#000;">
+            <iframe src="${this.MASTER_EMBED_URL}" style="width:100%;height:100%;border:none;" title="Google Drive Master Folder Embed"></iframe>
+          </div>
+        </div>
+      `;
+    }
+  };
+
+  // Expose module renderers
+  window.render = window.render || {};
+  window.render.DriveSync = function (container) {
+    const target = container || document.getElementById("mod-DriveSync") || document.getElementById("body");
+    if (target) window.DriveSyncMonitor.render(target);
+  };
+  window.renderDriveSync = window.render.DriveSync;
+
+  // Initialize auto-scan countdown
+  try {
+    const cached = localStorage.getItem("hh_drive_sync_assets");
+    if (cached) {
+      window.DriveSyncMonitor.state.assets = JSON.parse(cached);
+    }
+  } catch(e) {}
+  window.DriveSyncMonitor.startAutoScan();
 
   /* ── Drive & Handfilm Asset Hub Modal ── */
   window.openDriveAssetHub = function () {
