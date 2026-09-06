@@ -1008,6 +1008,24 @@
         history.unshift(record);
         localStorage.setItem(STORAGE_KEY_CAMPAIGNS, JSON.stringify(history.slice(0, 50)));
 
+        // Auto-commit to Firestore broadcast_campaigns collection
+        try {
+          const col = window.Collections?.broadcast_campaigns || (window.db && window.db.collection('broadcast_campaigns'));
+          if (col) {
+            col.doc(record.id).set({
+              id: record.id,
+              title: record.name || 'WhatsApp Broadcast Campaign',
+              cohortFilter: this.state.audiencePreset || 'Direct Buyer Audience',
+              audienceCount: record.recipientsCount || sentCount,
+              messageTemplate: this.state.customMessage || record.template || '',
+              timestamp: record.date || new Date().toISOString(),
+              status: 'dispatched',
+              promoCode: record.promoCode || '',
+              productIds: record.products || []
+            }).catch(err => console.debug('Firestore broadcast_campaigns notice:', err?.message));
+          }
+        } catch (fErr) {}
+
         // Attempt server-side log
         fetch('/api/whatsapp-campaigns', {
           method: 'POST',

@@ -11,6 +11,9 @@ import {
   where
 } from 'firebase/firestore';
 import { normalizeBangladeshPhone } from '../utils/phoneNormalizer';
+import { Customer360Drawer } from './Customer360Drawer';
+import { QuickSaleModal, QuickSaleCustomer } from './QuickSaleModal';
+import { SmartAudienceBuilder } from './SmartAudienceBuilder';
 
 export interface Customer {
   id: string;
@@ -40,6 +43,13 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [countryFilter, setCountryFilter] = useState<string>('all');
+
+  // Intelligence Modules Modals State
+  const [active360CustomerId, setActive360CustomerId] = useState<string | null>(null);
+  const [is360Open, setIs360Open] = useState<boolean>(false);
+  const [isQuickSaleOpen, setIsQuickSaleOpen] = useState<boolean>(false);
+  const [quickSaleTargetCustomer, setQuickSaleTargetCustomer] = useState<QuickSaleCustomer | null>(null);
+  const [showAudienceBuilder, setShowAudienceBuilder] = useState<boolean>(false);
 
   const PAGE_LIMIT = 50; // Strict limit to prevent mobile/browser memory exhaustion
 
@@ -78,8 +88,8 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
           phone: normalizeBangladeshPhone(data.phone || data.mobile || data.tel),
           email: data.email || '',
           country: data.country || 'BD',
-          totalOrders: Number(data.totalOrders) || 0,
-          totalSpent: Number(data.totalSpent) || 0,
+          totalOrders: Number(data.ordersCount ?? data.totalOrders ?? 0),
+          totalSpent: Number(data.totalSpent || 0),
           updatedAt: data.updatedAt
         };
       });
@@ -123,6 +133,26 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
     fetchPage(null, 'reset');
   }, [countryFilter]);
 
+  // Global Bridge for Seller OS integration
+  useEffect(() => {
+    (window as any).openCustomer360Drawer = (customerId: string) => {
+      setActive360CustomerId(customerId);
+      setIs360Open(true);
+    };
+    (window as any).openQuickSaleModal = (cust?: QuickSaleCustomer) => {
+      setQuickSaleTargetCustomer(cust || null);
+      setIsQuickSaleOpen(true);
+    };
+    (window as any).openSmartAudienceBuilder = () => {
+      setShowAudienceBuilder(true);
+    };
+    return () => {
+      delete (window as any).openCustomer360Drawer;
+      delete (window as any).openQuickSaleModal;
+      delete (window as any).openSmartAudienceBuilder;
+    };
+  }, []);
+
   const handleNext = () => {
     if (!hasMore || !currentCursor || loading) return;
     fetchPage(currentCursor, 'next');
@@ -136,27 +166,72 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
     fetchPage(prevCursor, 'prev');
   };
 
+  const handleCustomerClick = (c: Customer) => {
+    setActive360CustomerId(c.id);
+    setIs360Open(true);
+    if (onSelectCustomer) onSelectCustomer(c);
+  };
+
+  const handleOpenQuickSale = (target?: any) => {
+    if (target) {
+      setQuickSaleTargetCustomer({
+        id: target.id,
+        name: target.name,
+        companyName: target.companyName,
+        phone: target.phone,
+        email: target.email,
+        totalSpent: target.totalSpent,
+        ordersCount: target.ordersCount ?? target.totalOrders
+      });
+    } else {
+      setQuickSaleTargetCustomer(null);
+    }
+    setIsQuickSaleOpen(true);
+  };
+
   return (
     <div className="w-full bg-[#0d0d0c] border border-zinc-800 rounded-xl p-4 font-mono text-zinc-300">
-      {/* Header Bar */}
+      {/* Top Banner Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-zinc-800">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-amber-500 font-bold text-sm">CUSTOMER DIRECTORY</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-pulse" />
+            <span className="text-amber-500 font-bold text-sm">CUSTOMER DIRECTORY & 360 INTELLIGENCE</span>
             <span className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-2 py-0.5 rounded">
               16K+ Live Ledger
             </span>
           </div>
           <p className="text-[11px] text-zinc-500 mt-0.5">
-            Memory-safe cursor pagination (50/page) · Canonical +880 BD Normalizer
+            Click any buyer for Customer 360 Slide-over · Memory-safe limit(50) cursors · Canonical +880 BD Normalizer
           </p>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Quick Sale POS Button */}
+          <button
+            onClick={() => handleOpenQuickSale()}
+            className="rounded bg-[#c81d11] hover:bg-red-700 px-3 py-1.5 text-xs font-bold text-white transition-all flex items-center gap-1.5 shadow"
+          >
+            <span>⚡</span>
+            <span>QUICK SALE 2.0</span>
+          </button>
+
+          {/* Smart Audience Builder Button */}
+          <button
+            onClick={() => setShowAudienceBuilder(!showAudienceBuilder)}
+            className={`rounded px-3 py-1.5 text-xs font-bold transition-all border ${
+              showAudienceBuilder
+                ? 'bg-amber-500 text-black border-amber-400'
+                : 'bg-zinc-900 border-zinc-800 text-amber-400 hover:text-white'
+            }`}
+          >
+            🎯 {showAudienceBuilder ? 'Hide Builder' : 'Audience Builder'}
+          </button>
+
           <select
             value={countryFilter}
             onChange={(e) => setCountryFilter(e.target.value)}
-            className="rounded border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-[clamp(10px,1.2vw,13px)] text-zinc-200 focus:outline-none truncate"
+            className="rounded border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none truncate"
           >
             <option value="all">All Markets</option>
             <option value="BD">🇧🇩 Bangladesh</option>
@@ -167,12 +242,19 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
 
           <button
             onClick={() => fetchPage(null, 'reset')}
-            className="rounded border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-[clamp(10px,1.2vw,13px)] text-zinc-300 hover:bg-zinc-800 truncate"
+            className="rounded border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800 truncate"
           >
             ↺ Refresh
           </button>
         </div>
       </div>
+
+      {/* Embedded Audience Builder Section if toggled */}
+      {showAudienceBuilder && (
+        <div className="mb-6">
+          <SmartAudienceBuilder onClose={() => setShowAudienceBuilder(false)} />
+        </div>
+      )}
 
       {/* Table Container */}
       <div className="overflow-x-auto border border-zinc-800/80 rounded-lg">
@@ -183,8 +265,8 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
               <th className="p-2.5">Canonical Phone</th>
               <th className="p-2.5">Market</th>
               <th className="p-2.5 text-right">Orders</th>
-              <th className="p-2.5 text-right">Spend</th>
-              <th className="p-2.5 text-center">Action</th>
+              <th className="p-2.5 text-right">LTV Spend</th>
+              <th className="p-2.5 text-center">360 Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-850">
@@ -202,25 +284,51 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
               </tr>
             ) : (
               customers.map((c) => (
-                <tr key={c.id} className="hover:bg-zinc-900/40 transition-colors">
+                <tr
+                  key={c.id}
+                  onClick={() => handleCustomerClick(c)}
+                  className="hover:bg-zinc-900/60 cursor-pointer transition-colors group"
+                >
                   <td className="p-2.5 font-medium text-white truncate max-w-[180px]">
-                    {c.companyName || c.name}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-zinc-500 group-hover:text-amber-500 transition-colors">▶</span>
+                      <span>{c.companyName || c.name}</span>
+                    </div>
                   </td>
-                  <td className="p-2.5 text-amber-400/90 font-mono text-[11px] truncate">
+                  <td className="p-2.5 text-emerald-400 font-mono text-[11px] truncate">
                     {c.phone || '—'}
                   </td>
                   <td className="p-2.5 text-zinc-400">{c.country}</td>
                   <td className="p-2.5 text-right text-zinc-300 font-mono">{c.totalOrders}</td>
-                  <td className="p-2.5 text-right font-mono text-zinc-200">
+                  <td className="p-2.5 text-right font-mono text-[#d4af37] font-bold">
                     ৳{c.totalSpent?.toLocaleString()}
                   </td>
-                  <td className="p-2.5 text-center">
-                    <button
-                      onClick={() => onOpenWhatsApp && onOpenWhatsApp(c.id)}
-                      className="rounded bg-emerald-700/80 hover:bg-emerald-600 px-2.5 py-1 text-[clamp(10px,1.2vw,13px)] font-semibold text-white transition-all truncate"
-                    >
-                      📲 WhatsApp
-                    </button>
+                  <td className="p-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        onClick={() => handleCustomerClick(c)}
+                        className="rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-2 py-1 text-[11px] text-amber-400 transition-all font-semibold"
+                        title="Open Customer 360 Slide-over"
+                      >
+                        👁️ 360
+                      </button>
+                      <button
+                        onClick={() => handleOpenQuickSale(c)}
+                        className="rounded bg-[#c81d11]/80 hover:bg-[#c81d11] px-2 py-1 text-[11px] font-bold text-white transition-all"
+                        title="Instant Quick Sale POS"
+                      >
+                        ⚡ POS
+                      </button>
+                      {c.phone && (
+                        <button
+                          onClick={() => onOpenWhatsApp && onOpenWhatsApp(c.id)}
+                          className="rounded bg-emerald-800/70 hover:bg-emerald-700 px-2 py-1 text-[11px] font-semibold text-white transition-all"
+                          title="Open WhatsApp Broadcast"
+                        >
+                          📲 WA
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
@@ -232,26 +340,58 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
       {/* Pagination Footer */}
       <div className="flex items-center justify-between pt-3 mt-3 border-t border-zinc-800 text-[11px]">
         <span className="text-zinc-500">
-          Page <strong className="text-zinc-300">{page}</strong> · Showing {customers.length} records
+          Page <strong className="text-zinc-300">{page}</strong> · Showing {customers.length} records (limit 50 cursor)
         </span>
 
         <div className="flex gap-2">
           <button
             onClick={handlePrev}
             disabled={page === 1 || loading}
-            className="rounded border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-[clamp(10px,1.2vw,13px)] text-zinc-300 hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none truncate"
+            className="rounded border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none truncate"
           >
             ← Previous 50
           </button>
           <button
             onClick={handleNext}
             disabled={!hasMore || loading}
-            className="rounded border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-[clamp(10px,1.2vw,13px)] text-zinc-300 hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none truncate"
+            className="rounded border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none truncate"
           >
             Next 50 →
           </button>
         </div>
       </div>
+
+      {/* Slide-over Customer 360 Memory Drawer */}
+      <Customer360Drawer
+        customerId={active360CustomerId}
+        isOpen={is360Open}
+        onClose={() => {
+          setIs360Open(false);
+          setActive360CustomerId(null);
+        }}
+        onOpenQuickSale={(c) => {
+          setIs360Open(false);
+          handleOpenQuickSale(c);
+        }}
+        onOpenWhatsApp={(cId) => {
+          if (onOpenWhatsApp) onOpenWhatsApp(cId);
+        }}
+      />
+
+      {/* Quick Sale 2.0 POS Modal */}
+      <QuickSaleModal
+        isOpen={isQuickSaleOpen}
+        onClose={() => {
+          setIsQuickSaleOpen(false);
+          setQuickSaleTargetCustomer(null);
+        }}
+        preSelectedCustomer={quickSaleTargetCustomer}
+        onSuccess={(orderRecord) => {
+          // Refresh list to show updated spend & order count
+          fetchPage(null, 'reset');
+        }}
+      />
     </div>
   );
 };
+

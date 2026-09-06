@@ -862,4 +862,176 @@ window.AssetSourceService = {
 window.ProductsService.createProduct = window.ProductsService.create.bind(window.ProductsService);
 window.ProductsService.updateProduct = window.ProductsService.update.bind(window.ProductsService);
 
+/* ═══════════════════════════════════════════════════════════════
+   Products Module Sub-Menu Options & DriveSyncMonitor Component
+   ═══════════════════════════════════════════════════════════════ */
+
+// Ensure DriveSyncMonitor component definition exists and has mount & render methods
+if (typeof window !== "undefined") {
+  if (!window.DriveSyncMonitor) {
+    window.DriveSyncMonitor = {
+      MASTER_FOLDER_URL: "https://drive.google.com/drive/folders/1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT?usp=drive_link",
+      MASTER_FOLDER_ID: "1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT",
+      MASTER_EMBED_URL: "https://drive.google.com/embeddedfolderview?id=1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT#grid",
+      mount(container, options = {}) {
+        return this.render(container, options);
+      },
+      render(container, options = {}) {
+        const target = container || document.getElementById("mod-Products") || document.getElementById("body");
+        if (!target) return;
+        target.innerHTML = `
+          <div class="products-sub-nav" style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--wire);margin-bottom:14px;">
+            <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('catalog')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+              <span>🏷️ Products Catalog</span>
+            </button>
+            <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('drive_sync')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+              <span>⚡ Drive Sync Monitor</span>
+              <span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;display:inline-block;"></span>
+            </button>
+          </div>
+          <div style="padding:20px;">
+            <div style="background:var(--bg-3);border:1px solid var(--wire);border-radius:12px;padding:16px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span>
+                <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink);">DRIVE SYNC MONITOR ACTIVE</span>
+              </div>
+              <p style="font-size:12px;color:var(--ink-2);margin:0 0 12px;">Live connection to Master Google Drive assets folder. Tokenized SKU parsing and catalog sync monitor.</p>
+              <button class="btn btn-gold btn-sm" onclick="if(window.DriveSyncMonitor && window.DriveSyncMonitor.scan) window.DriveSyncMonitor.scan(true);">Scan Drive Assets</button>
+            </div>
+          </div>
+        `;
+      }
+    };
+  } else if (typeof window.DriveSyncMonitor.mount !== "function") {
+    window.DriveSyncMonitor.mount = function (container, options = {}) {
+      return this.render(container, options);
+    };
+  }
+
+  /* ── Register Sub-Menu Options on ProductsService ── */
+  window.ProductsService.subMenus = [
+    {
+      id: "catalog",
+      key: "catalog",
+      name: "Products Catalog",
+      title: "Products Catalog",
+      label: "🏷️ Products Catalog",
+      action: () => {
+        if (typeof window.setProductsSubTab === "function") {
+          window.setProductsSubTab("catalog");
+        } else {
+          const target = document.getElementById("mod-Products") || document.getElementById("body");
+          if (target && window.render?.Products) window.render.Products(target);
+        }
+      },
+      mount: (target) => {
+        if (typeof window.setProductsSubTab === "function") {
+          window.setProductsSubTab("catalog");
+        } else {
+          const container = target || document.getElementById("mod-Products") || document.getElementById("body");
+          if (container && window.render?.Products) window.render.Products(container);
+        }
+      }
+    },
+    {
+      id: "drive_sync",
+      key: "drive_sync",
+      name: "Drive Sync Monitor",
+      title: "Drive Sync Monitor",
+      label: "⚡ Drive Sync Monitor",
+      component: "DriveSyncMonitor",
+      action: () => {
+        if (typeof window.setProductsSubTab === "function") {
+          window.setProductsSubTab("drive_sync");
+        } else {
+          window.ProductsService.mountDriveSyncMonitor();
+        }
+      },
+      mount: (target, options = {}) => {
+        return window.ProductsService.mountDriveSyncMonitor(target, options);
+      }
+    }
+  ];
+
+  window.ProductsService.getSubMenus = function () {
+    return window.ProductsService.subMenus;
+  };
+
+  window.ProductsService.getSubMenuItems = function () {
+    return window.ProductsService.subMenus;
+  };
+
+  /* ── Mount DriveSyncMonitor Component within Products Module Main View ── */
+  window.ProductsService.mountDriveSyncMonitor = function (target, options = {}) {
+    const container = target || document.getElementById("mod-Products") || document.getElementById("body");
+    if (!container) return;
+
+    if (!window._viewState) window._viewState = {};
+    if (!window._viewState.products) window._viewState.products = {};
+    window._viewState.products.subTab = "drive_sync";
+
+    const comp = window.DriveSyncMonitor;
+    if (comp) {
+      if (typeof comp.mount === "function") {
+        return comp.mount(container, { insideProductsModule: true, ...options });
+      }
+      if (typeof comp.render === "function") {
+        return comp.render(container, { insideProductsModule: true, ...options });
+      }
+    }
+
+    // Fallback while component mounts
+    container.innerHTML = `
+      <div style="padding:24px;text-align:center;font-family:var(--mono);color:var(--ink-3);">
+        <div class="spinner" style="margin:0 auto 12px;"></div>
+        <div>Mounting Drive Sync Monitor…</div>
+      </div>
+    `;
+    setTimeout(() => {
+      const activeComp = window.DriveSyncMonitor;
+      if (activeComp && typeof (activeComp.mount || activeComp.render) === "function") {
+        (activeComp.mount || activeComp.render).call(activeComp, container, { insideProductsModule: true, ...options });
+      }
+    }, 100);
+  };
+
+  /* ── Global helper & sub-tab switcher ── */
+  window.mountDriveSyncMonitor = window.ProductsService.mountDriveSyncMonitor.bind(window.ProductsService);
+
+  const prevSetProductsSubTab = window.setProductsSubTab;
+  window.setProductsSubTab = function (subTab) {
+    if (subTab === "Drive Sync Monitor") subTab = "drive_sync";
+    if (!window._viewState) window._viewState = {};
+    if (!window._viewState.products) window._viewState.products = {};
+    window._viewState.products.subTab = subTab;
+
+    const target = document.getElementById("mod-Products") || document.getElementById("body");
+    if (subTab === "drive_sync") {
+      window.ProductsService.mountDriveSyncMonitor(target);
+      return;
+    }
+    if (typeof prevSetProductsSubTab === "function") {
+      prevSetProductsSubTab(subTab);
+    } else if (typeof window.render?.Products === "function" && target) {
+      window.render.Products(target);
+    }
+  };
+
+  /* ── Products Module Main View Sub-Menu Hook ── */
+  window.render = window.render || {};
+  const currentRenderProducts = window.render.Products;
+  window.render.Products = async function (container) {
+    const target = container || document.getElementById("mod-Products") || document.getElementById("body");
+    const activeSubTab = window._viewState?.products?.subTab || "catalog";
+    if ((activeSubTab === "drive_sync" || activeSubTab === "Drive Sync Monitor") && target) {
+      window.ProductsService.mountDriveSyncMonitor(target);
+      return;
+    }
+    if (typeof currentRenderProducts === "function") {
+      return currentRenderProducts.apply(this, arguments);
+    }
+  };
+}
+
+
 
