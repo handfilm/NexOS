@@ -211,64 +211,96 @@ window.ProductsService = {
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
 
     let items = [];
-    const col = this._getCollection();
+    let serverFetched = false;
 
+    // 1. Authoritative Cross-Device Server Fetch (/api/products)
+    // Guarantees real-time synchronization between phone, PC, tablet, and separate browser sessions
     try {
-      let q = col;
+      const qParams = new URLSearchParams();
+      if (status && status !== "all") qParams.set("status", status);
+      if (productType && productType !== "all") qParams.set("category", productType);
+      if (vendor && vendor !== "all") qParams.set("vendor", vendor);
+      if (search && search.trim()) qParams.set("search", search.trim());
+      qParams.set("limit", "500");
+      qParams.set("_t", String(Date.now()));
 
-      if (status && status !== "all") {
-        q = q.where("status", "==", status);
-      }
-      if (productType && productType !== "all") {
-        q = q.where("productType", "==", productType);
-      }
-      if (vendor && vendor !== "all") {
-        q = q.where("vendor", "==", vendor);
-      }
-
-      try {
-        q = q.orderBy(sortBy, sortDir);
-      } catch (e) {
-        console.debug("Firestore product order fallback:", e?.message);
-      }
-
-      const snap = await q.limit(this.PAGE_SIZE).get();
-      if (snap && !snap.empty) {
-        items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        this._lastDoc = snap.docs[snap.docs.length - 1] || null;
-      }
-    } catch (err) {
-      console.warn("Firestore products fetch notice:", err?.message);
-    }
-
-    // Auto-seed cloud Firestore collection if empty on first boot so data is globally available across all devices
-    if (!items.length && (!status || status === "all") && !search && !productType && !vendor) {
-      if (this._memCache && this._memCache.length) {
-        items = [...this._memCache];
-      } else {
-        const seedProducts = this._getDefaultSeedProducts();
-        try {
-          const batch = window.db.batch();
-          seedProducts.forEach(p => {
-            const ref = col.doc(p.id);
-            batch.set(ref, p);
-          });
-          await batch.commit();
-          items = seedProducts;
-          this._memCache = [...seedProducts];
-        } catch (seedErr) {
-          console.debug("Firestore product seeding note:", seedErr?.message);
-          items = seedProducts;
-          this._memCache = [...seedProducts];
+      const serverRes = await fetch(`/api/products?${qParams.toString()}`, { 
+        cache: "no-store",
+        headers: { "Accept": "application/json" }
+      });
+      if (serverRes.ok) {
+        const sData = await serverRes.json();
+        if (sData.ok && Array.isArray(sData.items)) {
+          items = sData.items;
+          serverFetched = true;
+          this._memCache = items;
+          window._lastProductsCache = items;
+          try {
+            localStorage.setItem("hh_cached_products", JSON.stringify(items));
+          } catch(e) {}
         }
       }
+    } catch (apiErr) {
+      console.debug("Server products sync fallback:", apiErr?.message);
+    }
+
+    // 2. Cloud Firestore Fetch (secondary/offline fallback or merge)
+    if (!serverFetched || !items.length) {
+      const col = this._getCollection();
+      try {
+        let q = col;
+
+        if (status && status !== "all") {
+          q = q.where("status", "==", status);
+        }
+        if (productType && productType !== "all") {
+          q = q.where("productType", "==", productType);
+        }
+        if (vendor && vendor !== "all") {
+          q = q.where("vendor", "==", vendor);
+        }
+
+        try {
+          q = q.orderBy(sortBy, sortDir);
+        } catch (e) {
+          console.debug("Firestore product order fallback:", e?.message);
+        }
+
+        const snap = await q.limit(this.PAGE_SIZE).get();
+        if (snap && !snap.empty) {
+          const fsItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          if (!items.length) {
+            items = fsItems;
+          } else {
+            const existingIds = new Set(items.map(p => p.id));
+            for (const fItem of fsItems) {
+              if (!existingIds.has(fItem.id)) items.push(fItem);
+            }
+          }
+          this._lastDoc = snap.docs[snap.docs.length - 1] || null;
+        }
+      } catch (err) {
+        console.warn("Firestore products fetch notice:", err?.message);
+      }
+    }
+
+    // 3. Memory & LocalStorage Cache Fallback
+    if (!items.length && this._memCache && this._memCache.length) {
+      items = [...this._memCache];
+    } else if (!items.length) {
+      try {
+        const cached = localStorage.getItem("hh_cached_products");
+        if (cached) items = JSON.parse(cached);
+      } catch (e) {}
+    }
+
+    // 4. Default Seed Products if completely uninitialized
+    if (!items.length && (!status || status === "all") && !search && !productType && !vendor) {
+      const seedProducts = this._getDefaultSeedProducts();
+      items = seedProducts;
+      this._memCache = [...seedProducts];
     } else if (items.length) {
       this._memCache = items;
-    } else if (this._memCache && this._memCache.length) {
-      items = [...this._memCache];
-      if (status && status !== "all") items = items.filter(p => p.status === status);
-      if (productType && productType !== "all") items = items.filter(p => p.productType === productType);
-      if (vendor && vendor !== "all") items = items.filter(p => p.vendor === vendor);
     }
 
     // Client-side text search (title, SKU, vendor, tags, description)
@@ -425,19 +457,28 @@ window.ProductsService = {
       updatedAt: nowIso
     };
 
-    // 1. Strictly persist to global Cloud Firestore collection with resilient timeout
-    await this._safeDocWrite(docRef, payload);
-    this._syncInventory(newId, totalInventory).catch(() => {});
-    this._logActivity("product_created", newId, payload.title).catch(() => {});
-
-    // 2. Server persistence backup for cross-system consistency
+    // 1. Authoritative Server persistence for immediate cross-device sync
     try {
-      await fetch("/api/products", {
+      const sRes = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
-      }).catch(() => {});
-    } catch (apiErr) {}
+      });
+      if (sRes.ok) {
+        const sData = await sRes.json();
+        if (sData.item && sData.item.id) {
+          payload.id = sData.item.id;
+          newId = sData.item.id;
+        }
+      }
+    } catch (apiErr) {
+      console.warn("API product save warning:", apiErr?.message);
+    }
+
+    // 2. Persist to global Cloud Firestore collection with resilient timeout
+    await this._safeDocWrite(docRef, payload);
+    this._syncInventory(newId, totalInventory).catch(() => {});
+    this._logActivity("product_created", newId, payload.title).catch(() => {});
 
     // Update in-memory cache
     const existingIdx = this._memCache.findIndex(p => p.id === newId);
@@ -525,11 +566,11 @@ window.ProductsService = {
     await this._logActivity("product_archived", productId);
 
     try {
-      fetch(`/api/products/${encodeURIComponent(productId)}`, {
+      await fetch(`/api/products/${encodeURIComponent(productId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "archived" })
-      }).catch(() => {});
+      });
     } catch (e) {}
 
     const idx = this._memCache.findIndex(p => p.id === productId);
@@ -557,11 +598,11 @@ window.ProductsService = {
     await this._logActivity("product_activated", productId);
 
     try {
-      fetch(`/api/products/${encodeURIComponent(productId)}`, {
+      await fetch(`/api/products/${encodeURIComponent(productId)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "active" })
-      }).catch(() => {});
+      });
     } catch (e) {}
 
     const idx = this._memCache.findIndex(p => p.id === productId);
@@ -592,7 +633,7 @@ window.ProductsService = {
     this._logActivity("product_deleted", productId).catch(() => {});
 
     try {
-      fetch(`/api/products/${encodeURIComponent(productId)}`, { method: "DELETE" }).catch(() => {});
+      await fetch(`/api/products/${encodeURIComponent(productId)}`, { method: "DELETE" });
     } catch (e) {}
 
     this._memCache = this._memCache.filter(p => p.id !== productId);

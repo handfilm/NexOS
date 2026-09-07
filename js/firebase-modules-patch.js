@@ -1336,6 +1336,17 @@
     }
   };
 
+  window._driveSearchTimer = null;
+  window.debounceDriveSearch = function(val) {
+    if (window.DriveSyncMonitor) {
+      window.DriveSyncMonitor.state.searchQuery = val;
+      if (window._driveSearchTimer) clearTimeout(window._driveSearchTimer);
+      window._driveSearchTimer = setTimeout(() => {
+        window.DriveSyncMonitor.updateGridInPlace();
+      }, 120);
+    }
+  };
+
   /* ═══════════════════════════════════════════════════════════
      DRIVE SYNC MONITOR MODULE (Google Drive Master Folder Asset Sync)
      ═══════════════════════════════════════════════════════════ */
@@ -1611,6 +1622,11 @@
     },
 
     refreshCurrentView() {
+      const grid = document.getElementById("drive_asset_grid");
+      if (grid && typeof this.updateGridInPlace === "function") {
+        this.updateGridInPlace();
+        return;
+      }
       const driveMod = document.getElementById("mod-DriveSync");
       if (driveMod) {
         this.render(driveMod);
@@ -1620,6 +1636,138 @@
       if (prodMod && window._viewState?.products?.subTab === "drive_sync") {
         this.render(prodMod, { insideProductsModule: true });
       }
+    },
+
+    updateGridInPlace() {
+      const grid = document.getElementById("drive_asset_grid");
+      if (!grid) return;
+      const assets = this.getFilteredAssets();
+      grid.innerHTML = this.renderAssetCards(assets);
+
+      const countPill = document.getElementById("drive_sync_filtered_count");
+      if (countPill) countPill.innerText = `${assets.length} Assets`;
+
+      const selectAllLabel = document.getElementById("drive_sync_select_all_label");
+      if (selectAllLabel) selectAllLabel.innerText = `Select All (${assets.length})`;
+
+      const cbSelectAll = document.getElementById("cb_select_all_drive");
+      if (cbSelectAll) {
+        cbSelectAll.checked = assets.length > 0 && assets.every(a => this.state.selectedIds.has(a.id));
+      }
+
+      const floatingBar = document.getElementById("drive_sync_floating_bar");
+      const selectedCount = this.state.selectedIds.size;
+      if (floatingBar) {
+        if (selectedCount > 0) {
+          floatingBar.style.display = "flex";
+          const countSpan = document.getElementById("drive_sync_selected_count");
+          if (countSpan) countSpan.innerText = `✓ ${selectedCount} Selected`;
+        } else {
+          floatingBar.style.display = "none";
+        }
+      }
+    },
+
+    renderAssetCards(assets) {
+      if (!assets || !assets.length) {
+        return `
+          <div style="grid-column:1/-1;text-align:center;padding:60px 20px;background:var(--bg-3);border:1px solid var(--wire);border-radius:12px;">
+            <div style="font-size:32px;margin-bottom:8px;">📁</div>
+            <div style="font-family:var(--mono);font-size:14px;color:var(--ink);font-weight:700;">No Drive assets match current filter</div>
+            <div style="font-size:12px;color:var(--ink-3);margin-top:4px;">Click below to trigger a live re-scan of the master Google Drive folder.</div>
+            <button class="btn btn-sm btn-gold" onclick="window.DriveSyncMonitor.scan(true)" style="margin-top:14px;display:inline-flex;width:auto;padding:8px 18px;">
+              ⚡ Scan Master Drive Folder Now
+            </button>
+          </div>
+        `;
+      }
+      return assets.map(a => {
+        const isSelected = this.state.selectedIds.has(a.id);
+        return `
+          <div class="pcard ${isSelected ? 'is-selected' : ''}" style="position:relative;display:flex;flex-direction:column;transition:all 0.2s ease;border:1px solid ${a.isCommitted ? 'var(--wire)' : 'rgba(255,91,53,0.3)'};">
+            <!-- Checkbox overlay -->
+            <div style="position:absolute;top:8px;right:8px;z-index:10;" onclick="event.stopPropagation();">
+              <input type="checkbox" class="item-select-checkbox product-item-cb" 
+                     ${isSelected ? 'checked' : ''} 
+                     onchange="window.DriveSyncMonitor.toggleAssetSelection('${a.id}', event)"/>
+            </div>
+
+            <!-- Status Badge -->
+            <div style="position:absolute;top:8px;left:8px;z-index:10;">
+              ${a.isCommitted ? `
+                <span class="pill ok" style="font-size:9px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,0.5);">✓ IN CATALOG</span>
+              ` : `
+                <span class="pill warn" style="font-size:9px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,0.5);">⚡ READY TO COMMIT</span>
+              `}
+            </div>
+
+            <!-- Product Thumbnail -->
+            <div class="pim" onclick="window.DriveSyncMonitor.openSendToCustomerModal('${a.id}')" style="cursor:pointer;overflow:hidden;position:relative;background:#0d0d0c;height:180px;display:flex;align-items:center;justify-content:center;">
+              <img src="${a.thumbnailUrl}" alt="${a.code}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/uploads/placeholder.png'"/>
+            </div>
+
+            <!-- Product Tokenized Specs -->
+            <div class="pbody" style="padding:12px;display:flex;flex-direction:column;gap:6px;flex:1;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="font-family:var(--mono);font-size:13.5px;font-weight:800;color:var(--ink);letter-spacing:0.5px;">
+                  ${a.code}
+                </div>
+                <span class="pill" style="font-size:9px;font-weight:700;background:var(--bg-neu);border:1px solid var(--wire);">
+                  Angle #${a.sequence || 1}
+                </span>
+              </div>
+
+              <div style="font-size:11px;color:var(--ink-2);display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+                <span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg-3);padding:2px 6px;border-radius:4px;border:1px solid var(--wire);">
+                  <span style="width:8px;height:8px;border-radius:50%;background:${this.getColorHex(a.color)};display:inline-block;border:1px solid #fff;"></span>
+                  <b style="font-size:10px;">${a.color}</b>
+                </span>
+                <span style="background:var(--bg-3);padding:2px 6px;border-radius:4px;border:1px solid var(--wire);font-size:10px;font-family:var(--mono);">
+                  Size: <b>${a.size}</b>
+                </span>
+              </div>
+
+              <div style="font-size:10px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${a.filename}">
+                📄 ${a.filename}
+              </div>
+
+              <div style="margin-top:auto;padding-top:8px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--wire);">
+                <div style="font-family:var(--mono);font-size:13px;font-weight:800;color:var(--coral);">
+                  ৳${(a.suggestedPrice || 4200).toLocaleString()}
+                </div>
+                <span class="pill" style="font-size:9.5px;font-weight:700;background:rgba(217,119,6,0.12);border:1px solid rgba(217,119,6,0.3);color:var(--gold-dim);display:inline-flex;align-items:center;gap:4px;" title="Auto-assigned category: ${a.suggestedCategory || a.category}">
+                  ${a.categoryIcon || '🏷️'} ${a.suggestedCategory || a.category || 'Export Leather'}
+                </span>
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;">
+                ${a.isCommitted ? `
+                  <button class="btn btn-sm btn-dark truncate" onclick="window.openAdvancedProductForm('${a.productId}')" style="font-size:clamp(10px,1.2vw,11px);padding:4px 8px;height:30px;">
+                    Edit Product
+                  </button>
+                ` : `
+                  <button class="btn btn-sm btn-gold truncate" onclick="window.DriveSyncMonitor.commitAsset('${a.id}')" style="font-size:clamp(10px,1.2vw,11px);padding:4px 8px;height:30px;">
+                    + Add to Product
+                  </button>
+                `}
+                <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.openSendToCustomerModal('${a.id}')" style="font-size:clamp(10px,1.2vw,11px);padding:4px 8px;height:30px;">
+                  📲 Send to Customer
+                </button>
+              </div>
+
+              <div style="display:flex;gap:4px;margin-top:4px;">
+                <a href="${a.driveUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark truncate" style="flex:1;font-size:10px;height:26px;text-decoration:none;color:var(--gold-dim);padding:0 6px;">
+                  ↗ Google Drive
+                </a>
+                <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.openQuickEditModal('${a.id}')" style="flex:1;font-size:10px;height:26px;padding:0 6px;">
+                  ⚙️ Edit Spec
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
     },
 
     toggleSelectAll(checked) {
@@ -1768,9 +1916,7 @@
         return;
       }
 
-      if (!confirm(`Commit ${targets.length} tokenized asset(s) with auto-assigned categories to Firestore products collection?`)) return;
-
-      toast(`Batch staging ${targets.length} products…`);
+      toast(`Batch staging ${targets.length} products to catalog…`);
       let successCount = 0;
       for (const asset of targets) {
         try {
@@ -2163,23 +2309,23 @@
           <label style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-3);border:1px solid var(--wire);padding:0 10px;height:34px;border-radius:6px;cursor:pointer;user-select:none;">
             <input type="checkbox" id="cb_select_all_drive" class="item-select-checkbox" 
                    ${isAllSelected ? 'checked' : ''} 
-                   onchange="window.DriveSyncMonitor.toggleSelectAll(this.checked)"/>
-            <span style="font-size:11px;font-weight:700;color:var(--ink-2);font-family:var(--mono);">Select All (${assets.length})</span>
+                    onchange="window.DriveSyncMonitor.toggleSelectAll(this.checked)"/>
+            <span id="drive_sync_select_all_label" style="font-size:11px;font-weight:700;color:var(--ink-2);font-family:var(--mono);">Select All (${assets.length})</span>
           </label>
 
           <input type="text" placeholder="Search Drive assets by SKU code, category, color, filename…" 
                  value="${this.state.searchQuery || ''}" 
-                 oninput="window.DriveSyncMonitor.state.searchQuery = this.value; window.DriveSyncMonitor.refreshCurrentView();" 
+                 oninput="window.debounceDriveSearch(this.value)" 
                  style="flex:1;min-width:180px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
 
-          <select onchange="window.DriveSyncMonitor.state.statusFilter = this.value; window.DriveSyncMonitor.refreshCurrentView();" 
+          <select onchange="window.DriveSyncMonitor.state.statusFilter = this.value; window.DriveSyncMonitor.updateGridInPlace();" 
                   style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
             <option value="all" ${this.state.statusFilter === 'all' ? 'selected' : ''}>All Assets (${totalCount})</option>
             <option value="uncommitted" ${this.state.statusFilter === 'uncommitted' ? 'selected' : ''}>⚡ Ready to Commit (${uncommittedCount})</option>
             <option value="committed" ${this.state.statusFilter === 'committed' ? 'selected' : ''}>✓ Synced in Catalog (${committedCount})</option>
           </select>
 
-          <select onchange="window.DriveSyncMonitor.state.categoryFilter = this.value; window.DriveSyncMonitor.refreshCurrentView();" 
+          <select onchange="window.DriveSyncMonitor.state.categoryFilter = this.value; window.DriveSyncMonitor.updateGridInPlace();" 
                   style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
             <option value="all" ${this.state.categoryFilter === 'all' ? 'selected' : ''}>All Categories</option>
             <option value="Jackets & Outerwear" ${this.state.categoryFilter === 'Jackets & Outerwear' ? 'selected' : ''}>🧥 Jackets & Outerwear</option>
@@ -2191,7 +2337,7 @@
             <option value="RAWX Atelier Collection" ${this.state.categoryFilter === 'RAWX Atelier Collection' ? 'selected' : ''}>✨ RAWX Collection</option>
           </select>
 
-          <select onchange="window.DriveSyncMonitor.state.colorFilter = this.value; window.DriveSyncMonitor.refreshCurrentView();" 
+          <select onchange="window.DriveSyncMonitor.state.colorFilter = this.value; window.DriveSyncMonitor.updateGridInPlace();" 
                   style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
             <option value="all">All Colors</option>
             <option value="BLACK">Black</option>
@@ -2207,116 +2353,19 @@
         </div>
 
         <!-- Floating Selection Action Bar -->
-        ${selectedCount > 0 ? `
-          <div style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:900;background:var(--bg-neu);border:1px solid var(--wire);box-shadow:0 12px 30px rgba(0,0,0,0.6);border-radius:12px;padding:8px 16px;display:flex;gap:12px;align-items:center;">
-            <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink);">✓ ${selectedCount} Selected</span>
-            <button class="btn btn-sm btn-gold truncate" onclick="window.DriveSyncMonitor.batchCommitSelected()">
-              📥 Commit to Products Catalog
-            </button>
-            <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.state.selectedIds.clear();window.DriveSyncMonitor.refreshCurrentView();">
-              ✕ Clear
-            </button>
-          </div>
-        ` : ''}
+        <div id="drive_sync_floating_bar" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:900;background:var(--bg-neu);border:1px solid var(--wire);box-shadow:0 12px 30px rgba(0,0,0,0.6);border-radius:12px;padding:8px 16px;display:${selectedCount > 0 ? 'flex' : 'none'};gap:12px;align-items:center;">
+          <span id="drive_sync_selected_count" style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink);">✓ ${selectedCount} Selected</span>
+          <button class="btn btn-sm btn-gold truncate" onclick="window.DriveSyncMonitor.batchCommitSelected()">
+            📥 Commit to Products Catalog
+          </button>
+          <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.state.selectedIds.clear();window.DriveSyncMonitor.refreshCurrentView();">
+            ✕ Clear
+          </button>
+        </div>
 
         <!-- Tokenized Product Asset Grid (Shows as Products) -->
-        <div class="pgrid" style="padding:0 20px 80px;">
-          ${assets.length ? assets.map(a => {
-            const isSelected = this.state.selectedIds.has(a.id);
-            return `
-              <div class="pcard ${isSelected ? 'is-selected' : ''}" style="position:relative;display:flex;flex-direction:column;transition:all 0.2s ease;border:1px solid ${a.isCommitted ? 'var(--wire)' : 'rgba(255,91,53,0.3)'};">
-                <!-- Checkbox overlay -->
-                <div style="position:absolute;top:8px;right:8px;z-index:10;" onclick="event.stopPropagation();">
-                  <input type="checkbox" class="item-select-checkbox product-item-cb" 
-                         ${isSelected ? 'checked' : ''} 
-                         onchange="window.DriveSyncMonitor.toggleAssetSelection('${a.id}', event)"/>
-                </div>
-
-                <!-- Status Badge -->
-                <div style="position:absolute;top:8px;left:8px;z-index:10;">
-                  ${a.isCommitted ? `
-                    <span class="pill ok" style="font-size:9px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,0.5);">✓ IN CATALOG</span>
-                  ` : `
-                    <span class="pill warn" style="font-size:9px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,0.5);">⚡ READY TO COMMIT</span>
-                  `}
-                </div>
-
-                <!-- Product Thumbnail -->
-                <div class="pim" onclick="window.DriveSyncMonitor.openSendToCustomerModal('${a.id}')" style="cursor:pointer;overflow:hidden;position:relative;background:#0d0d0c;height:180px;display:flex;align-items:center;justify-content:center;">
-                  <img src="${a.thumbnailUrl}" alt="${a.code}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/uploads/placeholder.png'"/>
-                </div>
-
-                <!-- Product Tokenized Specs -->
-                <div class="pbody" style="padding:12px;display:flex;flex-direction:column;gap:6px;flex:1;">
-                  <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <div style="font-family:var(--mono);font-size:13.5px;font-weight:800;color:var(--ink);letter-spacing:0.5px;">
-                      ${a.code}
-                    </div>
-                    <span class="pill" style="font-size:9px;font-weight:700;background:var(--bg-neu);border:1px solid var(--wire);">
-                      Angle #${a.sequence || 1}
-                    </span>
-                  </div>
-
-                  <div style="font-size:11px;color:var(--ink-2);display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-                    <span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg-3);padding:2px 6px;border-radius:4px;border:1px solid var(--wire);">
-                      <span style="width:8px;height:8px;border-radius:50%;background:${this.getColorHex(a.color)};display:inline-block;border:1px solid #fff;"></span>
-                      <b style="font-size:10px;">${a.color}</b>
-                    </span>
-                    <span style="background:var(--bg-3);padding:2px 6px;border-radius:4px;border:1px solid var(--wire);font-size:10px;font-family:var(--mono);">
-                      Size: <b>${a.size}</b>
-                    </span>
-                  </div>
-
-                  <div style="font-size:10px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${a.filename}">
-                    📄 ${a.filename}
-                  </div>
-
-                  <div style="margin-top:auto;padding-top:8px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--wire);">
-                    <div style="font-family:var(--mono);font-size:13px;font-weight:800;color:var(--coral);">
-                      ৳${(a.suggestedPrice || 4200).toLocaleString()}
-                    </div>
-                    <span class="pill" style="font-size:9.5px;font-weight:700;background:rgba(217,119,6,0.12);border:1px solid rgba(217,119,6,0.3);color:var(--gold-dim);display:inline-flex;align-items:center;gap:4px;" title="Auto-assigned category: ${a.suggestedCategory || a.category}">
-                      ${a.categoryIcon || '🏷️'} ${a.suggestedCategory || a.category || 'Export Leather'}
-                    </span>
-                  </div>
-
-                  <!-- Action Buttons -->
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;">
-                    ${a.isCommitted ? `
-                      <button class="btn btn-sm btn-dark truncate" onclick="window.openAdvancedProductForm('${a.productId}')" style="font-size:clamp(10px,1.2vw,11px);padding:4px 8px;height:30px;">
-                        Edit Product
-                      </button>
-                    ` : `
-                      <button class="btn btn-sm btn-gold truncate" onclick="window.DriveSyncMonitor.commitAsset('${a.id}')" style="font-size:clamp(10px,1.2vw,11px);padding:4px 8px;height:30px;">
-                        + Add to Product
-                      </button>
-                    `}
-                    <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.openSendToCustomerModal('${a.id}')" style="font-size:clamp(10px,1.2vw,11px);padding:4px 8px;height:30px;">
-                      📲 Send to Customer
-                    </button>
-                  </div>
-
-                  <div style="display:flex;gap:4px;margin-top:4px;">
-                    <a href="${a.driveUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark truncate" style="flex:1;font-size:10px;height:26px;text-decoration:none;color:var(--gold-dim);padding:0 6px;">
-                      ↗ Google Drive
-                    </a>
-                    <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.openQuickEditModal('${a.id}')" style="flex:1;font-size:10px;height:26px;padding:0 6px;">
-                      ⚙️ Edit Spec
-                    </button>
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('') : `
-            <div style="grid-column:1/-1;text-align:center;padding:60px 20px;background:var(--bg-3);border:1px solid var(--wire);border-radius:12px;">
-              <div style="font-size:32px;margin-bottom:8px;">📁</div>
-              <div style="font-family:var(--mono);font-size:14px;color:var(--ink);font-weight:700;">No Drive assets match current filter</div>
-              <div style="font-size:12px;color:var(--ink-3);margin-top:4px;">Click below to trigger a live re-scan of the master Google Drive folder.</div>
-              <button class="btn btn-sm btn-gold" onclick="window.DriveSyncMonitor.scan(true)" style="margin-top:14px;display:inline-flex;width:auto;padding:8px 18px;">
-                ⚡ Scan Master Drive Folder Now
-              </button>
-            </div>
-          `}
+        <div id="drive_asset_grid" class="pgrid" style="padding:0 20px 80px;">
+          ${this.renderAssetCards(assets)}
         </div>
       `;
     },
@@ -3301,9 +3350,122 @@
   /* ═══════════════════════════════════════════════════════════
      CRM / CUSTOMERS MODULE
      ═══════════════════════════════════════════════════════════ */
+  window.renderCustomerCardsHtml = function (items) {
+    if (!items || !items.length) {
+      return `
+        <div class="empty" style="padding:40px;text-align:center;">
+          <div style="font-size:28px;margin-bottom:8px;color:var(--gold-dim);">👥</div>
+          <div style="font-size:13px;font-weight:600;color:var(--ink);">No customers found matching your filter</div>
+          <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">Try searching another name, phone number, or select All Countries.</div>
+        </div>
+      `;
+    }
+    return items.map(c => `
+      <div class="company-card" onclick="window.openCompanyDetail('${encodeURIComponent(c.id)}')" style="cursor:pointer;transition:transform 0.15s, border-color 0.15s;padding:12px 14px;border-radius:10px;background:var(--bg-card, var(--bg-2));border:1px solid var(--wire);">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+          <div style="font-size:22px;line-height:1;">${c.flag || '🏢'}</div>
+          <div style="flex:1;min-width:0;">
+            <div class="company-name" style="font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${c.companyName || c.name}
+            </div>
+            <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-top:2px;">
+              ${c.country || '—'} · ${c.contactPerson ? `${c.contactPerson} · ` : ''}${c.currency || 'BDT'}
+            </div>
+          </div>
+          <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <span class="pill ok" style="font-size:9px;padding:2px 6px;">${c.totalOrders || 0} Orders</span>
+            <div style="font-size:12px;font-weight:700;color:var(--gold);font-family:var(--mono);">
+              ৳${(c.totalSpent || 0).toLocaleString()}
+            </div>
+            <button class="btn btn-emerald btn-xs" style="padding:2px 8px;font-size:9.5px;margin-top:2px;" onclick="event.stopPropagation(); window.openWhatsAppCampaignStudio({ customerIds: ['${c.id}'] });" title="Send Curated Products via WhatsApp">
+              📲 Broadcast
+            </button>
+          </div>
+        </div>
+        
+        <div class="company-meta" style="display:flex;flex-wrap:wrap;gap:6px;font-size:10px;">
+          <div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">${c.paymentTerms || 'Cash on Delivery (COD)'}</div>
+          ${c.moq !== undefined && c.moq > 0 ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">MOQ: ${c.moq} units</div>` : ''}
+          ${c.phone ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">📞 ${c.phone}</div>` : ''}
+          ${c.email ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">✉ ${c.email}</div>` : ''}
+          ${c.addressLine1 ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-3);border:1px solid var(--wire);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📍 ${c.addressLine1}</div>` : ''}
+        </div>
+      </div>
+    `).join('');
+  };
+
+  window.renderCustomerPaginationHtml = function (state, totalPages, totalCount) {
+    if (totalPages <= 1) return '';
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 24px;border-top:1px solid var(--wire);margin-top:8px;">
+        <div style="font-size:11.5px;color:var(--ink-3);font-family:var(--mono);">
+          Showing ${(state.page - 1) * state.limit + 1}–${Math.min(state.page * state.limit, totalCount)} of ${totalCount.toLocaleString()} buyers
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button onclick="window.changeCustomerPage(1)" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">« First</button>
+          <button onclick="window.changeCustomerPage(${state.page - 1})" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">‹ Prev</button>
+          <span style="font-size:11.5px;font-family:var(--mono);padding:0 8px;color:var(--ink);">Page ${state.page} of ${totalPages}</span>
+          <button onclick="window.changeCustomerPage(${state.page + 1})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">Next ›</button>
+          <button onclick="window.changeCustomerPage(${totalPages})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">Last »</button>
+        </div>
+      </div>
+    `;
+  };
+
+  window.updateCustomerListInPlace = async function () {
+    const listEl = document.getElementById("crm-customer-cards-list");
+    if (!listEl) {
+      window.render.CRM();
+      return;
+    }
+    const state = window._viewState.customers;
+    listEl.style.opacity = "0.6";
+    try {
+      const res = await window.CustomersService.list({
+        search: state.search,
+        country: state.country,
+        cohortTag: state.cohortTag,
+        minSpend: state.minSpend,
+        sortBy: state.sortBy,
+        sortDir: state.sortDir,
+        page: state.page,
+        limit: state.limit
+      });
+      const items = res.items || [];
+      const totalCount = res.totalCount !== undefined ? res.totalCount : (res.count || items.length);
+      const totalDatabaseCount = res.databaseTotal || 16420;
+      const totalPages = res.totalPages || Math.ceil(totalCount / state.limit) || 1;
+      window._lastCustomersCache = items;
+
+      listEl.innerHTML = window.renderCustomerCardsHtml(items);
+      const pagEl = document.getElementById("crm-pagination-container");
+      if (pagEl) pagEl.innerHTML = window.renderCustomerPaginationHtml(state, totalPages, totalCount);
+
+      const badgeTextEl = document.getElementById("crm-live-badge-text");
+      if (badgeTextEl) badgeTextEl.innerText = `${totalCount.toLocaleString()} Matching Patrons`;
+      const badgePctEl = document.getElementById("crm-live-badge-pct");
+      if (badgePctEl) {
+        const pct = totalDatabaseCount > 0 ? ((totalCount / totalDatabaseCount) * 100).toFixed(1) : "0.0";
+        badgePctEl.innerText = `(${pct}% of ${totalDatabaseCount.toLocaleString()} Ledger)`;
+      }
+    } catch (e) {
+      console.warn("Customer in-place search error:", e);
+    } finally {
+      listEl.style.opacity = "1";
+    }
+  };
+
   window.render.CRM = async function (container) {
     const target = container || document.getElementById("mod-CRM") || document.getElementById("mod-Customers") || document.getElementById("body");
     if (!target) return;
+
+    // If already mounted and user is typing in search input, update in-place without destroying DOM
+    const existingList = target.querySelector("#crm-customer-cards-list");
+    const searchInput = document.getElementById("crm-search-input");
+    if (existingList && searchInput && document.activeElement === searchInput) {
+      return window.updateCustomerListInPlace();
+    }
+
     target.innerHTML = loading("Loading Customer Directory…");
     const state = window._viewState.customers;
     state.page = state.page || 1;
@@ -3346,10 +3508,10 @@
             <div style="display:flex;align-items:center;gap:10px;">
               <div id="crm-live-badge" style="display:inline-flex;align-items:center;gap:7px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);padding:4px 10px;border-radius:6px;">
                 <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;"></span>
-                <span style="font-size:11px;font-weight:700;color:var(--gold, #f59e0b);letter-spacing:0.5px;text-transform:uppercase;">
+                <span id="crm-live-badge-text" style="font-size:11px;font-weight:700;color:var(--gold, #f59e0b);letter-spacing:0.5px;text-transform:uppercase;">
                   ${totalCount.toLocaleString()} Matching Patrons
                 </span>
-                <span style="font-size:10px;color:var(--ink-3);">
+                <span id="crm-live-badge-pct" style="font-size:10px;color:var(--ink-3);">
                   (${pctOfTotal}% of ${totalDatabaseCount.toLocaleString()} Ledger)
                 </span>
               </div>
@@ -3368,12 +3530,14 @@
 
           <!-- Middle Row: Search & Cohort & Country Selectors -->
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;">
-            <input type="text" placeholder="Search 16K+ buyers by name, phone, company, email…" 
+            <input id="crm-search-input" type="text" placeholder="Search 16K+ buyers by name, phone, company, email…" 
                    value="${state.search || ''}" 
+                   autocomplete="off"
+                   spellcheck="false"
                    oninput="window._viewState.customers.search = this.value; window._viewState.customers.page = 1; window.debounceCustomerSearch();" 
                    style="flex:1;min-width:200px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:11px;border-radius:6px;outline:none;"/>
             
-            <select onchange="window._viewState.customers.cohortTag = this.value; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" 
+            <select onchange="window._viewState.customers.cohortTag = this.value; window._viewState.customers.page = 1; window.updateCustomerListInPlace();" 
                     style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
               <option value="all" ${!state.cohortTag || state.cohortTag === 'all' ? 'selected' : ''}>🌐 All Cohort Tags</option>
               <option value="vip" ${state.cohortTag === 'vip' ? 'selected' : ''}>👑 VIP Patron (৳50K+)</option>
@@ -3386,7 +3550,7 @@
               <option value="dormant90" ${state.cohortTag === 'dormant90' ? 'selected' : ''}>⏳ Dormant (90d+)</option>
             </select>
 
-            <select onchange="window._viewState.customers.country = this.value; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" 
+            <select onchange="window._viewState.customers.country = this.value; window._viewState.customers.page = 1; window.updateCustomerListInPlace();" 
                     style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
               <option value="all" ${state.country === 'all' ? 'selected' : ''}>All Countries</option>
               <option value="BD" ${state.country === 'BD' ? 'selected' : ''}>🇧🇩 Bangladesh</option>
@@ -3396,7 +3560,7 @@
               <option value="US" ${state.country === 'US' ? 'selected' : ''}>🇺🇸 United States</option>
             </select>
 
-            <select onchange="window._viewState.customers.sortBy = this.value; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" 
+            <select onchange="window._viewState.customers.sortBy = this.value; window._viewState.customers.page = 1; window.updateCustomerListInPlace();" 
                     style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
               <option value="updatedAt" ${state.sortBy === 'updatedAt' ? 'selected' : ''}>Sort: Recent</option>
               <option value="totalSpent" ${state.sortBy === 'totalSpent' ? 'selected' : ''}>Sort: Total Spent</option>
@@ -3419,7 +3583,7 @@
               { label: '৳50,000+ (VIP)', val: 50000 },
               { label: '৳100,000+ (Wholesale)', val: 100000 }
             ].map(p => `
-              <button onclick="window._viewState.customers.minSpend = ${p.val}; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));"
+              <button onclick="window._viewState.customers.minSpend = ${p.val}; window._viewState.customers.page = 1; window.updateCustomerListInPlace();"
                       style="padding:2px 8px;font-size:10px;border-radius:4px;cursor:pointer;border:1px solid ${(!state.minSpend && p.val === 0) || state.minSpend === p.val ? 'var(--gold)' : 'var(--wire)'};background:${(!state.minSpend && p.val === 0) || state.minSpend === p.val ? 'var(--gold)' : 'var(--bg-3)'};color:${(!state.minSpend && p.val === 0) || state.minSpend === p.val ? '#000' : 'var(--ink-2)'};font-weight:${(!state.minSpend && p.val === 0) || state.minSpend === p.val ? '700' : '400'};">
                 ${p.label}
               </button>
@@ -3427,62 +3591,13 @@
           </div>
         </div>
 
-        <div style="padding:0 20px 10px;display:flex;flex-direction:column;gap:8px;">
-          ${items.length ? items.map(c => `
-            <div class="company-card" onclick="window.openCompanyDetail('${encodeURIComponent(c.id)}')" style="cursor:pointer;transition:transform 0.15s, border-color 0.15s;padding:12px 14px;border-radius:10px;background:var(--bg-card, var(--bg-2));border:1px solid var(--wire);">
-              <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-                <div style="font-size:22px;line-height:1;">${c.flag || '🏢'}</div>
-                <div style="flex:1;min-width:0;">
-                  <div class="company-name" style="font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                    ${c.companyName || c.name}
-                  </div>
-                  <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-top:2px;">
-                    ${c.country || '—'} · ${c.contactPerson ? `${c.contactPerson} · ` : ''}${c.currency || 'BDT'}
-                  </div>
-                </div>
-                <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-                  <span class="pill ok" style="font-size:9px;padding:2px 6px;">${c.totalOrders || 0} Orders</span>
-                  <div style="font-size:12px;font-weight:700;color:var(--gold);font-family:var(--mono);">
-                    ৳${(c.totalSpent || 0).toLocaleString()}
-                  </div>
-                  <button class="btn btn-emerald btn-xs" style="padding:2px 8px;font-size:9.5px;margin-top:2px;" onclick="event.stopPropagation(); window.openWhatsAppCampaignStudio({ customerIds: ['${c.id}'] });" title="Send Curated Products via WhatsApp">
-                    📲 Broadcast
-                  </button>
-                </div>
-              </div>
-              
-              <div class="company-meta" style="display:flex;flex-wrap:wrap;gap:6px;font-size:10px;">
-                <div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">${c.paymentTerms || 'Cash on Delivery (COD)'}</div>
-                ${c.moq !== undefined && c.moq > 0 ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">MOQ: ${c.moq} units</div>` : ''}
-                ${c.phone ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">📞 ${c.phone}</div>` : ''}
-                ${c.email ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">✉ ${c.email}</div>` : ''}
-                ${c.addressLine1 ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-3);border:1px solid var(--wire);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📍 ${c.addressLine1}</div>` : ''}
-              </div>
-            </div>
-          `).join('') : `
-            <div class="empty" style="padding:40px;text-align:center;">
-              <div style="font-size:28px;margin-bottom:8px;color:var(--gold-dim);">👥</div>
-              <div style="font-size:13px;font-weight:600;color:var(--ink);">No customers found matching your filter</div>
-              <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">Try searching another name, phone number, or select All Countries.</div>
-            </div>
-          `}
+        <div id="crm-customer-cards-list" style="padding:0 20px 10px;display:flex;flex-direction:column;gap:8px;transition:opacity 0.15s ease;">
+          ${window.renderCustomerCardsHtml(items)}
         </div>
 
-        <!-- Sleek Pagination Bar -->
-        ${totalPages > 1 ? `
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 24px;border-top:1px solid var(--wire);margin-top:8px;">
-            <div style="font-size:11.5px;color:var(--ink-3);font-family:var(--mono);">
-              Showing ${(state.page - 1) * state.limit + 1}–${Math.min(state.page * state.limit, totalCount)} of ${totalCount.toLocaleString()} buyers
-            </div>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <button onclick="window.changeCustomerPage(1)" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">« First</button>
-              <button onclick="window.changeCustomerPage(${state.page - 1})" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">‹ Prev</button>
-              <span style="font-size:11.5px;font-family:var(--mono);padding:0 8px;color:var(--ink);">Page ${state.page} of ${totalPages}</span>
-              <button onclick="window.changeCustomerPage(${state.page + 1})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">Next ›</button>
-              <button onclick="window.changeCustomerPage(${totalPages})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">Last »</button>
-            </div>
-          </div>
-        ` : ''}
+        <div id="crm-pagination-container">
+          ${window.renderCustomerPaginationHtml(state, totalPages, totalCount)}
+        </div>
       `;
     } catch (err) {
       target.innerHTML = `<div style="padding:20px;color:var(--warn);">Failed to load CRM: ${err.message}</div>`;
@@ -3493,20 +3608,17 @@
   window.changeCustomerPage = function (newPage) {
     if (newPage < 1) return;
     window._viewState.customers.page = newPage;
-    const container = document.getElementById("mod-CRM") || document.getElementById("mod-Customers");
-    if (container) {
-      container.scrollTop = 0;
-      window.render.CRM(container);
-    }
+    window.updateCustomerListInPlace();
+    const listEl = document.getElementById("crm-customer-cards-list");
+    if (listEl) listEl.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   let _searchCustomerTimer = null;
   window.debounceCustomerSearch = function () {
     clearTimeout(_searchCustomerTimer);
     _searchCustomerTimer = setTimeout(() => {
-      const container = document.getElementById("mod-CRM") || document.getElementById("mod-Customers");
-      if (container) window.render.CRM(container);
-    }, 280);
+      window.updateCustomerListInPlace();
+    }, 220);
   };
 
   /* ── Customer Detail Sheet with Real Linked Orders & Notes ── */

@@ -15,6 +15,7 @@ import { Customer360Drawer } from './Customer360Drawer';
 import { QuickSaleModal, QuickSaleCustomer } from './QuickSaleModal';
 import { SmartAudienceBuilder } from './SmartAudienceBuilder';
 import { SmartAudienceFilter, AudienceFilterCriteria } from './SmartAudienceFilter';
+import { TechPackPOEngine } from './TechPackPOEngine';
 
 export interface Customer {
   id: string;
@@ -61,6 +62,8 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
   const [isQuickSaleOpen, setIsQuickSaleOpen] = useState<boolean>(false);
   const [quickSaleTargetCustomer, setQuickSaleTargetCustomer] = useState<QuickSaleCustomer | null>(null);
   const [showAudienceBuilder, setShowAudienceBuilder] = useState<boolean>(false);
+  const [isTechPackOpen, setIsTechPackOpen] = useState<boolean>(false);
+  const [techPackTargetCustomer, setTechPackTargetCustomer] = useState<any | null>(null);
 
   const PAGE_LIMIT = 50; // Strict limit to prevent mobile/browser memory exhaustion
 
@@ -204,12 +207,17 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
       setQuickSaleTargetCustomer(cust || null);
       setIsQuickSaleOpen(true);
     };
+    (window as any).openTechPackPOEngine = (cust?: any) => {
+      setTechPackTargetCustomer(cust || null);
+      setIsTechPackOpen(true);
+    };
     (window as any).openSmartAudienceBuilder = () => {
       setShowAudienceBuilder(true);
     };
     return () => {
       delete (window as any).openCustomer360Drawer;
       delete (window as any).openQuickSaleModal;
+      delete (window as any).openTechPackPOEngine;
       delete (window as any).openSmartAudienceBuilder;
     };
   }, []);
@@ -444,6 +452,11 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
           setIs360Open(false);
           handleOpenQuickSale(c);
         }}
+        onOpenTechPackPO={(c) => {
+          setIs360Open(false);
+          setTechPackTargetCustomer(c);
+          setIsTechPackOpen(true);
+        }}
         onOpenWhatsApp={(cId) => {
           if (onOpenWhatsApp) onOpenWhatsApp(cId);
         }}
@@ -462,6 +475,22 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
           fetchPage(null, 'reset');
         }}
       />
+
+      {/* Tech Pack & Factory PO Engine Modal */}
+      {isTechPackOpen && (
+        <TechPackPOEngine
+          isOpen={isTechPackOpen}
+          mode="modal"
+          onClose={() => {
+            setIsTechPackOpen(false);
+            setTechPackTargetCustomer(null);
+          }}
+          preSelectedCustomer={techPackTargetCustomer}
+          onSuccess={(specRecord) => {
+            fetchPage(null, 'reset');
+          }}
+        />
+      )}
     </div>
   );
 };

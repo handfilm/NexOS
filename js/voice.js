@@ -7,6 +7,15 @@
 (function () {
   'use strict';
 
+  // Attach immediate global reference so calls never encounter undefined
+  window.VoiceEngine = window.VoiceEngine || {};
+  window.VoiceEngine.start = function() { startListening(); };
+  window.VoiceEngine.stop = function() { stopListening(); };
+  window.VoiceEngine.toggle = function() { toggleVoiceListening(); };
+  window.VoiceEngine.toggleContinuous = function() { toggleContinuousMode(); };
+  window.VoiceEngine.isListening = function() { return isListening; };
+  window.VoiceEngine.processText = function(t) { processVoiceCommand(t); };
+
   let recognition = null;
   let isListening = false;
   let isContinuousMode = false;
@@ -560,6 +569,14 @@
     isListening: () => isListening,
     processText: processVoiceCommand
   };
+
+  // If user clicked the topbar voice button before script completed loading
+  if (window.VoiceEngine._queuedToggle) {
+    window.VoiceEngine._queuedToggle = false;
+    setTimeout(() => {
+      toggleVoiceListening();
+    }, 100);
+  }
 
   // Auto-init DOM HUD when ready
   if (document.readyState === 'loading') {

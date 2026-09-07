@@ -514,7 +514,7 @@ async function renderLiteHome(b) {
         contentHtml = `
           <div class="sec-h" style="padding-top:10px;"><span class="sec-h-label">Quick Access Launchpad</span></div>
           <div class="action-rail">
-            <button class="action-node" onclick="window.VoiceEngine.toggle()">
+            <button class="action-node" onclick="(window.VoiceEngine?.toggle ? window.VoiceEngine.toggle() : null)">
               <div class="action-icon" style="color:var(--coral);">${I.mic}</div><div class="action-label">Voice</div>
             </button>
             <button class="action-node" onclick="startCamera()">
@@ -862,9 +862,9 @@ async function renderLiteHome(b) {
             <span class="pill gold" style="font-size:7px;letter-spacing:0.5px;">PINNED #${index + 1}</span>
           </div>
           <div style="display:flex;gap:4px;align-items:center;">
-            <button class="dash-btn-mini" onclick="window.DashboardEngine.moveWidget('${item.id}', -1)" title="Move Up (Shift Higher)">▲</button>
-            <button class="dash-btn-mini" onclick="window.DashboardEngine.moveWidget('${item.id}', 1)" title="Move Down (Shift Lower)">▼</button>
-            <button class="dash-btn-mini" onclick="window.DashboardEngine.togglePin('${item.id}', false)" title="Unpin from Home" style="color:var(--coral);">✕</button>
+            <button class="dash-btn-mini" onclick="(window.DashboardEngine?.moveWidget ? window.DashboardEngine.moveWidget('${item.id}', -1) : null)" title="Move Up (Shift Higher)">▲</button>
+            <button class="dash-btn-mini" onclick="(window.DashboardEngine?.moveWidget ? window.DashboardEngine.moveWidget('${item.id}', 1) : null)" title="Move Down (Shift Lower)">▼</button>
+            <button class="dash-btn-mini" onclick="(window.DashboardEngine?.togglePin ? window.DashboardEngine.togglePin('${item.id}', false) : null)" title="Unpin from Home" style="color:var(--coral);">✕</button>
           </div>
         </div>
 
@@ -879,10 +879,10 @@ async function renderLiteHome(b) {
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <div class="hero-label">H&amp;H Nexus · Seller OS · ${mode === 'expert' ? 'Expert Mode' : 'Lite Mode'}</div>
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
-          <button class="btn btn-sm btn-dark" onclick="window.DashboardEngine.openPinAppsModal()" style="font-size:10.5px;padding:4px 10px;" title="Pin your favorite apps to the dashboard">
+          <button class="btn btn-sm btn-dark" onclick="(window.DashboardEngine?.openPinAppsModal ? window.DashboardEngine.openPinAppsModal() : null)" style="font-size:10.5px;padding:4px 10px;" title="Pin your favorite apps to the dashboard">
             📌 Pin Apps
           </button>
-          <button class="btn btn-sm ${isCustomizing ? 'btn-gold' : 'btn-dark'}" onclick="window.DashboardEngine.toggleCustomizing()" style="font-size:10.5px;padding:4px 10px;" title="Reorder and customize your dashboard widgets">
+          <button class="btn btn-sm ${isCustomizing ? 'btn-gold' : 'btn-dark'}" onclick="(window.DashboardEngine?.toggleCustomizing ? window.DashboardEngine.toggleCustomizing() : null)" style="font-size:10.5px;padding:4px 10px;" title="Reorder and customize your dashboard widgets">
             ${isCustomizing ? '✓ Done Editing' : '✏️ Edit Layout'}
           </button>
         </div>
@@ -893,7 +893,7 @@ async function renderLiteHome(b) {
       <div class="hero-meta">
         <div class="hero-meta-line">Leather Export Terminal</div>
         <div class="hero-meta-line">EU Buyer Channel Active</div>
-        <div class="hero-meta-line" style="color:var(--gold);cursor:pointer;" onclick="window.DashboardEngine.openPinAppsModal()">
+        <div class="hero-meta-line" style="color:var(--gold);cursor:pointer;" onclick="(window.DashboardEngine?.openPinAppsModal ? window.DashboardEngine.openPinAppsModal() : null)">
           ${pinnedWidgets.length} Pinned Apps Active
         </div>
       </div>
@@ -910,9 +910,9 @@ async function renderLiteHome(b) {
           </div>
         </div>
         <div class="dash-toolbar-actions">
-          <button class="btn btn-secondary btn-sm" onclick="window.DashboardEngine.openPinAppsModal()" style="font-size:10.5px;">+ Pin Apps</button>
-          <button class="btn btn-secondary btn-sm" onclick="window.DashboardEngine.resetDefaultLayout()" style="font-size:10.5px;">↺ Reset</button>
-          <button class="btn btn-gold btn-sm" onclick="window.DashboardEngine.toggleCustomizing(false)" style="font-size:10.5px;">✓ Done</button>
+          <button class="btn btn-secondary btn-sm" onclick="(window.DashboardEngine?.openPinAppsModal ? window.DashboardEngine.openPinAppsModal() : null)" style="font-size:10.5px;">+ Pin Apps</button>
+          <button class="btn btn-secondary btn-sm" onclick="(window.DashboardEngine?.resetDefaultLayout ? window.DashboardEngine.resetDefaultLayout() : null)" style="font-size:10.5px;">↺ Reset</button>
+          <button class="btn btn-gold btn-sm" onclick="(window.DashboardEngine?.toggleCustomizing ? window.DashboardEngine.toggleCustomizing(false) : null)" style="font-size:10.5px;">✓ Done</button>
         </div>
       </div>
     ` : ''}
@@ -1150,7 +1150,7 @@ const NAV_SECTIONS = [
     badge: "EXTERNAL",
     desc: "Headless B2B network hubs, RAWxOS & custom launchers",
     items: [
-      { label: "Customize Dashboard Layout", icon: I.gear, fn: "window.DashboardEngine.openPinAppsModal()", desc: "Reorder and pin favorite widgets to Home", ext: "LAYOUT" },
+      { label: "Customize Dashboard Layout", icon: I.gear, fn: "(window.DashboardEngine?.openPinAppsModal ? window.DashboardEngine.openPinAppsModal() : null)", desc: "Reorder and pin favorite widgets to Home", ext: "LAYOUT" },
       { label: "NexOS HUB", icon: I.link, url: "https://handfilm.github.io/nexus/os/hub/", desc: "nexus/os/hub · Enterprise distribution bridge", ext: "HUB" },
       { label: "Portal Launcher", icon: I.link, url: "https://handfilm.github.io/portal/", desc: "Universal gateway for B2B brand portals", ext: "LAUNCHER" },
       { label: "RAWxOS", icon: I.spark, url: "https://handfilm.github.io/RAWxOS/", desc: "Raw materials, tanning & chemical ledger OS", ext: "RAW" },
@@ -1203,7 +1203,7 @@ const NAV_SECTIONS = [
     badge: "AI",
     desc: "Voice commands, AI forecasts, FX rates & compliance",
     items: [
-      { label: "Voice Commands (Mic)", icon: I.mic, fn: "window.VoiceEngine.toggle()", desc: "Hands-free voice POS & order creation", ext: "MIC" },
+      { label: "Voice Commands (Mic)", icon: I.mic, fn: "(window.VoiceEngine?.toggle ? window.VoiceEngine.toggle() : null)", desc: "Hands-free voice POS & order creation", ext: "MIC" },
       { label: "Analytics", icon: I.chart, app: "Analytics", desc: "Revenue velocity, margin breakdown & order charts", ext: "REPORTS" },
       { label: "The Gemini AI", icon: I.spark, app: "NexAI", desc: "Enterprise Google Gemini supply chain reasoning, EU compliance & forecasting", ext: "GEMINI AI" },
       { label: "FX Currency Rates", icon: I.fx, app: "FXRates", desc: "Live EUR, USD & GBP conversion ticker", ext: "FX" },
@@ -1714,66 +1714,100 @@ function closePortalOverlay() {
 
 /* ── Gate System (Multi-Role) ── */
 let _pendingGateRole = null;
-function openGate(role = 'expert') {
+let _pendingGateModule = null;
+function openGate(role = 'expert', targetModule = null) {
   _pendingGateRole = role;
+  _pendingGateModule = targetModule || null;
   const g = document.getElementById("gate");
   const sub = g.querySelector(".gate-sub");
   const hint = g.querySelector(".gate-role-hint");
   if (role === 'production') {
-    if (sub) sub.innerText = "Production Access — Hiron Only";
+    if (sub) sub.innerText = "Production Access — Hiron Only (PIN: 2024)";
     if (hint) hint.innerText = "Role: Production Head";
   } else {
-    if (sub) sub.innerText = "Enter 4-Digit PIN to Unlock";
-    if (hint) hint.innerText = "Role: Expert Operator";
+    if (sub) sub.innerText = targetModule ? `Enter Operator PIN (1981) to access ${targetModule}` : "Enter Base Operator PIN (1981) to Unlock";
+    if (hint) hint.innerText = "Role: Nexus Operator (PIN: 1981)";
   }
   g.classList.add("on");
   document.getElementById("gateScrim").classList.add("on");
-  setTimeout(() => document.getElementById("gatePin").focus(), 300);
+  setTimeout(() => {
+    const pinEl = document.getElementById("gatePin");
+    if (pinEl) {
+      pinEl.focus();
+      pinEl.value = "";
+    }
+  }, 250);
 }
-function closeGate() { document.getElementById("gate").classList.remove("on"); document.getElementById("gateScrim").classList.remove("on"); document.getElementById("gatePin").value=""; }
+function closeGate() { 
+  document.getElementById("gate").classList.remove("on"); 
+  document.getElementById("gateScrim").classList.remove("on"); 
+  document.getElementById("gatePin").value=""; 
+  _pendingGateModule = null;
+}
 async function tryGate() {
-  const pin = document.getElementById("gatePin").value.trim();
+  const pinEl = document.getElementById("gatePin");
+  const pin = pinEl ? pinEl.value.trim() : "";
   const role = _pendingGateRole || 'expert';
+  const targetModule = _pendingGateModule;
   let isValid = false;
 
-  // 1. Verify via server authentication API
-  try {
-    const authRes = await fetch("/api/auth/pin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pin, role })
-    });
-    if (authRes.ok) {
-      const authData = await authRes.json();
-      if (authData.ok) isValid = true;
-    }
-  } catch (apiErr) {
-    console.debug("PIN auth API fallback:", apiErr.message);
+  // 1. BASE OPERATOR PIN CHECK (Guaranteed offline & cross-device instant unlock)
+  if (pin === "1981") {
+    isValid = true;
+  } else if (pin === "2024" && (role === "production" || !_pendingGateRole)) {
+    isValid = true;
   }
 
-  // 2. NexAuth fallback
+  // 2. Remote verification check
+  if (!isValid && pin.length >= 4) {
+    try {
+      const authRes = await fetch("/api/auth/pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin, role })
+      });
+      if (authRes.ok) {
+        const authData = await authRes.json();
+        if (authData.ok) isValid = true;
+      }
+    } catch (apiErr) {
+      console.debug("PIN auth API fallback:", apiErr.message);
+    }
+  }
+
+  // 3. NexAuth fallback
   if (!isValid && window.NexAuth && typeof window.NexAuth.verifyOperatorPin === 'function') {
     isValid = await window.NexAuth.verifyOperatorPin(pin);
   }
 
   if (isValid) {
-    mode = role;
-    expScreen = "dashboard";
+    const activeRole = (pin === "2024") ? "production" : (role || 'expert');
+    mode = activeRole;
+    _pendingGateModule = null;
     try {
-      localStorage.setItem("nx_saved_role", role);
+      localStorage.setItem("nx_saved_role", activeRole);
       localStorage.setItem("nx_saved_pin", pin);
     } catch (e) {}
 
     closeGate();
-    applyTheme(role);
+    applyTheme(activeRole);
     render();
-    toast(role === 'production' ? "Production View Active ✓" : "Operator OS Unlocked ✓");
+
+    if (targetModule) {
+      setTimeout(() => {
+        if (typeof window.openAppModule === "function") window.openAppModule(targetModule);
+      }, 50);
+    }
+
+    toast(activeRole === 'production' ? "Production View Active (PIN: 2024) ✓" : "Operator OS Unlocked (PIN: 1981) ✓");
   } else {
-    toast("Access Denied — Incorrect Operator PIN");
+    toast("Access Denied — Enter Operator PIN: 1981");
     const g = document.getElementById("gate");
-    g.style.animation = "shake 0.45s ease";
-    setTimeout(() => g.style.animation="", 450);
-    document.getElementById("gatePin").value = "";
+    if (g) {
+      g.style.animation = "shake 0.45s ease";
+      setTimeout(() => g.style.animation="", 450);
+    }
+    if (pinEl) pinEl.value = "";
   }
 }
 function exitExpert() {
@@ -2083,13 +2117,42 @@ window.updateDashboardLiveElements = function(stats, orders) {
 window.SyncEngine = {
   _lastSignatures: null,
   _timer: null,
+  _sse: null,
   _isSyncing: false,
-  _pollInterval: 5000,
+  _pollInterval: 2500,
   _active: true,
 
   init() {
+    this.connectSse();
     this.poll();
     this.bindEvents();
+  },
+
+  connectSse() {
+    if (typeof window === "undefined" || typeof EventSource === "undefined") return;
+    try {
+      if (this._sse) {
+        try { this._sse.close(); } catch(e) {}
+      }
+      this._sse = new EventSource("/api/sync/stream");
+      this._sse.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "products") {
+            this.syncProducts(true);
+          } else if (data.type === "orders") {
+            this.syncOrders(true);
+          } else if (data.type === "customers") {
+            this.syncCustomers(true);
+          }
+        } catch (e) {}
+      };
+      this._sse.onerror = () => {
+        // EventSource will auto-reconnect, polling handles fallback
+      };
+    } catch (e) {
+      console.debug("[SyncEngine] SSE setup notice:", e.message);
+    }
   },
 
   bindEvents() {
@@ -2130,7 +2193,7 @@ window.SyncEngine = {
     if (this._isSyncing) return;
     this._isSyncing = true;
     try {
-      const resp = await fetch("/api/sync", { cache: "no-store" });
+      const resp = await fetch("/api/sync?_t=" + Date.now(), { cache: "no-store" });
       if (!resp.ok) return;
       const data = await resp.json();
       if (!data.ok || !data.signatures) return;
@@ -2140,11 +2203,17 @@ window.SyncEngine = {
       this._lastSignatures = sigs;
 
       if (!prev) {
-        await this.syncOrders(false);
+        // Initial boot: synchronize ALL collections across devices
+        await Promise.allSettled([
+          this.syncOrders(false),
+          this.syncProducts(false),
+          this.syncCustomers(false)
+        ]);
         return;
       }
 
-      const ordersChanged = prev.orders?.count !== sigs.orders?.count ||
+      const ordersChanged = prev.orderSig !== sigs.orderSig ||
+                            prev.orders?.count !== sigs.orders?.count ||
                             prev.orders?.lastUpdated !== sigs.orders?.lastUpdated ||
                             prev.orders?.latestId !== sigs.orders?.latestId;
 
@@ -2152,14 +2221,15 @@ window.SyncEngine = {
         await this.syncOrders(true);
       }
 
-      const productsChanged = prev.products?.count !== sigs.products?.count ||
+      const productsChanged = prev.productSig !== sigs.productSig ||
+                              prev.products?.count !== sigs.products?.count ||
                               prev.products?.lastUpdated !== sigs.products?.lastUpdated;
       if (productsChanged) {
         await this.syncProducts(true);
       }
 
-      const customersChanged = prev.customers?.count !== sigs.customers?.count ||
-                               prev.customers?.lastUpdated !== sigs.customers?.lastUpdated;
+      const customersChanged = prev.customerSig !== sigs.customerSig ||
+                               prev.customers?.count !== sigs.customers?.count;
       if (customersChanged) {
         await this.syncCustomers(true);
       }
@@ -2202,18 +2272,24 @@ window.SyncEngine = {
 
   async syncProducts(forceRerender = false) {
     try {
+      let prods = [];
       if (window.ProductsService) {
-        await window.ProductsService.list();
+        const res = await window.ProductsService.list();
+        prods = res?.items || [];
       }
       if (typeof window.refreshHomeProductGallery === "function") {
         window.refreshHomeProductGallery();
       }
-      if (expScreen === "Products" && window.render && window.render.Products) {
+      if ((expScreen === "Products" || expScreen === "catalog") && window.render && window.render.Products) {
         const modEl = document.getElementById("mod-Products");
         if (modEl) window.render.Products(modEl);
       }
+      if (window.DriveSyncMonitor && typeof window.DriveSyncMonitor.refreshCurrentView === "function") {
+        window.DriveSyncMonitor.refreshCurrentView();
+      }
       if (window.NexEvents) {
-        window.NexEvents.emit("DATA_SYNC", { type: "products" });
+        window.NexEvents.emit("DATA_SYNC", { type: "products", count: prods.length });
+        window.NexEvents.emit("PRODUCTS_CHANGED", { items: prods });
       }
     } catch (e) {
       console.debug("[SyncEngine] Sync products note:", e.message);

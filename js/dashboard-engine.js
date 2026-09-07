@@ -6,6 +6,9 @@
 (function () {
   'use strict';
 
+  // Immediate global registration to prevent undefined references
+  window.DashboardEngine = window.DashboardEngine || {};
+
   const STORAGE_KEY = 'hh_dashboard_layout_v3';
 
   // Master catalog of all dashboard widgets and customizable pinned apps
@@ -315,7 +318,7 @@
           <h3 style="margin:2px 0 0;font-size:18px;">Pin Apps &amp; Customize Layout</h3>
         </div>
         <div style="display:flex;gap:6px;">
-          <button class="btn btn-gold btn-sm" onclick="closeSheet();window.DashboardEngine.toggleCustomizing(true);">
+          <button class="btn btn-gold btn-sm" onclick="closeSheet();(window.DashboardEngine?.toggleCustomizing ? window.DashboardEngine.toggleCustomizing(true) : null);">
             ✏️ Drag &amp; Reorder Mode
           </button>
           <button class="btn btn-dark btn-sm" onclick="closeSheet();">Close</button>
@@ -327,13 +330,13 @@
           <div style="font-size:11.5px;color:var(--ink-2);">
             Toggle switches below to pin your most-used applications (like <strong>Accounting Sync</strong>, <strong>Recent Orders</strong>, or <strong>Shopify Suite</strong>) directly onto your home workspace.
           </div>
-          <button class="btn btn-secondary btn-sm" style="flex-shrink:0;font-size:10.5px;" onclick="window.DashboardEngine.resetDefaultLayout();closeSheet();">
+          <button class="btn btn-secondary btn-sm" style="flex-shrink:0;font-size:10.5px;" onclick="(window.DashboardEngine?.resetDefaultLayout ? window.DashboardEngine.resetDefaultLayout() : null);closeSheet();">
             ↺ Reset Default
           </button>
         </div>
 
         <div class="field" style="margin-bottom:14px;">
-          <input type="text" id="dash_pin_search_input" placeholder="Search apps & widgets (e.g. Accounting, Orders, Daraz, FX)…" oninput="window.DashboardEngine.filterPinList(this.value)"/>
+          <input type="text" id="dash_pin_search_input" placeholder="Search apps & widgets (e.g. Accounting, Orders, Daraz, FX)…" oninput="(window.DashboardEngine?.filterPinList ? window.DashboardEngine.filterPinList(this.value) : null)"/>
         </div>
 
         <div id="dash_pin_items_container">
@@ -365,7 +368,7 @@
 
             <div style="display:flex;align-items:center;gap:10px;">
               <label class="dash-switch">
-                <input type="checkbox" ${isPinned ? 'checked' : ''} onchange="window.DashboardEngine.togglePin('${item.id}', this.checked); document.getElementById('dash_pin_card_${item.id}').classList.toggle('is-pinned', this.checked);"/>
+                <input type="checkbox" ${isPinned ? 'checked' : ''} onchange="(window.DashboardEngine?.togglePin ? window.DashboardEngine.togglePin('${item.id}', this.checked) : null); const el = document.getElementById('dash_pin_card_${item.id}'); if (el) el.classList.toggle('is-pinned', this.checked);"/>
                 <span class="dash-switch-slider"></span>
               </label>
             </div>
@@ -460,7 +463,7 @@
   }
 
   // Public API
-  window.DashboardEngine = {
+  const engineApi = {
     getLayout,
     saveLayout,
     resetDefaultLayout,
@@ -474,5 +477,16 @@
     bindDragEvents,
     getCatalog: () => WIDGET_CATALOG
   };
+
+  window._realDashboardEngine = engineApi;
+  window.DashboardEngine = Object.assign(window.DashboardEngine || {}, engineApi);
+
+  // If user clicked Pin Apps before dashboard script finished executing
+  if (window.DashboardEngine._queuedOpenPinModal) {
+    window.DashboardEngine._queuedOpenPinModal = false;
+    setTimeout(() => {
+      openPinAppsModal();
+    }, 50);
+  }
 
 })();

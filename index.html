@@ -55,6 +55,44 @@
       }
     };
   }
+
+  /* ── Early Global Subsystem Stubs (Prevents Uncaught TypeErrors) ── */
+  window.VoiceEngine = window.VoiceEngine || {
+    _queuedToggle: false,
+    start: function() { if (window._realVoiceEngine) return window._realVoiceEngine.start(); },
+    stop: function() { if (window._realVoiceEngine) return window._realVoiceEngine.stop(); },
+    toggle: function() {
+      if (window._realVoiceEngine && typeof window._realVoiceEngine.toggle === 'function') {
+        return window._realVoiceEngine.toggle();
+      }
+      this._queuedToggle = true;
+      console.info('[VoiceEngine] Initializing voice subsystem...');
+    },
+    toggleContinuous: function() { if (window._realVoiceEngine) return window._realVoiceEngine.toggleContinuous(); },
+    isListening: function() { return window._realVoiceEngine ? window._realVoiceEngine.isListening() : false; },
+    processText: function(t) { if (window._realVoiceEngine) return window._realVoiceEngine.processText(t); }
+  };
+
+  window.DashboardEngine = window.DashboardEngine || {
+    _queuedOpenPinModal: false,
+    openPinAppsModal: function() {
+      if (window._realDashboardEngine && typeof window._realDashboardEngine.openPinAppsModal === 'function') {
+        return window._realDashboardEngine.openPinAppsModal();
+      }
+      this._queuedOpenPinModal = true;
+      console.info('[DashboardEngine] Initializing dashboard layout engine...');
+    },
+    togglePin: function(id, pinned) { if (window._realDashboardEngine) return window._realDashboardEngine.togglePin(id, pinned); },
+    moveWidget: function(id, dir) { if (window._realDashboardEngine) return window._realDashboardEngine.moveWidget(id, dir); },
+    reorder: function(src, tgt, after) { if (window._realDashboardEngine) return window._realDashboardEngine.reorder(src, tgt, after); },
+    toggleCustomizing: function(force) { if (window._realDashboardEngine) return window._realDashboardEngine.toggleCustomizing(force); },
+    resetDefaultLayout: function() { if (window._realDashboardEngine) return window._realDashboardEngine.resetDefaultLayout(); },
+    getLayout: function() { return window._realDashboardEngine ? window._realDashboardEngine.getLayout() : []; },
+    isCustomizing: function() { return window._realDashboardEngine ? window._realDashboardEngine.isCustomizing() : false; },
+    getCatalog: function() { return window._realDashboardEngine ? window._realDashboardEngine.getCatalog() : []; },
+    filterPinList: function(q) { if (window._realDashboardEngine) return window._realDashboardEngine.filterPinList(q); },
+    bindDragEvents: function() { if (window._realDashboardEngine) return window._realDashboardEngine.bindDragEvents(); }
+  };
 })();
 </script>
 </head>
@@ -107,7 +145,7 @@
   </div>
 
   <div class="tbar-right">
-    <button class="tbar-btn voice-btn" id="topbar-voice-btn" onclick="window.VoiceEngine.toggle()" title="Voice Command (Say 'Quick Sale' or 'Search')">
+    <button class="tbar-btn voice-btn" id="topbar-voice-btn" onclick="(window.VoiceEngine?.toggle ? window.VoiceEngine.toggle() : null)" title="Voice Command (Say 'Quick Sale' or 'Search')">
       <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="currentColor"/><path d="M19 10v2a7 7 0 01-14 0v-2H3v2a9 9 0 008 8.94V23h2v-2.06A9 9 0 0021 12v-2h-2z" fill="currentColor"/></svg>
       <div class="voice-pulse-ring"></div>
     </button>
@@ -162,13 +200,14 @@
     </svg>
   </div>
   <h3 style="color:#f5f5f4;font-family:var(--mono);letter-spacing:-0.5px;">Operator Access Control</h3>
-  <div class="gate-sub" style="color:#a8a29e;font-size:12px;">Whitelisted Google ID or 4-Digit Operator PIN</div>
+  <div class="gate-sub" style="color:#a8a29e;font-size:12px;">Base Operator PIN: 1981 · Production PIN: 2024</div>
   <div class="gate-role-hint" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#d4af37;font-family:var(--mono);">
-    Role: Nexus Operator
+    Role: Nexus Operator (PIN: 1981)
   </div>
   
-  <input id="gatePin" type="password" inputmode="numeric" placeholder="••••" maxlength="4"
+  <input id="gatePin" type="password" inputmode="numeric" placeholder="••••" maxlength="4" autocomplete="off"
     style="background:#141413;border:1px solid #27272a;color:#d4af37;font-family:var(--mono);letter-spacing:0.5em;font-size:20px;text-align:center;"
+    oninput="if(this.value.length === 4) tryGate()"
     onkeydown="if(event.key==='Enter') tryGate()"/>
 
   <div style="display:flex;gap:8px;margin-bottom:12px;">

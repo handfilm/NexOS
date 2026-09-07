@@ -387,7 +387,12 @@
 
   // ── 4. Drive Sync Manager UI Renderer ──
   function renderDriveSync(container) {
-    if (!container) return;
+    const target = container || document.getElementById('mod-DriveSync') || document.getElementById('body');
+    if (!target) return;
+    if (window.DriveSyncMonitor && typeof window.DriveSyncMonitor.render === 'function') {
+      window.DriveSyncMonitor.render(target);
+      return;
+    }
     const cfg = DriveSyncService.getStorageConfig();
     const lastSummary = cfg.lastSyncSummary;
 
@@ -570,6 +575,10 @@
 
   // ── Global Handlers for Ingestion View ──
   window.runDriveSyncNow = async function() {
+    if (window.DriveSyncMonitor && typeof window.DriveSyncMonitor.scan === 'function') {
+      await window.DriveSyncMonitor.scan(true);
+      return;
+    }
     const btn = document.getElementById('btnRunDriveSync');
     if (btn) { btn.innerText = 'Syncing…'; btn.disabled = true; }
     try {

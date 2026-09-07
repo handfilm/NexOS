@@ -165,6 +165,7 @@ interface Customer360DrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenQuickSale?: (customer: CustomerProfile) => void;
+  onOpenTechPackPO?: (customer: CustomerProfile) => void;
   onOpenWhatsApp?: (customerId: string, phone: string) => void;
 }
 
@@ -173,6 +174,7 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
   isOpen,
   onClose,
   onOpenQuickSale,
+  onOpenTechPackPO,
   onOpenWhatsApp
 }) => {
   const [customer, setCustomer] = useState<CustomerProfile | null>(null);
@@ -533,13 +535,29 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
 
           <div className="flex items-center gap-2">
             {customer && (
-              <button
-                onClick={() => onOpenQuickSale && onOpenQuickSale(customer)}
-                className="bg-[#c81d11] hover:bg-red-700 text-white text-[11px] font-bold px-3 py-1.5 rounded transition-all flex items-center gap-1.5 shadow"
-              >
-                <span>⚡</span>
-                <span>QUICK SALE 2.0</span>
-              </button>
+              <>
+                <button
+                  onClick={() => {
+                    if (onOpenTechPackPO) {
+                      onOpenTechPackPO(customer);
+                    } else if ((window as any).openTechPackPOEngine) {
+                      (window as any).openTechPackPOEngine(customer);
+                    }
+                  }}
+                  className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-amber-400 text-[11px] font-bold px-3 py-1.5 rounded transition-all flex items-center gap-1.5 shadow"
+                  title="Generate Parametric Tech Pack & PO for this customer"
+                >
+                  <span>📐</span>
+                  <span>TECH PACK PO</span>
+                </button>
+                <button
+                  onClick={() => onOpenQuickSale && onOpenQuickSale(customer)}
+                  className="bg-[#c81d11] hover:bg-red-700 text-white text-[11px] font-bold px-3 py-1.5 rounded transition-all flex items-center gap-1.5 shadow"
+                >
+                  <span>⚡</span>
+                  <span>QUICK SALE 2.0</span>
+                </button>
+              </>
             )}
             <button
               onClick={onClose}
@@ -964,6 +982,8 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                       <span className="text-base">
                         {n.type === 'quicksale'
                           ? '⚡'
+                          : n.type === 'techpack_po'
+                          ? '📐'
                           : n.type === 'whatsapp'
                           ? '📲'
                           : '📝'}
