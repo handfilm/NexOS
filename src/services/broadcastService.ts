@@ -46,14 +46,14 @@ export interface BroadcastRunnerOptions {
   delayMs?: number; // 2000 - 4000ms default 3000ms
   promoCode?: string;
   productReferences?: string[];
-  audienceFilter?: { cohortTag?: string; minSpend?: number; country?: string };
+  audienceFilter?: { cohortTag?: string; minSpend?: number; country?: string; category?: string };
   onProgress?: (progress: {
     currentIndex: number;
     total: number;
     initiatedCount: number;
     failedCount: number;
     currentRecipient?: BroadcastRecipient;
-    status: 'RUNNING' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+    status: 'QUEUED' | 'RUNNING' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
   }) => void;
 }
 

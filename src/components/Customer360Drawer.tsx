@@ -128,7 +128,7 @@ export interface CustomerProfile {
   notes?: Array<{
     id?: string;
     text: string;
-    type?: 'note' | 'whatsapp' | 'quicksale' | 'system';
+    type?: 'note' | 'whatsapp' | 'quicksale' | 'system' | 'techpack_po';
     by?: string;
     createdAt?: string;
     at?: string;

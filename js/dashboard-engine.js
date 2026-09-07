@@ -84,13 +84,33 @@
       badge: 'APPS'
     },
     {
+      id: 'techpack_po',
+      title: 'Tech-Pack & Factory PO Engine',
+      subtitle: 'Parametric apparel calculations, BOM & WhatsApp dispatch',
+      category: 'Manufacturing & Tech-Pack',
+      icon: `<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+      defaultPinned: true,
+      defaultOrder: 8,
+      badge: 'TECH-PACK'
+    },
+    {
+      id: 'voice_po_ingest',
+      title: 'Voice PO Ingestion Dock',
+      subtitle: 'Gemini Flash voice notes transcription & structured PO extraction',
+      category: 'AI & Audio Ingest',
+      icon: `<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`,
+      defaultPinned: true,
+      defaultOrder: 9,
+      badge: 'VOICE AI'
+    },
+    {
       id: 'product_showcase',
       title: 'Product Showcase & Master Gallery',
       subtitle: 'Catalog, QR Hangtags & Stock Matrix',
       category: 'Inventory & Catalog',
       icon: `<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M3 12v-7a2 2 0 012-2h7l9 9a2 2 0 010 2.8l-5.6 5.6a2 2 0 01-2.8 0L3 12z"/><circle cx="8" cy="8" r="2"/></svg>`,
       defaultPinned: true,
-      defaultOrder: 8,
+      defaultOrder: 10,
       badge: 'CATALOG'
     },
     {

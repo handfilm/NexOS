@@ -47,6 +47,7 @@ export interface TechPackPOEngineProps {
   } | null;
   onSuccess?: (specOrder: any) => void;
   mode?: 'embedded' | 'drawer' | 'modal';
+  initialPOSpec?: ExtractedPOSpec | null;
 }
 
 interface CategoryConfig {
@@ -177,7 +178,8 @@ export const TechPackPOEngine: React.FC<TechPackPOEngineProps> = ({
   onClose,
   preSelectedCustomer = null,
   onSuccess,
-  mode = 'embedded'
+  mode = 'embedded',
+  initialPOSpec = null
 }) => {
   // ── 1. Buyer & Customer Linker State ──
   const [buyerMode, setBuyerMode] = useState<'existing' | 'quick'>('existing');
@@ -243,10 +245,11 @@ export const TechPackPOEngine: React.FC<TechPackPOEngineProps> = ({
       if (spec.fabric && spec.fabric.trim()) {
         setMaterial(spec.fabric);
       } else {
-        setMaterial(cfg.defaultMaterial);
+        setMaterial(cfg.materials?.[0] || 'Full-Grain Cowhide 1.2-1.4mm (Aniline Pull-Up)');
       }
-      setLiningOrRib(cfg.liningOrRib[0]);
-      setHardware(cfg.hardwareOrTrims[0]);
+      const liningChoice = cfg.liningsOrRib?.options?.[0] || (cfg as any).liningOrRib?.[0] || '';
+      if (liningChoice) setLiningOrRib(liningChoice);
+      if (cfg.hardwareOrTrims?.[0]) setHardware(cfg.hardwareOrTrims[0]);
       if (currency === 'BDT') {
         setUnitPrice(spec.targetUnitPrice && spec.targetUnitPrice > 0 ? spec.targetUnitPrice : cfg.defaultPriceBDT);
       } else {
@@ -299,6 +302,12 @@ export const TechPackPOEngine: React.FC<TechPackPOEngineProps> = ({
       setCustomerSearch(cust.name);
     }
   }, [preSelectedCustomer]);
+
+  useEffect(() => {
+    if (initialPOSpec) {
+      handleVoiceSpecExtracted(initialPOSpec);
+    }
+  }, [initialPOSpec]);
 
   // ── Update defaults when Category changes ──
   const handleCategoryChange = (newCategory: ApparelCategory) => {

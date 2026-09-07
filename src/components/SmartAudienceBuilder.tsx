@@ -82,7 +82,7 @@ export const SmartAudienceBuilder: React.FC<SmartAudienceBuilderProps> = ({
     initiatedCount: number;
     failedCount: number;
     currentRecipient?: BroadcastRecipient;
-    status: 'RUNNING' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+    status: 'QUEUED' | 'RUNNING' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
   } | null>(null);
   const [dispatchDelaySec, setDispatchDelaySec] = useState<number>(3);
   const [showQueueModal, setShowQueueModal] = useState<boolean>(false);

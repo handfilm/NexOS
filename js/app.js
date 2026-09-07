@@ -514,6 +514,12 @@ async function renderLiteHome(b) {
         contentHtml = `
           <div class="sec-h" style="padding-top:10px;"><span class="sec-h-label">Quick Access Launchpad</span></div>
           <div class="action-rail">
+            <button class="action-node" onclick="window.openTechPackPOEngine ? window.openTechPackPOEngine() : openAppModule('TechPackPO')" title="Open Tech-Pack PO Engine" style="border-color:rgba(217,119,6,0.35);">
+              <div class="action-icon" style="color:var(--gold);">📋</div><div class="action-label" style="color:var(--gold);font-weight:700;">Tech-Pack</div>
+            </button>
+            <button class="action-node" onclick="window.openVoicePOIngestion ? window.openVoicePOIngestion() : openAppModule('VoiceIngest')" title="Open Voice PO Ingestion & Audio AI Dock" style="border-color:rgba(255,91,53,0.35);">
+              <div class="action-icon" style="color:var(--coral);">🎙️</div><div class="action-label" style="color:var(--coral);font-weight:700;">Voice PO</div>
+            </button>
             <button class="action-node" onclick="(window.VoiceEngine?.toggle ? window.VoiceEngine.toggle() : null)">
               <div class="action-icon" style="color:var(--coral);">${I.mic}</div><div class="action-label">Voice</div>
             </button>
@@ -674,6 +680,55 @@ async function renderLiteHome(b) {
                 <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Webhooks · B2B Draft Quotes · Multi-Stock · Promos</div>
               </div>
               <span class="pill gold" style="font-size:8px;">ARCHITECT</span>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'techpack_po':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:12px;">
+            <span class="sec-h-label">Tech-Pack &amp; Factory PO Engine</span>
+            <span class="sec-h-action" onclick="window.openTechPackPOEngine ? window.openTechPackPOEngine() : openAppModule('TechPackPO')">Open Full Screen →</span>
+          </div>
+          <div style="margin:0 20px 10px;padding:16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);border:1px solid rgba(245,158,11,0.3);display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:10px;background:#18181b;display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid rgba(245,158,11,0.4);">📋</div>
+                <div>
+                  <div style="font-size:15px;font-weight:700;color:var(--ink);">Parametric Apparel PO Engine</div>
+                  <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);">Auto Consumption · Fabric Matrix · WhatsApp PO Dispatch</div>
+                </div>
+              </div>
+              <span class="pill gold" style="font-size:8px;">FACTORY READY</span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-sm" onclick="window.openTechPackPOEngine ? window.openTechPackPOEngine() : openAppModule('TechPackPO')" style="background:#18181b;color:#fbbf24;border:1px solid #f59e0b;font-weight:600;font-size:11px;padding:6px 14px;cursor:pointer;">Launch PO Generator</button>
+              <button class="btn btn-sm" onclick="window.openVoicePOIngestion ? window.openVoicePOIngestion() : openAppModule('VoiceIngest')" style="background:transparent;color:var(--coral);border:1px solid var(--coral);font-size:11px;padding:6px 14px;cursor:pointer;">🎙️ Voice Ingest</button>
+            </div>
+          </div>
+        `;
+        break;
+
+      case 'voice_po_ingest':
+        contentHtml = `
+          <div class="sec-h" style="padding-top:12px;">
+            <span class="sec-h-label">Voice PO Ingestion Dock</span>
+            <span class="sec-h-action" onclick="window.openVoicePOIngestion ? window.openVoicePOIngestion() : openAppModule('VoiceIngest')">Open Audio Dock →</span>
+          </div>
+          <div style="margin:0 20px 10px;padding:16px;background:var(--bg-neu);border-radius:18px;box-shadow:var(--neu-flat-sm);border:1px solid rgba(255,91,53,0.3);display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:10px;background:#18181b;display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid rgba(255,91,53,0.4);">🎙️</div>
+                <div>
+                  <div style="font-size:15px;font-weight:700;color:var(--ink);">Gemini Flash Audio Extraction</div>
+                  <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);">Record Spoken Audio · Auto-Extract RMG Specifications</div>
+                </div>
+              </div>
+              <span class="pill amber" style="font-size:8px;">MULTIMODAL AI</span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-sm" onclick="window.openVoicePOIngestion ? window.openVoicePOIngestion() : openAppModule('VoiceIngest')" style="background:#18181b;color:#ff794d;border:1px solid #ff5b35;font-weight:600;font-size:11px;padding:6px 14px;cursor:pointer;">Open Voice Ingest Dock</button>
             </div>
           </div>
         `;
@@ -1011,6 +1066,8 @@ function renderTabbar() {
   if (mode === "lite") {
     bar.innerHTML = `
       <button class="tb ${isHome ? 'on' : ''}" onclick="navTo('Home')" title="Home">${I.home}</button>
+      <button class="tb ${expScreen === 'TechPackPO' ? 'on' : ''}" onclick="window.openTechPackPOEngine ? window.openTechPackPOEngine() : openAppModule('TechPackPO')" title="Tech-Pack PO">📋</button>
+      <button class="tb ${expScreen === 'VoiceIngest' ? 'on' : ''}" onclick="window.openVoicePOIngestion ? window.openVoicePOIngestion() : openAppModule('VoiceIngest')" title="Voice PO Ingest">🎙️</button>
       <button class="tb ${expScreen === 'EUPortal' ? 'on' : ''}" onclick="openAppModule('EUPortal')" title="EU Portal">${I.eu}</button>
       <button class="tb cam-fab" onclick="startCamera()" title="Capture">${I.cam}</button>
       <button class="tb ${expScreen === 'Analytics' ? 'on' : ''}" onclick="openAppModule('Analytics')" title="Analytics">${I.chart}</button>
@@ -1019,6 +1076,8 @@ function renderTabbar() {
   } else {
     bar.innerHTML = `
       <button class="tb ${isHome ? 'on' : ''}" onclick="navTo('Home')" title="Home">${I.home}</button>
+      <button class="tb ${expScreen === 'TechPackPO' ? 'on' : ''}" onclick="window.openTechPackPOEngine ? window.openTechPackPOEngine() : openAppModule('TechPackPO')" title="Tech-Pack PO">📋</button>
+      <button class="tb ${expScreen === 'VoiceIngest' ? 'on' : ''}" onclick="window.openVoicePOIngestion ? window.openVoicePOIngestion() : openAppModule('VoiceIngest')" title="Voice PO Ingest">🎙️</button>
       <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
       <button class="tb cam-fab" onclick="startCamera()" title="Capture">${I.cam}</button>
       <button class="tb" onclick="openDrawer()" title="Menu"><svg viewBox="0 0 24 24" style="width:19px;height:19px;"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.7"/></svg></button>
@@ -1095,6 +1154,8 @@ const NAV_SECTIONS = [
     desc: "Primary commerce terminals and live order queues",
     items: [
       { label: "Home", icon: I.home, app: "Home", desc: "Main operator terminal & pinned shelf", ext: "DASH" },
+      { label: "Tech-Pack PO Engine", icon: "📋", app: "TechPackPO", chev: true, desc: "Parametric apparel tech pack & factory PO calculations with WhatsApp dispatch", ext: "PO", extClass: "gold" },
+      { label: "Voice PO Ingestion", icon: "🎙️", app: "VoiceIngest", chev: true, desc: "Gemini Flash audio transcription & RMG PO spec extraction", ext: "AI", extClass: "gold" },
       { label: "Orders", icon: I.orders, app: "Orders", chev: true, desc: "Live order stream & fulfillment tracker", ext: "POS" },
       { label: "Products", icon: I.tag, app: "Products", chev: true, desc: "Inventory catalog, variants & pricing matrix", ext: "CATALOG" },
       { label: "Drive Sync Monitor", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="12 11 12 17 14 15"></polyline></svg>`, app: "DriveSync", chev: true, desc: "Master Google Drive auto-sync, tokenized specs & staging", ext: "SYNC", extClass: "gold" },
@@ -1226,6 +1287,26 @@ const MODULE_MAP = {
   "Home": "Home",
   "dashboard": "Home",
   "Dashboard": "Home",
+  "TechPackPO": "TechPackPO",
+  "TECHPACKPO": "TechPackPO",
+  "techpackpo": "TechPackPO",
+  "TechPack": "TechPackPO",
+  "TECHPACK": "TechPackPO",
+  "techpack": "TechPackPO",
+  "Tech-Pack PO": "TechPackPO",
+  "TechPack PO Engine": "TechPackPO",
+  "TechPackPOEngine": "TechPackPO",
+  "TECH_PACK": "TechPackPO",
+  "TECH-PACK": "TechPackPO",
+  "VoiceIngest": "VoiceIngest",
+  "VOICEINGEST": "VoiceIngest",
+  "voiceingest": "VoiceIngest",
+  "VOICE_INGEST": "VoiceIngest",
+  "voice_ingest": "VoiceIngest",
+  "Voice Ingest": "VoiceIngest",
+  "Voice PO Ingestion": "VoiceIngest",
+  "VoicePOIngestion": "VoiceIngest",
+  "VOICEPOINGESTION": "VoiceIngest",
   "Orders": "Orders",
   "Products": "Products",
   "DriveSync": "DriveSync",
@@ -1592,7 +1673,18 @@ function navTo(label) {
 function openAppModule(appName) {
   closeDrawer();
   closeSheet();
-  const modKey = MODULE_MAP[appName] || appName;
+  let modKey = MODULE_MAP[appName];
+  if (!modKey && appName) {
+    const rawLower = appName.toString().trim().toLowerCase();
+    for (const [k, v] of Object.entries(MODULE_MAP)) {
+      if (k.toLowerCase() === rawLower) {
+        modKey = v;
+        break;
+      }
+    }
+  }
+  if (!modKey) modKey = appName;
+
   if (modKey === "Home" || modKey === "dashboard") {
     navTo("Home");
     return;
@@ -1633,6 +1725,39 @@ function openAppModule(appName) {
   const getRenderFn = () => {
     if (window.render && typeof window.render[modKey] === "function") return window.render[modKey];
     if (typeof window["render" + modKey] === "function") return window["render" + modKey];
+
+    // Case-insensitive lookup in window.render
+    if (window.render && typeof window.render === "object") {
+      const lowerKey = modKey.toLowerCase();
+      for (const [k, fn] of Object.entries(window.render)) {
+        if (k.toLowerCase() === lowerKey && typeof fn === "function") return fn;
+      }
+    }
+
+    // Case-insensitive lookup on window for render<Key>
+    const lowerRenderKey = ("render" + modKey).toLowerCase();
+    for (const k of Object.keys(window)) {
+      if (k.toLowerCase() === lowerRenderKey && typeof window[k] === "function") {
+        return window[k];
+      }
+    }
+
+    // Explicit fallback for Voice Ingestion
+    if (modKey.toLowerCase().includes("voice")) {
+      if (window.render && typeof window.render.VoiceIngest === "function") return window.render.VoiceIngest;
+      if (window.render && typeof window.render.VOICEINGEST === "function") return window.render.VOICEINGEST;
+      if (typeof window.renderVoiceIngest === "function") return window.renderVoiceIngest;
+      if (typeof window.renderVOICEINGEST === "function") return window.renderVOICEINGEST;
+    }
+
+    // Explicit fallback for Tech-Pack PO
+    if (modKey.toLowerCase().includes("techpack")) {
+      if (window.render && typeof window.render.TechPackPO === "function") return window.render.TechPackPO;
+      if (window.render && typeof window.render.TECHPACK === "function") return window.render.TECHPACK;
+      if (typeof window.renderTechPackPO === "function") return window.renderTechPackPO;
+      if (typeof window.renderTECHPACK === "function") return window.renderTECHPACK;
+    }
+
     if (modKey === "Accounting" && typeof window.renderAccounting === "function") return window.renderAccounting;
     if (modKey === "SocialPost" && typeof window.renderSocialPost === "function") return window.renderSocialPost;
     return null;

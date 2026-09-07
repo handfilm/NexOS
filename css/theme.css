@@ -213,9 +213,82 @@ a { color:var(--coral); text-decoration:none; }
 
 .notif-dot {
   position:absolute; top:8px; right:8px; width:9px; height:9px; border-radius:50%;
-  background:var(--coral); border:2px solid var(--bg-neu);
-  box-shadow:0 0 8px var(--coral);
-  animation:pulse-dot 1.4s infinite;
+  background:var(--coral);
+}
+
+/* ── Topbar Action Navigation Pills (Tech-Pack & Voice Ingest) ── */
+.tbar-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 6px;
+}
+.tbar-action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 13px;
+  border-radius: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.25s var(--spring);
+  user-select: none;
+  outline: none;
+}
+.tbar-action-techpack {
+  background: #111110;
+  color: #fbbf24;
+  border: 1.5px solid rgba(245, 158, 11, 0.45);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+}
+.tbar-action-techpack:hover {
+  background: #191918;
+  border-color: #f59e0b;
+  color: #fef08a;
+  transform: translateY(-1.5px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
+}
+.tbar-action-voice {
+  background: #111110;
+  color: #ff794d;
+  border: 1.5px solid rgba(255, 91, 53, 0.45);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+}
+.tbar-action-voice:hover {
+  background: #191918;
+  border-color: #ff5b35;
+  color: #ffedd5;
+  transform: translateY(-1.5px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(255, 91, 53, 0.35);
+}
+.tbar-action-pill:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+.tbar-pill-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+.tbar-pill-text {
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+}
+@media (max-width: 768px) {
+  .tbar-action-pill .tbar-pill-text {
+    display: none;
+  }
+  .tbar-action-pill {
+    padding: 0 10px;
+    height: 38px;
+    width: 38px;
+    justify-content: center;
+  }
 }
 
 /* ── Body Viewport & Responsive Desktop Max-Width ── */

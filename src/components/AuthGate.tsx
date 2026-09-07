@@ -242,4 +242,3 @@ export const AuthGate: React.FC<AuthGateProps> = ({
     </div>
   );
 };
-};

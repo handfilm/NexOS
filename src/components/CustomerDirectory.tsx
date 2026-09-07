@@ -103,7 +103,7 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
       const docs = snap.docs;
 
       const loadedCustomers: Customer[] = docs.map((d) => {
-        const data = d.data();
+        const data: any = d.data();
         return {
           id: d.id,
           name: data.name || data.companyName || 'Buyer',
