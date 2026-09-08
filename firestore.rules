@@ -56,6 +56,15 @@ service cloud.firestore {
         allow read: if isSignedIn();
         allow create, update, delete: if false;
       }
+
+      // ── Subcollection: /orders/{orderId}/factoryEscrowLedger ──
+      // APPEND-ONLY IMMUTABLE FACTORY ESCROW LEDGER:
+      // Clients may read released escrow tranches, but can NEVER create, update, or delete.
+      // All escrow disbursements MUST flow through the 2nd-Gen Cloud Function `releaseFactoryTranche`.
+      match /factoryEscrowLedger/{trancheId} {
+        allow read: if isSignedIn();
+        allow create, update, delete: if false;
+      }
     }
 
     // ── 2. Audit Logs: Completely Immutable Security Ledger ──

@@ -133,6 +133,22 @@
         "updatedAt": { "type": "string" }
       },
       "required": ["failedAttempts"]
+    },
+    "FactoryEscrowLedgerEntry": {
+      "title": "FactoryEscrowLedgerEntry",
+      "description": "Append-only manufacturing milestone escrow payout ledger in /orders/{orderId}/factoryEscrowLedger",
+      "type": "object",
+      "properties": {
+        "trancheNumber": { "type": "number", "enum": [1, 2, 3] },
+        "amount": { "type": "number" },
+        "vendorId": { "type": "string" },
+        "vendorName": { "type": "string" },
+        "releasedAt": { "type": "string" },
+        "operatorUid": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["RELEASED", "PENDING", "REJECTED"] }
+      },
+      "required": ["trancheNumber", "amount", "vendorId", "status"]
     }
   },
   "firestore": {
@@ -151,6 +167,10 @@
     "/orders/{orderId}/paymentLedger/{ledgerId}": {
       "schema": "PaymentLedgerEntry",
       "description": "Append-only immutable payment ledger subcollection"
+    },
+    "/orders/{orderId}/factoryEscrowLedger/{trancheId}": {
+      "schema": "FactoryEscrowLedgerEntry",
+      "description": "Append-only manufacturing milestone escrow payout subcollection"
     },
     "/deals/{dealId}": {
       "schema": "B2BDeal",
