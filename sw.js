@@ -3,7 +3,7 @@
    Offline Caching Engine · App Shell · Catalog Images & Order Data
    ═══════════════════════════════════════════════════════════════ */
 
-const CACHE_VERSION = 'v4.1.0';
+const CACHE_VERSION = 'v5.2.0';
 const STATIC_CACHE_NAME = `hh-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE_NAME = `hh-runtime-${CACHE_VERSION}`;
 const IMAGE_CACHE_NAME = `hh-images-${CACHE_VERSION}`;
@@ -23,6 +23,7 @@ const PRECACHE_ASSETS = [
   '/js/app.js',
   '/js/modules.js',
   '/js/firebase-modules-patch.js',
+  '/js/react-app.bundle.js',
   '/metadata.json'
 ];
 

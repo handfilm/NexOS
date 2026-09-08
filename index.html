@@ -147,18 +147,6 @@
     <button class="tbar-btn" onclick="openSearch()" title="Search">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
     </button>
-
-    <!-- Direct Navigation Action Buttons for Tech-Pack PO and Voice Ingestion -->
-    <div class="tbar-nav-group" id="tbar-po-nav">
-      <button class="tbar-action-pill tbar-action-techpack" id="btn-header-techpack" onclick="window.openTechPackPOEngine ? window.openTechPackPOEngine() : window.dispatchEvent(new CustomEvent('nexus:open-techpack'))" title="Open Parametric Tech-Pack &amp; Factory Purchase Order Engine">
-        <span class="tbar-pill-icon">📋</span>
-        <span class="tbar-pill-text">TECH-PACK PO</span>
-      </button>
-      <button class="tbar-action-pill tbar-action-voice" id="btn-header-voice" onclick="window.openVoicePOIngestion ? window.openVoicePOIngestion() : window.dispatchEvent(new CustomEvent('nexus:open-voice'))" title="Open Voice PO Ingestion &amp; Audio AI Dock">
-        <span class="tbar-pill-icon">🎙️</span>
-        <span class="tbar-pill-text">VOICE INGEST</span>
-      </button>
-    </div>
   </div>
 
   <div class="brand" onclick="openDrawer()" title="Open Command Menu">
@@ -297,13 +285,13 @@
 <script src="js/camera.js?v=4.4.0"></script>
 <script src="js/voice.js?v=4.4.0"></script>
 <script src="js/dashboard-engine.js?v=4.4.0"></script>
-<script src="js/app.js?v=4.8.0"></script>
-<script src="js/modules.js?v=4.4.0"></script>
-<script src="js/firebase-modules-patch.js?v=4.8.0"></script>
+<script src="js/app.js?v=5.2.0"></script>
+<script src="js/modules.js?v=5.2.0"></script>
+<script src="js/firebase-modules-patch.js?v=5.2.0"></script>
 
 <!-- React Engine Root & TechPack/Voice PO App Bundle -->
 <div id="react-app-root"></div>
-<script src="js/react-app.bundle.js?v=5.0.0"></script>
+<script src="js/react-app.bundle.js?v=5.2.0"></script>
 
 </body>
 </html>

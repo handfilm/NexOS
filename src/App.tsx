@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import TechPackPOEngine from './components/TechPackPOEngine';
 import VoicePOIngestion from './components/VoicePOIngestion';
+import CorporateSupplies from './components/CorporateSupplies';
 import { ExtractedPOSpec } from './components/VoicePOIngestion';
 
 export interface AppProps {
@@ -15,6 +16,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       const hash = window.location.hash.replace('#/', '').replace('#', '').toUpperCase();
       if (hash === 'VOICEINGEST' || hash === 'VOICE_INGEST' || hash === 'VOICE') return 'VOICEINGEST';
       if (hash === 'TECHPACK' || hash === 'TECHPACKPO' || hash === 'TECHPACK_PO') return 'TECHPACK';
+      if (hash === 'CORPORATESUPPLIES' || hash === 'CORPORATE_SUPPLIES' || hash === 'CORPORATE') return 'CORPORATESUPPLIES';
     }
     return 'DEFAULT';
   });
@@ -92,6 +94,9 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     const handleOpenVoiceEvent = () => {
       openVoiceIngest();
     };
+    const handleOpenCorporateEvent = () => {
+      setCurrentRoute('CORPORATESUPPLIES');
+    };
     const handleNavigateEvent = (e: any) => {
       const target = (e.detail?.route || e.detail || '').toString().toUpperCase();
       if (target) setCurrentRoute(target);
@@ -103,17 +108,21 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         setCurrentRoute('VOICEINGEST');
       } else if (hash === 'TECHPACK' || hash === 'TECHPACKPO' || hash === 'TECHPACK_PO') {
         setCurrentRoute('TECHPACK');
+      } else if (hash === 'CORPORATESUPPLIES' || hash === 'CORPORATE_SUPPLIES' || hash === 'CORPORATE') {
+        setCurrentRoute('CORPORATESUPPLIES');
       }
     };
 
     window.addEventListener('nexus:open-techpack', handleOpenTechPackEvent);
     window.addEventListener('nexus:open-voice', handleOpenVoiceEvent);
+    window.addEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
     window.addEventListener('nexus:navigate', handleNavigateEvent);
     window.addEventListener('hashchange', handleHashChange);
 
     return () => {
       window.removeEventListener('nexus:open-techpack', handleOpenTechPackEvent);
       window.removeEventListener('nexus:open-voice', handleOpenVoiceEvent);
+      window.removeEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
       window.removeEventListener('nexus:navigate', handleNavigateEvent);
       window.removeEventListener('hashchange', handleHashChange);
     };
@@ -121,10 +130,14 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
 
   // View switch/case rendering
   const renderCurrentView = () => {
+    console.log('[Router] renderCurrentView active route:', currentRoute);
     switch (currentRoute.toUpperCase()) {
       case 'VOICEINGEST':
       case 'VOICE_INGEST':
       case 'VOICE':
+      case 'VOICEPOINGESTION':
+      case 'VOICE_PO_INGEST':
+      case 'VOICEINGESTION':
         return (
           <div className="voice-ingest-router-view p-4 sm:p-6 max-w-5xl mx-auto font-mono text-zinc-100 bg-[#0d0d0c] rounded-2xl border border-amber-500/30 my-4 shadow-2xl">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-800">
@@ -167,6 +180,8 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       case 'TECHPACKPO':
       case 'TECHPACK_PO':
       case 'TECH_PACK':
+      case 'TECHPACKPOENGINE':
+      case 'TECH_PACK_PO':
         return (
           <div className="techpack-router-view p-3 max-w-7xl mx-auto my-4">
             <TechPackPOEngine
@@ -183,6 +198,16 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
                 }
               }}
             />
+          </div>
+        );
+
+      case 'CORPORATESUPPLIES':
+      case 'CORPORATE_SUPPLIES':
+      case 'CORPORATE':
+      case 'CORPORATESUPPLY':
+        return (
+          <div className="corporate-router-view w-full">
+            <CorporateSupplies />
           </div>
         );
 

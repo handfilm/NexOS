@@ -1154,6 +1154,7 @@ const NAV_SECTIONS = [
     desc: "Primary commerce terminals and live order queues",
     items: [
       { label: "Home", icon: I.home, app: "Home", desc: "Main operator terminal & pinned shelf", ext: "DASH" },
+      { label: "Corporate Supplies", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`, app: "CorporateSupplies", chev: true, desc: "B2B enterprise corporate supplies, bespoke leatherware, executive tech & bulk RFQ matrix", ext: "B2B", extClass: "gold" },
       { label: "Tech-Pack PO Engine", icon: "📋", app: "TechPackPO", chev: true, desc: "Parametric apparel tech pack & factory PO calculations with WhatsApp dispatch", ext: "PO", extClass: "gold" },
       { label: "Voice PO Ingestion", icon: "🎙️", app: "VoiceIngest", chev: true, desc: "Gemini Flash audio transcription & RMG PO spec extraction", ext: "AI", extClass: "gold" },
       { label: "Orders", icon: I.orders, app: "Orders", chev: true, desc: "Live order stream & fulfillment tracker", ext: "POS" },
@@ -1287,6 +1288,13 @@ const MODULE_MAP = {
   "Home": "Home",
   "dashboard": "Home",
   "Dashboard": "Home",
+  "CorporateSupplies": "CorporateSupplies",
+  "Corporate Supplies": "CorporateSupplies",
+  "corporate-supplies": "CorporateSupplies",
+  "corporate_supplies": "CorporateSupplies",
+  "Corporate": "CorporateSupplies",
+  "CORPORATESUPPLIES": "CorporateSupplies",
+  "B2BSupplies": "CorporateSupplies",
   "TechPackPO": "TechPackPO",
   "TECHPACKPO": "TechPackPO",
   "techpackpo": "TechPackPO",
@@ -1742,6 +1750,14 @@ function openAppModule(appName) {
       }
     }
 
+    // Explicit fallback for Corporate Supplies
+    if (modKey.toLowerCase().includes("corporate")) {
+      if (window.render && typeof window.render.CorporateSupplies === "function") return window.render.CorporateSupplies;
+      if (window.render && typeof window.render.CORPORATESUPPLIES === "function") return window.render.CORPORATESUPPLIES;
+      if (typeof window.renderCorporateSupplies === "function") return window.renderCorporateSupplies;
+      if (typeof window.renderCorporateSuppliesComponent === "function") return window.renderCorporateSuppliesComponent;
+    }
+
     // Explicit fallback for Voice Ingestion
     if (modKey.toLowerCase().includes("voice")) {
       if (window.render && typeof window.render.VoiceIngest === "function") return window.render.VoiceIngest;
@@ -1789,11 +1805,32 @@ function openAppModule(appName) {
         }
       } else if (attempts > 20) {
         clearInterval(interval);
+        
+        // Final fallback: try calling global module launchers or dispatching React navigation
+        if (modKey.toLowerCase().includes("voice")) {
+          if (typeof window.openVoicePOIngestion === "function") {
+            window.openVoicePOIngestion();
+            modContainer.innerHTML = `<div style="padding:24px;font-family:var(--mono);color:var(--gold);font-size:11px;">🎙️ Voice Ingestion Engine Initialized</div>`;
+            return;
+          }
+          window.dispatchEvent(new CustomEvent('nexus:navigate', { detail: 'VOICEINGEST' }));
+        } else if (modKey.toLowerCase().includes("techpack")) {
+          if (typeof window.openTechPackPOEngine === "function") {
+            window.openTechPackPOEngine();
+            modContainer.innerHTML = `<div style="padding:24px;font-family:var(--mono);color:var(--gold);font-size:11px;">📋 Tech-Pack PO Engine Initialized</div>`;
+            return;
+          }
+          window.dispatchEvent(new CustomEvent('nexus:navigate', { detail: 'TECHPACK' }));
+        }
+
         modContainer.innerHTML = `
           <div class="empty" style="padding:40px 20px;text-align:center;">
-            <div style="font-weight:700;font-size:14px;color:var(--ink);margin-bottom:6px;">Module "${modKey}" is unavailable.</div>
-            <div style="font-size:11.5px;color:var(--ink-3);margin-bottom:14px;">The module script could not be loaded. Please refresh.</div>
-            <button class="btn btn-sm btn-gold" onclick="window.location.reload()" style="font-weight:700;">🔄 Reload Terminal</button>
+            <div style="font-weight:700;font-size:14px;color:var(--ink);margin-bottom:6px;">Module "${modKey}" is loading.</div>
+            <div style="font-size:11.5px;color:var(--ink-3);margin-bottom:14px;">If the engine doesn't display automatically, tap to mount:</div>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+              <button class="btn btn-sm btn-gold" onclick="if(window.render && window.render['${modKey}']){window.render['${modKey}'](document.getElementById('mod-${modKey}'))}else{window.location.reload()}" style="font-weight:700;">🚀 Launch ${modKey}</button>
+              <button class="btn btn-sm btn-dark" onclick="window.location.reload()" style="font-weight:700;">🔄 Reload Terminal</button>
+            </div>
           </div>
         `;
       }

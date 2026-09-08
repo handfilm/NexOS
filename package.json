@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node server.js",
-    "build": "bun build src/main.tsx --outfile js/react-app.bundle.js --minify",
+    "build": "bun build src/main.tsx --outfile js/react-app.bundle.js --format=iife --target=browser --minify",
     "lint": "echo 'No lint errors'",
     "start": "node server.js"
   },

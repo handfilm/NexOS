@@ -13,6 +13,110 @@
 (function () {
   window.render = window.render || {};
 
+  /* ── Bridges for React Parametric Engines ── */
+  if (!window.render.CorporateSupplies) {
+    window.render.CorporateSupplies = function(container) {
+      if (typeof window.renderCorporateSuppliesComponent === "function") {
+        return window.renderCorporateSuppliesComponent(container);
+      }
+      if (container) {
+        container.innerHTML = '<div style="padding:24px;font-family:var(--mono);color:var(--gold);font-size:11px;letter-spacing:1px;text-transform:uppercase;">Initializing Corporate Supplies Terminal…</div>';
+        let retries = 0;
+        const poller = setInterval(function() {
+          retries++;
+          if (typeof window.renderCorporateSuppliesComponent === "function") {
+            clearInterval(poller);
+            window.renderCorporateSuppliesComponent(container);
+          } else if (retries > 30) {
+            clearInterval(poller);
+            if (typeof window.openCorporateSupplies === "function") {
+              window.openCorporateSupplies();
+            } else {
+              window.dispatchEvent(new CustomEvent('nexus:open-corporate-supplies'));
+            }
+          }
+        }, 100);
+        return;
+      }
+      if (typeof window.openCorporateSupplies === "function") {
+        return window.openCorporateSupplies();
+      }
+      window.dispatchEvent(new CustomEvent('nexus:open-corporate-supplies'));
+    };
+    window.render.CORPORATESUPPLIES = window.render.CorporateSupplies;
+    window.render["Corporate Supplies"] = window.render.CorporateSupplies;
+    window.render["corporate-supplies"] = window.render.CorporateSupplies;
+    window.render.corporate_supplies = window.render.CorporateSupplies;
+    window.render.Corporate = window.render.CorporateSupplies;
+  }
+
+  if (!window.render.TechPackPO) {
+    window.render.TechPackPO = function(container) {
+      if (typeof window.renderTechPackComponent === "function") {
+        return window.renderTechPackComponent(container);
+      }
+      if (container) {
+        container.innerHTML = '<div style="padding:24px;font-family:var(--mono);color:var(--gold);font-size:11px;letter-spacing:1px;text-transform:uppercase;">Initializing Tech-Pack PO Engine…</div>';
+        let retries = 0;
+        const poller = setInterval(function() {
+          retries++;
+          if (typeof window.renderTechPackComponent === "function") {
+            clearInterval(poller);
+            window.renderTechPackComponent(container);
+          } else if (retries > 30) {
+            clearInterval(poller);
+            if (typeof window.openTechPackPOEngine === "function") {
+              window.openTechPackPOEngine();
+            } else {
+              window.dispatchEvent(new CustomEvent('nexus:open-techpack'));
+            }
+          }
+        }, 100);
+        return;
+      }
+      if (typeof window.openTechPackPOEngine === "function") {
+        return window.openTechPackPOEngine();
+      }
+      window.dispatchEvent(new CustomEvent('nexus:open-techpack'));
+    };
+    window.render.TECHPACKPO = window.render.TechPackPO;
+    window.render.TECHPACK = window.render.TechPackPO;
+    window.render.TechPack = window.render.TechPackPO;
+  }
+
+  if (!window.render.VoiceIngest) {
+    window.render.VoiceIngest = function(container) {
+      if (typeof window.renderVoiceIngestComponent === "function") {
+        return window.renderVoiceIngestComponent(container);
+      }
+      if (container) {
+        container.innerHTML = '<div style="padding:24px;font-family:var(--mono);color:var(--coral);font-size:11px;letter-spacing:1px;text-transform:uppercase;">Initializing Voice PO Ingestion…</div>';
+        let retries = 0;
+        const poller = setInterval(function() {
+          retries++;
+          if (typeof window.renderVoiceIngestComponent === "function") {
+            clearInterval(poller);
+            window.renderVoiceIngestComponent(container);
+          } else if (retries > 30) {
+            clearInterval(poller);
+            if (typeof window.openVoicePOIngestion === "function") {
+              window.openVoicePOIngestion();
+            } else {
+              window.dispatchEvent(new CustomEvent('nexus:open-voice'));
+            }
+          }
+        }, 100);
+        return;
+      }
+      if (typeof window.openVoicePOIngestion === "function") {
+        return window.openVoicePOIngestion();
+      }
+      window.dispatchEvent(new CustomEvent('nexus:open-voice'));
+    };
+    window.render.VOICEINGEST = window.render.VoiceIngest;
+    window.render.VoicePOIngestion = window.render.VoiceIngest;
+  }
+
   /* ── Shared Helpers ── */
   function modHeader(title, tag, actions = []) {
     const btns = actions.map(a => `<button onclick="${a.fn}" style="padding:6px 11px;font-size:9px;border:1px solid var(--wire-hard);background:transparent;color:var(--gold-dim);font-family:var(--sans);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--wire-hard)';this.style.color='var(--gold-dim)'">${a.label}</button>`).join('');

@@ -207,6 +207,7 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
       setQuickSaleTargetCustomer(cust || null);
       setIsQuickSaleOpen(true);
     };
+    const prevOpenTechPack = (window as any).openTechPackPOEngine;
     (window as any).openTechPackPOEngine = (cust?: any) => {
       setTechPackTargetCustomer(cust || null);
       setIsTechPackOpen(true);
@@ -217,7 +218,11 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
     return () => {
       delete (window as any).openCustomer360Drawer;
       delete (window as any).openQuickSaleModal;
-      delete (window as any).openTechPackPOEngine;
+      if (typeof prevOpenTechPack === 'function') {
+        (window as any).openTechPackPOEngine = prevOpenTechPack;
+      } else if ((window as any).NexusApp?.openTechPack) {
+        (window as any).openTechPackPOEngine = (window as any).NexusApp.openTechPack;
+      }
       delete (window as any).openSmartAudienceBuilder;
     };
   }, []);
