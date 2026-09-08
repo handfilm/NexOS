@@ -362,15 +362,15 @@ export const SmartAudienceBuilder: React.FC<SmartAudienceBuilderProps> = ({
     );
 
   return (
-    <div className="w-full bg-[#0d0d0c] border border-zinc-800 rounded-xl overflow-hidden font-mono text-zinc-300">
+    <div className="w-full bg-white/85 backdrop-blur-2xl border border-white/90 rounded-2xl overflow-hidden font-mono text-[#1e293b] shadow-[4px_4px_20px_rgba(166,180,200,0.3),-4px_-4px_20px_#ffffff]">
       {/* Header Bar */}
-      <div className="p-4 border-b border-zinc-800 bg-[#161615] flex flex-wrap items-center justify-between gap-3">
+      <div className="p-4 border-b border-slate-200/80 bg-white/80 backdrop-blur-md flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-ping" />
-          <span className="text-amber-500 font-bold text-xs uppercase tracking-wider">
+          <span className="text-[#1e293b] font-bold text-xs uppercase tracking-wider">
             SMART AUDIENCE BUILDER & CAMPAIGN MEMORY
           </span>
-          <span className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-2 py-0.5 rounded">
+          <span className="text-[10px] bg-amber-50 border border-amber-200 text-amber-800 font-bold px-2 py-0.5 rounded-md">
             16K+ Live Engine
           </span>
         </div>
@@ -378,20 +378,20 @@ export const SmartAudienceBuilder: React.FC<SmartAudienceBuilderProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveTab('builder')}
-            className={`px-3 py-1 text-xs rounded transition-all font-bold ${
+            className={`px-3 py-1.5 text-xs rounded-xl transition-all font-bold ${
               activeTab === 'builder'
-                ? 'bg-[#c81d11] text-white'
-                : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                ? 'bg-[#c81d11] text-white shadow-xs'
+                : 'bg-slate-100 text-[#64748b] hover:text-[#1e293b] border border-slate-200'
             }`}
           >
             ⚡ Segment & Composer
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`px-3 py-1 text-xs rounded transition-all font-bold ${
+            className={`px-3 py-1.5 text-xs rounded-xl transition-all font-bold ${
               activeTab === 'history'
-                ? 'bg-[#c81d11] text-white'
-                : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                ? 'bg-[#c81d11] text-white shadow-xs'
+                : 'bg-slate-100 text-[#64748b] hover:text-[#1e293b] border border-slate-200'
             }`}
           >
             📜 Campaign History ({campaignHistory.length})
@@ -399,7 +399,7 @@ export const SmartAudienceBuilder: React.FC<SmartAudienceBuilderProps> = ({
           {onClose && (
             <button
               onClick={onClose}
-              className="text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 p-1 px-2.5 rounded text-xs ml-2"
+              className="text-[#64748b] hover:text-[#1e293b] bg-slate-100 hover:bg-slate-200 border border-slate-200 p-1 px-2.5 rounded-xl text-xs ml-2 font-semibold"
             >
               ✕
             </button>

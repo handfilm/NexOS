@@ -520,15 +520,15 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
       <div className="absolute inset-0 cursor-pointer" onClick={onClose} />
 
       {/* Slide-over Container */}
-      <div className="relative w-full max-w-2xl bg-[#0d0d0c] border-l border-zinc-800 h-full flex flex-col shadow-2xl text-zinc-200 overflow-hidden">
+      <div className="relative w-full max-w-2xl bg-white/95 backdrop-blur-2xl border-l border-slate-200/90 h-full flex flex-col shadow-2xl text-[#1e293b] overflow-hidden">
         {/* Techno-Brutalist Drawer Header */}
-        <div className="p-4 border-b border-zinc-800 bg-[#161615] flex items-center justify-between">
+        <div className="p-4 border-b border-slate-200/80 bg-white/90 backdrop-blur-md flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-pulse" />
-            <span className="text-amber-500 font-bold text-xs uppercase tracking-wider">
+            <span className="text-[#1e293b] font-bold text-xs uppercase tracking-wider">
               CUSTOMER 360 & MEMORY LEDGER
             </span>
-            <span className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-2 py-0.5 rounded">
+            <span className="text-[10px] bg-slate-100 border border-slate-200 text-[#64748b] px-2 py-0.5 rounded-md font-semibold">
               ID: {customerId?.slice(0, 10)}
             </span>
           </div>
@@ -544,7 +544,7 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                       (window as any).openTechPackPOEngine(customer);
                     }
                   }}
-                  className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-amber-400 text-[11px] font-bold px-3 py-1.5 rounded transition-all flex items-center gap-1.5 shadow"
+                  className="bg-white hover:bg-slate-50 border border-slate-300 text-[#b45309] text-[11px] font-bold px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
                   title="Generate Parametric Tech Pack & PO for this customer"
                 >
                   <span>📐</span>
@@ -552,7 +552,7 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                 </button>
                 <button
                   onClick={() => onOpenQuickSale && onOpenQuickSale(customer)}
-                  className="bg-[#c81d11] hover:bg-red-700 text-white text-[11px] font-bold px-3 py-1.5 rounded transition-all flex items-center gap-1.5 shadow"
+                  className="bg-[#c81d11] hover:bg-[#a3160c] text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
                 >
                   <span>⚡</span>
                   <span>QUICK SALE 2.0</span>
@@ -561,7 +561,7 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
             )}
             <button
               onClick={onClose}
-              className="text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 p-1.5 rounded text-xs px-2.5 transition-all"
+              className="text-[#64748b] hover:text-[#1e293b] bg-slate-100 hover:bg-slate-200 border border-slate-200 p-1.5 rounded-xl text-xs px-2.5 transition-all font-semibold"
             >
               ✕ CLOSE
             </button>
@@ -569,25 +569,25 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
         </div>
 
         {loadingProfile && !customer ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-zinc-500 text-xs">
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-[#64748b] text-xs">
             <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-3" />
             <span>Resolving customer ledger from Firestore cursor…</span>
           </div>
         ) : customer ? (
           <div className="flex-1 overflow-y-auto flex flex-col">
             {/* Top Identity Hero Card */}
-            <div className="p-4 bg-[#111110] border-b border-zinc-850">
+            <div className="p-4 bg-slate-50/70 border-b border-slate-200/80">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-[#1e293b] tracking-tight flex items-center gap-2">
                       <span>{customer.name}</span>
-                      <span className="text-xs text-zinc-400">{customer.flag}</span>
+                      <span className="text-xs text-[#64748b]">{customer.flag}</span>
                     </h2>
                   </div>
 
                   {customer.companyName && customer.companyName !== customer.name && (
-                    <div className="text-xs text-amber-500/90 font-medium mt-0.5">
+                    <div className="text-xs text-amber-700 font-medium mt-0.5">
                       {customer.companyName}
                     </div>
                   )}
@@ -596,17 +596,17 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
                   <div className="flex flex-wrap items-center gap-1.5 mt-2">
                     {calculateCustomerSegmentBadges(customer).map(badge => {
                       const badgeStyles = {
-                        amber: 'bg-amber-950/80 border-amber-800/80 text-amber-300',
-                        emerald: 'bg-emerald-950/80 border-emerald-800/80 text-emerald-300',
-                        coral: 'bg-rose-950/80 border-rose-800/80 text-rose-300',
-                        zinc: 'bg-zinc-900 border-zinc-700 text-zinc-300'
+                        amber: 'bg-amber-50 border-amber-300 text-amber-900',
+                        emerald: 'bg-emerald-50 border-emerald-300 text-emerald-900',
+                        coral: 'bg-rose-50 border-rose-300 text-rose-900',
+                        zinc: 'bg-slate-100 border-slate-300 text-slate-800'
                       }[badge.tone];
 
                       return (
                         <span
                           key={badge.label}
                           title={badge.description}
-                          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${badgeStyles}`}
+                          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${badgeStyles}`}
                         >
                           {badge.label === 'VIP Whale' && '👑 '}
                           {badge.label === 'Active Repeat' && '🔄 '}

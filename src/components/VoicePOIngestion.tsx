@@ -381,34 +381,34 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
   };
 
   return (
-    <div className={`voice-po-ingestion bg-[#0d0d0c] border border-zinc-800 rounded-xl p-4 lg:p-5 font-mono text-zinc-200 shadow-2xl space-y-4 ${className}`}>
+    <div className={`voice-po-ingestion bg-white/85 backdrop-blur-xl border border-white/90 rounded-2xl p-4 lg:p-5 font-mono text-[#1e293b] shadow-[4px_4px_20px_rgba(166,180,200,0.25),-4px_-4px_20px_#ffffff] space-y-4 ${className}`}>
       
       {/* ── Top Terminal Header & Live Status ── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-1.5">
-            <span className={`w-2.5 h-2.5 rounded-full ${status === 'RECORDING' ? 'bg-[#c81d11] animate-ping' : status === 'PROCESSING AUDIO' ? 'bg-amber-400 animate-pulse' : status === 'READY' ? 'bg-[#10b981]' : status === 'ERROR' ? 'bg-red-500' : 'bg-zinc-600'}`} />
-            <span className="text-xs font-bold text-white tracking-wider uppercase">
+            <span className={`w-2.5 h-2.5 rounded-full ${status === 'RECORDING' ? 'bg-[#c81d11] animate-ping' : status === 'PROCESSING AUDIO' ? 'bg-amber-500 animate-pulse' : status === 'READY' ? 'bg-[#10b981]' : status === 'ERROR' ? 'bg-red-500' : 'bg-slate-400'}`} />
+            <span className="text-xs font-bold text-[#1e293b] tracking-wider uppercase">
               VOICE PO INGESTION DOCK · RMG BUYER DESK
             </span>
           </div>
-          <span className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-2 py-0.5 rounded">
+          <span className="text-[10px] bg-slate-100 border border-slate-200 text-[#475569] font-semibold px-2 py-0.5 rounded-md">
             GEMINI FLASH 3.8
           </span>
         </div>
 
         {/* Live Visual Status Indicator Badge */}
         <div className="flex items-center gap-2">
-          <div className={`text-[10px] font-bold px-2.5 py-1 rounded border tracking-wider uppercase flex items-center gap-1.5 ${
+          <div className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border tracking-wider uppercase flex items-center gap-1.5 ${
             status === 'RECORDING'
-              ? 'bg-red-950/80 border-[#c81d11] text-red-400 animate-pulse'
+              ? 'bg-red-50 border-red-300 text-red-700 animate-pulse'
               : status === 'PROCESSING AUDIO'
-              ? 'bg-amber-950/80 border-amber-600 text-amber-300 animate-pulse'
+              ? 'bg-amber-50 border-amber-300 text-amber-800 animate-pulse'
               : status === 'READY'
-              ? 'bg-emerald-950/80 border-emerald-700 text-emerald-300'
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
               : status === 'ERROR'
-              ? 'bg-red-950/80 border-red-800 text-red-400'
-              : 'bg-zinc-900 border-zinc-800 text-zinc-400'
+              ? 'bg-red-50 border-red-300 text-red-700'
+              : 'bg-slate-100 border-slate-200 text-[#64748b]'
           }`}>
             <span>●</span>
             <span>STATUS: {status}</span>
@@ -418,7 +418,7 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded text-xs transition-all"
+              className="text-[#64748b] hover:text-[#1e293b] bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2.5 py-1 rounded-lg text-xs transition-all"
             >
               ✕
             </button>
@@ -428,11 +428,11 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
 
       {/* ── Terminal Error Banner (if error) ── */}
       {errorMessage && (
-        <div className="bg-red-950/80 border border-red-800 text-red-300 p-3 rounded text-xs space-y-1">
+        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs space-y-1">
           <div className="font-bold flex items-center gap-2">
             <span>⚠️ TERMINAL NOTICE</span>
           </div>
-          <p className="text-[11px] leading-relaxed text-red-200">{errorMessage}</p>
+          <p className="text-[11px] leading-relaxed text-red-800">{errorMessage}</p>
         </div>
       )}
 
@@ -440,21 +440,21 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
         
         {/* Left: Native Record Button & Mic Control (5 Cols) */}
-        <div className="md:col-span-5 bg-[#161615] border border-zinc-800 rounded-lg p-4 flex flex-col justify-between space-y-3">
+        <div className="md:col-span-5 bg-white/90 border border-slate-200/90 rounded-xl p-4 flex flex-col justify-between space-y-3 shadow-xs">
           <div>
-            <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block mb-1">
+            <span className="text-[11px] font-bold text-[#b45309] uppercase tracking-wider block mb-1">
               Microphone Voice Capture
             </span>
-            <p className="text-[11px] text-zinc-400 leading-normal">
+            <p className="text-[11px] text-[#64748b] leading-normal">
               Directly capture spoken instructions, WhatsApp buyer voicemails, or factory floor memos.
             </p>
           </div>
 
           {/* Recording Visualization Area */}
-          <div className="bg-[#0d0d0c] border border-zinc-800 rounded p-3 text-center space-y-2">
+          <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-3 text-center space-y-2">
             {status === 'RECORDING' ? (
               <div className="space-y-2">
-                <div className="text-xl font-bold text-red-500 font-mono tracking-widest animate-pulse">
+                <div className="text-xl font-bold text-[#c81d11] font-mono tracking-widest animate-pulse">
                   REC ● {formatTime(recordingSeconds)}
                 </div>
                 {/* Visual Audio Waveform Simulation (CSS Bars) */}
@@ -470,16 +470,16 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
                     />
                   ))}
                 </div>
-                <span className="text-[10px] text-zinc-400 block">
+                <span className="text-[10px] text-[#64748b] block">
                   Capturing 48kHz native audio stream…
                 </span>
               </div>
             ) : (
               <div className="space-y-1 py-1">
-                <div className="text-xs text-zinc-400">
+                <div className="text-xs text-[#64748b] font-medium">
                   Ready to record voice instructions
                 </div>
-                <span className="text-[10px] text-zinc-600 font-mono">
+                <span className="text-[10px] text-[#94a3b8] font-mono">
                   Standard Opus / WebM High-Fidelity
                 </span>
               </div>
@@ -492,10 +492,10 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
               type="button"
               onClick={toggleRecording}
               disabled={status === 'PROCESSING AUDIO'}
-              className={`flex-1 py-3 px-4 rounded text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 status === 'RECORDING'
-                  ? 'bg-[#c81d11] hover:bg-red-700 text-white animate-pulse shadow-lg shadow-red-900/40'
-                  : 'bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-100 hover:border-amber-500'
+                  ? 'bg-[#c81d11] hover:bg-red-700 text-white animate-pulse shadow-md'
+                  : 'bg-[#1e293b] hover:bg-black text-white shadow-sm'
               }`}
             >
               <span>{status === 'RECORDING' ? '⏹️' : '🎙️'}</span>
@@ -506,7 +506,7 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
               <button
                 type="button"
                 onClick={handleReset}
-                className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white px-3 py-2 rounded text-xs"
+                className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[#64748b] hover:text-[#1e293b] px-3 py-2 rounded-xl text-xs"
                 title="Cancel Recording"
               >
                 ✕
@@ -521,10 +521,10 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`md:col-span-7 border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+          className={`md:col-span-7 border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
             isDragOver
-              ? 'border-amber-500 bg-amber-950/20'
-              : 'border-zinc-800 bg-[#161615]/70 hover:bg-[#161615] hover:border-zinc-700'
+              ? 'border-[#d4af37] bg-amber-50/50'
+              : 'border-slate-300/80 bg-white/70 hover:bg-white hover:border-[#d4af37] shadow-xs'
           }`}
         >
           <input
@@ -539,22 +539,22 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
             }}
           />
 
-          <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lg mb-2 text-zinc-300">
+          <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-lg mb-2 text-[#475569]">
             📁
           </div>
 
-          <div className="text-xs font-bold text-zinc-200 uppercase tracking-wider mb-1">
+          <div className="text-xs font-bold text-[#1e293b] uppercase tracking-wider mb-1">
             DROP WHATSAPP AUDIO / VOICE NOTE HERE
           </div>
-          <p className="text-[11px] text-zinc-400 max-w-sm mb-2">
+          <p className="text-[11px] text-[#64748b] max-w-sm mb-2">
             Drag &amp; drop or click to upload audio file from buyer or merchant.
           </p>
-          <div className="flex flex-wrap justify-center gap-1.5 text-[10px] text-zinc-500 font-mono">
-            <span className="bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded">.MP3</span>
-            <span className="bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded">.WAV</span>
-            <span className="bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded">.M4A</span>
-            <span className="bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded">.OGG</span>
-            <span className="bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded">.WEBM</span>
+          <div className="flex flex-wrap justify-center gap-1.5 text-[10px] text-[#64748b] font-mono">
+            <span className="bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">.MP3</span>
+            <span className="bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">.WAV</span>
+            <span className="bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">.M4A</span>
+            <span className="bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">.OGG</span>
+            <span className="bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">.WEBM</span>
           </div>
         </div>
 
@@ -562,7 +562,7 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
 
       {/* ── Monospace Playback Preview Widget (When Audio is Buffered) ── */}
       {audioUrl && (
-        <div className="bg-[#141413] border border-zinc-800 rounded-lg p-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="bg-white/90 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-xs">
           <audio
             ref={audioPlayerRef}
             src={audioUrl}
@@ -574,17 +574,17 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
             <button
               type="button"
               onClick={toggleAudioPlayback}
-              className="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 flex items-center justify-center text-xs transition-all cursor-pointer"
+              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-[#1e293b] flex items-center justify-center text-xs transition-all cursor-pointer shadow-xs"
               title={isPlaying ? 'Pause Audio' : 'Play Audio Preview'}
             >
               {isPlaying ? '⏸' : '▶'}
             </button>
             <div>
-              <div className="text-xs font-bold text-white flex items-center gap-2">
+              <div className="text-xs font-bold text-[#1e293b] flex items-center gap-2">
                 <span>🎵 {audioFileName}</span>
-                <span className="text-[10px] text-zinc-500 font-mono">({audioFileSize})</span>
+                <span className="text-[10px] text-[#64748b] font-mono">({audioFileSize})</span>
               </div>
-              <div className="text-[10px] text-zinc-400 font-mono">
+              <div className="text-[10px] text-[#64748b] font-mono">
                 MIME: {audioMimeType} · Buffer Stream Loaded
               </div>
             </div>
@@ -595,7 +595,7 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
               type="button"
               onClick={() => audioBlob && processAudioBlob(audioBlob, audioMimeType)}
               disabled={isProcessing}
-              className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs px-3 py-1.5 rounded transition-all flex items-center gap-1.5"
+              className="bg-white hover:bg-slate-50 border border-slate-300 text-[#1e293b] text-xs px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-xs font-semibold"
             >
               <span>{isProcessing ? '⏳' : '⚡'}</span>
               <span>{isProcessing ? 'EXTRACTING…' : 'RE-ANALYZE VIA GEMINI'}</span>
@@ -603,7 +603,7 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
             <button
               type="button"
               onClick={handleReset}
-              className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-red-400 hover:text-red-300 text-xs px-2.5 py-1.5 rounded"
+              className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-red-600 text-xs px-2.5 py-1.5 rounded-lg font-medium"
               title="Discard audio buffer"
             >
               Discard
@@ -613,30 +613,30 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
       )}
 
       {/* ── Fallback Text Paste Accordion ── */}
-      <div className="border-t border-zinc-800 pt-2">
+      <div className="border-t border-slate-200/80 pt-2">
         <button
           type="button"
           onClick={() => setShowManualPaste(!showManualPaste)}
-          className="text-[11px] text-zinc-400 hover:text-amber-400 flex items-center gap-1.5 py-1 transition-colors"
+          className="text-[11px] text-[#64748b] hover:text-[#b45309] flex items-center gap-1.5 py-1 transition-colors font-medium cursor-pointer"
         >
           <span>{showManualPaste ? '▼' : '▶'}</span>
           <span>Manual Fallback: Paste WhatsApp Raw Voice Transcript / Text Message</span>
         </button>
 
         {showManualPaste && (
-          <div className="mt-2 space-y-2 bg-[#161615] border border-zinc-800 p-3 rounded-lg">
+          <div className="mt-2 space-y-2 bg-slate-50/90 border border-slate-200 p-3 rounded-xl">
             <textarea
               rows={3}
               placeholder="Paste raw WhatsApp voice note transcript, email snippet, or RFQ memo here… (e.g. 'Confirming 200 pcs loopback hoodies 450 GSM, size breakdown 20S 50M 75L 35XL 20XXL, FOB 2400 BDT, onyx black and bone white')"
               value={manualText}
               onChange={(e) => setManualText(e.target.value)}
-              className="w-full bg-[#0d0d0c] border border-zinc-800 rounded p-2.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-amber-500 font-mono"
+              className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-xs text-[#1e293b] placeholder-slate-400 focus:outline-none focus:border-[#d4af37] font-mono shadow-xs"
             />
             <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setManualText('Need 150 pieces of heavy loopback hoodies 450 GSM in onyx black and bone white. Sizing ratio: 20 S, 40 M, 50 L, 25 XL, 15 XXL. Target FOB price 2400 BDT. Delivery required in 25 days.')}
-                className="text-[11px] text-zinc-500 hover:text-zinc-300 bg-zinc-900 px-2.5 py-1 rounded border border-zinc-800"
+                className="text-[11px] text-[#64748b] hover:text-[#1e293b] bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-xs cursor-pointer"
               >
                 Sample RFQ Text
               </button>
@@ -644,7 +644,7 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
                 type="button"
                 onClick={processManualText}
                 disabled={!manualText.trim() || isProcessing}
-                className="bg-amber-600 hover:bg-amber-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-black font-bold text-xs px-3 py-1.5 rounded transition-all flex items-center gap-1.5 cursor-pointer"
+                className="bg-[#d4af37] hover:bg-[#b45309] disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
               >
                 <span>⚡</span>
                 <span>PARSE SPEC VIA GEMINI</span>
@@ -656,23 +656,23 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
 
       {/* ── HIGH-DENSITY TERMINAL-STYLED REVIEW DRAWER / PANEL ── */}
       {extractedSpec && (
-        <div className="bg-[#050505] border border-zinc-800 rounded-lg p-4 space-y-4 shadow-inner">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 pb-2.5">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-4 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
             <div className="flex items-center gap-2">
-              <span className="text-emerald-400 text-sm">✓</span>
-              <span className="text-xs font-bold text-white uppercase tracking-wider">
+              <span className="text-emerald-600 text-sm">✓</span>
+              <span className="text-xs font-bold text-[#1e293b] uppercase tracking-wider">
                 STRUCTURED PO SPECIFICATION EXTRACTED
               </span>
               {extractionSource && (
-                <span className="text-[10px] bg-zinc-900 border border-zinc-800 text-amber-400 px-2 py-0.5 rounded font-mono">
+                <span className="text-[10px] bg-slate-100 border border-slate-200 text-[#b45309] font-bold px-2 py-0.5 rounded-md font-mono">
                   SOURCE: {extractionSource.toUpperCase()}
                 </span>
               )}
             </div>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border uppercase ${
               extractedSpec.buyerIntent === 'order_confirmation'
-                ? 'bg-emerald-950 border-emerald-800 text-emerald-300'
-                : 'bg-amber-950 border-amber-800 text-amber-300'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                : 'bg-amber-50 border-amber-200 text-amber-700'
             }`}>
               INTENT: {extractedSpec.buyerIntent.replace('_', ' ')}
             </span>
@@ -680,10 +680,10 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
 
           {/* 1. Full Audio Transcript Console */}
           <div className="space-y-1">
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-[#64748b] uppercase tracking-wider block">
               Verbatim Audio Transcript:
             </span>
-            <div className="bg-[#0d0d0c] border border-zinc-850 p-2.5 rounded text-xs text-zinc-300 leading-relaxed font-mono select-text">
+            <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-lg text-xs text-[#1e293b] leading-relaxed font-mono select-text">
               "{extractedSpec.rawTranscript}"
             </div>
           </div>
@@ -691,38 +691,38 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
           {/* 2. Extracted Data Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
             
-            <div className="bg-[#111110] border border-zinc-800 p-2.5 rounded space-y-1">
-              <span className="text-[10px] text-zinc-500 uppercase block">Category</span>
-              <span className="font-bold text-amber-400 block">{extractedSpec.category}</span>
-              <span className="text-[10px] text-zinc-400 block truncate">{extractedSpec.fabric}</span>
+            <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-lg space-y-1">
+              <span className="text-[10px] text-[#64748b] uppercase block">Category</span>
+              <span className="font-bold text-[#b45309] block">{extractedSpec.category}</span>
+              <span className="text-[10px] text-[#64748b] block truncate">{extractedSpec.fabric}</span>
             </div>
 
-            <div className="bg-[#111110] border border-zinc-800 p-2.5 rounded space-y-1">
-              <span className="text-[10px] text-zinc-500 uppercase block">Fabric GSM / Spec</span>
-              <span className="font-bold text-zinc-200 block font-mono">
+            <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-lg space-y-1">
+              <span className="text-[10px] text-[#64748b] uppercase block">Fabric GSM / Spec</span>
+              <span className="font-bold text-[#1e293b] block font-mono">
                 {extractedSpec.gsm ? `${extractedSpec.gsm} GSM` : 'Grade Spec'}
               </span>
-              <span className="text-[10px] text-zinc-400 block truncate">
+              <span className="text-[10px] text-[#64748b] block truncate">
                 {extractedSpec.colorways.join(', ') || 'Standard'}
               </span>
             </div>
 
-            <div className="bg-[#111110] border border-zinc-800 p-2.5 rounded space-y-1">
-              <span className="text-[10px] text-zinc-500 uppercase block">Total Order Units</span>
-              <span className="font-bold text-emerald-400 block font-mono text-sm">
+            <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-lg space-y-1">
+              <span className="text-[10px] text-[#64748b] uppercase block">Total Order Units</span>
+              <span className="font-bold text-emerald-600 block font-mono text-sm">
                 {extractedSpec.totalQuantity.toLocaleString()} PCS
               </span>
-              <span className="text-[10px] text-zinc-400 block">
+              <span className="text-[10px] text-[#64748b] block">
                 {extractedSpec.deliveryDeadline ? `Lead: ${extractedSpec.deliveryDeadline}` : 'Standard SLA'}
               </span>
             </div>
 
-            <div className="bg-[#111110] border border-zinc-800 p-2.5 rounded space-y-1">
-              <span className="text-[10px] text-zinc-500 uppercase block">Target FOB Unit Price</span>
-              <span className="font-bold text-white block font-mono text-sm">
+            <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-lg space-y-1">
+              <span className="text-[10px] text-[#64748b] uppercase block">Target FOB Unit Price</span>
+              <span className="font-bold text-[#1e293b] block font-mono text-sm">
                 {extractedSpec.targetUnitPrice ? `${extractedSpec.currency === 'USD' ? '$' : '৳'}${extractedSpec.targetUnitPrice.toLocaleString()}` : 'Negotiable'}
               </span>
-              <span className="text-[10px] text-zinc-400 block">
+              <span className="text-[10px] text-[#64748b] block">
                 Currency: {extractedSpec.currency}
               </span>
             </div>
@@ -730,20 +730,20 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
           </div>
 
           {/* Sizing Breakdown Matrix */}
-          <div className="bg-[#111110] border border-zinc-800 p-2.5 rounded space-y-1.5">
-            <div className="flex items-center justify-between text-[10px] text-zinc-400 uppercase">
+          <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-lg space-y-1.5">
+            <div className="flex items-center justify-between text-[10px] text-[#64748b] uppercase">
               <span>Extracted Sizing Ratio Matrix:</span>
-              <span className="font-mono text-zinc-300">Sum = {extractedSpec.totalQuantity} Units</span>
+              <span className="font-mono text-[#1e293b] font-semibold">Sum = {extractedSpec.totalQuantity} Units</span>
             </div>
             <div className="grid grid-cols-5 gap-2 text-center text-xs">
               {(['S', 'M', 'L', 'XL', 'XXL'] as const).map(sz => {
                 const count = extractedSpec.sizeRatios[sz] || 0;
                 const pct = extractedSpec.totalQuantity > 0 ? ((count / extractedSpec.totalQuantity) * 100).toFixed(0) : '0';
                 return (
-                  <div key={sz} className="bg-[#0d0d0c] border border-zinc-850 py-1.5 px-1 rounded">
-                    <span className="text-[10px] font-bold text-amber-400 block">{sz}</span>
-                    <span className="font-bold text-white font-mono block">{count}</span>
-                    <span className="text-[9px] text-zinc-500 block">{pct}%</span>
+                  <div key={sz} className="bg-white border border-slate-200 py-1.5 px-1 rounded-md shadow-xs">
+                    <span className="text-[10px] font-bold text-[#b45309] block">{sz}</span>
+                    <span className="font-bold text-[#1e293b] font-mono block">{count}</span>
+                    <span className="text-[9px] text-[#64748b] block">{pct}%</span>
                   </div>
                 );
               })}
@@ -755,14 +755,14 @@ export const VoicePOIngestion: React.FC<VoicePOIngestionProps> = ({
             <button
               type="button"
               onClick={handleReset}
-              className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white px-3 py-2 rounded text-xs uppercase tracking-wider transition-all"
+              className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[#475569] hover:text-[#1e293b] px-3 py-2 rounded-xl text-xs uppercase tracking-wider transition-all font-semibold"
             >
               Discard / Retry
             </button>
             <button
               type="button"
               onClick={() => onSpecExtracted(extractedSpec)}
-              className="bg-[#c81d11] hover:bg-[#a3160c] text-white font-bold px-4 py-2 rounded text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg cursor-pointer"
+              className="bg-[#c81d11] hover:bg-[#a3160c] text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-md cursor-pointer"
             >
               <span>⚡</span>
               <span>POPULATE PO ENGINE</span>

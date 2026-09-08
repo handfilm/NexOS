@@ -368,30 +368,30 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 font-mono text-zinc-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 font-mono text-[#1e293b]">
       {/* Container Card */}
-      <div className="relative w-full max-w-xl bg-[#0d0d0c] border border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-xl bg-white/95 backdrop-blur-2xl border border-white/90 rounded-2xl shadow-[4px_4px_30px_rgba(166,180,200,0.4),-4px_-4px_30px_#ffffff] overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header Bar */}
-        <div className="p-4 bg-[#161615] border-b border-zinc-800 flex items-center justify-between">
+        <div className="p-4 bg-white/90 border-b border-slate-200/80 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#c81d11] animate-pulse" />
-            <span className="text-white font-bold text-xs uppercase tracking-wider">
+            <span className="text-[#1e293b] font-bold text-xs uppercase tracking-wider">
               QUICK SALE 2.0 · INSTANT POS ATTRIBUTION
             </span>
-            <span className="text-[10px] bg-zinc-900 border border-zinc-800 text-amber-400 px-2 py-0.5 rounded">
+            <span className="text-[10px] bg-amber-50 border border-amber-200 text-amber-800 font-bold px-2 py-0.5 rounded-md">
               ATOMIC FIRESTORE
             </span>
           </div>
           <button
             onClick={onClose}
-            className="text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 p-1 px-2.5 rounded text-xs"
+            className="text-[#64748b] hover:text-[#1e293b] bg-slate-100 hover:bg-slate-200 border border-slate-200 p-1 px-2.5 rounded-xl text-xs font-semibold"
           >
             ✕
           </button>
         </div>
 
         {statusMessage && !completedOrder && (
-          <div className="bg-emerald-950 border-b border-emerald-800 px-4 py-2 text-xs text-emerald-300 flex items-center gap-2">
+          <div className="bg-emerald-50 border-b border-emerald-200 px-4 py-2 text-xs text-emerald-800 flex items-center gap-2 font-medium">
             <span className="animate-spin">●</span>
             <span>{statusMessage}</span>
           </div>
@@ -400,39 +400,39 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
         {/* Post-Sale Receipt & Attribution Confirmation */}
         {completedOrder ? (
           <div className="p-6 flex-1 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="w-12 h-12 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center text-2xl text-emerald-400">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center text-2xl text-emerald-700">
               ✓
             </div>
 
             <div>
-              <div className="text-[11px] uppercase tracking-wider text-emerald-400 font-bold">
+              <div className="text-[11px] uppercase tracking-wider text-emerald-700 font-bold">
                 TRANSACTION ATOMICALLY COMMITTED
               </div>
-              <h3 className="text-xl font-bold text-white font-mono mt-1">
+              <h3 className="text-xl font-bold text-[#1e293b] font-mono mt-1">
                 {completedOrder.orderNumber}
               </h3>
-              <p className="text-xs text-zinc-400 mt-1">
-                Attributed to <span className="text-zinc-200 font-bold">{completedOrder.customerSnapshot?.name}</span> · ৳{completedOrder.total?.toLocaleString()}
+              <p className="text-xs text-[#64748b] mt-1">
+                Attributed to <span className="text-[#1e293b] font-bold">{completedOrder.customerSnapshot?.name}</span> · ৳{completedOrder.total?.toLocaleString()}
               </p>
             </div>
 
             {/* Receipt Details Box */}
-            <div className="w-full bg-[#161615] border border-zinc-800 rounded-lg p-3 text-left font-mono text-xs space-y-1.5 text-zinc-300">
-              <div className="flex justify-between text-zinc-400 text-[10px]">
+            <div className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-left font-mono text-xs space-y-1.5 text-[#334155]">
+              <div className="flex justify-between text-[#64748b] text-[10px]">
                 <span>ITEM</span>
                 <span>QTY · PRICE</span>
               </div>
-              <div className="flex justify-between font-bold text-white">
+              <div className="flex justify-between font-bold text-[#1e293b]">
                 <span>{completedOrder.lineItems?.[0]?.title}</span>
                 <span>{completedOrder.lineItems?.[0]?.quantity}x · ৳{completedOrder.total?.toLocaleString()}</span>
               </div>
-              <div className="pt-2 border-t border-zinc-800 text-[11px] flex justify-between text-zinc-400">
+              <div className="pt-2 border-t border-slate-200 text-[11px] flex justify-between text-[#64748b]">
                 <span>Payment Mode:</span>
-                <span className="text-emerald-400 font-bold">{completedOrder.paymentMode}</span>
+                <span className="text-emerald-700 font-bold">{completedOrder.paymentMode}</span>
               </div>
-              <div className="flex justify-between text-[11px] text-zinc-400">
+              <div className="flex justify-between text-[11px] text-[#64748b]">
                 <span>Customer Phone:</span>
-                <span className="text-zinc-200">{completedOrder.customerSnapshot?.phone}</span>
+                <span className="text-[#1e293b] font-semibold">{completedOrder.customerSnapshot?.phone}</span>
               </div>
             </div>
 

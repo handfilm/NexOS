@@ -1754,7 +1754,7 @@
             </div>
 
             <!-- Product Thumbnail -->
-            <div class="pim" onclick="window.DriveSyncMonitor.openSendToCustomerModal('${a.id}')" style="cursor:pointer;overflow:hidden;position:relative;background:#0d0d0c;height:180px;display:flex;align-items:center;justify-content:center;">
+            <div class="pim" onclick="window.DriveSyncMonitor.openSendToCustomerModal('${a.id}')" style="cursor:pointer;overflow:hidden;position:relative;background:rgba(235, 241, 248, 0.7);height:180px;display:flex;align-items:center;justify-content:center;">
               <img src="${a.thumbnailUrl}" alt="${a.code}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/uploads/placeholder.png'"/>
             </div>
 
@@ -3405,45 +3405,98 @@
   window.renderCustomerCardsHtml = function (items) {
     if (!items || !items.length) {
       return `
-        <div class="empty" style="padding:40px;text-align:center;">
+        <div class="empty" style="grid-column:1/-1;padding:48px 20px;text-align:center;background:rgba(255,255,255,0.75);backdrop-filter:blur(12px);border:1px dashed var(--wire);border-radius:18px;box-shadow:var(--neu-flat-xs);">
           <div style="font-size:28px;margin-bottom:8px;color:var(--gold-dim);">👥</div>
-          <div style="font-size:13px;font-weight:600;color:var(--ink);">No customers found matching your filter</div>
-          <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">Try searching another name, phone number, or select All Countries.</div>
+          <div style="font-size:13px;font-weight:700;color:var(--ink);letter-spacing:0.5px;">No customers found matching your filter</div>
+          <div style="font-size:11px;color:var(--ink-3);margin-top:4px;font-family:var(--mono);">Try searching another name, phone number, or select All Countries.</div>
         </div>
       `;
     }
-    return items.map(c => `
-      <div class="company-card" onclick="window.openCompanyDetail('${encodeURIComponent(c.id)}')" style="cursor:pointer;transition:transform 0.15s, border-color 0.15s;padding:12px 14px;border-radius:10px;background:var(--bg-card, var(--bg-2));border:1px solid var(--wire);">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-          <div style="font-size:22px;line-height:1;">${c.flag || '🏢'}</div>
-          <div style="flex:1;min-width:0;">
-            <div class="company-name" style="font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-              ${c.companyName || c.name}
+    return items.map(c => {
+      const displayName = c.companyName || c.name || "Unnamed Buyer";
+      const safeId = encodeURIComponent(c.id || "");
+      const safeName = displayName.replace(/"/g, '&quot;');
+      const flagIcon = c.flag || '🏢';
+      const countryCode = c.country || '—';
+      const currency = c.currency || 'BDT';
+      const totalSpentNum = Number(c.totalSpent || 0);
+      const ordersCount = Number(c.totalOrders || 0);
+
+      return `
+        <div class="company-card crm-customer-card" 
+             onclick="window.openCompanyDetail('${safeId}')" 
+             title="${safeName}">
+          
+          <!-- Card Header: Flag & Company Title & Order Count -->
+          <div>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
+              <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+                <span style="font-size:20px;line-height:1;flex-shrink:0;user-select:none;">${flagIcon}</span>
+                <div style="min-width:0;flex:1;">
+                  <div class="company-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;transition:color 0.15s ease;" title="${safeName}">
+                    ${displayName}
+                  </div>
+                  <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;">
+                    ${countryCode} · ${currency}${c.contactPerson ? ` · ${c.contactPerson}` : ''}
+                  </div>
+                </div>
+              </div>
+              <span class="pill ok" style="font-size:8.5px;padding:2px 5px;font-weight:700;flex-shrink:0;font-family:var(--mono);">
+                ${ordersCount} ord
+              </span>
             </div>
-            <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-top:2px;">
-              ${c.country || '—'} · ${c.contactPerson ? `${c.contactPerson} · ` : ''}${c.currency || 'BDT'}
+
+            <!-- Brutalist Lifetime Spend Box -->
+            <div style="display:flex;align-items:baseline;justify-content:space-between;padding:5px 8px;margin:6px 0 8px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:10px;">
+              <span style="font-size:9px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">Lifetime</span>
+              <span style="font-size:13px;font-weight:800;color:var(--gold, #d4af37);font-family:var(--mono);">
+                ৳${totalSpentNum.toLocaleString()}
+              </span>
+            </div>
+
+            <!-- Contact & Details Metadata (Uniform height container) -->
+            <div class="company-meta" style="display:flex;flex-direction:column;gap:3.5px;font-size:9.5px;font-family:var(--mono);min-height:38px;margin-bottom:8px;">
+              ${c.phone ? `
+                <div style="color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;">
+                  <span style="color:var(--ink-4);font-size:8.5px;font-weight:700;">TEL</span>
+                  <span style="overflow:hidden;text-overflow:ellipsis;">${c.phone}</span>
+                </div>
+              ` : ''}
+              ${c.email ? `
+                <div style="color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;" title="${c.email}">
+                  <span style="color:var(--ink-4);font-size:8.5px;font-weight:700;">MAIL</span>
+                  <span style="overflow:hidden;text-overflow:ellipsis;">${c.email}</span>
+                </div>
+              ` : ''}
+              ${!c.phone && !c.email && c.paymentTerms ? `
+                <div style="color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;">
+                  <span style="color:var(--ink-4);font-size:8.5px;font-weight:700;">TERM</span>
+                  <span style="overflow:hidden;text-overflow:ellipsis;">${c.paymentTerms}</span>
+                </div>
+              ` : ''}
+              ${!c.phone && !c.email && !c.paymentTerms ? `
+                <div style="color:var(--ink-4);font-size:9px;font-style:italic;">Verified Ledger Record</div>
+              ` : ''}
             </div>
           </div>
-          <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-            <span class="pill ok" style="font-size:9px;padding:2px 6px;">${c.totalOrders || 0} Orders</span>
-            <div style="font-size:12px;font-weight:700;color:var(--gold);font-family:var(--mono);">
-              ৳${(c.totalSpent || 0).toLocaleString()}
-            </div>
-            <button class="btn btn-emerald btn-xs" style="padding:2px 8px;font-size:9.5px;margin-top:2px;" onclick="event.stopPropagation(); window.openWhatsAppCampaignStudio({ customerIds: ['${c.id}'] });" title="Send Curated Products via WhatsApp">
-              📲 Broadcast
+
+          <!-- Bottom Action Strip -->
+          <div style="display:flex;gap:6px;align-items:center;padding-top:8px;border-top:1px solid var(--wire);margin-top:auto;">
+            <button class="btn btn-emerald btn-xs" style="flex:1;min-height:26px;padding:2px 6px;font-size:9.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:4px;" 
+                    onclick="event.stopPropagation(); window.openWhatsAppCampaignStudio({ customerIds: ['${safeId}'] });" 
+                    title="Send Curated Products via WhatsApp">
+              <span>📲</span>
+              <span>Broadcast</span>
+            </button>
+            <button class="btn btn-dark btn-xs" style="min-height:26px;padding:2px 8px;font-size:9.5px;color:var(--ink-2);border:1px solid var(--wire);"
+                    onclick="event.stopPropagation(); window.openCompanyDetail('${safeId}');" 
+                    title="View Full Customer Dossier">
+              <span>Dossier ↗</span>
             </button>
           </div>
         </div>
-        
-        <div class="company-meta" style="display:flex;flex-wrap:wrap;gap:6px;font-size:10px;">
-          <div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">${c.paymentTerms || 'Cash on Delivery (COD)'}</div>
-          ${c.moq !== undefined && c.moq > 0 ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">MOQ: ${c.moq} units</div>` : ''}
-          ${c.phone ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">📞 ${c.phone}</div>` : ''}
-          ${c.email ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--wire);">✉ ${c.email}</div>` : ''}
-          ${c.addressLine1 ? `<div class="company-tag" style="padding:2px 6px;border-radius:4px;background:var(--bg-3);color:var(--ink-3);border:1px solid var(--wire);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📍 ${c.addressLine1}</div>` : ''}
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   };
 
   window.renderCustomerPaginationHtml = function (state, totalPages, totalCount) {
@@ -3554,7 +3607,7 @@
         { label: "+ Add Customer", fn: "window.openAdvancedCustomerForm()", primary: true }
       ]) + `
         <!-- SMART AUDIENCE FILTER & LIVE DYNAMIC BADGE -->
-        <div style="margin:0 20px 14px;padding:12px 16px;background:var(--bg-2, #141413);border:1px solid var(--wire);border-radius:10px;font-family:var(--mono);">
+        <div style="margin:0 20px 14px;padding:14px 18px;background:rgba(255,255,255,0.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.9);border-radius:16px;box-shadow:var(--neu-flat-sm);font-family:var(--mono);">
           <!-- Top Row: Live Dynamic Badge & Broadcast Action -->
           <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.06);">
             <div style="display:flex;align-items:center;gap:10px;">
@@ -3643,7 +3696,7 @@
           </div>
         </div>
 
-        <div id="crm-customer-cards-list" style="padding:0 20px 10px;display:flex;flex-direction:column;gap:8px;transition:opacity 0.15s ease;">
+        <div id="crm-customer-cards-list" class="crm-customer-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5" style="padding:0 20px 24px;transition:opacity 0.15s ease;">
           ${window.renderCustomerCardsHtml(items)}
         </div>
 

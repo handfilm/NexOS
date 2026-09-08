@@ -897,36 +897,36 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
   };
 
   return (
-    <div className="corporate-supplies-root w-full min-h-screen bg-[#09090b] text-[#e4e4e7] font-sans antialiased selection:bg-[#d4af37] selection:text-black">
+    <div className="corporate-supplies-root w-full min-h-screen bg-[#ebf1f8]/60 text-[#1e293b] font-sans antialiased selection:bg-[#d4af37] selection:text-black">
       {/* ── Toast Notification Banner ── */}
       {toastMessage && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[10005] bg-[#121214] border border-[#d4af37]/60 text-white text-xs px-5 py-2.5 rounded shadow-2xl font-mono flex items-center gap-3 animate-fade-in">
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[10005] bg-white/95 backdrop-blur-xl border border-[#d4af37]/60 text-[#1e293b] text-xs px-5 py-2.5 rounded-xl shadow-2xl font-mono flex items-center gap-3 animate-fade-in">
           <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-ping" />
           <span>{toastMessage}</span>
-          <button onClick={() => setToastMessage(null)} className="text-zinc-400 hover:text-white ml-2">
+          <button onClick={() => setToastMessage(null)} className="text-slate-400 hover:text-slate-800 ml-2">
             ✕
           </button>
         </div>
       )}
 
-      {/* ── Brutalist Master Header & Client Switcher ── */}
-      <header className="border-b border-[#27272a] bg-[#121214]/90 backdrop-blur-md sticky top-0 z-40">
+      {/* ── White Glassmorphic Master Header & Client Switcher ── */}
+      <header className="border-b border-white/80 bg-white/85 backdrop-blur-xl sticky top-0 z-40 shadow-[0_4px_20px_rgba(166,180,200,0.25)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* Title & Division Branding */}
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="px-2 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 rounded">
+                <span className="px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider bg-[#d4af37]/15 text-[#b45309] border border-[#d4af37]/35 rounded-full">
                   B2B Executive Supplies
                 </span>
-                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+                <span className="text-[10px] font-mono text-[#64748b] uppercase tracking-widest">
                   Pharma &amp; Enterprise Procurement Division
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white uppercase font-sans">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1e293b] uppercase font-sans">
                 Corporate Supplies &amp; Gifting Portfolio
               </h1>
-              <p className="text-xs text-zinc-400 mt-0.5">
+              <p className="text-xs text-[#64748b] mt-0.5">
                 Bespoke full-grain leatherware, executive tech instruments, and high-volume pharmaceutical gifting suites.
               </p>
             </div>
@@ -934,8 +934,8 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
             {/* Client Profile Selector & Quick Actions */}
             <div className="flex flex-wrap items-center gap-3">
               {/* Client Switcher Dropdown */}
-              <div className="flex items-center bg-[#18181b] border border-[#27272a] rounded p-1">
-                <span className="text-[11px] font-mono text-zinc-400 px-2 font-semibold">CLIENT:</span>
+              <div className="flex items-center bg-white/80 border border-slate-200/80 rounded-xl p-1 shadow-sm">
+                <span className="text-[11px] font-mono text-[#64748b] px-2 font-semibold">CLIENT:</span>
                 <select
                   value={selectedClient.id}
                   onChange={(e) => {
@@ -945,7 +945,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                       showToast(`Switched active enterprise client to ${found.name}`);
                     }
                   }}
-                  className="bg-[#09090b] text-white text-xs font-mono font-bold px-3 py-1.5 rounded border border-[#3f3f46] outline-none cursor-pointer focus:border-[#d4af37]"
+                  className="bg-white text-[#1e293b] text-xs font-mono font-bold px-3 py-1.5 rounded-lg border border-slate-200 outline-none cursor-pointer focus:border-[#d4af37]"
                 >
                   {CLIENT_PRESETS.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -956,12 +956,12 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
               </div>
 
               {/* Currency Toggle */}
-              <div className="inline-flex rounded border border-[#27272a] bg-[#18181b] p-0.5">
+              <div className="inline-flex rounded-xl border border-slate-200/80 bg-white/80 p-0.5 shadow-sm">
                 <button
                   type="button"
                   onClick={() => setCurrency('USD')}
-                  className={`px-3 py-1 text-xs font-mono font-bold rounded transition-all ${
-                    currency === 'USD' ? 'bg-[#d4af37] text-black shadow-sm' : 'text-zinc-400 hover:text-white'
+                  className={`px-3 py-1 text-xs font-mono font-bold rounded-lg transition-all ${
+                    currency === 'USD' ? 'bg-[#d4af37] text-white shadow-sm' : 'text-[#64748b] hover:text-[#1e293b]'
                   }`}
                 >
                   USD ($)
@@ -969,8 +969,8 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                 <button
                   type="button"
                   onClick={() => setCurrency('BDT')}
-                  className={`px-3 py-1 text-xs font-mono font-bold rounded transition-all ${
-                    currency === 'BDT' ? 'bg-[#d4af37] text-black shadow-sm' : 'text-zinc-400 hover:text-white'
+                  className={`px-3 py-1 text-xs font-mono font-bold rounded-lg transition-all ${
+                    currency === 'BDT' ? 'bg-[#d4af37] text-white shadow-sm' : 'text-[#64748b] hover:text-[#1e293b]'
                   }`}
                 >
                   BDT (৳)
@@ -981,10 +981,10 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
               <button
                 type="button"
                 onClick={() => setIsRfqDrawerOpen(true)}
-                className="relative px-4 py-2 bg-[#d4af37] hover:bg-[#e5c158] text-black font-mono font-bold text-xs rounded transition-all shadow-[0_0_20px_rgba(212,175,55,0.25)] flex items-center gap-2 cursor-pointer"
+                className="relative px-4 py-2 bg-[#d4af37] hover:bg-[#b45309] text-white font-mono font-bold text-xs rounded-xl transition-all shadow-[0_4px_16px_rgba(212,175,55,0.4)] flex items-center gap-2 cursor-pointer"
               >
                 <span>⚡ RFQ QUOTATION DOCK</span>
-                <span className="bg-black text-[#d4af37] text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">
+                <span className="bg-black/80 text-[#fef08a] text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">
                   {totals.totalUnits} pcs
                 </span>
               </button>
@@ -992,34 +992,34 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
           </div>
 
           {/* Enterprise Client Profile Telemetry Banner */}
-          <div className="mt-4 pt-3 border-t border-[#27272a]/70 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-[11px] font-mono">
-            <div className="bg-[#18181b]/60 border border-[#27272a] p-2 rounded">
-              <span className="text-zinc-500 block text-[9px] uppercase tracking-wider">Account Status</span>
+          <div className="mt-4 pt-3 border-t border-slate-200/80 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-[11px] font-mono">
+            <div className="bg-white/75 backdrop-blur-md border border-white/90 p-2.5 rounded-xl shadow-[2px_2px_8px_rgba(166,180,200,0.25),-2px_-2px_8px_#ffffff]">
+              <span className="text-[#64748b] block text-[9px] uppercase tracking-wider">Account Status</span>
               <span className="text-[#10b981] font-bold truncate block">{selectedClient.accountStatus}</span>
             </div>
-            <div className="bg-[#18181b]/60 border border-[#27272a] p-2 rounded">
-              <span className="text-zinc-500 block text-[9px] uppercase tracking-wider">Procurement Terms</span>
-              <span className="text-white font-bold truncate block">{selectedClient.terms}</span>
+            <div className="bg-white/75 backdrop-blur-md border border-white/90 p-2.5 rounded-xl shadow-[2px_2px_8px_rgba(166,180,200,0.25),-2px_-2px_8px_#ffffff]">
+              <span className="text-[#64748b] block text-[9px] uppercase tracking-wider">Procurement Terms</span>
+              <span className="text-[#1e293b] font-bold truncate block">{selectedClient.terms}</span>
             </div>
-            <div className="bg-[#18181b]/60 border border-[#27272a] p-2 rounded">
-              <span className="text-zinc-500 block text-[9px] uppercase tracking-wider">Volume Discount Tier</span>
-              <span className="text-[#d4af37] font-bold truncate block">
+            <div className="bg-white/75 backdrop-blur-md border border-white/90 p-2.5 rounded-xl shadow-[2px_2px_8px_rgba(166,180,200,0.25),-2px_-2px_8px_#ffffff]">
+              <span className="text-[#64748b] block text-[9px] uppercase tracking-wider">Volume Discount Tier</span>
+              <span className="text-[#b45309] font-bold truncate block">
                 Tier 3 Active (18% Off @ 500+)
               </span>
             </div>
-            <div className="bg-[#18181b]/60 border border-[#27272a] p-2 rounded">
-              <span className="text-zinc-500 block text-[9px] uppercase tracking-wider">Delivery Target</span>
-              <span className="text-zinc-300 truncate block" title={selectedClient.deliveryDestination}>
+            <div className="bg-white/75 backdrop-blur-md border border-white/90 p-2.5 rounded-xl shadow-[2px_2px_8px_rgba(166,180,200,0.25),-2px_-2px_8px_#ffffff]">
+              <span className="text-[#64748b] block text-[9px] uppercase tracking-wider">Delivery Target</span>
+              <span className="text-[#334155] truncate block" title={selectedClient.deliveryDestination}>
                 {selectedClient.deliveryDestination.split('&')[0]}
               </span>
             </div>
-            <div className="bg-[#18181b]/60 border border-[#27272a] p-2 rounded">
-              <span className="text-zinc-500 block text-[9px] uppercase tracking-wider">Lead Time Forecast</span>
-              <span className="text-white font-bold truncate block">{totals.leadTimeDays}</span>
+            <div className="bg-white/75 backdrop-blur-md border border-white/90 p-2.5 rounded-xl shadow-[2px_2px_8px_rgba(166,180,200,0.25),-2px_-2px_8px_#ffffff]">
+              <span className="text-[#64748b] block text-[9px] uppercase tracking-wider">Lead Time Forecast</span>
+              <span className="text-[#1e293b] font-bold truncate block">{totals.leadTimeDays}</span>
             </div>
-            <div className="bg-[#18181b]/60 border border-[#27272a] p-2 rounded">
-              <span className="text-zinc-500 block text-[9px] uppercase tracking-wider">Client Officer</span>
-              <span className="text-zinc-300 truncate block" title={selectedClient.contactPerson}>
+            <div className="bg-white/75 backdrop-blur-md border border-white/90 p-2.5 rounded-xl shadow-[2px_2px_8px_rgba(166,180,200,0.25),-2px_-2px_8px_#ffffff]">
+              <span className="text-[#64748b] block text-[9px] uppercase tracking-wider">Client Officer</span>
+              <span className="text-[#334155] truncate block" title={selectedClient.contactPerson}>
                 {selectedClient.contactPerson.split(',')[0]}
               </span>
             </div>
@@ -1028,17 +1028,17 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
       </header>
 
       {/* ── Sub-Nav Filters & Search Bar ── */}
-      <div className="bg-[#0e0e11] border-b border-[#27272a]">
+      <div className="bg-white/70 backdrop-blur-md border-b border-white/80 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
           {/* Division Matrix Tabs */}
           <div className="flex items-center gap-1.5 overflow-x-auto">
             <button
               type="button"
               onClick={() => setActiveDivision('all')}
-              className={`px-3 py-1.5 text-xs font-mono font-bold rounded border transition-all ${
+              className={`px-3 py-1.5 text-xs font-mono font-bold rounded-xl border transition-all ${
                 activeDivision === 'all'
-                  ? 'bg-white text-black border-white'
-                  : 'bg-[#18181b] text-zinc-400 border-[#27272a] hover:text-white'
+                  ? 'bg-white text-[#1e293b] border-white shadow-sm'
+                  : 'bg-white/60 text-[#64748b] border-white/80 hover:text-[#1e293b]'
               }`}
             >
               ALL ITEMS (12)
@@ -1046,10 +1046,10 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
             <button
               type="button"
               onClick={() => setActiveDivision('leatherware')}
-              className={`px-3 py-1.5 text-xs font-mono font-bold rounded border transition-all ${
+              className={`px-3 py-1.5 text-xs font-mono font-bold rounded-xl border transition-all ${
                 activeDivision === 'leatherware'
-                  ? 'bg-[#d4af37] text-black border-[#d4af37]'
-                  : 'bg-[#18181b] text-zinc-400 border-[#27272a] hover:text-white'
+                  ? 'bg-[#d4af37] text-white border-[#d4af37] shadow-sm'
+                  : 'bg-white/60 text-[#64748b] border-white/80 hover:text-[#1e293b]'
               }`}
             >
               💼 LEATHERWARE COMPENDIUMS (6)
@@ -1057,10 +1057,10 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
             <button
               type="button"
               onClick={() => setActiveDivision('tech')}
-              className={`px-3 py-1.5 text-xs font-mono font-bold rounded border transition-all ${
+              className={`px-3 py-1.5 text-xs font-mono font-bold rounded-xl border transition-all ${
                 activeDivision === 'tech'
-                  ? 'bg-[#d4af37] text-black border-[#d4af37]'
-                  : 'bg-[#18181b] text-zinc-400 border-[#27272a] hover:text-white'
+                  ? 'bg-[#d4af37] text-white border-[#d4af37] shadow-sm'
+                  : 'bg-white/60 text-[#64748b] border-white/80 hover:text-[#1e293b]'
               }`}
             >
               ⚡ TECH, DESK &amp; GIFT SETS (6)
@@ -1075,12 +1075,12 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                 placeholder="Search specs, SKU, materials…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#18181b] border border-[#27272a] rounded px-3 py-1.5 text-xs font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-[#d4af37]"
+                className="w-full bg-white/90 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-mono text-[#1e293b] placeholder-slate-400 focus:outline-none focus:border-[#d4af37] shadow-inner"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1.5 text-zinc-400 hover:text-white text-xs"
+                  className="absolute right-2 top-1.5 text-slate-400 hover:text-slate-700 text-xs"
                 >
                   ✕
                 </button>
@@ -1090,7 +1090,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
             <button
               type="button"
               onClick={copyPitchText}
-              className="px-3 py-1.5 bg-[#18181b] hover:bg-[#27272a] text-[#d4af37] border border-[#27272a] hover:border-[#d4af37] text-xs font-mono font-bold rounded transition-all flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-white/85 hover:bg-white text-[#b45309] border border-white/90 hover:border-[#d4af37] text-xs font-mono font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
               title="Copy formatted WhatsApp pitch note"
             >
               <span>💬</span>
@@ -1100,7 +1100,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
             <button
               type="button"
               onClick={() => setIsPrintModalOpen(true)}
-              className="px-3 py-1.5 bg-[#18181b] hover:bg-[#27272a] text-white border border-[#27272a] hover:border-zinc-500 text-xs font-mono font-bold rounded transition-all flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-white/85 hover:bg-white text-[#1e293b] border border-white/90 hover:border-slate-300 text-xs font-mono font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
               title="Preview Printable Enterprise Quotation"
             >
               <span>📄</span>
@@ -1113,14 +1113,14 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
       {/* ── Main Catalog Grid ── */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {filteredProducts.length === 0 ? (
-          <div className="py-24 text-center border border-[#27272a] rounded-lg bg-[#121214]">
-            <p className="font-mono text-zinc-500 text-sm">NO PRODUCTS MATCHED FILTER</p>
+          <div className="py-24 text-center border border-white/90 rounded-2xl bg-white/80 backdrop-blur-xl shadow-sm">
+            <p className="font-mono text-[#64748b] text-sm">NO PRODUCTS MATCHED FILTER</p>
             <button
               onClick={() => {
                 setActiveDivision('all');
                 setSearchQuery('');
               }}
-              className="mt-3 px-4 py-2 bg-[#18181b] text-white border border-[#27272a] rounded text-xs font-mono hover:border-[#d4af37]"
+              className="mt-3 px-4 py-2 bg-white text-[#1e293b] border border-slate-200 rounded-xl text-xs font-mono hover:border-[#d4af37] shadow-sm"
             >
               Reset Filters
             </button>
@@ -1135,23 +1135,23 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
               return (
                 <article
                   key={product.id}
-                  className="group bg-[#121214] border border-[#27272a] hover:border-[#d4af37]/60 rounded-xl overflow-hidden flex flex-col transition-all duration-200 hover:shadow-[0_8px_30px_rgba(0,0,0,0.85)]"
+                  className="group bg-white/80 backdrop-blur-xl border border-white/90 hover:border-[#d4af37]/60 rounded-2xl overflow-hidden flex flex-col transition-all duration-300 shadow-[4px_4px_20px_rgba(166,180,200,0.3),-4px_-4px_20px_#ffffff] hover:shadow-[6px_6px_25px_rgba(166,180,200,0.45),-6px_-6px_25px_#ffffff]"
                 >
                   {/* Visual Header / Editorial Image */}
-                  <div className="relative aspect-[16/10] bg-black overflow-hidden cursor-pointer" onClick={() => setInspectingProduct(product)}>
+                  <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden cursor-pointer" onClick={() => setInspectingProduct(product)}>
                     <img
                       src={product.imageUrl}
                       alt={product.name}
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#121214] via-transparent to-black/40" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
 
                     {/* SKU & Category Badge */}
                     <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                      <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-black/80 backdrop-blur text-white border border-[#27272a] rounded">
+                      <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-black/75 backdrop-blur text-white border border-white/20 rounded-lg">
                         {product.sku}
                       </span>
-                      <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-[#d4af37]/90 text-black rounded uppercase">
+                      <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-[#d4af37] text-white rounded-lg uppercase shadow-sm">
                         {product.division === 'leatherware' ? 'Fine Leather' : 'Tech / Desk'}
                       </span>
                     </div>
@@ -1163,7 +1163,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                         e.stopPropagation();
                         setInspectingProduct(product);
                       }}
-                      className="absolute bottom-3 right-3 px-2.5 py-1 text-[10px] font-mono font-bold bg-black/80 backdrop-blur hover:bg-[#d4af37] text-zinc-300 hover:text-black border border-[#27272a] rounded transition-all"
+                      className="absolute bottom-3 right-3 px-2.5 py-1 text-[10px] font-mono font-bold bg-white/90 backdrop-blur hover:bg-[#d4af37] text-[#1e293b] hover:text-white border border-white/90 rounded-lg transition-all shadow-sm"
                     >
                       INSPECT SPECS ↗
                     </button>
@@ -1174,35 +1174,35 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                     <div>
                       <h3
                         onClick={() => setInspectingProduct(product)}
-                        className="text-base font-bold text-white group-hover:text-[#d4af37] transition-colors cursor-pointer leading-snug"
+                        className="text-base font-bold text-[#1e293b] group-hover:text-[#b45309] transition-colors cursor-pointer leading-snug"
                       >
                         {product.name}
                       </h3>
-                      <p className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-[#64748b] mt-1 line-clamp-2 leading-relaxed">
                         {product.tagline}
                       </p>
 
                       {/* Technical Spec Pills */}
                       <div className="mt-3 flex flex-wrap gap-1.5 text-[10px] font-mono">
-                        <span className="px-2 py-0.5 bg-[#18181b] border border-[#27272a] text-zinc-300 rounded">
+                        <span className="px-2 py-0.5 bg-slate-100/90 border border-slate-200/80 text-[#334155] rounded-md">
                           {product.dimensions}
                         </span>
-                        <span className="px-2 py-0.5 bg-[#18181b] border border-[#27272a] text-zinc-400 rounded">
+                        <span className="px-2 py-0.5 bg-slate-100/90 border border-slate-200/80 text-[#64748b] rounded-md">
                           {product.weight}
                         </span>
-                        <span className="px-2 py-0.5 bg-[#18181b] border border-[#27272a] text-zinc-400 rounded">
+                        <span className="px-2 py-0.5 bg-slate-100/90 border border-slate-200/80 text-[#64748b] rounded-md">
                           MOQ 50 pcs
                         </span>
                       </div>
 
                       {/* Swatch Preview Dots */}
                       <div className="mt-3 flex items-center gap-2">
-                        <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Swatches:</span>
+                        <span className="text-[10px] font-mono text-[#64748b] uppercase tracking-wider">Swatches:</span>
                         <div className="flex items-center gap-1.5">
                           {product.swatches.map((s) => (
                             <span
                               key={s.name}
-                              className="w-3 h-3 rounded-full border border-zinc-700 inline-block"
+                              className="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block shadow-xs"
                               style={{ backgroundColor: s.hex }}
                               title={`${s.name} — ${s.desc}`}
                             />
@@ -1211,8 +1211,8 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                       </div>
 
                       {/* Volume Pricing Matrix Bar */}
-                      <div className="mt-4 pt-3 border-t border-[#27272a] bg-[#09090b]/60 p-2.5 rounded border">
-                        <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-1.5">
+                      <div className="mt-4 pt-3 border-t border-slate-100 bg-slate-50/70 p-2.5 rounded-xl border border-slate-200/60">
+                        <div className="text-[9px] font-mono text-[#64748b] uppercase tracking-widest mb-1.5">
                           Enterprise Volume Tiers
                         </div>
                         <div className="grid grid-cols-3 gap-1 text-center font-mono">
@@ -1221,14 +1221,14 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                             return (
                               <div
                                 key={tier.minQty}
-                                className={`p-1 rounded border text-[10px] ${
+                                className={`p-1.5 rounded-lg border text-[10px] ${
                                   isCurrent
-                                    ? 'border-[#d4af37] bg-[#d4af37]/10 text-white'
-                                    : 'border-[#27272a] bg-[#121214] text-zinc-400'
+                                    ? 'border-[#d4af37] bg-[#d4af37]/15 text-[#b45309] font-bold shadow-xs'
+                                    : 'border-slate-200/80 bg-white text-[#64748b]'
                                 }`}
                               >
-                                <span className="block text-[8px] text-zinc-500 uppercase">{tier.minQty}+ pcs</span>
-                                <span className="font-bold text-[#d4af37]">
+                                <span className="block text-[8px] text-[#94a3b8] uppercase">{tier.minQty}+ pcs</span>
+                                <span className="font-bold text-[#b45309]">
                                   {currency === 'USD' ? `$${tier.priceUsd}` : `৳${tier.priceBdt}`}
                                 </span>
                               </div>
@@ -1239,32 +1239,32 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                     </div>
 
                     {/* Bottom Action Row */}
-                    <div className="mt-5 pt-3 border-t border-[#27272a] flex items-center justify-between gap-3">
+                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
                       <div>
-                        <span className="text-[9px] font-mono text-zinc-500 uppercase block">Est. Unit Price</span>
-                        <span className="text-base font-extrabold font-mono text-white">
+                        <span className="text-[9px] font-mono text-[#64748b] uppercase block">Est. Unit Price</span>
+                        <span className="text-base font-extrabold font-mono text-[#1e293b]">
                           {currency === 'USD' ? `$${unitPrice.usd}` : `৳${unitPrice.bdt}`}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         {inCartItem ? (
-                          <div className="flex items-center border border-[#d4af37] rounded bg-[#18181b]">
+                          <div className="flex items-center border border-[#d4af37] rounded-xl bg-white shadow-xs">
                             <button
                               type="button"
                               onClick={() => updateRfqItemQty(product.id, inCartItem.quantity - 25)}
-                              className="px-2 py-1 text-xs text-zinc-400 hover:text-white font-mono"
+                              className="px-2 py-1 text-xs text-[#64748b] hover:text-[#1e293b] font-mono"
                               title="Decrease 25 pcs"
                             >
                               -
                             </button>
-                            <span className="px-2 py-1 text-xs font-mono font-bold text-[#d4af37]">
+                            <span className="px-2 py-1 text-xs font-mono font-bold text-[#b45309]">
                               {inCartItem.quantity}
                             </span>
                             <button
                               type="button"
                               onClick={() => updateRfqItemQty(product.id, inCartItem.quantity + 25)}
-                              className="px-2 py-1 text-xs text-zinc-400 hover:text-white font-mono"
+                              className="px-2 py-1 text-xs text-[#64748b] hover:text-[#1e293b] font-mono"
                               title="Increase 25 pcs"
                             >
                               +
@@ -1274,7 +1274,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                           <button
                             type="button"
                             onClick={() => addProductToRfq(product, 50)}
-                            className="px-3 py-1.5 bg-[#18181b] hover:bg-[#d4af37] text-white hover:text-black border border-[#3f3f46] hover:border-[#d4af37] rounded font-mono font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                            className="px-3 py-1.5 bg-[#d4af37] hover:bg-[#b45309] text-white rounded-xl font-mono font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
                           >
                             <span>+ ADD TO RFQ</span>
                           </button>
@@ -1291,28 +1291,28 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
 
       {/* ── Spec Inspection Drawer (Side Panel) ── */}
       {inspectingProduct && (
-        <div className="fixed inset-0 z-[10002] flex justify-end bg-black/80 backdrop-blur-sm transition-opacity">
+        <div className="fixed inset-0 z-[10002] flex justify-end bg-black/40 backdrop-blur-md transition-opacity">
           <div
-            className="w-full max-w-2xl bg-[#0e0e11] border-l border-[#27272a] h-full overflow-y-auto flex flex-col shadow-[0_0_60px_rgba(0,0,0,0.95)]"
+            className="w-full max-w-2xl bg-white/95 backdrop-blur-2xl border-l border-white/90 h-full overflow-y-auto flex flex-col shadow-[0_0_60px_rgba(166,180,200,0.4)] text-[#1e293b]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drawer Header */}
-            <div className="sticky top-0 z-20 bg-[#121214]/95 backdrop-blur border-b border-[#27272a] p-5 flex items-center justify-between">
+            <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 p-5 flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-[#d4af37] text-black rounded">
+                  <span className="px-2 py-0.5 text-[9px] font-mono font-bold bg-[#d4af37] text-white rounded-md">
                     {inspectingProduct.sku}
                   </span>
-                  <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+                  <span className="text-[10px] font-mono text-[#64748b] uppercase tracking-widest">
                     Technical Specifications
                   </span>
                 </div>
-                <h2 className="text-xl font-bold text-white leading-tight">{inspectingProduct.name}</h2>
+                <h2 className="text-xl font-bold text-[#1e293b] leading-tight">{inspectingProduct.name}</h2>
               </div>
               <button
                 type="button"
                 onClick={() => setInspectingProduct(null)}
-                className="p-2 text-zinc-400 hover:text-white rounded-full bg-[#18181b] border border-[#27272a]"
+                className="p-2 text-[#64748b] hover:text-[#1e293b] rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
               >
                 ✕
               </button>
@@ -1321,7 +1321,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
             {/* Drawer Body */}
             <div className="p-6 space-y-6 flex-1">
               {/* Product Hero Media */}
-              <div className="rounded-xl overflow-hidden border border-[#27272a] aspect-[16/10] bg-black">
+              <div className="rounded-2xl overflow-hidden border border-slate-200 aspect-[16/10] bg-slate-100 shadow-sm">
                 <img
                   src={inspectingProduct.imageUrl}
                   alt={inspectingProduct.name}
@@ -1331,13 +1331,13 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
 
               {/* Overview & Description */}
               <div>
-                <h4 className="text-xs font-mono uppercase tracking-wider text-zinc-500 mb-2 font-bold">Overview</h4>
-                <p className="text-sm text-zinc-300 leading-relaxed">{inspectingProduct.description}</p>
+                <h4 className="text-xs font-mono uppercase tracking-wider text-[#64748b] mb-2 font-bold">Overview</h4>
+                <p className="text-sm text-[#334155] leading-relaxed">{inspectingProduct.description}</p>
               </div>
 
               {/* Leather Color / Finish Swatch Selector */}
               <div>
-                <h4 className="text-xs font-mono uppercase tracking-wider text-zinc-500 mb-2 font-bold">
+                <h4 className="text-xs font-mono uppercase tracking-wider text-[#64748b] mb-2 font-bold">
                   Select Leather Swatch / Anodized Finish
                 </h4>
                 <div className="grid grid-cols-2 gap-2.5">
@@ -1345,19 +1345,19 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                     <div
                       key={sw.name}
                       onClick={() => setInspectSwatch(sw.name)}
-                      className={`p-3 rounded-lg border cursor-pointer flex items-center gap-3 transition-all ${
+                      className={`p-3 rounded-xl border cursor-pointer flex items-center gap-3 transition-all ${
                         inspectSwatch === sw.name
-                          ? 'border-[#d4af37] bg-[#d4af37]/10 text-white shadow-sm'
-                          : 'border-[#27272a] bg-[#121214] text-zinc-400 hover:border-zinc-500'
+                          ? 'border-[#d4af37] bg-[#d4af37]/15 text-[#b45309] shadow-sm font-semibold'
+                          : 'border-slate-200 bg-white/80 text-[#475569] hover:border-slate-300'
                       }`}
                     >
                       <span
-                        className="w-5 h-5 rounded-full border border-zinc-600 shrink-0"
+                        className="w-5 h-5 rounded-full border border-slate-300 shrink-0 shadow-xs"
                         style={{ backgroundColor: sw.hex }}
                       />
                       <div>
-                        <span className="block text-xs font-bold">{sw.name}</span>
-                        <span className="block text-[10px] text-zinc-500">{sw.desc}</span>
+                        <span className="block text-xs font-bold text-[#1e293b]">{sw.name}</span>
+                        <span className="block text-[10px] text-[#64748b]">{sw.desc}</span>
                       </div>
                     </div>
                   ))}
@@ -1366,7 +1366,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
 
               {/* Branding Imprint Customization */}
               <div>
-                <h4 className="text-xs font-mono uppercase tracking-wider text-zinc-500 mb-2 font-bold">
+                <h4 className="text-xs font-mono uppercase tracking-wider text-[#64748b] mb-2 font-bold">
                   Corporate Imprint &amp; Embossing Method
                 </h4>
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono">
@@ -1380,14 +1380,14 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                       key={b.id}
                       type="button"
                       onClick={() => setInspectBranding(b.id as any)}
-                      className={`p-2.5 rounded border text-left transition-all ${
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
                         inspectBranding === b.id
-                          ? 'border-[#d4af37] bg-[#d4af37]/10 text-[#d4af37]'
-                          : 'border-[#27272a] bg-[#121214] text-zinc-400 hover:text-white'
+                          ? 'border-[#d4af37] bg-[#d4af37]/15 text-[#b45309] font-bold shadow-xs'
+                          : 'border-slate-200 bg-white/80 text-[#475569] hover:text-[#1e293b]'
                       }`}
                     >
                       <span className="block font-bold">{b.label}</span>
-                      <span className="block text-[10px] text-zinc-500">{b.sub}</span>
+                      <span className="block text-[10px] text-[#64748b]">{b.sub}</span>
                     </button>
                   ))}
                 </div>
@@ -1395,70 +1395,70 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
 
               {/* Packaging Tiers */}
               <div>
-                <h4 className="text-xs font-mono uppercase tracking-wider text-zinc-500 mb-2 font-bold">
+                <h4 className="text-xs font-mono uppercase tracking-wider text-[#64748b] mb-2 font-bold">
                   Presentation Packaging
                 </h4>
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono">
                   <button
                     type="button"
                     onClick={() => setInspectPackaging('luxury_rigid_box')}
-                    className={`p-2.5 rounded border text-left transition-all ${
+                    className={`p-2.5 rounded-xl border text-left transition-all ${
                       inspectPackaging === 'luxury_rigid_box'
-                        ? 'border-[#d4af37] bg-[#d4af37]/10 text-[#d4af37]'
-                        : 'border-[#27272a] bg-[#121214] text-zinc-400'
+                        ? 'border-[#d4af37] bg-[#d4af37]/15 text-[#b45309] font-bold shadow-xs'
+                        : 'border-slate-200 bg-white/80 text-[#475569]'
                     }`}
                   >
                     <span className="block font-bold">Rigid Magnetic Gift Box</span>
-                    <span className="block text-[10px] text-zinc-500">+$4.50 / Velvet EVA Lining</span>
+                    <span className="block text-[10px] text-[#64748b]">+$4.50 / Velvet EVA Lining</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setInspectPackaging('eco_kraft')}
-                    className={`p-2.5 rounded border text-left transition-all ${
+                    className={`p-2.5 rounded-xl border text-left transition-all ${
                       inspectPackaging === 'eco_kraft'
-                        ? 'border-[#d4af37] bg-[#d4af37]/10 text-[#d4af37]'
-                        : 'border-[#27272a] bg-[#121214] text-zinc-400'
+                        ? 'border-[#d4af37] bg-[#d4af37]/15 text-[#b45309] font-bold shadow-xs'
+                        : 'border-slate-200 bg-white/80 text-[#475569]'
                     }`}
                   >
                     <span className="block font-bold">Standard Eco-Kraft Sleeve</span>
-                    <span className="block text-[10px] text-zinc-500">Included in Base Price</span>
+                    <span className="block text-[10px] text-[#64748b]">Included in Base Price</span>
                   </button>
                 </div>
               </div>
 
               {/* Architectural Technical Specs Table */}
               <div>
-                <h4 className="text-xs font-mono uppercase tracking-wider text-zinc-500 mb-2 font-bold">
+                <h4 className="text-xs font-mono uppercase tracking-wider text-[#64748b] mb-2 font-bold">
                   Engineering Architecture
                 </h4>
-                <div className="border border-[#27272a] rounded-lg overflow-hidden bg-[#121214] divide-y divide-[#27272a] text-xs font-mono">
+                <div className="border border-slate-200 rounded-xl overflow-hidden bg-white/90 divide-y divide-slate-100 text-xs font-mono shadow-xs">
                   <div className="p-2.5 flex justify-between">
-                    <span className="text-zinc-500">Material Composition</span>
-                    <span className="text-white text-right">{inspectingProduct.material}</span>
+                    <span className="text-[#64748b]">Material Composition</span>
+                    <span className="text-[#1e293b] font-semibold text-right">{inspectingProduct.material}</span>
                   </div>
                   <div className="p-2.5 flex justify-between">
-                    <span className="text-zinc-500">Hardware Grade</span>
-                    <span className="text-white text-right">{inspectingProduct.hardware}</span>
+                    <span className="text-[#64748b]">Hardware Grade</span>
+                    <span className="text-[#1e293b] font-semibold text-right">{inspectingProduct.hardware}</span>
                   </div>
                   <div className="p-2.5 flex justify-between">
-                    <span className="text-zinc-500">Manufacturing Provenance</span>
-                    <span className="text-white text-right">{inspectingProduct.origin}</span>
+                    <span className="text-[#64748b]">Manufacturing Provenance</span>
+                    <span className="text-[#1e293b] font-semibold text-right">{inspectingProduct.origin}</span>
                   </div>
                   {inspectingProduct.specs.map((sp) => (
                     <div key={sp.label} className="p-2.5 flex justify-between">
-                      <span className="text-zinc-500">{sp.label}</span>
-                      <span className="text-white text-right">{sp.value}</span>
+                      <span className="text-[#64748b]">{sp.label}</span>
+                      <span className="text-[#1e293b] font-semibold text-right">{sp.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Quantity Stepper for Drawer */}
-              <div className="bg-[#121214] p-4 rounded-xl border border-[#27272a]">
+              <div className="bg-white/90 p-4 rounded-xl border border-slate-200 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <span className="text-xs font-mono text-zinc-400 block font-bold">PROCUREMENT QUANTITY</span>
-                    <span className="text-[10px] font-mono text-zinc-500">Minimum 50 units</span>
+                    <span className="text-xs font-mono text-[#1e293b] block font-bold">PROCUREMENT QUANTITY</span>
+                    <span className="text-[10px] font-mono text-[#64748b]">Minimum 50 units</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {[50, 100, 200, 500].map((q) => (
@@ -1466,10 +1466,10 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                         key={q}
                         type="button"
                         onClick={() => setInspectQty(q)}
-                        className={`px-2.5 py-1 text-xs font-mono font-bold rounded border ${
+                        className={`px-2.5 py-1 text-xs font-mono font-bold rounded-lg border ${
                           inspectQty === q
-                            ? 'bg-[#d4af37] text-black border-[#d4af37]'
-                            : 'bg-[#18181b] text-zinc-400 border-[#27272a]'
+                            ? 'bg-[#d4af37] text-white border-[#d4af37] shadow-sm'
+                            : 'bg-slate-100 text-[#475569] border-slate-200 hover:bg-slate-200'
                         }`}
                       >
                         {q}
@@ -1478,10 +1478,10 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-[#27272a]">
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                   <div>
-                    <span className="text-[10px] font-mono text-zinc-500 block">TIER UNIT RATE</span>
-                    <span className="text-lg font-bold font-mono text-[#d4af37]">
+                    <span className="text-[10px] font-mono text-[#64748b] block">TIER UNIT RATE</span>
+                    <span className="text-lg font-bold font-mono text-[#b45309]">
                       {currency === 'USD'
                         ? `$${getProductUnitPrice(inspectingProduct, inspectQty).usd}`
                         : `৳${getProductUnitPrice(inspectingProduct, inspectQty).bdt}`}
@@ -1501,7 +1501,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                       setInspectingProduct(null);
                       setIsRfqDrawerOpen(true);
                     }}
-                    className="px-5 py-2.5 bg-[#d4af37] hover:bg-[#e5c158] text-black font-mono font-bold text-xs rounded transition-all shadow-md cursor-pointer"
+                    className="px-5 py-2.5 bg-[#d4af37] hover:bg-[#b45309] text-white font-mono font-bold text-xs rounded-xl transition-all shadow-md cursor-pointer"
                   >
                     ADD {inspectQty} UNITS TO RFQ →
                   </button>
@@ -1514,21 +1514,21 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
 
       {/* ── Docked RFQ Calculator & Quotation Dashboard (Drawer / Bottom Split) ── */}
       {isRfqDrawerOpen && (
-        <div className="fixed inset-0 z-[10003] flex justify-end bg-black/85 backdrop-blur-md transition-opacity">
+        <div className="fixed inset-0 z-[10003] flex justify-end bg-black/40 backdrop-blur-md transition-opacity">
           <div
-            className="w-full max-w-2xl bg-[#0c0c0e] border-l border-[#27272a] h-full overflow-y-auto flex flex-col shadow-2xl"
+            className="w-full max-w-2xl bg-white/95 backdrop-blur-2xl border-l border-white/90 h-full overflow-y-auto flex flex-col shadow-[0_0_60px_rgba(166,180,200,0.4)] text-[#1e293b]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* RFQ Header */}
-            <div className="sticky top-0 z-20 bg-[#121214] border-b border-[#27272a] p-5 flex items-center justify-between">
+            <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 p-5 flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="w-2 h-2 rounded-full bg-[#10b981] animate-ping" />
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#d4af37]">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#b45309]">
                     Enterprise Quotation Engine
                   </span>
                 </div>
-                <h2 className="text-lg font-bold text-white uppercase font-mono">
+                <h2 className="text-lg font-bold text-[#1e293b] uppercase font-mono">
                   RFQ Matrix: {selectedClient.name}
                 </h2>
               </div>
@@ -1536,7 +1536,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                 <button
                   type="button"
                   onClick={() => setIsRfqDrawerOpen(false)}
-                  className="px-3 py-1.5 rounded text-xs font-mono bg-[#18181b] border border-[#27272a] text-zinc-400 hover:text-white"
+                  className="px-3 py-1.5 rounded-xl text-xs font-mono bg-slate-100 border border-slate-200 text-[#475569] hover:text-[#1e293b] hover:bg-slate-200 transition-all"
                 >
                   ✕ CLOSE
                 </button>
@@ -1546,13 +1546,13 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
             {/* RFQ Items Ledger */}
             <div className="p-6 space-y-6 flex-1">
               {rfqItems.length === 0 ? (
-                <div className="p-12 text-center border border-[#27272a] rounded bg-[#121214]">
-                  <p className="font-mono text-zinc-400 text-sm">Quotation is empty.</p>
-                  <p className="font-mono text-zinc-600 text-xs mt-1">Select items from the catalog above.</p>
+                <div className="p-12 text-center border border-slate-200 rounded-2xl bg-white/80 backdrop-blur shadow-xs">
+                  <p className="font-mono text-[#64748b] text-sm">Quotation is empty.</p>
+                  <p className="font-mono text-[#94a3b8] text-xs mt-1">Select items from the catalog above.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 uppercase tracking-wider px-1">
+                  <div className="flex items-center justify-between text-[10px] font-mono text-[#64748b] uppercase tracking-wider px-1">
                     <span>Line Item &amp; Customization</span>
                     <span>Quantity &amp; Subtotal</span>
                   </div>
@@ -1560,17 +1560,17 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                   {rfqItems.map((item) => (
                     <div
                       key={item.productId}
-                      className="bg-[#121214] border border-[#27272a] rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      className="bg-white/90 border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs"
                     >
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-mono bg-black text-zinc-400 border border-zinc-800 px-1.5 py-0.5 rounded">
+                          <span className="text-[9px] font-mono bg-slate-100 text-[#475569] border border-slate-200 px-1.5 py-0.5 rounded">
                             {item.sku}
                           </span>
-                          <span className="text-xs font-bold text-white">{item.name}</span>
+                          <span className="text-xs font-bold text-[#1e293b]">{item.name}</span>
                         </div>
-                        <div className="flex flex-wrap gap-2 text-[10px] font-mono text-zinc-400 mt-1.5">
-                          <span className="text-[#d4af37]">Finish: {item.selectedSwatch}</span>
+                        <div className="flex flex-wrap gap-2 text-[10px] font-mono text-[#64748b] mt-1.5">
+                          <span className="text-[#b45309] font-medium">Finish: {item.selectedSwatch}</span>
                           <span>•</span>
                           <span>Branding: {item.brandingType.replace('_', ' ').toUpperCase()}</span>
                           <span>•</span>
@@ -1579,31 +1579,31 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                       </div>
 
                       <div className="flex items-center justify-between sm:justify-end gap-4">
-                        <div className="flex items-center border border-[#3f3f46] rounded bg-[#18181b]">
+                        <div className="flex items-center border border-slate-200 rounded-xl bg-white shadow-xs">
                           <button
                             type="button"
                             onClick={() => updateRfqItemQty(item.productId, item.quantity - 25)}
-                            className="px-2.5 py-1 text-xs text-zinc-400 hover:text-white font-mono"
+                            className="px-2.5 py-1 text-xs text-[#64748b] hover:text-[#1e293b] font-mono"
                           >
                             -
                           </button>
-                          <span className="px-2 py-1 text-xs font-mono font-bold text-white">
+                          <span className="px-2 py-1 text-xs font-mono font-bold text-[#1e293b]">
                             {item.quantity}
                           </span>
                           <button
                             type="button"
                             onClick={() => updateRfqItemQty(item.productId, item.quantity + 25)}
-                            className="px-2.5 py-1 text-xs text-zinc-400 hover:text-white font-mono"
+                            className="px-2.5 py-1 text-xs text-[#64748b] hover:text-[#1e293b] font-mono"
                           >
                             +
                           </button>
                         </div>
 
                         <div className="text-right font-mono min-w-[90px]">
-                          <span className="text-[10px] text-zinc-500 block">
+                          <span className="text-[10px] text-[#94a3b8] block">
                             @{currency === 'USD' ? `$${item.unitPriceUsd}` : `৳${item.unitPriceBdt}`}
                           </span>
-                          <span className="text-xs font-bold text-[#d4af37]">
+                          <span className="text-xs font-bold text-[#b45309]">
                             {currency === 'USD'
                               ? `$${(item.unitPriceUsd * item.quantity).toLocaleString()}`
                               : `৳${(item.unitPriceBdt * item.quantity).toLocaleString()}`}
@@ -1613,7 +1613,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                         <button
                           type="button"
                           onClick={() => updateRfqItemQty(item.productId, 0)}
-                          className="text-zinc-600 hover:text-red-400 text-xs px-1"
+                          className="text-slate-400 hover:text-red-500 text-xs px-1 transition-colors"
                           title="Remove item"
                         >
                           ✕
@@ -1625,8 +1625,8 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
               )}
 
               {/* Add-Ons & Enterprise Options */}
-              <div className="bg-[#121214] border border-[#27272a] rounded-xl p-4 space-y-3 font-mono">
-                <div className="text-xs font-bold text-white uppercase tracking-wider border-b border-[#27272a] pb-2">
+              <div className="bg-white/90 border border-slate-200 rounded-xl p-4 space-y-3 font-mono shadow-xs">
+                <div className="text-xs font-bold text-[#1e293b] uppercase tracking-wider border-b border-slate-100 pb-2">
                   Enterprise Add-Ons &amp; Tooling Options
                 </div>
 
@@ -1638,9 +1638,9 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                       onChange={(e) => setIncludeDiePlate(e.target.checked)}
                       className="accent-[#d4af37]"
                     />
-                    <span>Custom Brass Debossing Die Plate</span>
+                    <span className="text-[#334155]">Custom Brass Debossing Die Plate</span>
                   </div>
-                  <span className="text-[#d4af37]">
+                  <span className="text-[#b45309] font-bold">
                     {totals.totalUnits >= 150 ? 'FREE (>150 pcs)' : currency === 'USD' ? '$45' : '৳5,400'}
                   </span>
                 </label>
@@ -1653,9 +1653,9 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                       onChange={(e) => setIncludeLuxuryBox(e.target.checked)}
                       className="accent-[#d4af37]"
                     />
-                    <span>Rigid Magnetic Presentation Gift Box</span>
+                    <span className="text-[#334155]">Rigid Magnetic Presentation Gift Box</span>
                   </div>
-                  <span className="text-zinc-400">
+                  <span className="text-[#64748b]">
                     +{currency === 'USD' ? '$4.50' : '৳540'} / unit
                   </span>
                 </label>
@@ -1668,9 +1668,9 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                       onChange={(e) => setIncludePersonalization(e.target.checked)}
                       className="accent-[#d4af37]"
                     />
-                    <span>Recipient Individual Monogramming</span>
+                    <span className="text-[#334155]">Recipient Individual Monogramming</span>
                   </div>
-                  <span className="text-zinc-400">
+                  <span className="text-[#64748b]">
                     +{currency === 'USD' ? '$2.00' : '৳240'} / unit
                   </span>
                 </label>
@@ -1683,30 +1683,30 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                       onChange={(e) => setIncludeHoloSeal(e.target.checked)}
                       className="accent-[#d4af37]"
                     />
-                    <span>Anti-Tamper Holographic Security Seal</span>
+                    <span className="text-[#334155]">Anti-Tamper Holographic Security Seal</span>
                   </div>
-                  <span className="text-zinc-400">
+                  <span className="text-[#64748b]">
                     +{currency === 'USD' ? '$0.50' : '৳60'} / unit
                   </span>
                 </label>
               </div>
 
               {/* Quotation Financial Summary */}
-              <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5 font-mono space-y-2.5">
-                <div className="flex justify-between text-xs text-zinc-400">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 font-mono space-y-2.5 shadow-xs">
+                <div className="flex justify-between text-xs text-[#64748b]">
                   <span>Gross Item Subtotal ({totals.totalUnits} units)</span>
                   <span>{fmt(totals.baseSubtotalUsd, totals.baseSubtotalBdt)}</span>
                 </div>
 
                 {totals.volumeDiscountRate > 0 && (
-                  <div className="flex justify-between text-xs text-[#10b981]">
+                  <div className="flex justify-between text-xs text-[#10b981] font-semibold">
                     <span>Volume Discount Tier ({(totals.volumeDiscountRate * 100).toFixed(0)}%)</span>
                     <span>-{fmt(totals.discountUsd, totals.discountBdt)}</span>
                   </div>
                 )}
 
                 {includeDiePlate && (
-                  <div className="flex justify-between text-xs text-zinc-400">
+                  <div className="flex justify-between text-xs text-[#64748b]">
                     <span>Brass Deboss Die Plate Tooling</span>
                     <span>
                       {totals.diePlateFeeUsd === 0
@@ -1717,32 +1717,32 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                 )}
 
                 {includeLuxuryBox && (
-                  <div className="flex justify-between text-xs text-zinc-400">
+                  <div className="flex justify-between text-xs text-[#64748b]">
                     <span>Rigid Magnetic Gift Boxes</span>
                     <span>+{fmt(totals.luxuryBoxFeeUsd, totals.luxuryBoxFeeBdt)}</span>
                   </div>
                 )}
 
                 {includePersonalization && (
-                  <div className="flex justify-between text-xs text-zinc-400">
+                  <div className="flex justify-between text-xs text-[#64748b]">
                     <span>Individual Monogram Personalization</span>
                     <span>+{fmt(totals.personalizationFeeUsd, totals.personalizationFeeBdt)}</span>
                   </div>
                 )}
 
                 {includeHoloSeal && (
-                  <div className="flex justify-between text-xs text-zinc-400">
+                  <div className="flex justify-between text-xs text-[#64748b]">
                     <span>Tamper-Proof Hologram Seal</span>
                     <span>+{fmt(totals.holoSealFeeUsd, totals.holoSealFeeBdt)}</span>
                   </div>
                 )}
 
-                <div className="pt-3 border-t border-[#27272a] flex justify-between items-baseline">
+                <div className="pt-3 border-t border-slate-200 flex justify-between items-baseline">
                   <div>
-                    <span className="text-xs font-bold text-white block">NET ENTERPRISE QUOTATION</span>
-                    <span className="text-[10px] text-zinc-500">VAT &amp; Domestic Transport Included</span>
+                    <span className="text-xs font-bold text-[#1e293b] block">NET ENTERPRISE QUOTATION</span>
+                    <span className="text-[10px] text-[#64748b]">VAT &amp; Domestic Transport Included</span>
                   </div>
-                  <span className="text-2xl font-black text-[#d4af37]">
+                  <span className="text-2xl font-black text-[#b45309]">
                     {fmt(totals.grandTotalUsd, totals.grandTotalBdt)}
                   </span>
                 </div>
@@ -1750,12 +1750,12 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
             </div>
 
             {/* Bottom Actions Dock */}
-            <div className="sticky bottom-0 bg-[#121214] border-t border-[#27272a] p-5 space-y-3">
+            <div className="sticky bottom-0 bg-white/90 backdrop-blur-md border-t border-slate-200/80 p-5 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setIsPrintModalOpen(true)}
-                  className="px-4 py-2.5 bg-[#18181b] hover:bg-[#27272a] text-white border border-[#3f3f46] hover:border-zinc-400 rounded font-mono font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-4 py-2.5 bg-white hover:bg-slate-50 text-[#1e293b] border border-slate-300 rounded-xl font-mono font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
                   <span>📄</span>
                   <span>PREVIEW PDF QUOTATION</span>
@@ -1764,7 +1764,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                 <button
                   type="button"
                   onClick={copyPitchText}
-                  className="px-4 py-2.5 bg-[#18181b] hover:bg-[#27272a] text-[#d4af37] border border-[#d4af37]/40 hover:border-[#d4af37] rounded font-mono font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-4 py-2.5 bg-white hover:bg-slate-50 text-[#b45309] border border-[#d4af37]/50 hover:border-[#d4af37] rounded-xl font-mono font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
                   <span>💬</span>
                   <span>COPY WHATSAPP PITCH</span>
@@ -1776,7 +1776,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                   type="button"
                   onClick={saveQuotationDraft}
                   disabled={isSaving}
-                  className="px-4 py-2.5 bg-[#18181b] hover:bg-zinc-800 text-zinc-300 border border-[#27272a] rounded font-mono font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-[#334155] border border-slate-200 rounded-xl font-mono font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   <span>💾</span>
                   <span>{isSaving ? 'SAVING…' : 'SAVE RFQ DRAFT'}</span>
@@ -1785,7 +1785,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
                 <button
                   type="button"
                   onClick={pushToTechPackEngine}
-                  className="px-4 py-2.5 bg-[#d4af37] hover:bg-[#e5c158] text-black font-mono font-extrabold text-xs rounded transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-4 py-2.5 bg-[#d4af37] hover:bg-[#b45309] text-white font-mono font-extrabold text-xs rounded-xl transition-all shadow-[0_4px_16px_rgba(212,175,55,0.4)] flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>🏭</span>
                   <span>PUSH TO FACTORY PO →</span>

@@ -512,23 +512,35 @@
     const companies = window.dCompanies;
     container.innerHTML = modHeader("Buyer CRM",`${companies.length} company profiles`,[
       {label:"+ Add Company",fn:"window.openAdvancedCustomerForm()"}
-    ]) + companies.map((c, idx)=>`
-      <div class="company-card" onclick="window.openCompanyDetail(window.dCompanies[${idx}])">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-          <div style="font-size:22px;">${c.flag}</div>
-          <div>
-            <div class="company-name">${c.name}</div>
-            <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);">${c.country} · ${c.currency}</div>
+    ]) + `<div class="crm-customer-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5" style="padding:0 20px 24px;">` + companies.map((c, idx)=>`
+      <div class="company-card crm-customer-card" onclick="window.openCompanyDetail(window.dCompanies[${idx}])">
+        <div>
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+              <span style="font-size:20px;line-height:1;flex-shrink:0;">${c.flag || '🏢'}</span>
+              <div style="min-width:0;flex:1;">
+                <div class="company-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                  ${c.name}
+                </div>
+                <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                  ${c.country} · ${c.currency}
+                </div>
+              </div>
+            </div>
+            <span class="pill ok" style="font-size:8.5px;padding:2px 5px;font-weight:700;flex-shrink:0;font-family:var(--mono);">${c.orders} ord</span>
           </div>
-          <div style="margin-left:auto;"><span class="pill ok">${c.orders} orders</span></div>
+          <div class="company-meta" style="display:flex;flex-direction:column;gap:3px;font-size:9.5px;font-family:var(--mono);min-height:38px;margin-bottom:8px;">
+            <div style="color:var(--ink-2);"><span style="color:var(--ink-4);font-size:8.5px;">MOQ:</span> ${c.moq} units</div>
+            <div style="color:var(--ink-3);"><span style="color:var(--ink-4);font-size:8.5px;">TERM:</span> ${c.terms}</div>
+          </div>
         </div>
-        <div class="company-meta">
-          <div class="company-tag">MOQ: ${c.moq} units</div>
-          <div class="company-tag">${c.terms}</div>
-          <div class="company-tag">${c.contact}</div>
+        <div style="display:flex;gap:6px;align-items:center;padding-top:8px;border-top:1px solid var(--wire);margin-top:auto;">
+          <button class="btn btn-dark btn-xs" style="width:100%;min-height:26px;font-size:9.5px;" onclick="event.stopPropagation(); window.openCompanyDetail(window.dCompanies[${idx}]);">
+            <span>Profile ↗</span>
+          </button>
         </div>
       </div>
-    `).join('') + `<div style="height:8px;"></div>`;
+    `).join('') + `</div>`;
   };
 
   window.openCompanyDetail = function(c) {

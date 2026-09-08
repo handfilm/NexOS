@@ -253,28 +253,28 @@ export const ApolloDriveIngestion: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-[#0d0d0c] border border-zinc-800 rounded-xl p-5 font-mono text-zinc-300">
+    <div className="w-full bg-white/85 backdrop-blur-2xl border border-white/90 rounded-2xl p-5 font-mono text-[#1e293b] shadow-[4px_4px_24px_rgba(166,180,200,0.3),-4px_-4px_24px_#ffffff]">
       {/* Title */}
-      <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-800">
+      <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-200/80">
         <div>
-          <h2 className="text-sm font-bold text-amber-500">APOLLO CSV &amp; DRIVE INGESTION SUITE</h2>
-          <p className="text-[11px] text-zinc-500 mt-0.5">
-            Auto-column mapping · Tokenized filename parser (<code className="text-zinc-400">RAWX-JKT-001__BLACK__01.webp</code>) · Firestore Batch
+          <h2 className="text-sm font-bold text-[#1e293b]">APOLLO CSV &amp; DRIVE INGESTION SUITE</h2>
+          <p className="text-[11px] text-[#64748b] mt-0.5 font-sans">
+            Auto-column mapping · Tokenized filename parser (<code className="text-[#334155]">RAWX-JKT-001__BLACK__01.webp</code>) · Firestore Batch
           </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('apollo')}
-            className={`rounded px-3 py-1.5 text-[clamp(10px,1.2vw,13px)] font-medium transition-all truncate ${
-              activeTab === 'apollo' ? 'bg-amber-500 text-black font-bold' : 'border border-zinc-800 bg-zinc-900 text-zinc-400'
+            className={`rounded-xl px-3 py-1.5 text-[clamp(10px,1.2vw,13px)] font-bold transition-all truncate ${
+              activeTab === 'apollo' ? 'bg-[#c81d11] text-white shadow-xs' : 'border border-slate-200 bg-slate-100 text-[#64748b] hover:text-[#1e293b]'
             }`}
           >
             1. Apollo CSV Ingest
           </button>
           <button
             onClick={() => setActiveTab('drive')}
-            className={`rounded px-3 py-1.5 text-[clamp(10px,1.2vw,13px)] font-medium transition-all truncate ${
-              activeTab === 'drive' ? 'bg-amber-500 text-black font-bold' : 'border border-zinc-800 bg-zinc-900 text-zinc-400'
+            className={`rounded-xl px-3 py-1.5 text-[clamp(10px,1.2vw,13px)] font-bold transition-all truncate ${
+              activeTab === 'drive' ? 'bg-[#c81d11] text-white shadow-xs' : 'border border-slate-200 bg-slate-100 text-[#64748b] hover:text-[#1e293b]'
             }`}
           >
             2. Drive Media Parser

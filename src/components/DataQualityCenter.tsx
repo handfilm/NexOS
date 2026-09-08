@@ -209,20 +209,20 @@ export const DataQualityCenter: React.FC = () => {
     : '98.5';
 
   return (
-    <div id="data_quality_center" className="w-full bg-[#0d0d0c] text-zinc-300 font-mono min-h-screen p-4 sm:p-6 space-y-6">
+    <div id="data_quality_center" className="w-full bg-white/85 backdrop-blur-2xl border border-white/90 rounded-2xl text-[#1e293b] font-mono min-h-screen p-4 sm:p-6 space-y-6 shadow-[4px_4px_24px_rgba(166,180,200,0.3),-4px_-4px_24px_#ffffff]">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[11px] text-zinc-500 uppercase tracking-widest font-semibold">
+            <span className="text-[11px] text-[#64748b] uppercase tracking-widest font-bold">
               H&amp;H NEXUS · SYSTEM INTEGRITY SPINE
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#1e293b] tracking-tight mt-1">
             Data Quality &amp; Ledger Audit Center
           </h1>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <p className="text-xs text-[#64748b] mt-0.5 font-sans">
             Deterministic Bangladesh phone standardization, multi-record customer deduplication, and catalog audit
           </p>
         </div>
@@ -232,7 +232,7 @@ export const DataQualityCenter: React.FC = () => {
             id="btn_refresh_audit"
             onClick={loadAuditData}
             disabled={loading || isProcessing}
-            className="px-3.5 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs text-white rounded font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
+            className="px-3.5 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-xs text-[#1e293b] rounded-xl font-bold flex items-center gap-2 transition-all shadow-xs disabled:opacity-50"
           >
             <span className={loading ? 'animate-spin' : ''}>↻</span>
             Re-run Audit

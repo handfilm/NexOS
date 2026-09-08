@@ -139,26 +139,26 @@ export const AuthGate: React.FC<AuthGateProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 font-mono">
-      <div className="w-full max-w-sm rounded-xl border border-zinc-800 bg-[#0d0d0c] p-6 shadow-2xl text-zinc-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 font-mono">
+      <div className="w-full max-w-sm rounded-2xl border border-white/90 bg-white/95 backdrop-blur-2xl p-6 shadow-[4px_4px_30px_rgba(166,180,200,0.4),-4px_-4px_30px_#ffffff] text-[#1e293b]">
         {/* Terminal Header */}
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-800/80">
+        <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-200/80">
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse" />
-            <span className="text-[11px] uppercase tracking-wider text-zinc-400">HANDS &amp; HEAD OS // GATE</span>
+            <span className="text-[11px] uppercase tracking-wider text-[#64748b] font-bold">HANDS &amp; HEAD OS // GATE</span>
           </div>
-          <span className="text-[10px] text-zinc-600">v4.9 Enterprise</span>
+          <span className="text-[10px] text-[#94a3b8]">v4.9 Enterprise</span>
         </div>
 
         {/* Title & Sub */}
         <div className="text-center mb-5">
-          <h2 className="text-lg font-bold tracking-tight text-white font-sans">Dual-Gate Access Control</h2>
-          <p className="text-[11px] text-zinc-400 mt-1">Authenticate via Whitelisted Google SSO or 4-Digit Operator PIN</p>
+          <h2 className="text-lg font-bold tracking-tight text-[#1e293b] font-sans">Dual-Gate Access Control</h2>
+          <p className="text-[11px] text-[#64748b] mt-1">Authenticate via Whitelisted Google SSO or 4-Digit Operator PIN</p>
         </div>
 
         {/* Error Notice */}
         {error && (
-          <div className="mb-4 rounded border border-red-900/60 bg-red-950/40 p-2.5 text-center text-[11px] text-red-400 leading-tight">
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-2.5 text-center text-[11px] text-red-700 leading-tight font-medium">
             ⚠️ {error}
           </div>
         )}
@@ -167,10 +167,10 @@ export const AuthGate: React.FC<AuthGateProps> = ({
         {loading ? (
           <div className="py-6 flex flex-col items-center justify-center gap-3">
             <div className="h-8 w-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-            <div className="text-xs text-amber-400 animate-pulse">{loadingMessage}</div>
+            <div className="text-xs text-amber-700 animate-pulse font-semibold">{loadingMessage}</div>
             <div className="w-full space-y-2 mt-2">
-              <div className="h-3 bg-zinc-800 rounded animate-pulse" />
-              <div className="h-3 bg-zinc-800/60 rounded animate-pulse w-3/4 mx-auto" />
+              <div className="h-3 bg-slate-200 rounded animate-pulse" />
+              <div className="h-3 bg-slate-200/60 rounded animate-pulse w-3/4 mx-auto" />
             </div>
           </div>
         ) : (
@@ -178,7 +178,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({
             {/* 4-Digit PIN Form */}
             <form onSubmit={handlePinFormSubmit} className="space-y-4">
               <div>
-                <label className="block text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5 text-center">
+                <label className="block text-[10px] uppercase tracking-widest text-[#64748b] mb-1.5 text-center font-bold">
                   Enter 4-Digit Operator PIN
                 </label>
                 <input
@@ -189,7 +189,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({
                   autoFocus
                   onChange={handlePinChange}
                   placeholder="••••"
-                  className="w-full rounded border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-center text-xl font-bold tracking-[0.6em] text-amber-400 focus:border-amber-500 focus:outline-none transition-colors"
+                  className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-center text-xl font-bold tracking-[0.6em] text-[#b45309] focus:border-amber-500 focus:outline-none transition-colors"
                 />
               </div>
 
@@ -198,7 +198,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({
                   <button
                     type="button"
                     onClick={onCancel}
-                    className="flex-1 rounded border border-zinc-800 bg-zinc-900/60 py-2.5 text-[clamp(10px,1.2vw,13px)] font-medium text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all truncate"
+                    className="flex-1 rounded-xl border border-slate-200 bg-slate-100 py-2.5 text-[clamp(10px,1.2vw,13px)] font-semibold text-[#64748b] hover:bg-slate-200 hover:text-[#1e293b] transition-all truncate"
                   >
                     Cancel
                   </button>
@@ -206,7 +206,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({
                 <button
                   type="submit"
                   disabled={pin.length !== 4}
-                  className="flex-1 rounded bg-amber-500 py-2.5 text-[clamp(10px,1.2vw,13px)] font-bold text-black hover:bg-amber-400 active:scale-[0.99] transition-all truncate shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 rounded-xl bg-[#c81d11] hover:bg-[#a3160c] py-2.5 text-[clamp(10px,1.2vw,13px)] font-bold text-white active:scale-[0.99] transition-all truncate shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Verify PIN →
                 </button>
@@ -216,9 +216,9 @@ export const AuthGate: React.FC<AuthGateProps> = ({
             {/* Divider */}
             <div className="relative my-5 flex items-center justify-center">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-zinc-800" />
+                <div className="w-full border-t border-slate-200" />
               </div>
-              <span className="relative bg-[#0d0d0c] px-3 text-[10px] text-zinc-500">OR WHITELIST</span>
+              <span className="relative bg-white px-3 text-[10px] text-[#94a3b8] font-bold">OR WHITELIST</span>
             </div>
 
             {/* Google SSO Button */}
@@ -226,7 +226,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({
               type="button"
               disabled={loading}
               onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center gap-2.5 rounded border border-zinc-800 bg-zinc-900/80 px-4 py-2.5 text-[clamp(10px,1.2vw,13px)] font-medium text-zinc-200 hover:border-zinc-700 hover:bg-zinc-800/80 transition-all truncate disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2.5 text-[clamp(10px,1.2vw,13px)] font-semibold text-[#1e293b] shadow-xs hover:border-slate-400 transition-all truncate disabled:opacity-50"
             >
               <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

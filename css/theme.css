@@ -48,6 +48,16 @@
   --purple:            #8B5CF6;
   --purple-bg:         rgba(139, 92, 246, 0.12);
 
+  /* ── White Glass Morphism Surfaces (Home & Product Grids Parity) ── */
+  --bg-1:              rgba(255, 255, 255, 0.92);
+  --bg-2:              rgba(255, 255, 255, 0.78);
+  --bg-3:              rgba(240, 245, 251, 0.85);
+  --bg-card:           rgba(255, 255, 255, 0.8);
+  --bg-card-hover:     rgba(255, 255, 255, 0.96);
+  --glass-bg:          rgba(255, 255, 255, 0.78);
+  --glass-border:      rgba(255, 255, 255, 0.9);
+  --glass-shadow:      var(--neu-flat-sm);
+
   /* ── High Contrast Typography ── */
   --ink:               #1E293B;
   --ink-2:             #475569;
@@ -242,30 +252,34 @@ a { color:var(--coral); text-decoration:none; }
   outline: none;
 }
 .tbar-action-techpack {
-  background: #111110;
-  color: #fbbf24;
-  border: 1.5px solid rgba(245, 158, 11, 0.45);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.82);
+  color: #b45309;
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: var(--neu-flat-xs);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .tbar-action-techpack:hover {
-  background: #191918;
-  border-color: #f59e0b;
-  color: #fef08a;
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(217, 119, 6, 0.4);
+  color: #92400e;
   transform: translateY(-1.5px) scale(1.02);
-  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
+  box-shadow: var(--neu-hover);
 }
 .tbar-action-voice {
-  background: #111110;
-  color: #ff794d;
-  border: 1.5px solid rgba(255, 91, 53, 0.45);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.82);
+  color: #ea580c;
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: var(--neu-flat-xs);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .tbar-action-voice:hover {
-  background: #191918;
-  border-color: #ff5b35;
-  color: #ffedd5;
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(255, 91, 53, 0.4);
+  color: #c2410c;
   transform: translateY(-1.5px) scale(1.02);
-  box-shadow: 0 6px 16px rgba(255, 91, 53, 0.35);
+  box-shadow: var(--neu-hover);
 }
 .tbar-action-pill:active {
   transform: translateY(1px) scale(0.97);
@@ -1477,20 +1491,118 @@ a { color:var(--coral); text-decoration:none; }
 .forecast-trend { font-family:var(--mono); font-size:10px; font-weight:700; }
 
 /* ── CRM & Company Cards ── */
+/* ── CRM & Customer Cards (Brutalist 5-Column Grid on Desktop) ── */
+#crm-customer-cards-list,
+.crm-customer-grid,
 .crm-list {
-  display:flex; flex-direction:column; gap:12px; padding:0 0 16px;
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 14px;
+  padding: 0 20px 24px;
 }
-@media (min-width: 860px) {
-  .crm-list { display:grid; grid-template-columns:repeat(2, 1fr); gap:16px; }
+
+@media (min-width: 600px) {
+  #crm-customer-cards-list,
+  .crm-customer-grid,
+  .crm-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
 }
-@media (min-width: 1300px) {
-  .crm-list { grid-template-columns:repeat(3, 1fr); gap:18px; }
+
+@media (min-width: 880px) {
+  #crm-customer-cards-list,
+  .crm-customer-grid,
+  .crm-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
 }
-.company-card {
-  background:var(--bg-neu); border-radius:var(--r-lg); padding:18px 20px;
-  box-shadow:var(--neu-flat-sm); transition:all 0.25s var(--ease-bouncy);
+
+@media (min-width: 1140px) {
+  #crm-customer-cards-list,
+  .crm-customer-grid,
+  .crm-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
 }
-.company-card:hover { transform:translateY(-2px); box-shadow:var(--neu-hover); }
+
+/* ── Customer Page Grid: 5 columns on desktop views (1024px+) ── */
+#crm-customer-cards-list,
+.crm-customer-grid,
+.crm-list {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  #crm-customer-cards-list,
+  .crm-customer-grid,
+  .crm-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  #crm-customer-cards-list,
+  .crm-customer-grid,
+  .crm-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  #crm-customer-cards-list,
+  .crm-customer-grid,
+  .crm-list {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+/* ── White Glassmorphic Customer Card Styling with Subtle Brutalist Hover ── */
+.company-card,
+.crm-customer-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  min-height: 220px;
+  box-sizing: border-box;
+  padding: 15px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 2px 2px 0px rgba(15, 23, 42, 0.04), 4px 4px 16px rgba(166, 180, 200, 0.25);
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease, background 0.18s ease;
+  overflow: hidden;
+}
+
+/* Subtle Brutalist hover interaction: crisp mechanical offset shadow & translate lift */
+.company-card:hover,
+.crm-customer-card:hover {
+  transform: translate(-3px, -3px);
+  border-color: #1e293b;
+  box-shadow: 4px 4px 0px #1e293b, 0 12px 24px rgba(160, 175, 198, 0.35);
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.company-card:hover .company-name,
+.crm-customer-card:hover .company-name {
+  color: var(--gold, #d4af37) !important;
+}
+
+.company-card:active,
+.crm-customer-card:active {
+  transform: translate(0px, 0px);
+  box-shadow: 1.5px 1.5px 0px #1e293b;
+}
 
 /* ── AI Chat Window ── */
 .chat-container {
