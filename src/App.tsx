@@ -4,6 +4,7 @@ import VoicePOIngestion from './components/VoicePOIngestion';
 import CorporateSupplies from './components/CorporateSupplies';
 import LogisticsSettlementHub from './components/LogisticsSettlementHub';
 import FactorySlaFloorTracker from './components/FactorySlaFloorTracker';
+import B2BDealEngine from './components/B2BDealEngine';
 import { ExtractedPOSpec } from './components/VoicePOIngestion';
 
 export interface AppProps {
@@ -21,6 +22,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       if (hash === 'CORPORATESUPPLIES' || hash === 'CORPORATE_SUPPLIES' || hash === 'CORPORATE') return 'CORPORATESUPPLIES';
       if (hash === 'LOGISTICS' || hash === 'LOGISTICS_HUB' || hash === 'SETTLEMENT' || hash === 'LOGISTICSSETTLEMENTHUB') return 'LOGISTICS';
       if (hash === 'FACTORYSLA' || hash === 'FACTORY_SLA' || hash === 'FLOOR_TRACKER' || hash === 'SLA' || hash === 'FACTORY') return 'FACTORYSLA';
+      if (hash === 'B2BDEAL' || hash === 'B2B_DEAL' || hash === 'B2BDEALENGINE' || hash === 'DEALS' || hash === 'REVENUE') return 'B2BDEAL';
     }
     return 'DEFAULT';
   });
@@ -29,11 +31,24 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
   const [isVoiceIngestOpen, setIsVoiceIngestOpen] = useState<boolean>(false);
   const [isLogisticsOpen, setIsLogisticsOpen] = useState<boolean>(false);
   const [isFactorySlaOpen, setIsFactorySlaOpen] = useState<boolean>(false);
+  const [isB2BDealOpen, setIsB2BDealOpen] = useState<boolean>(false);
   const [preSelectedCustomer, setPreSelectedCustomer] = useState<any | null>(null);
   const [preSelectedLogisticsOrder, setPreSelectedLogisticsOrder] = useState<any | null>(null);
   const [preSelectedSlaPo, setPreSelectedSlaPo] = useState<string | null>(null);
   const [lastExtractedSpec, setLastExtractedSpec] = useState<ExtractedPOSpec | null>(null);
   const [toastNotification, setToastNotification] = useState<string | null>(null);
+
+  const openB2BDeal = useCallback(() => {
+    setIsB2BDealOpen(true);
+    setIsTechPackOpen(false);
+    setIsVoiceIngestOpen(false);
+    setIsLogisticsOpen(false);
+    setIsFactorySlaOpen(false);
+  }, []);
+
+  const closeB2BDeal = useCallback(() => {
+    setIsB2BDealOpen(false);
+  }, []);
 
   const openTechPack = useCallback((customer?: any) => {
     if (customer) {
@@ -43,6 +58,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     setIsVoiceIngestOpen(false);
     setIsLogisticsOpen(false);
     setIsFactorySlaOpen(false);
+    setIsB2BDealOpen(false);
   }, []);
 
   const closeTechPack = useCallback(() => {
@@ -55,6 +71,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     setIsTechPackOpen(false);
     setIsLogisticsOpen(false);
     setIsFactorySlaOpen(false);
+    setIsB2BDealOpen(false);
   }, []);
 
   const closeVoiceIngest = useCallback(() => {
@@ -69,6 +86,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     setIsTechPackOpen(false);
     setIsVoiceIngestOpen(false);
     setIsFactorySlaOpen(false);
+    setIsB2BDealOpen(false);
   }, []);
 
   const closeLogistics = useCallback(() => {
@@ -84,6 +102,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     setIsTechPackOpen(false);
     setIsVoiceIngestOpen(false);
     setIsLogisticsOpen(false);
+    setIsB2BDealOpen(false);
   }, []);
 
   const closeFactorySla = useCallback(() => {
@@ -135,6 +154,13 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       closeFactorySla();
     };
 
+    (window as any).openB2BDealEngine = () => {
+      openB2BDeal();
+    };
+    (window as any).closeB2BDealEngine = () => {
+      closeB2BDeal();
+    };
+
     (window as any).NexusApp = {
       openTechPack,
       closeTechPack,
@@ -144,12 +170,15 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       closeLogistics,
       openFactorySla,
       closeFactorySla,
+      openB2BDeal,
+      closeB2BDeal,
       navigate: (route: string) => setCurrentRoute(route),
       getState: () => ({
         isTechPackOpen,
         isVoiceIngestOpen,
         isLogisticsOpen,
         isFactorySlaOpen,
+        isB2BDealOpen,
         currentRoute,
         lastExtractedSpec
       })
@@ -172,6 +201,9 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       const poNum = e.detail?.poNumber || e.detail?.id || e.detail;
       openFactorySla(typeof poNum === 'string' ? poNum : undefined);
     };
+    const handleOpenB2BDealEvent = () => {
+      openB2BDeal();
+    };
     const handleNavigateEvent = (e: any) => {
       const target = (e.detail?.route || e.detail || '').toString().toUpperCase();
       if (target) setCurrentRoute(target);
@@ -189,6 +221,8 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         setCurrentRoute('LOGISTICS');
       } else if (hash === 'FACTORYSLA' || hash === 'FACTORY_SLA' || hash === 'FLOOR_TRACKER' || hash === 'SLA' || hash === 'FACTORY') {
         setCurrentRoute('FACTORYSLA');
+      } else if (hash === 'B2BDEAL' || hash === 'B2B_DEAL' || hash === 'B2BDEALENGINE' || hash === 'DEALS' || hash === 'REVENUE') {
+        setCurrentRoute('B2BDEAL');
       }
     };
 
@@ -197,6 +231,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     window.addEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
     window.addEventListener('nexus:open-logistics', handleOpenLogisticsEvent);
     window.addEventListener('nexus:open-factory-sla', handleOpenFactorySlaEvent);
+    window.addEventListener('nexus:open-b2b-deal-engine', handleOpenB2BDealEvent);
     window.addEventListener('nexus:navigate', handleNavigateEvent);
     window.addEventListener('hashchange', handleHashChange);
 
@@ -206,10 +241,11 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       window.removeEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
       window.removeEventListener('nexus:open-logistics', handleOpenLogisticsEvent);
       window.removeEventListener('nexus:open-factory-sla', handleOpenFactorySlaEvent);
+      window.removeEventListener('nexus:open-b2b-deal-engine', handleOpenB2BDealEvent);
       window.removeEventListener('nexus:navigate', handleNavigateEvent);
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, openLogistics, closeLogistics, openFactorySla, closeFactorySla, isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, isFactorySlaOpen, currentRoute, lastExtractedSpec]);
+  }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, openLogistics, closeLogistics, openFactorySla, closeFactorySla, openB2BDeal, closeB2BDeal, isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, isFactorySlaOpen, isB2BDealOpen, currentRoute, lastExtractedSpec]);
 
   // View switch/case rendering
   const renderCurrentView = () => {
@@ -321,6 +357,21 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
             <FactorySlaFloorTracker
               initialPoNumber={preSelectedSlaPo || undefined}
               mode="embedded"
+              onClose={() => setCurrentRoute('DEFAULT')}
+            />
+          </div>
+        );
+
+      case 'B2BDEAL':
+      case 'B2B_DEAL':
+      case 'B2BDEALENGINE':
+      case 'DEALS':
+      case 'REVENUE':
+      case 'B2B':
+        return (
+          <div className="b2b-deal-router-view max-w-7xl mx-auto my-4">
+            <B2BDealEngine
+              mode="fullscreen"
               onClose={() => setCurrentRoute('DEFAULT')}
             />
           </div>
@@ -462,6 +513,24 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
               initialPoNumber={preSelectedSlaPo || undefined}
               mode="modal"
               onClose={closeFactorySla}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── B2B Deal & Revenue Engine (Modal Mode) ── */}
+      {isB2BDealOpen && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
+          onClick={closeB2BDeal}
+        >
+          <div
+            className="relative w-full max-w-7xl overflow-hidden flex flex-col my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <B2BDealEngine
+              mode="modal"
+              onClose={closeB2BDeal}
             />
           </div>
         </div>

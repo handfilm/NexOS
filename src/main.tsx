@@ -6,6 +6,7 @@ import VoicePOIngestion from './components/VoicePOIngestion';
 import CorporateSupplies from './components/CorporateSupplies';
 import LogisticsSettlementHub from './components/LogisticsSettlementHub';
 import FactorySlaFloorTracker from './components/FactorySlaFloorTracker';
+import B2BDealEngine from './components/B2BDealEngine';
 
 // Root instances cache to avoid duplicate createRoot warnings on container re-entry
 const rootInstances = new WeakMap<HTMLElement, Root>();
@@ -18,6 +19,39 @@ function getOrCreateRoot(container: HTMLElement): Root {
     rootInstances.set(container, r);
   }
   return r;
+}
+
+// ── 00. Renderer implementation for B2B Deal & Revenue Engine ──
+export function renderB2BDealEngineComponent(container?: HTMLElement, initialTab?: any) {
+  const target =
+    container ||
+    document.getElementById('mod-B2BDealEngine') ||
+    document.getElementById('mod-B2BDEAL') ||
+    document.getElementById('mod-B2B_DEAL') ||
+    document.getElementById('mod-Deals') ||
+    document.getElementById('mod-DEALS') ||
+    document.getElementById('mod-Revenue') ||
+    document.getElementById('body');
+  if (!target) return;
+
+  try {
+    const root = getOrCreateRoot(target);
+    root.render(
+      <div className="b2b-deal-module-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
+        <B2BDealEngine
+          initialTab={initialTab}
+          mode="embedded"
+          onClose={() => {
+            if (typeof (window as any).navTo === 'function') {
+              (window as any).navTo('Home');
+            }
+          }}
+        />
+      </div>
+    );
+  } catch (err) {
+    console.error('Error mounting B2BDealEngine:', err);
+  }
 }
 
 // ── 0. Renderer implementation for Logistics & Settlement Hub ──
@@ -303,6 +337,32 @@ if (typeof window !== 'undefined') {
   if (typeof (window as any).openFactorySlaFloorTracker !== 'function') {
     (window as any).openFactorySlaFloorTracker = (poNumber?: string) => {
       window.dispatchEvent(new CustomEvent('nexus:open-factory-sla', { detail: { poNumber } }));
+    };
+  }
+
+  // B2B Deal & Revenue Engine renderers (all naming variants)
+  (window as any).render.B2BDealEngine = renderB2BDealEngineComponent;
+  (window as any).render.B2BDEAL = renderB2BDealEngineComponent;
+  (window as any).render.B2B_DEAL = renderB2BDealEngineComponent;
+  (window as any).render.B2BDeal = renderB2BDealEngineComponent;
+  (window as any).render.b2bdeal = renderB2BDealEngineComponent;
+  (window as any).render['B2B Deal Engine'] = renderB2BDealEngineComponent;
+  (window as any).render['B2B Deal & Revenue Engine'] = renderB2BDealEngineComponent;
+  (window as any).render['B2B Deals'] = renderB2BDealEngineComponent;
+  (window as any).render.Deals = renderB2BDealEngineComponent;
+  (window as any).render.DEALS = renderB2BDealEngineComponent;
+  (window as any).render.Revenue = renderB2BDealEngineComponent;
+  (window as any).render.REVENUE = renderB2BDealEngineComponent;
+
+  // Window-level direct functions
+  (window as any).renderB2BDealEngine = renderB2BDealEngineComponent;
+  (window as any).renderB2BDealEngineComponent = renderB2BDealEngineComponent;
+  (window as any).renderB2BDEAL = renderB2BDealEngineComponent;
+  (window as any).renderDeals = renderB2BDealEngineComponent;
+
+  if (typeof (window as any).openB2BDealEngine !== 'function') {
+    (window as any).openB2BDealEngine = () => {
+      window.dispatchEvent(new CustomEvent('nexus:open-b2b-deal-engine'));
     };
   }
 }

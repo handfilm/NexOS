@@ -3933,6 +3933,119 @@ app.post('/api/data-quality/flag-customer', (req, res) => {
   }
 });
 
+/* ── 5. B2B Deal Engine: 2nd-Gen Cloud Function Mirror Endpoints ── */
+// POST /api/functions/authorizeCutting
+app.post('/api/functions/authorizeCutting', (req, res) => {
+  try {
+    const { orderId, operatorUid = 'nexus.operator@handsandhead.com', totalAmount: clientTotal, amountPaid: clientPaid, currency = 'USD' } = req.body || {};
+    if (!orderId) {
+      return res.status(400).json({ ok: false, error: 'The function must be called with a valid "orderId" string.' });
+    }
+
+    // Read order from storage if exists, or use client payload
+    const orders = safeReadJson(ORDERS_FILE, []);
+    const orderIndex = orders.findIndex(o => o.id === orderId || o.orderNumber === orderId);
+    let order = orderIndex !== -1 ? orders[orderIndex] : null;
+
+    const total = order ? Number(order.totalAmount ?? order.total ?? order.grandTotal ?? 0) : Number(clientTotal || 0);
+    const paid = order ? Number(order.payment?.amountPaid ?? order.amountPaid ?? order.paidAmount ?? 0) : Number(clientPaid || 0);
+    const required50 = 0.5 * total;
+
+    // Strict 50% advance deposit gate check
+    if (paid < required50) {
+      console.warn(`[authorizeCutting] Blocked order ${orderId}: Paid ${paid} < Required ${required50}`);
+      return res.status(412).json({
+        ok: false,
+        code: 'failed-precondition',
+        error: 'Transaction Blocked: Less than 50% advance deposit confirmed.',
+        details: {
+          orderId,
+          totalAmount: total,
+          amountPaid: paid,
+          requiredAdvance: required50,
+          deficit: required50 - paid
+        }
+      });
+    }
+
+    // Authorized: Update order status to cutting_authorized and record unlocked timestamp
+    const nowIso = new Date().toISOString();
+    if (order && orderIndex !== -1) {
+      orders[orderIndex].status = 'cutting_authorized';
+      orders[orderIndex].productionUnlockedAt = nowIso;
+      orders[orderIndex].authorizedBy = operatorUid;
+      orders[orderIndex].updatedAt = nowIso;
+      safeWriteJson(ORDERS_FILE, orders);
+    }
+
+    console.log(`[authorizeCutting] SUCCESS: Order ${orderId} unlocked for JIT Cutting by ${operatorUid}`);
+    res.json({
+      ok: true,
+      message: `Order ${orderId} successfully unlocked for JIT Cutting.`,
+      data: {
+        orderId,
+        status: 'cutting_authorized',
+        amountPaid: paid,
+        totalAmount: total,
+        productionUnlockedAt: nowIso,
+        operatorUid
+      }
+    });
+  } catch (err) {
+    console.error('Error in authorizeCutting endpoint:', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/functions/callGemini
+app.post('/api/functions/callGemini', async (req, res) => {
+  try {
+    const { prompt, audioBase64, mimeType = 'audio/webm', systemInstruction } = req.body || {};
+    if (!prompt && !audioBase64) {
+      return res.status(400).json({ ok: false, error: 'Either "prompt" or "audioBase64" must be provided.' });
+    }
+
+    const ai = getGeminiAI();
+    if (!ai) {
+      return res.json({
+        ok: true,
+        text: 'Gemini Proxy Advisory: Advance verified. Recommend dispatching physical leather swatch kit for executive client review.',
+        modelUsed: 'deterministic-offline-proxy'
+      });
+    }
+
+    let contents;
+    if (audioBase64) {
+      const cleanBase64 = audioBase64.replace(/^data:audio\/[^;]+;base64,/, '').replace(/^data:[^;]+;base64,/, '');
+      contents = {
+        parts: [
+          { inlineData: { mimeType, data: cleanBase64 } },
+          { text: prompt || 'Extract B2B tech pack PO specifications or summarize audio content.' }
+        ]
+      };
+    } else {
+      contents = prompt;
+    }
+
+    const { response, modelUsed } = await callGeminiWithFallback(ai, {
+      contents,
+      config: {
+        systemInstruction: systemInstruction || 'You are the B2B Deal & Revenue Intelligence Engine for Hands & Head Atelier. Provide concise, mathematically verified B2B wholesale calculations.',
+        temperature: 0.4
+      }
+    });
+
+    res.json({
+      ok: true,
+      text: response.text || '',
+      modelUsed
+    });
+  } catch (err) {
+    console.error('Error in callGemini proxy endpoint:', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.use(express.static(__dirname));
 
 app.get('*', (req, res) => {

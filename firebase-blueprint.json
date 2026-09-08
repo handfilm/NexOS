@@ -38,22 +38,63 @@
     },
     "Order": {
       "title": "Order",
-      "description": "Hands & Head order pipeline entity",
+      "description": "Hands & Head order pipeline entity with JIT Cash-Lock status",
       "type": "object",
       "properties": {
         "orderNumber": { "type": "string" },
         "customerId": { "type": "string" },
         "total": { "type": "number" },
         "subtotal": { "type": "number" },
+        "amountPaid": { "type": "number" },
         "currency": { "type": "string" },
-        "paymentStatus": { "type": "string", "enum": ["paid", "pending", "refunded"] },
-        "fulfillmentStatus": { "type": "string", "enum": ["fulfilled", "unfulfilled", "partial"] },
-        "status": { "type": "string", "enum": ["open", "completed", "cancelled"] },
+        "paymentStatus": { "type": "string", "enum": ["paid", "pending", "advance_50_pct", "refunded"] },
+        "fulfillmentStatus": { "type": "string", "enum": ["fulfilled", "unfulfilled", "partial", "cutting"] },
+        "status": { "type": "string", "enum": ["open", "cutting_authorized", "completed", "cancelled"] },
+        "productionUnlockedAt": { "type": "string" },
         "paymentMethod": { "type": "string" },
         "createdAt": { "type": "string" },
         "updatedAt": { "type": "string" }
       },
       "required": ["orderNumber", "total", "status"]
+    },
+    "B2BDeal": {
+      "title": "B2BDeal",
+      "description": "Hands & Head B2B Deal Engine Pipeline Entity",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string" },
+        "contactName": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "country": { "type": "string" },
+        "leadScore": { "type": "number" },
+        "temperature": { "type": "string", "enum": ["HOT", "WARM", "COLD"] },
+        "archetype": { "type": "string", "enum": ["CORPORATE ENTERPRISE", "REPEAT BUYER (3x+)", "BULK MERCHANDISE", "HIGH-TICKET LEATHER"] },
+        "stage": { "type": "string", "enum": ["New Lead", "Qualified", "Contacted", "Interested", "Lookbook Sent", "Quotation Staged", "Negotiation", "50% Advance Paid", "JIT Cutting/Production", "Delivery & Closed"] },
+        "totalAmountUsd": { "type": "number" },
+        "amountPaidUsd": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "cutting_authorized", "closed", "stagnant", "killed"] },
+        "productionUnlockedAt": { "type": "string" },
+        "lastContactedAt": { "type": "string" },
+        "lastStageChangedAt": { "type": "string" }
+      },
+      "required": ["companyName", "archetype", "stage"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable security ledger recording JIT cutting authorizations and security events",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string" },
+        "orderId": { "type": "string" },
+        "operatorUid": { "type": "string" },
+        "amountPaid": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "currency": { "type": "string" },
+        "result": { "type": "string", "enum": ["AUTHORIZED", "BLOCKED_LESS_THAN_50_PCT", "ERROR"] },
+        "message": { "type": "string" }
+      },
+      "required": ["timestamp", "orderId", "operatorUid", "result"]
     }
   },
   "firestore": {
@@ -67,7 +108,15 @@
     },
     "/orders/{orderId}": {
       "schema": "Order",
-      "description": "Global Firestore orders collection"
+      "description": "Global Firestore orders collection with JIT cutting protection"
+    },
+    "/deals/{dealId}": {
+      "schema": "B2BDeal",
+      "description": "B2B Deal Engine Pipeline collection"
+    },
+    "/auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Immutable audit ledger collection"
     }
   }
 }

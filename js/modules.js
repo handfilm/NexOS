@@ -117,6 +117,47 @@
     window.render.VoicePOIngestion = window.render.VoiceIngest;
   }
 
+  /* ── Bridge for B2B Deal & Revenue Engine ── */
+  if (!window.render.B2BDealEngine) {
+    window.render.B2BDealEngine = function(container) {
+      if (typeof window.renderB2BDealEngineComponent === "function") {
+        return window.renderB2BDealEngineComponent(container);
+      }
+      if (container) {
+        container.innerHTML = '<div style="padding:24px;font-family:var(--mono);color:#FF5500;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Initializing B2B Deal & Revenue Engine…</div>';
+        let retries = 0;
+        const poller = setInterval(function() {
+          retries++;
+          if (typeof window.renderB2BDealEngineComponent === "function") {
+            clearInterval(poller);
+            window.renderB2BDealEngineComponent(container);
+          } else if (retries > 30) {
+            clearInterval(poller);
+            if (typeof window.openB2BDealEngine === "function") {
+              window.openB2BDealEngine();
+            } else {
+              window.dispatchEvent(new CustomEvent('nexus:open-b2b-deal-engine'));
+            }
+          }
+        }, 100);
+        return;
+      }
+      if (typeof window.openB2BDealEngine === "function") {
+        return window.openB2BDealEngine();
+      }
+      window.dispatchEvent(new CustomEvent('nexus:open-b2b-deal-engine'));
+    };
+    window.render.B2BDEAL = window.render.B2BDealEngine;
+    window.render.B2B_DEAL = window.render.B2BDealEngine;
+    window.render.B2BDeal = window.render.B2BDealEngine;
+    window.render["B2B Deal Engine"] = window.render.B2BDealEngine;
+    window.render["B2B Deal & Revenue Engine"] = window.render.B2BDealEngine;
+    window.render["B2B Deals"] = window.render.B2BDealEngine;
+    window.render.Deals = window.render.B2BDealEngine;
+    window.render.DEALS = window.render.B2BDealEngine;
+    window.render.Revenue = window.render.B2BDealEngine;
+  }
+
   /* ── Shared Helpers ── */
   function modHeader(title, tag, actions = []) {
     const btns = actions.map(a => `<button onclick="${a.fn}" style="padding:6px 11px;font-size:9px;border:1px solid var(--wire-hard);background:transparent;color:var(--gold-dim);font-family:var(--sans);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--wire-hard)';this.style.color='var(--gold-dim)'">${a.label}</button>`).join('');

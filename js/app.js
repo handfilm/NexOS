@@ -514,6 +514,9 @@ async function renderLiteHome(b) {
         contentHtml = `
           <div class="sec-h" style="padding-top:10px;"><span class="sec-h-label">Quick Access Launchpad</span></div>
           <div class="action-rail">
+            <button class="action-node" onclick="window.openB2BDealEngine ? window.openB2BDealEngine() : openAppModule('B2BDealEngine')" title="Open B2B Deal & Revenue Engine" style="border-color:rgba(255,85,0,0.45);background:rgba(255,85,0,0.06);">
+              <div class="action-icon" style="color:#FF5500;">⚡</div><div class="action-label" style="color:#FF5500;font-weight:800;">B2B Deals</div>
+            </button>
             <button class="action-node" onclick="window.openTechPackPOEngine ? window.openTechPackPOEngine() : openAppModule('TechPackPO')" title="Open Tech-Pack PO Engine" style="border-color:rgba(217,119,6,0.35);">
               <div class="action-icon" style="color:var(--gold);">📋</div><div class="action-label" style="color:var(--gold);font-weight:700;">Tech-Pack</div>
             </button>
@@ -1072,6 +1075,7 @@ function renderTabbar() {
       <button class="tb ${expScreen === 'Products' ? 'on' : ''}" onclick="openAppModule('Products')" title="Products">${I.tag}</button>
       <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
       <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
+      <button class="tb ${expScreen === 'B2BDealEngine' || expScreen === 'B2BDEAL' || expScreen === 'Deals' ? 'on' : ''}" onclick="openAppModule('B2BDealEngine')" title="B2B Deal Engine" style="color:#FF5500;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
       <button class="tb ${expScreen === 'CorporateSupplies' ? 'on' : ''}" onclick="openAppModule('CorporateSupplies')" title="Corporate Supplies & Gifts"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg></button>
       <button class="tb ${expScreen === 'LogisticsSettlementHub' || expScreen === 'Logistics' ? 'on' : ''}" onclick="openAppModule('LogisticsSettlementHub')" title="Logistics & COD Settlement Dock"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></button>
       <button class="tb ${expScreen === 'FactorySlaFloorTracker' || expScreen === 'FactorySLA' || expScreen === 'Factory' ? 'on' : ''}" onclick="openAppModule('FactorySlaFloorTracker')" title="Factory Floor & SLA Monitor"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg></button>
@@ -1165,6 +1169,7 @@ const NAV_SECTIONS = [
       { label: "Products", icon: I.tag, app: "Products", chev: true, desc: "Inventory catalog, variants & pricing matrix", ext: "CATALOG" },
       { label: "Orders", icon: I.orders, app: "Orders", chev: true, desc: "Live order stream & fulfillment tracker", ext: "POS" },
       { label: "Customers", icon: I.inbox, app: "CRM", chev: true, desc: "Global wholesale buyer CRM & accounts", ext: "CRM" },
+      { label: "B2B Deal & Revenue Engine", icon: "⚡", app: "B2BDealEngine", chev: true, desc: "High-density B2B deal closer: Apollo lead scoring, 10-stage pipeline, quick offers & JIT cash-lock", ext: "DEALS", extClass: "gold" },
       { label: "Corporate Supplies & Gifts", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`, app: "CorporateSupplies", chev: true, desc: "B2B enterprise corporate supplies, bespoke corporate gifts, executive tech & bulk RFQ matrix", ext: "B2B", extClass: "gold" },
       { label: "Drive Sync Monitor", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="12 11 12 17 14 15"></polyline></svg>`, app: "DriveSync", chev: true, desc: "Master Google Drive auto-sync, tokenized specs & staging", ext: "SYNC", extClass: "gold" },
       { label: "Tech-Pack PO Engine", icon: "📋", app: "TechPackPO", chev: true, desc: "Parametric apparel tech pack & factory PO calculations with WhatsApp dispatch", ext: "PO", extClass: "gold" },
@@ -1298,6 +1303,18 @@ const MODULE_MAP = {
   "Home": "Home",
   "dashboard": "Home",
   "Dashboard": "Home",
+  "B2BDealEngine": "B2BDealEngine",
+  "B2BDEAL": "B2BDealEngine",
+  "B2B_DEAL": "B2BDealEngine",
+  "B2BDeal": "B2BDealEngine",
+  "b2bdeal": "B2BDealEngine",
+  "B2B Deal Engine": "B2BDealEngine",
+  "B2B Deal & Revenue Engine": "B2BDealEngine",
+  "B2B Deals": "B2BDealEngine",
+  "Deals": "B2BDealEngine",
+  "DEALS": "B2BDealEngine",
+  "Revenue": "B2BDealEngine",
+  "REVENUE": "B2BDealEngine",
   "CorporateSupplies": "CorporateSupplies",
   "Corporate Supplies": "CorporateSupplies",
   "corporate-supplies": "CorporateSupplies",

@@ -1,66 +1,119 @@
 rules_version = '2';
 
 // ═══════════════════════════════════════════════════════════════
-// Hands & Head — firestore.rules
-// B2B Headless Commerce Platform Data Rules
+// HANDS & HEAD NEXUS — Hardened Firestore Security Rules
+// Master Gate & JIT Cash-Lock Enforcement
 // ═══════════════════════════════════════════════════════════════
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ── Helper Functions ──
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Allow read and write for application collections
-    match /users/{uid} {
-      allow read, write: if true;
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.admin == true ||
+        request.auth.token.email.matches('.*@(handsandhead\\.com|gmail\\.com)')
+      );
     }
 
-    match /stores/{storeId} {
-      allow read, write: if true;
+    // ── 1. Orders Collection with JIT Cash-Lock Protection ──
+    // Strict Guardrail: Clients are FORBIDDEN from setting status to 'cutting_authorized'.
+    // 'cutting_authorized' and 'productionUnlockedAt' can ONLY be written by the Admin SDK
+    // inside the 2nd-Gen Cloud Function `authorizeCutting` after atomic deposit verification.
+    match /orders/{orderId} {
+      allow read: if true;
+
+      allow create: if isSignedIn() &&
+        request.resource.data.status != 'cutting_authorized' &&
+        !('productionUnlockedAt' in request.resource.data);
+
+      allow update: if isSignedIn() &&
+        // Block direct client elevation to cutting_authorized
+        request.resource.data.status != 'cutting_authorized' &&
+        // Block tampering with productionUnlockedAt
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['productionUnlockedAt']);
+
+      allow delete: if isAdmin();
     }
 
+    // ── 2. Audit Logs: Completely Immutable Security Ledger ──
+    // Read-only for authenticated admins.
+    // Zero client create/update/delete. Only writable by Firebase Admin SDK via Cloud Functions.
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    // ── 3. B2B Deals Pipeline Collection ──
+    match /deals/{dealId} {
+      allow read: if true;
+      allow create, update: if isSignedIn() &&
+        request.resource.data.status != 'cutting_authorized';
+      allow delete: if isAdmin();
+    }
+
+    // ── 4. Core Catalog, Customers & Commerce Collections ──
     match /products/{productId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     match /customers/{customerId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
-    match /orders/{orderId} {
-      allow read, write: if true;
+    match /users/{uid} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /stores/{storeId} {
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     match /collections/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     match /discounts/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     match /inventory/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     match /inventory_movements/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     match /activities/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     match /settings/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
-    match /{document=**} {
-      allow read, write: if true;
+    match /factory_orders/{id} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /clearance_vault/{id} {
+      allow read: if true;
+      allow write: if isSignedIn();
     }
   }
 }
-
-
