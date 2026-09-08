@@ -3,6 +3,7 @@ import TechPackPOEngine from './components/TechPackPOEngine';
 import VoicePOIngestion from './components/VoicePOIngestion';
 import CorporateSupplies from './components/CorporateSupplies';
 import LogisticsSettlementHub from './components/LogisticsSettlementHub';
+import FactorySlaFloorTracker from './components/FactorySlaFloorTracker';
 import { ExtractedPOSpec } from './components/VoicePOIngestion';
 
 export interface AppProps {
@@ -19,6 +20,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       if (hash === 'TECHPACK' || hash === 'TECHPACKPO' || hash === 'TECHPACK_PO') return 'TECHPACK';
       if (hash === 'CORPORATESUPPLIES' || hash === 'CORPORATE_SUPPLIES' || hash === 'CORPORATE') return 'CORPORATESUPPLIES';
       if (hash === 'LOGISTICS' || hash === 'LOGISTICS_HUB' || hash === 'SETTLEMENT' || hash === 'LOGISTICSSETTLEMENTHUB') return 'LOGISTICS';
+      if (hash === 'FACTORYSLA' || hash === 'FACTORY_SLA' || hash === 'FLOOR_TRACKER' || hash === 'SLA' || hash === 'FACTORY') return 'FACTORYSLA';
     }
     return 'DEFAULT';
   });
@@ -26,8 +28,10 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
   const [isTechPackOpen, setIsTechPackOpen] = useState<boolean>(false);
   const [isVoiceIngestOpen, setIsVoiceIngestOpen] = useState<boolean>(false);
   const [isLogisticsOpen, setIsLogisticsOpen] = useState<boolean>(false);
+  const [isFactorySlaOpen, setIsFactorySlaOpen] = useState<boolean>(false);
   const [preSelectedCustomer, setPreSelectedCustomer] = useState<any | null>(null);
   const [preSelectedLogisticsOrder, setPreSelectedLogisticsOrder] = useState<any | null>(null);
+  const [preSelectedSlaPo, setPreSelectedSlaPo] = useState<string | null>(null);
   const [lastExtractedSpec, setLastExtractedSpec] = useState<ExtractedPOSpec | null>(null);
   const [toastNotification, setToastNotification] = useState<string | null>(null);
 
@@ -38,6 +42,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     setIsTechPackOpen(true);
     setIsVoiceIngestOpen(false);
     setIsLogisticsOpen(false);
+    setIsFactorySlaOpen(false);
   }, []);
 
   const closeTechPack = useCallback(() => {
@@ -49,6 +54,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     setIsVoiceIngestOpen(true);
     setIsTechPackOpen(false);
     setIsLogisticsOpen(false);
+    setIsFactorySlaOpen(false);
   }, []);
 
   const closeVoiceIngest = useCallback(() => {
@@ -62,11 +68,27 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     setIsLogisticsOpen(true);
     setIsTechPackOpen(false);
     setIsVoiceIngestOpen(false);
+    setIsFactorySlaOpen(false);
   }, []);
 
   const closeLogistics = useCallback(() => {
     setIsLogisticsOpen(false);
     setPreSelectedLogisticsOrder(null);
+  }, []);
+
+  const openFactorySla = useCallback((poNumber?: string) => {
+    if (poNumber) {
+      setPreSelectedSlaPo(poNumber);
+    }
+    setIsFactorySlaOpen(true);
+    setIsTechPackOpen(false);
+    setIsVoiceIngestOpen(false);
+    setIsLogisticsOpen(false);
+  }, []);
+
+  const closeFactorySla = useCallback(() => {
+    setIsFactorySlaOpen(false);
+    setPreSelectedSlaPo(null);
   }, []);
 
   const handleVoiceSpecExtracted = useCallback((spec: ExtractedPOSpec) => {
@@ -106,6 +128,13 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       closeLogistics();
     };
 
+    (window as any).openFactorySlaFloorTracker = (poNumber?: string) => {
+      openFactorySla(poNumber);
+    };
+    (window as any).closeFactorySlaFloorTracker = () => {
+      closeFactorySla();
+    };
+
     (window as any).NexusApp = {
       openTechPack,
       closeTechPack,
@@ -113,8 +142,17 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       closeVoiceIngest,
       openLogistics,
       closeLogistics,
+      openFactorySla,
+      closeFactorySla,
       navigate: (route: string) => setCurrentRoute(route),
-      getState: () => ({ isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, currentRoute, lastExtractedSpec })
+      getState: () => ({
+        isTechPackOpen,
+        isVoiceIngestOpen,
+        isLogisticsOpen,
+        isFactorySlaOpen,
+        currentRoute,
+        lastExtractedSpec
+      })
     };
 
     const handleOpenTechPackEvent = (e: any) => {
@@ -129,6 +167,10 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     const handleOpenLogisticsEvent = (e: any) => {
       const order = e.detail?.order || e.detail;
       openLogistics(order);
+    };
+    const handleOpenFactorySlaEvent = (e: any) => {
+      const poNum = e.detail?.poNumber || e.detail?.id || e.detail;
+      openFactorySla(typeof poNum === 'string' ? poNum : undefined);
     };
     const handleNavigateEvent = (e: any) => {
       const target = (e.detail?.route || e.detail || '').toString().toUpperCase();
@@ -145,6 +187,8 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         setCurrentRoute('CORPORATESUPPLIES');
       } else if (hash === 'LOGISTICS' || hash === 'LOGISTICS_HUB' || hash === 'SETTLEMENT' || hash === 'LOGISTICSSETTLEMENTHUB') {
         setCurrentRoute('LOGISTICS');
+      } else if (hash === 'FACTORYSLA' || hash === 'FACTORY_SLA' || hash === 'FLOOR_TRACKER' || hash === 'SLA' || hash === 'FACTORY') {
+        setCurrentRoute('FACTORYSLA');
       }
     };
 
@@ -152,6 +196,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     window.addEventListener('nexus:open-voice', handleOpenVoiceEvent);
     window.addEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
     window.addEventListener('nexus:open-logistics', handleOpenLogisticsEvent);
+    window.addEventListener('nexus:open-factory-sla', handleOpenFactorySlaEvent);
     window.addEventListener('nexus:navigate', handleNavigateEvent);
     window.addEventListener('hashchange', handleHashChange);
 
@@ -160,10 +205,11 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       window.removeEventListener('nexus:open-voice', handleOpenVoiceEvent);
       window.removeEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
       window.removeEventListener('nexus:open-logistics', handleOpenLogisticsEvent);
+      window.removeEventListener('nexus:open-factory-sla', handleOpenFactorySlaEvent);
       window.removeEventListener('nexus:navigate', handleNavigateEvent);
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, openLogistics, closeLogistics, isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, currentRoute, lastExtractedSpec]);
+  }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, openLogistics, closeLogistics, openFactorySla, closeFactorySla, isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, isFactorySlaOpen, currentRoute, lastExtractedSpec]);
 
   // View switch/case rendering
   const renderCurrentView = () => {
@@ -257,6 +303,23 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
           <div className="logistics-router-view max-w-7xl mx-auto my-4">
             <LogisticsSettlementHub
               initialOrder={preSelectedLogisticsOrder}
+              mode="embedded"
+              onClose={() => setCurrentRoute('DEFAULT')}
+            />
+          </div>
+        );
+
+      case 'FACTORYSLA':
+      case 'FACTORY_SLA':
+      case 'FACTORY':
+      case 'FACTORY_FLOOR':
+      case 'FLOOR_TRACKER':
+      case 'FACTORYSLAFLOORTRACKER':
+      case 'SLA':
+        return (
+          <div className="factory-sla-router-view max-w-7xl mx-auto my-4">
+            <FactorySlaFloorTracker
+              initialPoNumber={preSelectedSlaPo || undefined}
               mode="embedded"
               onClose={() => setCurrentRoute('DEFAULT')}
             />
@@ -380,6 +443,25 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
               initialOrder={preSelectedLogisticsOrder}
               mode="modal"
               onClose={closeLogistics}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Factory Floor & SLA Monitor (Modal Mode) ── */}
+      {isFactorySlaOpen && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-md overflow-y-auto"
+          onClick={closeFactorySla}
+        >
+          <div
+            className="relative w-full max-w-6xl overflow-hidden flex flex-col my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <FactorySlaFloorTracker
+              initialPoNumber={preSelectedSlaPo || undefined}
+              mode="modal"
+              onClose={closeFactorySla}
             />
           </div>
         </div>

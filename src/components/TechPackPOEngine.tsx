@@ -1520,6 +1520,22 @@ export const TechPackPOEngine: React.FC<TechPackPOEngineProps> = ({
                 <span>🚚</span>
                 <span>LOGISTICS &amp; COD SETTLEMENT DOCK →</span>
               </button>
+
+              {/* Action 5: Track in Factory Floor & SLA Monitor */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof (window as any).openFactorySlaFloorTracker === 'function') {
+                    (window as any).openFactorySlaFloorTracker(poNumber);
+                  } else {
+                    window.dispatchEvent(new CustomEvent('nexus:open-factory-sla', { detail: { poNumber } }));
+                  }
+                }}
+                className="w-full bg-[#12141A] hover:bg-[#1E222B] border border-[#1E222B] text-[#E2E8F0] font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+              >
+                <span>🏭</span>
+                <span>FACTORY FLOOR &amp; SLA TRACKER →</span>
+              </button>
             </div>
 
           </div>

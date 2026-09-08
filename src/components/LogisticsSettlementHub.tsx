@@ -592,6 +592,25 @@ export const LogisticsSettlementHub: React.FC<LogisticsSettlementHubProps> = ({
           <button
             type="button"
             onClick={() => {
+              if (typeof (window as any).openFactorySlaFloorTracker === 'function') {
+                (window as any).openFactorySlaFloorTracker(currentOrder?.poNumber);
+              } else {
+                window.dispatchEvent(
+                  new CustomEvent('nexus:open-factory-sla', {
+                    detail: { poNumber: currentOrder?.poNumber }
+                  })
+                );
+              }
+            }}
+            className="px-3 py-1.5 bg-[#161820] hover:bg-[#1E222B] border border-[#FF4400]/50 text-xs font-bold text-[#FF4400] rounded transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+            title="Open Factory Floor & SLA Monitor"
+          >
+            <span>🏭</span>
+            <span>FACTORY SLA →</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
               setStatusMessage('Refreshing live Firestore orders & consignments…');
               setTimeout(() => setStatusMessage('✓ Order state synced with factory floor'), 1000);
             }}

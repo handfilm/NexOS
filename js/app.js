@@ -1074,6 +1074,7 @@ function renderTabbar() {
       <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
       <button class="tb ${expScreen === 'CorporateSupplies' ? 'on' : ''}" onclick="openAppModule('CorporateSupplies')" title="Corporate Supplies & Gifts"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg></button>
       <button class="tb ${expScreen === 'LogisticsSettlementHub' || expScreen === 'Logistics' ? 'on' : ''}" onclick="openAppModule('LogisticsSettlementHub')" title="Logistics & COD Settlement Dock"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></button>
+      <button class="tb ${expScreen === 'FactorySlaFloorTracker' || expScreen === 'FactorySLA' || expScreen === 'Factory' ? 'on' : ''}" onclick="openAppModule('FactorySlaFloorTracker')" title="Factory Floor & SLA Monitor"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg></button>
       <button class="tb cam-fab" onclick="startCamera()" title="Capture">${I.cam}</button>
       <button class="tb" onclick="openGate('expert')" title="Expert Mode">${I.lock}</button>
     `;
@@ -1085,6 +1086,7 @@ function renderTabbar() {
       <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
       <button class="tb ${expScreen === 'CorporateSupplies' ? 'on' : ''}" onclick="openAppModule('CorporateSupplies')" title="Corporate Gifts & Supplies"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg></button>
       <button class="tb ${expScreen === 'LogisticsSettlementHub' || expScreen === 'Logistics' ? 'on' : ''}" onclick="openAppModule('LogisticsSettlementHub')" title="Logistics & COD Settlement Dock"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></button>
+      <button class="tb ${expScreen === 'FactorySlaFloorTracker' || expScreen === 'FactorySLA' || expScreen === 'Factory' ? 'on' : ''}" onclick="openAppModule('FactorySlaFloorTracker')" title="Factory Floor & SLA Monitor"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg></button>
       <button class="tb cam-fab" onclick="startCamera()" title="Capture">${I.cam}</button>
       <button class="tb" onclick="openDrawer()" title="Menu"><svg viewBox="0 0 24 24" style="width:19px;height:19px;"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.7"/></svg></button>
       <button class="tb exit-btn" onclick="exitExpert()" title="Exit Expert">${I.exit}</button>
@@ -1166,6 +1168,8 @@ const NAV_SECTIONS = [
       { label: "Corporate Supplies & Gifts", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`, app: "CorporateSupplies", chev: true, desc: "B2B enterprise corporate supplies, bespoke corporate gifts, executive tech & bulk RFQ matrix", ext: "B2B", extClass: "gold" },
       { label: "Drive Sync Monitor", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="12 11 12 17 14 15"></polyline></svg>`, app: "DriveSync", chev: true, desc: "Master Google Drive auto-sync, tokenized specs & staging", ext: "SYNC", extClass: "gold" },
       { label: "Tech-Pack PO Engine", icon: "📋", app: "TechPackPO", chev: true, desc: "Parametric apparel tech pack & factory PO calculations with WhatsApp dispatch", ext: "PO", extClass: "gold" },
+      { label: "Factory Floor & SLA Monitor", icon: "🏭", app: "FactorySlaFloorTracker", chev: true, desc: "Milestone execution, floor tickets, overrun clearance vault & supervisor SLA escalation", ext: "SLA", extClass: "gold" },
+      { label: "Logistics & COD Settlement Dock", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`, app: "LogisticsSettlementHub", chev: true, desc: "One-click courier dispatch (Steadfast, Pathao, RedX) & COD collection tracking", ext: "COD", extClass: "gold" },
       { label: "Voice PO Ingestion", icon: "🎙️", app: "VoiceIngest", chev: true, desc: "Gemini Flash audio transcription & RMG PO spec extraction", ext: "AI", extClass: "gold" },
       { label: "Data Quality Center", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>`, app: "DataQuality", chev: true, desc: "Deterministic BD phone normalization, customer deduplication & audit", ext: "AUDIT", extClass: "gold" }
     ]
@@ -1331,6 +1335,16 @@ const MODULE_MAP = {
   "SETTLEMENT": "LogisticsSettlementHub",
   "Logistics & Settlement": "LogisticsSettlementHub",
   "COD Settlement": "LogisticsSettlementHub",
+  "FactorySlaFloorTracker": "FactorySlaFloorTracker",
+  "FACTORY_SLA": "FactorySlaFloorTracker",
+  "FactorySLA": "FactorySlaFloorTracker",
+  "FactorySla": "FactorySlaFloorTracker",
+  "Factory SLA": "FactorySlaFloorTracker",
+  "Factory Floor": "FactorySlaFloorTracker",
+  "FloorTracker": "FactorySlaFloorTracker",
+  "Floor Tracker": "FactorySlaFloorTracker",
+  "SLA": "FactorySlaFloorTracker",
+  "Factory": "FactorySlaFloorTracker",
   "Orders": "Orders",
   "Products": "Products",
   "DriveSync": "DriveSync",
@@ -1796,6 +1810,17 @@ function openAppModule(appName) {
       if (window.render && typeof window.render.LOGISTICS_HUB === "function") return window.render.LOGISTICS_HUB;
       if (typeof window.renderLogisticsHub === "function") return window.renderLogisticsHub;
       if (typeof window.renderLogisticsSettlementHub === "function") return window.renderLogisticsSettlementHub;
+    }
+
+    // Explicit fallback for Factory Floor & SLA Tracker
+    if (modKey.toLowerCase().includes("factory") || modKey.toLowerCase().includes("sla") || modKey.toLowerCase().includes("floor")) {
+      if (window.render && typeof window.render.FactorySlaFloorTracker === "function") return window.render.FactorySlaFloorTracker;
+      if (window.render && typeof window.render.FACTORY_SLA === "function") return window.render.FACTORY_SLA;
+      if (window.render && typeof window.render.FactorySLA === "function") return window.render.FactorySLA;
+      if (window.render && typeof window.render['Factory SLA'] === "function") return window.render['Factory SLA'];
+      if (typeof window.renderFactorySla === "function") return window.renderFactorySla;
+      if (typeof window.renderFactorySlaFloorTracker === "function") return window.renderFactorySlaFloorTracker;
+      if (typeof window.renderFactorySlaComponent === "function") return window.renderFactorySlaComponent;
     }
 
     if (modKey === "Accounting" && typeof window.renderAccounting === "function") return window.renderAccounting;

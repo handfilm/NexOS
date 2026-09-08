@@ -5,6 +5,7 @@ import TechPackPOEngine from './components/TechPackPOEngine';
 import VoicePOIngestion from './components/VoicePOIngestion';
 import CorporateSupplies from './components/CorporateSupplies';
 import LogisticsSettlementHub from './components/LogisticsSettlementHub';
+import FactorySlaFloorTracker from './components/FactorySlaFloorTracker';
 
 // Root instances cache to avoid duplicate createRoot warnings on container re-entry
 const rootInstances = new WeakMap<HTMLElement, Root>();
@@ -48,6 +49,39 @@ export function renderLogisticsHubComponent(container?: HTMLElement, initialOrde
     );
   } catch (err) {
     console.error('Error mounting LogisticsSettlementHub:', err);
+  }
+}
+
+// ── 0B. Renderer implementation for Factory Floor & SLA Monitor ──
+export function renderFactorySlaComponent(container?: HTMLElement, initialPoNumber?: string) {
+  const target =
+    container ||
+    document.getElementById('mod-FactorySlaFloorTracker') ||
+    document.getElementById('mod-FACTORY_SLA') ||
+    document.getElementById('mod-FactorySLA') ||
+    document.getElementById('mod-FactorySla') ||
+    document.getElementById('mod-FloorTracker') ||
+    document.getElementById('mod-SLA') ||
+    document.getElementById('body');
+  if (!target) return;
+
+  try {
+    const root = getOrCreateRoot(target);
+    root.render(
+      <div className="factory-sla-module-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
+        <FactorySlaFloorTracker
+          initialPoNumber={initialPoNumber}
+          mode="embedded"
+          onClose={() => {
+            if (typeof (window as any).navTo === 'function') {
+              (window as any).navTo('Home');
+            }
+          }}
+        />
+      </div>
+    );
+  } catch (err) {
+    console.error('Error mounting FactorySlaFloorTracker:', err);
   }
 }
 
@@ -246,6 +280,29 @@ if (typeof window !== 'undefined') {
   if (typeof (window as any).openLogisticsSettlementHub !== 'function') {
     (window as any).openLogisticsSettlementHub = (order?: any) => {
       window.dispatchEvent(new CustomEvent('nexus:open-logistics', { detail: { order } }));
+    };
+  }
+
+  // Factory SLA Floor Tracker renderers (all naming variants)
+  (window as any).render.FactorySlaFloorTracker = renderFactorySlaComponent;
+  (window as any).render.FACTORY_SLA = renderFactorySlaComponent;
+  (window as any).render.FactorySLA = renderFactorySlaComponent;
+  (window as any).render.FactorySla = renderFactorySlaComponent;
+  (window as any).render['Factory SLA'] = renderFactorySlaComponent;
+  (window as any).render.FloorTracker = renderFactorySlaComponent;
+  (window as any).render.SLA = renderFactorySlaComponent;
+  (window as any).render.Factory = renderFactorySlaComponent;
+  (window as any).render.FACTORY = renderFactorySlaComponent;
+
+  // Window-level direct functions
+  (window as any).renderFactorySla = renderFactorySlaComponent;
+  (window as any).renderFactorySlaFloorTracker = renderFactorySlaComponent;
+  (window as any).renderFACTORY_SLA = renderFactorySlaComponent;
+  (window as any).renderFloorTracker = renderFactorySlaComponent;
+
+  if (typeof (window as any).openFactorySlaFloorTracker !== 'function') {
+    (window as any).openFactorySlaFloorTracker = (poNumber?: string) => {
+      window.dispatchEvent(new CustomEvent('nexus:open-factory-sla', { detail: { poNumber } }));
     };
   }
 }
