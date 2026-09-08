@@ -21,23 +21,30 @@ service cloud.firestore {
     }
 
     // ── 1. Orders Collection with JIT Cash-Lock Protection ──
-    // Strict Guardrail: Direct client-side update setting status to 'cutting_authorized'
-    // is COMPLETELY BLOCKED. 'cutting_authorized', 'productionUnlockedAt', and 'totalAmountPaid'
-    // can ONLY be modified server-side by the Firebase Admin SDK inside the 2nd-Gen Cloud Function
-    // `authorizeCutting` and `recordPaymentEvent` following atomic verification.
+    // Strict Guardrail: Direct client-side update modifying `status`, `runningTotalPaid`,
+    // or `specVerification` is STRICTLY BLOCKED.
+    // These fields, along with `productionUnlockedAt` and `totalAmountPaid`, can ONLY be mutated
+    // server-side by the Firebase Admin SDK inside the 2nd-Gen Cloud Functions
+    // (`authorizeCutting`, `recordPaymentEvent`, `markSpecVerified`).
     match /orders/{orderId} {
       allow read: if true;
 
       allow create: if isSignedIn() &&
         request.resource.data.status != 'cutting_authorized' &&
         !('productionUnlockedAt' in request.resource.data) &&
-        !('totalAmountPaid' in request.resource.data);
+        !('totalAmountPaid' in request.resource.data) &&
+        !('runningTotalPaid' in request.resource.data) &&
+        !('specVerification' in request.resource.data);
 
       allow update: if isSignedIn() &&
-        // Block direct client elevation to cutting_authorized
-        request.resource.data.status != 'cutting_authorized' &&
-        // Block client tampering with productionUnlockedAt and cached totalAmountPaid
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['productionUnlockedAt', 'totalAmountPaid']);
+        // STRICTLY BLOCK client-side updates modifying status, runningTotalPaid, or specVerification
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'status',
+          'runningTotalPaid',
+          'totalAmountPaid',
+          'specVerification',
+          'productionUnlockedAt'
+        ]);
 
       allow delete: if isAdmin();
 
@@ -65,7 +72,13 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // ── 4. B2B Deals Pipeline Collection ──
+    // ── 4. Rate Limits: Internal Brute-Force Defense ──
+    // Client SDKs cannot read, write, update, or delete rate limits directly.
+    match /rateLimits/{callerId} {
+      allow read, write: if false;
+    }
+
+    // ── 5. B2B Deals Pipeline Collection ──
     match /deals/{dealId} {
       allow read: if true;
       allow create, update: if isSignedIn() &&

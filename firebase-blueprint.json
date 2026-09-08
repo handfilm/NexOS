@@ -122,6 +122,17 @@
         "expiresAt": { "type": "string" }
       },
       "required": ["key", "orderId", "response"]
+    },
+    "RateLimit": {
+      "title": "RateLimit",
+      "description": "Internal brute-force protection tracking failed Master PIN attempts",
+      "type": "object",
+      "properties": {
+        "failedAttempts": { "type": "number" },
+        "lastFailedAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["failedAttempts"]
     }
   },
   "firestore": {
@@ -152,6 +163,10 @@
     "/idempotencyKeys/{key}": {
       "schema": "IdempotencyKey",
       "description": "Idempotency locks with 24-hour expiration"
+    },
+    "/rateLimits/{callerId}": {
+      "schema": "RateLimit",
+      "description": "Rate-limiting tracking for security gates"
     }
   }
 }

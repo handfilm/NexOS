@@ -83,6 +83,12 @@ export interface B2BDeal {
   totalAmountBdt: number;
   amountPaidUsd: number;
   amountPaidBdt: number;
+  runningTotalPaid?: number;
+  specVerification?: {
+    status: 'pending_ai_review' | 'verified_by_human';
+    verifiedBy?: string;
+    verifiedAt?: string;
+  };
   status: 'active' | 'cutting_authorized' | 'closed' | 'stagnant' | 'killed';
   productionUnlockedAt?: string;
   lastContactedAt?: string; // ISO string
@@ -134,6 +140,12 @@ const INITIAL_DEALS_SEED: B2BDeal[] = [
     totalAmountBdt: 1704000,
     amountPaidUsd: 0,
     amountPaidBdt: 0,
+    runningTotalPaid: 0,
+    specVerification: {
+      status: 'verified_by_human',
+      verifiedBy: 'rakib.himon@gmail.com',
+      verifiedAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString()
+    },
     status: 'active',
     lastContactedAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(),
     lastStageChangedAt: new Date(Date.now() - 52 * 3600 * 1000).toISOString(), // 52 hrs ago -> Stagnant
@@ -167,13 +179,17 @@ const INITIAL_DEALS_SEED: B2BDeal[] = [
     totalAmountBdt: 1176000,
     amountPaidUsd: 5000, // > 50% paid ($4,900 required)
     amountPaidBdt: 600000,
+    runningTotalPaid: 5000,
+    specVerification: {
+      status: 'pending_ai_review'
+    },
     status: 'active',
     lastContactedAt: new Date(Date.now() - 1 * 24 * 3600 * 1000).toISOString(),
     lastStageChangedAt: new Date(Date.now() - 18 * 3600 * 1000).toISOString(),
     activeOutreachSequence: false,
     outreachKillReason: 'KILLED - INBOUND ADVANCE RECEIVED',
     currency: 'USD',
-    notes: ['Advance deposit of $5,000 confirmed via Swift MT103.', 'Ready for JIT Cutting authorization.']
+    notes: ['Advance deposit of $5,000 confirmed via Swift MT103.', 'Ready for JIT Cutting authorization once Tech-Pack Spec is verified.']
   },
   {
     id: 'DEAL-APOLLO-903',
@@ -201,6 +217,10 @@ const INITIAL_DEALS_SEED: B2BDeal[] = [
     totalAmountBdt: 900000,
     amountPaidUsd: 2000, // < 50% (need $3,750 / ৳450,000)
     amountPaidBdt: 240000,
+    runningTotalPaid: 240000,
+    specVerification: {
+      status: 'pending_ai_review'
+    },
     status: 'active',
     lastContactedAt: new Date(Date.now() - 6 * 24 * 3600 * 1000).toISOString(),
     lastStageChangedAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(), // Stagnant > 48h
@@ -234,6 +254,10 @@ const INITIAL_DEALS_SEED: B2BDeal[] = [
     totalAmountBdt: 768000,
     amountPaidUsd: 0,
     amountPaidBdt: 0,
+    runningTotalPaid: 0,
+    specVerification: {
+      status: 'pending_ai_review'
+    },
     status: 'active',
     lastContactedAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(),
     lastStageChangedAt: new Date(Date.now() - 14 * 3600 * 1000).toISOString(),
@@ -268,6 +292,10 @@ const INITIAL_DEALS_SEED: B2BDeal[] = [
     totalAmountBdt: 1380000,
     amountPaidUsd: 0,
     amountPaidBdt: 0,
+    runningTotalPaid: 0,
+    specVerification: {
+      status: 'pending_ai_review'
+    },
     status: 'active',
     lastContactedAt: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString(),
     lastStageChangedAt: new Date(Date.now() - 60 * 3600 * 1000).toISOString(), // Stagnant > 48h
@@ -301,6 +329,12 @@ const INITIAL_DEALS_SEED: B2BDeal[] = [
     totalAmountBdt: 2220000,
     amountPaidUsd: 9500,
     amountPaidBdt: 1140000,
+    runningTotalPaid: 1140000,
+    specVerification: {
+      status: 'verified_by_human',
+      verifiedBy: 'rakib.himon@gmail.com',
+      verifiedAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+    },
     status: 'cutting_authorized',
     productionUnlockedAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
     lastContactedAt: new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString(),
@@ -324,8 +358,20 @@ export const B2BDealEngine: React.FC<B2BDealEngineProps> = ({
   // ── State Management ──
   const [deals, setDeals] = useState<B2BDeal[]>(() => {
     try {
-      const saved = localStorage.getItem('hh_b2b_deals_v2');
-      if (saved) return JSON.parse(saved);
+      const saved = localStorage.getItem('hh_b2b_deals_v3') || localStorage.getItem('hh_b2b_deals_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((d: any) => ({
+            ...d,
+            specVerification: d.specVerification || {
+              status: d.status === 'cutting_authorized' ? 'verified_by_human' : 'pending_ai_review',
+              ...(d.status === 'cutting_authorized' ? { verifiedBy: 'rakib.himon@gmail.com', verifiedAt: d.productionUnlockedAt || new Date().toISOString() } : {})
+            },
+            runningTotalPaid: d.runningTotalPaid !== undefined ? d.runningTotalPaid : (d.currency === 'USD' ? d.amountPaidUsd : d.amountPaidBdt)
+          }));
+        }
+      }
     } catch (e) {
       // fallback
     }
@@ -352,15 +398,22 @@ export const B2BDealEngine: React.FC<B2BDealEngineProps> = ({
   const [customizationNote, setCustomizationNote] = useState<string>('Blind debossed corporate crest + Gold foil gift box');
   const [generatedLookbook, setGeneratedLookbook] = useState<LookbookSpec | null>(null);
 
-  // JIT Production Locking & Master PIN Gateway state
+  // JIT Production Locking, Spec Verification & Master PIN Gateway state
   const [isAuthorizingCutting, setIsAuthorizingCutting] = useState<boolean>(false);
+  const [isRecordingPayment, setIsRecordingPayment] = useState<boolean>(false);
+  const [isVerifyingSpec, setIsVerifyingSpec] = useState<boolean>(false);
   const [cuttingError, setCuttingError] = useState<string | null>(null);
   const [cuttingSuccessMsg, setCuttingSuccessMsg] = useState<string | null>(null);
   const [isPinModalOpen, setIsPinModalOpen] = useState<boolean>(false);
+  const [pinModalMode, setPinModalMode] = useState<'AUTHORIZE_CUTTING' | 'VERIFY_SPEC' | 'RECORD_PAYMENT'>('AUTHORIZE_CUTTING');
   const [enteredPin, setEnteredPin] = useState<string>('');
   const [pinModalError, setPinModalError] = useState<string | null>(null);
   const [pinModalStatus, setPinModalStatus] = useState<string | null>(null);
   const [currentIdempotencyKey, setCurrentIdempotencyKey] = useState<string>('');
+  const [paymentAmountInput, setPaymentAmountInput] = useState<number>(0);
+  const [paymentMethodInput, setPaymentMethodInput] = useState<'BANK_TT' | 'BKASH' | 'CASH'>('BANK_TT');
+  const [paymentReferenceInput, setPaymentReferenceInput] = useState<string>('');
+  const [paymentNotesInput, setPaymentNotesInput] = useState<string>('');
   const pinInputRef = useRef<HTMLInputElement | null>(null);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(() => {
     try {
@@ -400,7 +453,7 @@ export const B2BDealEngine: React.FC<B2BDealEngineProps> = ({
   // Persistence
   useEffect(() => {
     try {
-      localStorage.setItem('hh_b2b_deals_v2', JSON.stringify(deals));
+      localStorage.setItem('hh_b2b_deals_v3', JSON.stringify(deals));
     } catch (e) {}
   }, [deals]);
 
@@ -711,15 +764,16 @@ Hands & Head`;
     }
   };
 
-  // ── Master PIN Gateway: Open Masked Auth Modal ──
+  // ── Master PIN Gateway: Open Masked Auth Modal for JIT Cutting Authorization ──
   const handleOpenPinModal = () => {
-    if (!selectedDeal || selectedDeal.status === 'cutting_authorized' || isAuthorizingCutting) return;
+    if (!selectedDeal || selectedDeal.status === 'cutting_authorized' || isAuthorizingCutting || isRecordingPayment || isVerifyingSpec) return;
     // Generate secure client-side UUID as idempotency key
     const idempKey = typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID()
       : `idem-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     
     setCurrentIdempotencyKey(idempKey);
+    setPinModalMode('AUTHORIZE_CUTTING');
     setEnteredPin('');
     setPinModalError(null);
     setPinModalStatus(null);
@@ -729,28 +783,289 @@ Hands & Head`;
     }, 100);
   };
 
-  // ── Master PIN Gateway: Cryptographic Verification & JIT Cutting Authorization ──
+  // ── Master PIN Gateway: Open Modal for Tech-Pack Spec Verification ──
+  const handleOpenSpecVerifyModal = () => {
+    if (!selectedDeal || isAuthorizingCutting || isRecordingPayment || isVerifyingSpec) return;
+    const idempKey = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `idem-spec-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    
+    setCurrentIdempotencyKey(idempKey);
+    setPinModalMode('VERIFY_SPEC');
+    setEnteredPin('');
+    setPinModalError(null);
+    setPinModalStatus(null);
+    setIsPinModalOpen(true);
+    setTimeout(() => {
+      pinInputRef.current?.focus();
+    }, 100);
+  };
+
+  // ── Master PIN Gateway: Open Modal for Recording Payment Event to Ledger ──
+  const handleOpenRecordPaymentModal = () => {
+    if (!selectedDeal || isAuthorizingCutting || isRecordingPayment || isVerifyingSpec) return;
+    const idempKey = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `idem-pay-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    
+    const curr = selectedDeal.currency;
+    const total = curr === 'USD' ? selectedDeal.totalAmountUsd : selectedDeal.totalAmountBdt;
+    const paid = curr === 'USD' ? selectedDeal.amountPaidUsd : selectedDeal.amountPaidBdt;
+    const remaining50 = Math.max(0, Math.round(total * 0.5 - paid));
+    const defaultAmount = remaining50 > 0 ? remaining50 : Math.max(0, Math.round(total - paid));
+
+    setCurrentIdempotencyKey(idempKey);
+    setPinModalMode('RECORD_PAYMENT');
+    setPaymentAmountInput(defaultAmount > 0 ? defaultAmount : 1000);
+    setPaymentMethodInput(curr === 'USD' ? 'BANK_TT' : 'BKASH');
+    setPaymentReferenceInput(`TRX-${Math.floor(100000 + Math.random() * 900000)}`);
+    setPaymentNotesInput(`Advance deposit for ${selectedDeal.companyName} contract`);
+    setEnteredPin('');
+    setPinModalError(null);
+    setPinModalStatus(null);
+    setIsPinModalOpen(true);
+    setTimeout(() => {
+      pinInputRef.current?.focus();
+    }, 100);
+  };
+
+  // ── Master PIN Gateway: Cryptographic Verification & Multi-Mode State Transitions ──
   const handleSubmitPinAuthorization = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!selectedDeal || isAuthorizingCutting) return;
+    if (!selectedDeal || isAuthorizingCutting || isRecordingPayment || isVerifyingSpec) return;
 
     if (!enteredPin.trim()) {
-      setPinModalError('Please enter the Master Foundry PIN.');
+      setPinModalError('Please enter the Master Operator PIN.');
       pinInputRef.current?.focus();
       return;
     }
-
-    // Disable optimistic UI updates & display active status spinner
-    setIsAuthorizingCutting(true);
-    setPinModalError(null);
-    setPinModalStatus('Validating Ledger & Cryptographic Lock...');
-    setCuttingError(null);
-    setCuttingSuccessMsg(null);
 
     const orderId = selectedDeal.orderId || selectedDeal.id;
     const totalAmount = selectedDeal.currency === 'USD' ? selectedDeal.totalAmountUsd : selectedDeal.totalAmountBdt;
     const amountPaid = selectedDeal.currency === 'USD' ? selectedDeal.amountPaidUsd : selectedDeal.amountPaidBdt;
     const currency = selectedDeal.currency;
+
+    setPinModalError(null);
+    setCuttingError(null);
+    setCuttingSuccessMsg(null);
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // MODE 1: VERIFY TECH-PACK SPECIFICATION
+    // ──────────────────────────────────────────────────────────────────────────
+    if (pinModalMode === 'VERIFY_SPEC') {
+      setIsVerifyingSpec(true);
+      setPinModalStatus('Validating Master PIN & Cryptographically Locking Spec...');
+
+      try {
+        let usedFirebaseSdk = false;
+
+        // 1. Try Firebase callable
+        if (typeof window !== 'undefined' && (window as any).firebase && typeof (window as any).firebase.app === 'function') {
+          try {
+            const fbApp = (window as any).firebase.app();
+            if (typeof fbApp.functions === 'function') {
+              const functionsInstance = fbApp.functions('asia-east1');
+              const markSpecCallable = functionsInstance.httpsCallable('markSpecVerified');
+              await markSpecCallable({
+                orderId,
+                operatorPin: enteredPin.trim()
+              });
+              usedFirebaseSdk = true;
+            }
+          } catch (fbErr: any) {
+            if (fbErr?.code === 'permission-denied' || fbErr?.code === 'failed-precondition' || fbErr?.code === 'invalid-argument' || fbErr?.code === 'resource-exhausted') {
+              throw new Error(fbErr.message || 'Firebase Security Gate: Invalid Master PIN authorization.');
+            }
+            console.warn('[markSpecVerified] Firebase callable fallback:', fbErr);
+          }
+        }
+
+        // 2. Fallback to API endpoint mirror
+        if (!usedFirebaseSdk) {
+          const response = await fetch('/api/functions/markSpecVerified', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId,
+              operatorPin: enteredPin.trim(),
+              operatorUid: 'rakib.himon@gmail.com'
+            })
+          });
+
+          const data = await response.json();
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || 'Invalid Master PIN or rate-limit lockout.');
+          }
+        }
+
+        const nowIso = new Date().toISOString();
+        setDeals((prev) =>
+          prev.map((d) => {
+            if (d.id !== selectedDeal.id) return d;
+            return {
+              ...d,
+              specVerification: {
+                status: 'verified_by_human',
+                verifiedBy: 'rakib.himon@gmail.com',
+                verifiedAt: nowIso
+              },
+              notes: [
+                `[SPEC VERIFIED BY OPERATOR] Cryptographically confirmed by rakib.himon@gmail.com on ${new Date().toLocaleString()}`,
+                ...d.notes
+              ]
+            };
+          })
+        );
+
+        const newLog: AuditLogEntry = {
+          id: `LOG-SPEC-${Date.now().toString().slice(-6)}`,
+          timestamp: nowIso,
+          orderId,
+          operatorUid: 'rakib.himon@gmail.com',
+          amountPaid,
+          totalAmount,
+          currency,
+          result: 'AUTHORIZED',
+          message: `Tech-pack specification verified and locked by operator.`
+        };
+        setAuditLogs((prev) => [newLog, ...prev]);
+        setCuttingSuccessMsg(`✓ Tech-Pack Spec Verified! Operator PIN validated. Order ${orderId} is spec-locked for cutting.`);
+        setIsPinModalOpen(false);
+        setEnteredPin('');
+      } catch (err: any) {
+        const errMsg = err.message || 'Invalid Master PIN authorization.';
+        setPinModalError(errMsg);
+        setEnteredPin('');
+        setTimeout(() => pinInputRef.current?.focus(), 80);
+      } finally {
+        setIsVerifyingSpec(false);
+        setPinModalStatus(null);
+      }
+      return;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // MODE 2: RECORD PAYMENT EVENT (O(1) Append-Only Ledger)
+    // ──────────────────────────────────────────────────────────────────────────
+    if (pinModalMode === 'RECORD_PAYMENT') {
+      setIsRecordingPayment(true);
+      setPinModalStatus('Appending Ledger Event & Verifying Invariants...');
+
+      try {
+        const pAmount = Number(paymentAmountInput) || 0;
+        if (pAmount <= 0) {
+          throw new Error('Payment amount must be greater than zero.');
+        }
+
+        let resultData: any = null;
+        let usedFirebaseSdk = false;
+
+        // 1. Try Firebase callable
+        if (typeof window !== 'undefined' && (window as any).firebase && typeof (window as any).firebase.app === 'function') {
+          try {
+            const fbApp = (window as any).firebase.app();
+            if (typeof fbApp.functions === 'function') {
+              const functionsInstance = fbApp.functions('asia-east1');
+              const recordCallable = functionsInstance.httpsCallable('recordPaymentEvent');
+              const fbRes = await recordCallable({
+                orderId,
+                amount: pAmount,
+                method: paymentMethodInput,
+                referenceId: paymentReferenceInput || `TRX-${Date.now()}`,
+                idempotencyKey: currentIdempotencyKey,
+                operatorPin: enteredPin.trim(),
+                notes: paymentNotesInput || 'Advance payment'
+              });
+              resultData = fbRes.data;
+              usedFirebaseSdk = true;
+            }
+          } catch (fbErr: any) {
+            if (fbErr?.code === 'permission-denied' || fbErr?.code === 'failed-precondition' || fbErr?.code === 'invalid-argument' || fbErr?.code === 'resource-exhausted') {
+              throw new Error(fbErr.message || 'Firebase Security Gate: Payment event rejected.');
+            }
+            console.warn('[recordPaymentEvent] Firebase callable fallback:', fbErr);
+          }
+        }
+
+        // 2. Fallback to API endpoint mirror
+        if (!usedFirebaseSdk) {
+          const response = await fetch('/api/functions/recordPaymentEvent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId,
+              amount: pAmount,
+              method: paymentMethodInput,
+              referenceId: paymentReferenceInput || `TRX-${Date.now()}`,
+              idempotencyKey: currentIdempotencyKey,
+              operatorPin: enteredPin.trim(),
+              notes: paymentNotesInput || 'Advance payment'
+            })
+          });
+
+          const data = await response.json();
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || 'Failed to record payment event.');
+          }
+          resultData = data;
+        }
+
+        const nowIso = new Date().toISOString();
+        const updatedTotal = resultData?.runningTotalPaid !== undefined ? resultData.runningTotalPaid : (amountPaid + pAmount);
+        const updatedPaidUsd = currency === 'USD' ? updatedTotal : Math.round(updatedTotal / 120);
+        const updatedPaidBdt = currency === 'BDT' ? updatedTotal : Math.round(updatedTotal * 120);
+        const isNow50 = (currency === 'USD' ? updatedPaidUsd : updatedPaidBdt) >= 0.5 * (currency === 'USD' ? selectedDeal.totalAmountUsd : selectedDeal.totalAmountBdt);
+
+        setDeals((prev) =>
+          prev.map((d) => {
+            if (d.id !== selectedDeal.id) return d;
+            return {
+              ...d,
+              runningTotalPaid: updatedTotal,
+              amountPaidUsd: updatedPaidUsd,
+              amountPaidBdt: updatedPaidBdt,
+              stage: isNow50 ? '50% Advance Paid' : d.stage,
+              lastStageChangedAt: nowIso,
+              notes: [
+                `[PAYMENT LEDGER] ${paymentMethodInput} received: ${currency} ${pAmount.toLocaleString()} (Ref: ${paymentReferenceInput || 'N/A'}) on ${new Date().toLocaleString()}`,
+                ...d.notes
+              ]
+            };
+          })
+        );
+
+        const newLog: AuditLogEntry = {
+          id: `LOG-PAY-${Date.now().toString().slice(-6)}`,
+          timestamp: nowIso,
+          orderId,
+          operatorUid: 'rakib.himon@gmail.com',
+          amountPaid: updatedTotal,
+          totalAmount,
+          currency,
+          result: 'AUTHORIZED',
+          message: `Payment event committed: ${paymentMethodInput} ${currency} ${pAmount.toLocaleString()} (Ref: ${paymentReferenceInput}). Idempotency Key: ${currentIdempotencyKey}`
+        };
+        setAuditLogs((prev) => [newLog, ...prev]);
+        setCuttingSuccessMsg(`✓ Payment Recorded! ${currency} ${pAmount.toLocaleString()} committed to append-only ledger.`);
+        setIsPinModalOpen(false);
+        setEnteredPin('');
+      } catch (err: any) {
+        const errMsg = err.message || 'Failed to commit payment event.';
+        setPinModalError(errMsg);
+        setEnteredPin('');
+        setTimeout(() => pinInputRef.current?.focus(), 80);
+      } finally {
+        setIsRecordingPayment(false);
+        setPinModalStatus(null);
+      }
+      return;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // MODE 3: AUTHORIZE JIT CUTTING
+    // ──────────────────────────────────────────────────────────────────────────
+    setIsAuthorizingCutting(true);
+    setPinModalStatus('Validating Ledger & Cryptographic Lock...');
 
     try {
       let resultData: any = null;
@@ -772,8 +1087,7 @@ Hands & Head`;
             usedFirebaseSdk = true;
           }
         } catch (fbErr: any) {
-          // If server returned security error, throw directly without proxying
-          if (fbErr?.code === 'permission-denied' || fbErr?.code === 'failed-precondition' || fbErr?.code === 'invalid-argument') {
+          if (fbErr?.code === 'permission-denied' || fbErr?.code === 'failed-precondition' || fbErr?.code === 'invalid-argument' || fbErr?.code === 'resource-exhausted') {
             throw new Error(fbErr.message || 'Firebase Security Gate: Invalid Master PIN authorization.');
           }
           console.warn('[authorizeCutting] Firebase callable fallback to backend endpoint:', fbErr);
@@ -803,7 +1117,7 @@ Hands & Head`;
         resultData = data;
       }
 
-      // 3. Success: Server verified Master PIN, Idempotency, and >= 50% advance
+      // 3. Success: Server verified Master PIN, Idempotency, and >= 50% advance + Tech-Pack spec
       const nowIso = new Date().toISOString();
 
       setDeals((prev) =>
@@ -832,7 +1146,7 @@ Hands & Head`;
         totalAmount,
         currency,
         result: 'AUTHORIZED',
-        message: `JIT Cutting Authorized: Master PIN validated. Idempotency Key: ${currentIdempotencyKey}. Verified advance meets 50% threshold.`
+        message: `JIT Cutting Authorized: Master PIN validated. Idempotency Key: ${currentIdempotencyKey}. Invariants 1 & 2 verified.`
       };
 
       setAuditLogs((prev) => [newLog, ...prev]);
@@ -868,24 +1182,36 @@ Hands & Head`;
     }
   };
 
-  // ── Record Payment Advance Simulation ──
+  // ── Fast Payment Advance Simulation (with UUID Idempotency & Double-Click Guard) ──
   const handleRecordPayment = (targetAdvance: number) => {
-    if (!selectedDeal) return;
-    setDeals((prev) =>
-      prev.map((d) => {
-        if (d.id !== selectedDeal.id) return d;
-        const newPaidUsd = d.currency === 'USD' ? targetAdvance : Math.round(targetAdvance / 120);
-        const newPaidBdt = d.currency === 'BDT' ? targetAdvance : Math.round(targetAdvance * 120);
-        const nextStage = targetAdvance >= 0.5 * (d.currency === 'USD' ? d.totalAmountUsd : d.totalAmountBdt) ? '50% Advance Paid' : d.stage;
-        return {
-          ...d,
-          amountPaidUsd: newPaidUsd,
-          amountPaidBdt: newPaidBdt,
-          stage: nextStage,
-          lastStageChangedAt: new Date().toISOString()
-        };
-      })
-    );
+    if (!selectedDeal || isRecordingPayment || isAuthorizingCutting) return;
+    setIsRecordingPayment(true);
+    const idempKey = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `idem-sim-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
+    try {
+      setDeals((prev) =>
+        prev.map((d) => {
+          if (d.id !== selectedDeal.id) return d;
+          const newPaidUsd = d.currency === 'USD' ? targetAdvance : Math.round(targetAdvance / 120);
+          const newPaidBdt = d.currency === 'BDT' ? targetAdvance : Math.round(targetAdvance * 120);
+          const nextStage = targetAdvance >= 0.5 * (d.currency === 'USD' ? d.totalAmountUsd : d.totalAmountBdt) ? '50% Advance Paid' : d.stage;
+          return {
+            ...d,
+            runningTotalPaid: targetAdvance,
+            amountPaidUsd: newPaidUsd,
+            amountPaidBdt: newPaidBdt,
+            stage: nextStage,
+            lastStageChangedAt: new Date().toISOString()
+          };
+        })
+      );
+    } finally {
+      setTimeout(() => {
+        setIsRecordingPayment(false);
+      }, 200);
+    }
   };
 
   // ── Ingestion Engine: CSV / JSON Handler for 15,000 Historical & Apollo Records ──
@@ -1423,12 +1749,12 @@ Hands & Head`;
                   </div>
                 </div>
 
-                {/* 2. JIT Cash-Lock Status Bar */}
+                {/* 2. JIT Cash-Lock Status Bar & Dual Invariants */}
                 <div className="p-4 bg-[#161615] border border-[#222220] rounded-lg">
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#222220]">
+                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#222220]">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-white uppercase tracking-wider">
-                        JIT CASH-LOCK ENFORCEMENT
+                        JIT CASH-LOCK & INVARIANT GATES
                       </span>
                       {selectedDeal.status === 'cutting_authorized' ? (
                         <span className="px-2 py-0.5 rounded bg-[#00E599]/20 text-[#00E599] border border-[#00E599] text-[10px] font-bold">
@@ -1436,7 +1762,7 @@ Hands & Head`;
                         </span>
                       ) : (
                         <span className="px-2 py-0.5 rounded bg-[#FF5500]/20 text-[#FF5500] border border-[#FF5500] text-[10px] font-bold animate-pulse">
-                          🔒 AWAITING 50% ADVANCE DEPOSIT
+                          🔒 CUTTING LOCKED BY SERVER GATE
                         </span>
                       )}
                     </div>
@@ -1445,82 +1771,156 @@ Hands & Head`;
                     </div>
                   </div>
 
-                  {/* Advance calculation bar */}
                   {(() => {
                     const total = selectedDeal.currency === 'USD' ? selectedDeal.totalAmountUsd : selectedDeal.totalAmountBdt;
                     const paid = selectedDeal.currency === 'USD' ? selectedDeal.amountPaidUsd : selectedDeal.amountPaidBdt;
                     const req50 = total * 0.5;
                     const pct = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
                     const is50Met = paid >= req50;
+                    const isSpecVerified = selectedDeal.specVerification?.status === 'verified_by_human';
                     const curr = selectedDeal.currency;
 
                     return (
-                      <div className="flex flex-col gap-2">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-[#888884]">
-                            Total Contract: <strong className="text-white">{curr} {total.toLocaleString()}</strong>
-                          </span>
-                          <span className="text-[#888884]">
-                            50% Gate Threshold: <strong className="text-[#FF5500]">{curr} {req50.toLocaleString()}</strong>
-                          </span>
-                          <span className="text-[#888884]">
-                            Current Paid: <strong className={is50Met ? 'text-[#00E599]' : 'text-amber-400'}>{curr} {paid.toLocaleString()} ({pct}%)</strong>
-                          </span>
-                        </div>
-
-                        {/* Progress visualizer */}
-                        <div className="w-full bg-[#0D0D0C] h-2.5 rounded-full overflow-hidden border border-[#222220] relative">
-                          <div
-                            className={`h-full transition-all duration-500 ${is50Met ? 'bg-[#00E599]' : 'bg-[#FF5500]'}`}
-                            style={{ width: `${pct}%` }}
-                          />
-                          {/* 50% marker */}
-                          <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-white z-10" title="50% Advance Requirement" />
-                        </div>
-
-                        {/* Action Row */}
-                        <div className="flex flex-wrap items-center justify-between gap-2 mt-2 pt-2 border-t border-[#222220]">
-                          <div className="flex items-center gap-1.5 text-[11px]">
-                            <span className="text-[#777772]">Simulate Payment:</span>
+                      <div className="flex flex-col gap-3.5">
+                        {/* INVARIANT 1: CASH ADVANCE GATE (>= 50%) */}
+                        <div className="p-3 bg-[#0D0D0C] rounded border border-[#222220] flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-[#A0A09C] uppercase">
+                                INVARIANT 1: CASH ADVANCE LEDGER
+                              </span>
+                              <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${is50Met ? 'bg-[#00E599]/20 text-[#00E599] border border-[#00E599]/40' : 'bg-[#FF5500]/20 text-[#FF5500] border border-[#FF5500]/40'}`}>
+                                {is50Met ? '✓ ≥50% CLEARED' : '✕ INSUFFICIENT (<50%)'}
+                              </span>
+                            </div>
                             <button
                               type="button"
+                              id="btn-record-payment-open"
+                              disabled={isRecordingPayment || isAuthorizingCutting}
+                              onClick={handleOpenRecordPaymentModal}
+                              className="px-2.5 py-1 rounded bg-[#222220] hover:bg-[#2A2A28] border border-[#333330] hover:border-[#00E5FF] text-[#00E5FF] text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer disabled:opacity-40"
+                            >
+                              <span>💳</span>
+                              <span>RECORD PAYMENT TO LEDGER</span>
+                            </button>
+                          </div>
+
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-[#888884]">
+                              Total Contract: <strong className="text-white">{curr} {total.toLocaleString()}</strong>
+                            </span>
+                            <span className="text-[#888884]">
+                              50% Gate Threshold: <strong className="text-[#FF5500]">{curr} {req50.toLocaleString()}</strong>
+                            </span>
+                            <span className="text-[#888884]">
+                              Current Paid: <strong className={is50Met ? 'text-[#00E599]' : 'text-amber-400'}>{curr} {paid.toLocaleString()} ({pct}%)</strong>
+                            </span>
+                          </div>
+
+                          {/* Progress visualizer */}
+                          <div className="w-full bg-[#161615] h-2.5 rounded-full overflow-hidden border border-[#222220] relative">
+                            <div
+                              className={`h-full transition-all duration-500 ${is50Met ? 'bg-[#00E599]' : 'bg-[#FF5500]'}`}
+                              style={{ width: `${pct}%` }}
+                            />
+                            {/* 50% marker */}
+                            <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-white z-10" title="50% Advance Requirement" />
+                          </div>
+
+                          {/* Quick Simulate Buttons */}
+                          <div className="flex items-center gap-1.5 text-[11px] pt-1">
+                            <span className="text-[#777772]">Fast Simulation:</span>
+                            <button
+                              type="button"
+                              disabled={isRecordingPayment || isAuthorizingCutting}
                               onClick={() => handleRecordPayment(0)}
-                              className="px-2 py-0.5 bg-[#0D0D0C] hover:bg-[#222220] border border-[#333330] rounded text-[#888884] text-[10px]"
+                              className="px-2 py-0.5 bg-[#161615] hover:bg-[#222220] border border-[#333330] rounded text-[#888884] text-[10px] cursor-pointer disabled:opacity-40"
                             >
                               0%
                             </button>
                             <button
                               type="button"
+                              disabled={isRecordingPayment || isAuthorizingCutting}
                               onClick={() => handleRecordPayment(req50 * 0.5)}
-                              className="px-2 py-0.5 bg-[#0D0D0C] hover:bg-[#222220] border border-[#333330] rounded text-amber-400 text-[10px]"
+                              className="px-2 py-0.5 bg-[#161615] hover:bg-[#222220] border border-[#333330] rounded text-amber-400 text-[10px] cursor-pointer disabled:opacity-40"
                             >
                               25% (Block)
                             </button>
                             <button
                               type="button"
+                              disabled={isRecordingPayment || isAuthorizingCutting}
                               onClick={() => handleRecordPayment(req50)}
-                              className="px-2 py-0.5 bg-[#0D0D0C] hover:bg-[#222220] border border-[#00E599]/40 rounded text-[#00E599] text-[10px] font-bold"
+                              className="px-2 py-0.5 bg-[#161615] hover:bg-[#222220] border border-[#00E599]/40 rounded text-[#00E599] text-[10px] font-bold cursor-pointer disabled:opacity-40"
                             >
                               50% (Unlock)
                             </button>
                             <button
                               type="button"
+                              disabled={isRecordingPayment || isAuthorizingCutting}
                               onClick={() => handleRecordPayment(total)}
-                              className="px-2 py-0.5 bg-[#0D0D0C] hover:bg-[#222220] border border-[#00E599] rounded text-[#00E599] text-[10px] font-bold"
+                              className="px-2 py-0.5 bg-[#161615] hover:bg-[#222220] border border-[#00E599] rounded text-[#00E599] text-[10px] font-bold cursor-pointer disabled:opacity-40"
                             >
                               100% Paid
                             </button>
+                          </div>
+                        </div>
+
+                        {/* INVARIANT 2: TECH-PACK SPECIFICATION GATE */}
+                        <div className="p-3 bg-[#0D0D0C] rounded border border-[#222220] flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className={`w-7 h-7 rounded flex items-center justify-center text-xs font-bold ${isSpecVerified ? 'bg-[#00E599]/20 text-[#00E599] border border-[#00E599]/50' : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'}`}>
+                              {isSpecVerified ? '✓' : '⚠️'}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-white uppercase">INVARIANT 2: TECH-PACK SPECIFICATION</span>
+                                <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${isSpecVerified ? 'bg-[#00E599]/20 text-[#00E599]' : 'bg-amber-500/20 text-amber-400'}`}>
+                                  {isSpecVerified ? 'HUMAN VERIFIED' : 'PENDING OPERATOR SIGN-OFF'}
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-[#777772] mt-0.5">
+                                {isSpecVerified
+                                  ? `Verified by ${selectedDeal.specVerification?.verifiedBy || 'rakib.himon@gmail.com'} on ${new Date(selectedDeal.specVerification?.verifiedAt || Date.now()).toLocaleDateString()}`
+                                  : 'Cutting blocked until operator cryptographically validates pattern and stitch tolerances.'}
+                              </p>
+                            </div>
+                          </div>
+
+                          {!isSpecVerified && selectedDeal.status !== 'cutting_authorized' && (
+                            <button
+                              type="button"
+                              id="btn-verify-spec-open"
+                              disabled={isVerifyingSpec || isAuthorizingCutting}
+                              onClick={handleOpenSpecVerifyModal}
+                              className="px-3 py-1.5 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 whitespace-nowrap"
+                            >
+                              <span>🛡️</span>
+                              <span>VERIFY TECH-PACK SPEC</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {/* MASTER AUTHORIZATION ACTION ROW */}
+                        <div className="flex items-center justify-between gap-3 pt-2 border-t border-[#222220]">
+                          <div className="text-[11px] text-[#777772]">
+                            Dual Invariants: {is50Met && isSpecVerified ? (
+                              <span className="text-[#00E599] font-bold">✓ All Preconditions Satisfied</span>
+                            ) : (
+                              <span className="text-[#FF5500] font-bold">
+                                🔒 Preconditions Missing: {!is50Met && 'Advance < 50%'} {!is50Met && !isSpecVerified && ' · '} {!isSpecVerified && 'Spec Unverified'}
+                              </span>
+                            )}
                           </div>
 
                           <button
                             type="button"
                             id="btn-authorize-cutting"
-                            disabled={isAuthorizingCutting || selectedDeal.status === 'cutting_authorized'}
+                            disabled={isAuthorizingCutting || isRecordingPayment || isVerifyingSpec || selectedDeal.status === 'cutting_authorized'}
                             onClick={handleOpenPinModal}
-                            className={`px-4 py-2 rounded text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                            className={`px-4 py-2 rounded text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed ${
                               selectedDeal.status === 'cutting_authorized'
                                 ? 'bg-[#00E599]/20 text-[#00E599] border border-[#00E599] cursor-default'
-                                : is50Met
+                                : is50Met && isSpecVerified
                                 ? 'bg-[#00E599] text-black hover:bg-[#00c985] shadow-[0_0_15px_rgba(0,229,153,0.3)]'
                                 : 'bg-[#1C1C1A] text-[#888884] border border-[#333330] hover:border-[#FF5500] hover:text-[#FF5500]'
                             }`}
@@ -1531,13 +1931,13 @@ Hands & Head`;
 
                         {/* Error / Feedback notification */}
                         {cuttingError && (
-                          <div className="mt-2 p-2 rounded bg-[#FF5500]/15 border border-[#FF5500] text-xs text-[#FF5500] font-semibold flex items-center justify-between">
+                          <div className="mt-1 p-2.5 rounded bg-[#FF5500]/15 border border-[#FF5500] text-xs text-[#FF5500] font-semibold flex items-center justify-between">
                             <span>❌ {cuttingError}</span>
                             <span className="text-[10px] text-[#A0A09C]">Logged to /auditLogs</span>
                           </div>
                         )}
                         {cuttingSuccessMsg && (
-                          <div className="mt-2 p-2 rounded bg-[#00E599]/15 border border-[#00E599] text-xs text-[#00E599] font-semibold flex items-center justify-between">
+                          <div className="mt-1 p-2.5 rounded bg-[#00E599]/15 border border-[#00E599] text-xs text-[#00E599] font-semibold flex items-center justify-between">
                             <span>{cuttingSuccessMsg}</span>
                             <span className="text-[10px] text-white">productionUnlockedAt logged</span>
                           </div>
@@ -2117,25 +2517,39 @@ Hands & Head`;
             <div className="flex items-center justify-between pb-3 border-b border-[#222220]">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded bg-[#FF5500]/20 border border-[#FF5500]/60 flex items-center justify-center text-[#FF5500] text-sm font-bold shadow-[0_0_12px_rgba(255,85,0,0.2)]">
-                  🔒
+                  {pinModalMode === 'VERIFY_SPEC' ? '🛡️' : pinModalMode === 'RECORD_PAYMENT' ? '💳' : '🔒'}
                 </div>
                 <div>
                   <h3 className="text-sm font-bold tracking-wider text-white uppercase flex items-center gap-2">
-                    <span>ENTER MASTER FOUNDRY PIN</span>
+                    <span>
+                      {pinModalMode === 'VERIFY_SPEC'
+                        ? 'VERIFY TECH-PACK SPEC'
+                        : pinModalMode === 'RECORD_PAYMENT'
+                        ? 'RECORD PAYMENT EVENT'
+                        : 'ENTER MASTER FOUNDRY PIN'}
+                    </span>
                     <span className="px-1.5 py-0.2 rounded text-[9px] bg-[#FF5500]/20 text-[#FF5500] border border-[#FF5500]/40 font-mono">
-                      GATEWAY
+                      {pinModalMode === 'VERIFY_SPEC'
+                        ? 'SPEC GATE'
+                        : pinModalMode === 'RECORD_PAYMENT'
+                        ? 'LEDGER GATE'
+                        : 'JIT GATEWAY'}
                     </span>
                   </h3>
                   <p className="text-[10px] text-[#A0A09C]">
-                    Zero-leak cryptographic gate verified in Cloud Functions
+                    {pinModalMode === 'VERIFY_SPEC'
+                      ? 'Cryptographic human sign-off for manufacturing patterns & tolerances'
+                      : pinModalMode === 'RECORD_PAYMENT'
+                      ? 'Append-only financial transaction with atomic ledger updates'
+                      : 'Zero-leak cryptographic gate verified in Cloud Functions'}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 id="btn-close-pin-modal"
-                onClick={() => !isAuthorizingCutting && setIsPinModalOpen(false)}
-                disabled={isAuthorizingCutting}
+                onClick={() => !isAuthorizingCutting && !isRecordingPayment && !isVerifyingSpec && setIsPinModalOpen(false)}
+                disabled={isAuthorizingCutting || isRecordingPayment || isVerifyingSpec}
                 className="text-[#777772] hover:text-white text-base cursor-pointer disabled:opacity-50 transition-colors"
               >
                 ✕
@@ -2150,6 +2564,7 @@ Hands & Head`;
               const req50 = 0.5 * total;
               const pct = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
               const is50Met = paid >= req50;
+              const isSpecVerified = selectedDeal.specVerification?.status === 'verified_by_human';
 
               return (
                 <div className="p-3 bg-[#0D0D0C] rounded border border-[#222220] flex flex-col gap-1.5 text-xs font-mono">
@@ -2161,16 +2576,62 @@ Hands & Head`;
                     <span className="text-[#777772]">CLIENT:</span>
                     <span className="text-white truncate max-w-[220px]">{selectedDeal.companyName}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#777772]">CONTRACT TOTAL:</span>
-                    <span className="text-white font-bold">{curr} {total.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#777772]">VERIFIED ADVANCE:</span>
-                    <span className={is50Met ? 'text-[#00E599] font-bold' : 'text-[#FF5500] font-bold'}>
-                      {curr} {paid.toLocaleString()} ({pct}%) {is50Met ? '✓ ≥50%' : '✕ <50%'}
-                    </span>
-                  </div>
+
+                  {pinModalMode === 'AUTHORIZE_CUTTING' && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-[#777772]">CONTRACT TOTAL:</span>
+                        <span className="text-white font-bold">{curr} {total.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#777772]">INVARIANT 1 (ADVANCE):</span>
+                        <span className={is50Met ? 'text-[#00E599] font-bold' : 'text-[#FF5500] font-bold'}>
+                          {curr} {paid.toLocaleString()} ({pct}%) {is50Met ? '✓ ≥50%' : '✕ <50%'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#777772]">INVARIANT 2 (SPEC):</span>
+                        <span className={isSpecVerified ? 'text-[#00E599] font-bold' : 'text-amber-400 font-bold'}>
+                          {isSpecVerified ? '✓ HUMAN VERIFIED' : '✕ PENDING OPERATOR SIGN-OFF'}
+                        </span>
+                      </div>
+                    </>
+                  )}
+
+                  {pinModalMode === 'VERIFY_SPEC' && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-[#777772]">SPEC TARGET:</span>
+                        <span className="text-white font-bold">{selectedDeal.intel?.pitchOpportunity?.slice(0, 35) || 'B2B Custom Production'}...</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#777772]">OPERATOR UID:</span>
+                        <span className="text-[#00E5FF]">rakib.himon@gmail.com</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#777772]">LOCK ACTION:</span>
+                        <span className="text-[#00E599] font-bold">specVerification.status: verified_by_human</span>
+                      </div>
+                    </>
+                  )}
+
+                  {pinModalMode === 'RECORD_PAYMENT' && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-[#777772]">CONTRACT TOTAL:</span>
+                        <span className="text-white font-bold">{curr} {total.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#777772]">CURRENT DEPOSITED:</span>
+                        <span className="text-[#00E5FF] font-bold">{curr} {paid.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#777772]">50% TARGET:</span>
+                        <span className="text-[#FF5500] font-bold">{curr} {req50.toLocaleString()}</span>
+                      </div>
+                    </>
+                  )}
+
                   <div className="flex justify-between pt-1 border-t border-[#1C1C1A] text-[10px]">
                     <span className="text-[#555552]">IDEMPOTENCY KEY:</span>
                     <span className="text-[#888884] font-mono truncate max-w-[200px]">{currentIdempotencyKey}</span>
@@ -2178,6 +2639,71 @@ Hands & Head`;
                 </div>
               );
             })()}
+
+            {/* Mode 2 Additional Form Fields: Payment Details */}
+            {pinModalMode === 'RECORD_PAYMENT' && (
+              <div className="p-3 bg-[#0D0D0C] rounded border border-[#222220] flex flex-col gap-2.5 text-xs">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#888884] uppercase mb-1">
+                      Amount ({selectedDeal.currency})
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      disabled={isRecordingPayment}
+                      value={paymentAmountInput}
+                      onChange={(e) => setPaymentAmountInput(Number(e.target.value))}
+                      className="w-full px-2.5 py-1.5 bg-[#161615] border border-[#333330] rounded text-white font-mono focus:outline-none focus:border-[#00E5FF]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#888884] uppercase mb-1">
+                      Payment Method
+                    </label>
+                    <select
+                      disabled={isRecordingPayment}
+                      value={paymentMethodInput}
+                      onChange={(e) => setPaymentMethodInput(e.target.value as any)}
+                      className="w-full px-2.5 py-1.5 bg-[#161615] border border-[#333330] rounded text-white font-mono focus:outline-none focus:border-[#00E5FF]"
+                    >
+                      <option value="BANK_TT">BANK T/T (Swift / Wire)</option>
+                      <option value="BKASH">BKASH (Merchant Deposit)</option>
+                      <option value="CASH">CASH (Counter Deposit)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#888884] uppercase mb-1">
+                      Reference / TrxID
+                    </label>
+                    <input
+                      type="text"
+                      disabled={isRecordingPayment}
+                      value={paymentReferenceInput}
+                      onChange={(e) => setPaymentReferenceInput(e.target.value)}
+                      placeholder="e.g. SWIFT-MT103 / TRX-89123"
+                      className="w-full px-2.5 py-1.5 bg-[#161615] border border-[#333330] rounded text-white font-mono text-[11px] focus:outline-none focus:border-[#00E5FF]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#888884] uppercase mb-1">
+                      Ledger Memo
+                    </label>
+                    <input
+                      type="text"
+                      disabled={isRecordingPayment}
+                      value={paymentNotesInput}
+                      onChange={(e) => setPaymentNotesInput(e.target.value)}
+                      placeholder="e.g. Advance tranche 1"
+                      className="w-full px-2.5 py-1.5 bg-[#161615] border border-[#333330] rounded text-white font-mono text-[11px] focus:outline-none focus:border-[#00E5FF]"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Error / Alert */}
             {pinModalError && (
@@ -2187,7 +2713,7 @@ Hands & Head`;
               >
                 <span className="text-sm">⚠️</span>
                 <div>
-                  <div className="font-bold">AUTHENTICATION REJECTED</div>
+                  <div className="font-bold">SECURITY GATE REJECTION</div>
                   <div className="text-[11px] text-[#FF8855] mt-0.5">{pinModalError}</div>
                 </div>
               </div>
@@ -2215,14 +2741,14 @@ Hands & Head`;
                   id="master-operator-pin-input"
                   type="password"
                   autoFocus
-                  disabled={isAuthorizingCutting}
+                  disabled={isAuthorizingCutting || isRecordingPayment || isVerifyingSpec}
                   value={enteredPin}
                   onChange={(e) => setEnteredPin(e.target.value)}
                   placeholder="••••••••"
                   className="w-full px-3.5 py-2.5 bg-[#0D0D0C] border border-[#333330] rounded text-white text-base font-mono tracking-[0.3em] focus:outline-none focus:border-[#00E599] transition-colors disabled:opacity-50 placeholder:tracking-normal placeholder:text-sm placeholder:text-[#555552]"
                 />
                 <p className="text-[10px] text-[#777772] mt-1.5">
-                  Stored strictly in Cloud Functions secret manager. Never exposed or hardcoded in client source.
+                  Verified strictly in Cloud Functions secret manager. Protected by 5-attempt / 15-min brute-force rate limit.
                 </p>
               </div>
 
@@ -2231,7 +2757,7 @@ Hands & Head`;
                 <button
                   type="button"
                   id="btn-cancel-pin-modal"
-                  disabled={isAuthorizingCutting}
+                  disabled={isAuthorizingCutting || isRecordingPayment || isVerifyingSpec}
                   onClick={() => setIsPinModalOpen(false)}
                   className="px-3.5 py-2 rounded text-xs font-bold text-[#888884] hover:text-white bg-[#0D0D0C] border border-[#222220] hover:border-[#333330] cursor-pointer disabled:opacity-50 transition-colors"
                 >
@@ -2240,16 +2766,34 @@ Hands & Head`;
                 <button
                   type="submit"
                   id="btn-submit-pin-authorization"
-                  disabled={isAuthorizingCutting || !enteredPin.trim()}
-                  className="px-4 py-2 rounded text-xs font-bold bg-[#00E599] text-black hover:bg-[#00c985] disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,229,153,0.3)] transition-all flex items-center gap-1.5 cursor-pointer"
+                  disabled={isAuthorizingCutting || isRecordingPayment || isVerifyingSpec || !enteredPin.trim()}
+                  className={`px-4 py-2 rounded text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                    pinModalMode === 'VERIFY_SPEC'
+                      ? 'bg-amber-500 text-black hover:bg-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)]'
+                      : pinModalMode === 'RECORD_PAYMENT'
+                      ? 'bg-[#00E5FF] text-black hover:bg-[#00c9e0] shadow-[0_0_15px_rgba(0,229,255,0.3)]'
+                      : 'bg-[#00E599] text-black hover:bg-[#00c985] shadow-[0_0_15px_rgba(0,229,153,0.3)]'
+                  }`}
                 >
-                  {isAuthorizingCutting ? (
+                  {isAuthorizingCutting || isRecordingPayment || isVerifyingSpec ? (
                     <>
                       <span className="animate-spin text-xs">⏳</span>
-                      <span>VALIDATING LOCK...</span>
+                      <span>
+                        {pinModalMode === 'VERIFY_SPEC'
+                          ? 'VERIFYING SPEC...'
+                          : pinModalMode === 'RECORD_PAYMENT'
+                          ? 'COMMITTING PAYMENT...'
+                          : 'VALIDATING LOCK...'}
+                      </span>
                     </>
                   ) : (
-                    <span>UNLOCK JIT PRODUCTION</span>
+                    <span>
+                      {pinModalMode === 'VERIFY_SPEC'
+                        ? 'VERIFY & LOCK SPEC'
+                        : pinModalMode === 'RECORD_PAYMENT'
+                        ? 'COMMIT PAYMENT TO LEDGER'
+                        : 'UNLOCK JIT PRODUCTION'}
+                    </span>
                   )}
                 </button>
               </div>

@@ -3934,8 +3934,99 @@ app.post('/api/data-quality/flag-customer', (req, res) => {
 });
 
 /* ── 5. B2B Deal Engine: 2nd-Gen Cloud Function Mirror Endpoints ── */
-// In-memory idempotency cache for local server
+// In-memory rate limiting & idempotency cache for local server
 const localIdempotencyCache = new Map();
+const localRateLimitMap = new Map();
+
+function checkServerRateLimit(callerId) {
+  const entry = localRateLimitMap.get(callerId);
+  if (!entry) return null;
+  const fifteenMinutesMs = 15 * 60 * 1000;
+  if (entry.failedAttempts >= 5 && Date.now() - entry.lastFailedAt < fifteenMinutesMs) {
+    const remainingMinutes = Math.ceil((fifteenMinutesMs - (Date.now() - entry.lastFailedAt)) / 60000);
+    return `Security lockout: Max PIN attempts exceeded. Try again in ${remainingMinutes || 15} minutes.`;
+  }
+  return null;
+}
+
+function recordServerFailedAttempt(callerId) {
+  const entry = localRateLimitMap.get(callerId) || { failedAttempts: 0 };
+  const fifteenMinutesMs = 15 * 60 * 1000;
+  let count = 1;
+  if (entry.lastFailedAt && Date.now() - entry.lastFailedAt < fifteenMinutesMs) {
+    count = entry.failedAttempts + 1;
+  }
+  localRateLimitMap.set(callerId, { failedAttempts: count, lastFailedAt: Date.now() });
+  return count;
+}
+
+function resetServerRateLimit(callerId) {
+  localRateLimitMap.delete(callerId);
+}
+
+// POST /api/functions/markSpecVerified
+app.post('/api/functions/markSpecVerified', (req, res) => {
+  try {
+    const { orderId, operatorPin, operatorUid = 'rakib.himon@gmail.com' } = req.body || {};
+    const callerId = req.ip || 'local_caller';
+
+    if (!orderId) {
+      return res.status(400).json({ ok: false, error: 'A valid "orderId" string is required.' });
+    }
+
+    const rateLock = checkServerRateLimit(callerId);
+    if (rateLock) {
+      return res.status(429).json({ ok: false, code: 'resource-exhausted', error: rateLock });
+    }
+
+    const masterPin = process.env.MASTER_OPERATOR_PIN || process.env.OPERATOR_PIN;
+    if (masterPin && operatorPin !== masterPin) {
+      const attempts = recordServerFailedAttempt(callerId);
+      return res.status(403).json({
+        ok: false,
+        code: 'permission-denied',
+        error: `Invalid Master PIN authorization (Attempt ${attempts}/5).`
+      });
+    }
+
+    resetServerRateLimit(callerId);
+
+    const orders = safeReadJson(ORDERS_FILE, []);
+    const orderIndex = orders.findIndex(o => o.id === orderId || o.orderNumber === orderId);
+    const nowIso = new Date().toISOString();
+
+    if (orderIndex !== -1) {
+      const order = orders[orderIndex];
+      order.specVerification = {
+        status: 'verified_by_human',
+        verifiedBy: operatorUid,
+        verifiedAt: nowIso
+      };
+      if (order.techPack) {
+        order.techPack.status = 'verified_by_human';
+      }
+      order.techPackStatus = 'verified_by_human';
+      order.updatedAt = nowIso;
+      safeWriteJson(ORDERS_FILE, orders);
+    }
+
+    res.json({
+      ok: true,
+      message: `Specs for order ${orderId} verified by human operator.`,
+      data: {
+        orderId,
+        specVerification: {
+          status: 'verified_by_human',
+          verifiedBy: operatorUid,
+          verifiedAt: nowIso
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Error in markSpecVerified endpoint:', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
 
 // POST /api/functions/authorizeCutting
 app.post('/api/functions/authorizeCutting', (req, res) => {
@@ -3954,22 +4045,37 @@ app.post('/api/functions/authorizeCutting', (req, res) => {
       return res.status(400).json({ ok: false, error: 'The function must be called with a valid "orderId" string.' });
     }
 
-    // 1. Validate Master PIN
+    const callerId = req.ip || 'local_caller';
+
+    // 1. Rate Limit Lockout Check
+    const rateLock = checkServerRateLimit(callerId);
+    if (rateLock) {
+      return res.status(429).json({ ok: false, code: 'resource-exhausted', error: rateLock });
+    }
+
+    // 2. Validate Master PIN
     const masterPin = process.env.MASTER_OPERATOR_PIN || process.env.OPERATOR_PIN;
     if (masterPin && operatorPin !== masterPin) {
-      console.warn(`[authorizeCutting] Unauthorized attempt on order ${orderId}: Invalid PIN`);
+      const attempts = recordServerFailedAttempt(callerId);
+      console.warn(`[authorizeCutting] Unauthorized attempt on order ${orderId}: Invalid PIN (Attempt ${attempts}/5)`);
       return res.status(403).json({
         ok: false,
         code: 'permission-denied',
-        error: 'Invalid Master PIN authorization.'
+        error: `Invalid Master PIN authorization (Attempt ${attempts}/5).`
       });
     }
 
-    // 2. Idempotency Gate
-    if (idempotencyKey) {
-      const cached = localIdempotencyCache.get(idempotencyKey);
+    resetServerRateLimit(callerId);
+
+    // 3. Order-Bound Idempotency Gate
+    const scopedKey = idempotencyKey ? `${orderId}__${idempotencyKey}` : null;
+    if (scopedKey) {
+      const cached = localIdempotencyCache.get(scopedKey);
       if (cached && Date.now() < cached.expiresAt) {
-        console.log(`[authorizeCutting] Returning cached idempotent result for key: ${idempotencyKey}`);
+        if (cached.orderId && cached.orderId !== orderId) {
+          return res.status(400).json({ ok: false, code: 'invalid-argument', error: 'Idempotency key scope violation.' });
+        }
+        console.log(`[authorizeCutting] Returning cached idempotent result for scoped key: ${scopedKey}`);
         return res.json({
           ok: true,
           message: 'Order cutting authorized (cached idempotent response)',
@@ -3978,14 +4084,14 @@ app.post('/api/functions/authorizeCutting', (req, res) => {
       }
     }
 
-    // 3. Read order from storage if exists, or use client payload
+    // 4. Single Document Read O(1)
     const orders = safeReadJson(ORDERS_FILE, []);
     const orderIndex = orders.findIndex(o => o.id === orderId || o.orderNumber === orderId);
     let order = orderIndex !== -1 ? orders[orderIndex] : null;
 
     // AI Sanity Gate
-    const techPack = order?.techPack;
-    if (techPack && techPack.status === 'pending_ai_review') {
+    const specStatus = order?.specVerification?.status || order?.techPack?.status || order?.techPackStatus;
+    if (specStatus === 'pending_ai_review') {
       return res.status(412).json({
         ok: false,
         code: 'failed-precondition',
@@ -3993,9 +4099,17 @@ app.post('/api/functions/authorizeCutting', (req, res) => {
       });
     }
 
-    // Financial Ledger Check
+    if (specStatus && specStatus !== 'verified_by_human') {
+      return res.status(412).json({
+        ok: false,
+        code: 'failed-precondition',
+        error: `Specs must be explicitly confirmed before cutting. Status must be "verified_by_human" (found: "${specStatus}").`
+      });
+    }
+
+    // Financial Invariant Check on O(1) Running Total Paid
     const total = order ? Number(order.totalAmount ?? order.total ?? order.grandTotal ?? 0) : Number(clientTotal || 0);
-    const paid = order ? Number(order.payment?.amountPaid ?? order.amountPaid ?? order.paidAmount ?? 0) : Number(clientPaid || 0);
+    const paid = order ? Number(order.runningTotalPaid ?? order.totalAmountPaid ?? order.amountPaid ?? order.paidAmount ?? 0) : Number(clientPaid || 0);
     const required50 = 0.5 * total;
 
     // Strict 50% advance deposit gate check
@@ -4034,8 +4148,9 @@ app.post('/api/functions/authorizeCutting', (req, res) => {
       operatorUid
     };
 
-    if (idempotencyKey) {
-      localIdempotencyCache.set(idempotencyKey, {
+    if (scopedKey) {
+      localIdempotencyCache.set(scopedKey, {
+        orderId,
         expiresAt: Date.now() + 24 * 60 * 60 * 1000,
         data: responseData
       });
@@ -4061,25 +4176,54 @@ app.post('/api/functions/recordPaymentEvent', (req, res) => {
       amount,
       method,
       referenceId,
+      idempotencyKey,
       notes,
       operatorPin,
       operatorUid = 'nexus.operator@handsandhead.com'
     } = req.body || {};
 
+    const callerId = req.ip || 'local_caller';
+
+    // 1. Rate Limit Lockout Check
+    const rateLock = checkServerRateLimit(callerId);
+    if (rateLock) {
+      return res.status(429).json({ ok: false, code: 'resource-exhausted', error: rateLock });
+    }
+
+    // 2. Validate Master PIN
     const masterPin = process.env.MASTER_OPERATOR_PIN || process.env.OPERATOR_PIN;
     if (masterPin && operatorPin !== masterPin) {
+      const attempts = recordServerFailedAttempt(callerId);
       return res.status(403).json({
         ok: false,
         code: 'permission-denied',
-        error: 'Invalid Master PIN authorization.'
+        error: `Invalid Master PIN authorization (Attempt ${attempts}/5).`
       });
     }
+
+    resetServerRateLimit(callerId);
 
     if (!orderId || !amount || !method || !referenceId) {
       return res.status(400).json({
         ok: false,
         error: 'Missing required fields: orderId, amount, method, referenceId are required.'
       });
+    }
+
+    // 3. Scoped Idempotency Check
+    const scopedKey = idempotencyKey ? `${orderId}__${idempotencyKey}` : null;
+    if (scopedKey) {
+      const cached = localIdempotencyCache.get(scopedKey);
+      if (cached && Date.now() < cached.expiresAt) {
+        if (cached.orderId && cached.orderId !== orderId) {
+          return res.status(400).json({ ok: false, code: 'invalid-argument', error: 'Idempotency key scope violation.' });
+        }
+        return res.json({
+          ok: true,
+          message: 'Payment recorded (cached idempotent response)',
+          data: cached.data
+        });
+      }
     }
 
     const orders = safeReadJson(ORDERS_FILE, []);
@@ -4089,8 +4233,9 @@ app.post('/api/functions/recordPaymentEvent', (req, res) => {
     let newTotalPaid = Number(amount);
     if (orderIndex !== -1) {
       const order = orders[orderIndex];
-      const prevPaid = Number(order.amountPaid ?? order.payment?.amountPaid ?? 0);
+      const prevPaid = Number(order.runningTotalPaid ?? order.amountPaid ?? order.payment?.amountPaid ?? 0);
       newTotalPaid = prevPaid + Number(amount);
+      order.runningTotalPaid = newTotalPaid;
       order.amountPaid = newTotalPaid;
       order.totalAmountPaid = newTotalPaid;
       order.payment = order.payment || {};
@@ -4099,16 +4244,27 @@ app.post('/api/functions/recordPaymentEvent', (req, res) => {
       safeWriteJson(ORDERS_FILE, orders);
     }
 
+    const responseData = {
+      orderId,
+      amount: Number(amount),
+      method,
+      referenceId,
+      runningTotalPaid: newTotalPaid,
+      totalAmountPaid: newTotalPaid
+    };
+
+    if (scopedKey) {
+      localIdempotencyCache.set(scopedKey, {
+        orderId,
+        expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+        data: responseData
+      });
+    }
+
     res.json({
       ok: true,
       message: `Payment event committed to immutable ledger. Total verified paid: ${newTotalPaid}.`,
-      data: {
-        orderId,
-        amount: Number(amount),
-        method,
-        referenceId,
-        totalAmountPaid: newTotalPaid
-      }
+      data: responseData
     });
   } catch (err) {
     console.error('Error in recordPaymentEvent endpoint:', err);
