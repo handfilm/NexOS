@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import TechPackPOEngine from './components/TechPackPOEngine';
 import VoicePOIngestion from './components/VoicePOIngestion';
 import CorporateSupplies from './components/CorporateSupplies';
+import LogisticsSettlementHub from './components/LogisticsSettlementHub';
 import { ExtractedPOSpec } from './components/VoicePOIngestion';
 
 export interface AppProps {
@@ -17,13 +18,16 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       if (hash === 'VOICEINGEST' || hash === 'VOICE_INGEST' || hash === 'VOICE') return 'VOICEINGEST';
       if (hash === 'TECHPACK' || hash === 'TECHPACKPO' || hash === 'TECHPACK_PO') return 'TECHPACK';
       if (hash === 'CORPORATESUPPLIES' || hash === 'CORPORATE_SUPPLIES' || hash === 'CORPORATE') return 'CORPORATESUPPLIES';
+      if (hash === 'LOGISTICS' || hash === 'LOGISTICS_HUB' || hash === 'SETTLEMENT' || hash === 'LOGISTICSSETTLEMENTHUB') return 'LOGISTICS';
     }
     return 'DEFAULT';
   });
 
   const [isTechPackOpen, setIsTechPackOpen] = useState<boolean>(false);
   const [isVoiceIngestOpen, setIsVoiceIngestOpen] = useState<boolean>(false);
+  const [isLogisticsOpen, setIsLogisticsOpen] = useState<boolean>(false);
   const [preSelectedCustomer, setPreSelectedCustomer] = useState<any | null>(null);
+  const [preSelectedLogisticsOrder, setPreSelectedLogisticsOrder] = useState<any | null>(null);
   const [lastExtractedSpec, setLastExtractedSpec] = useState<ExtractedPOSpec | null>(null);
   const [toastNotification, setToastNotification] = useState<string | null>(null);
 
@@ -33,6 +37,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     }
     setIsTechPackOpen(true);
     setIsVoiceIngestOpen(false);
+    setIsLogisticsOpen(false);
   }, []);
 
   const closeTechPack = useCallback(() => {
@@ -43,10 +48,25 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
   const openVoiceIngest = useCallback(() => {
     setIsVoiceIngestOpen(true);
     setIsTechPackOpen(false);
+    setIsLogisticsOpen(false);
   }, []);
 
   const closeVoiceIngest = useCallback(() => {
     setIsVoiceIngestOpen(false);
+  }, []);
+
+  const openLogistics = useCallback((order?: any) => {
+    if (order) {
+      setPreSelectedLogisticsOrder(order);
+    }
+    setIsLogisticsOpen(true);
+    setIsTechPackOpen(false);
+    setIsVoiceIngestOpen(false);
+  }, []);
+
+  const closeLogistics = useCallback(() => {
+    setIsLogisticsOpen(false);
+    setPreSelectedLogisticsOrder(null);
   }, []);
 
   const handleVoiceSpecExtracted = useCallback((spec: ExtractedPOSpec) => {
@@ -79,13 +99,22 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       closeVoiceIngest();
     };
 
+    (window as any).openLogisticsSettlementHub = (order?: any) => {
+      openLogistics(order);
+    };
+    (window as any).closeLogisticsSettlementHub = () => {
+      closeLogistics();
+    };
+
     (window as any).NexusApp = {
       openTechPack,
       closeTechPack,
       openVoiceIngest,
       closeVoiceIngest,
+      openLogistics,
+      closeLogistics,
       navigate: (route: string) => setCurrentRoute(route),
-      getState: () => ({ isTechPackOpen, isVoiceIngestOpen, currentRoute, lastExtractedSpec })
+      getState: () => ({ isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, currentRoute, lastExtractedSpec })
     };
 
     const handleOpenTechPackEvent = (e: any) => {
@@ -96,6 +125,10 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     };
     const handleOpenCorporateEvent = () => {
       setCurrentRoute('CORPORATESUPPLIES');
+    };
+    const handleOpenLogisticsEvent = (e: any) => {
+      const order = e.detail?.order || e.detail;
+      openLogistics(order);
     };
     const handleNavigateEvent = (e: any) => {
       const target = (e.detail?.route || e.detail || '').toString().toUpperCase();
@@ -110,12 +143,15 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         setCurrentRoute('TECHPACK');
       } else if (hash === 'CORPORATESUPPLIES' || hash === 'CORPORATE_SUPPLIES' || hash === 'CORPORATE') {
         setCurrentRoute('CORPORATESUPPLIES');
+      } else if (hash === 'LOGISTICS' || hash === 'LOGISTICS_HUB' || hash === 'SETTLEMENT' || hash === 'LOGISTICSSETTLEMENTHUB') {
+        setCurrentRoute('LOGISTICS');
       }
     };
 
     window.addEventListener('nexus:open-techpack', handleOpenTechPackEvent);
     window.addEventListener('nexus:open-voice', handleOpenVoiceEvent);
     window.addEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
+    window.addEventListener('nexus:open-logistics', handleOpenLogisticsEvent);
     window.addEventListener('nexus:navigate', handleNavigateEvent);
     window.addEventListener('hashchange', handleHashChange);
 
@@ -123,10 +159,11 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       window.removeEventListener('nexus:open-techpack', handleOpenTechPackEvent);
       window.removeEventListener('nexus:open-voice', handleOpenVoiceEvent);
       window.removeEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
+      window.removeEventListener('nexus:open-logistics', handleOpenLogisticsEvent);
       window.removeEventListener('nexus:navigate', handleNavigateEvent);
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, isTechPackOpen, isVoiceIngestOpen, currentRoute, lastExtractedSpec]);
+  }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, openLogistics, closeLogistics, isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, currentRoute, lastExtractedSpec]);
 
   // View switch/case rendering
   const renderCurrentView = () => {
@@ -208,6 +245,21 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         return (
           <div className="corporate-router-view w-full">
             <CorporateSupplies />
+          </div>
+        );
+
+      case 'LOGISTICS':
+      case 'LOGISTICS_HUB':
+      case 'LOGISTICSSETTLEMENTHUB':
+      case 'LOGISTICS_SETTLEMENT':
+      case 'SETTLEMENT':
+        return (
+          <div className="logistics-router-view max-w-7xl mx-auto my-4">
+            <LogisticsSettlementHub
+              initialOrder={preSelectedLogisticsOrder}
+              mode="embedded"
+              onClose={() => setCurrentRoute('DEFAULT')}
+            />
           </div>
         );
 
@@ -310,6 +362,25 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
                 autoPopulateOnReady={true}
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Logistics & COD Settlement Dock (Modal Mode) ── */}
+      {isLogisticsOpen && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-md overflow-y-auto"
+          onClick={closeLogistics}
+        >
+          <div
+            className="relative w-full max-w-6xl overflow-hidden flex flex-col my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <LogisticsSettlementHub
+              initialOrder={preSelectedLogisticsOrder}
+              mode="modal"
+              onClose={closeLogistics}
+            />
           </div>
         </div>
       )}

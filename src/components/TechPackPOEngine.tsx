@@ -1483,6 +1483,43 @@ export const TechPackPOEngine: React.FC<TechPackPOEngineProps> = ({
                 <span>{copiedSpec ? '✓' : '📄'}</span>
                 <span>{copiedSpec ? 'SPEC COPIED TO CLIPBOARD' : 'COPY RAW SPEC'}</span>
               </button>
+
+              {/* Action 4: Dispatch via Logistics & COD Settlement Hub */}
+              <button
+                type="button"
+                onClick={() => {
+                  const currentSpecData = {
+                    id: poNumber,
+                    poNumber,
+                    buyerName: activeBuyer.name || 'Valued Buyer',
+                    buyerPhone: activeBuyer.phone || '',
+                    companyName: activeBuyer.companyName || '',
+                    deliveryAddress: activeBuyer.address || 'Dhaka, Bangladesh',
+                    styleName: styleName || category,
+                    category,
+                    quantity: totalQuantity,
+                    unitFobPrice: unitPrice,
+                    currency,
+                    orderTotal: totalOrderValue,
+                    weightKg: totalEstimatedWeightKg,
+                    advancePct: 50,
+                    advanceRequired: Math.round((totalOrderValue * 50) / 100),
+                    advancePaid: 0,
+                    balanceDue: totalOrderValue,
+                    codAmount: totalOrderValue,
+                    notes: `Fabric/Leather: ${fabricLeatherType} | Color: ${colorway} | PO: ${poNumber}`
+                  };
+                  if (typeof (window as any).openLogisticsSettlementHub === 'function') {
+                    (window as any).openLogisticsSettlementHub(currentSpecData);
+                  } else {
+                    window.dispatchEvent(new CustomEvent('nexus:open-logistics', { detail: { order: currentSpecData } }));
+                  }
+                }}
+                className="w-full bg-[#FF4400] hover:bg-[#E03A00] text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
+              >
+                <span>🚚</span>
+                <span>LOGISTICS &amp; COD SETTLEMENT DOCK →</span>
+              </button>
             </div>
 
           </div>

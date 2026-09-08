@@ -1073,6 +1073,7 @@ function renderTabbar() {
       <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
       <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
       <button class="tb ${expScreen === 'CorporateSupplies' ? 'on' : ''}" onclick="openAppModule('CorporateSupplies')" title="Corporate Supplies & Gifts"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg></button>
+      <button class="tb ${expScreen === 'LogisticsSettlementHub' || expScreen === 'Logistics' ? 'on' : ''}" onclick="openAppModule('LogisticsSettlementHub')" title="Logistics & COD Settlement Dock"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></button>
       <button class="tb cam-fab" onclick="startCamera()" title="Capture">${I.cam}</button>
       <button class="tb" onclick="openGate('expert')" title="Expert Mode">${I.lock}</button>
     `;
@@ -1083,6 +1084,7 @@ function renderTabbar() {
       <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
       <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
       <button class="tb ${expScreen === 'CorporateSupplies' ? 'on' : ''}" onclick="openAppModule('CorporateSupplies')" title="Corporate Gifts & Supplies"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg></button>
+      <button class="tb ${expScreen === 'LogisticsSettlementHub' || expScreen === 'Logistics' ? 'on' : ''}" onclick="openAppModule('LogisticsSettlementHub')" title="Logistics & COD Settlement Dock"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></button>
       <button class="tb cam-fab" onclick="startCamera()" title="Capture">${I.cam}</button>
       <button class="tb" onclick="openDrawer()" title="Menu"><svg viewBox="0 0 24 24" style="width:19px;height:19px;"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.7"/></svg></button>
       <button class="tb exit-btn" onclick="exitExpert()" title="Exit Expert">${I.exit}</button>
@@ -1319,6 +1321,16 @@ const MODULE_MAP = {
   "Voice PO Ingestion": "VoiceIngest",
   "VoicePOIngestion": "VoiceIngest",
   "VOICEPOINGESTION": "VoiceIngest",
+  "LogisticsSettlementHub": "LogisticsSettlementHub",
+  "LOGISTICS_HUB": "LogisticsSettlementHub",
+  "LogisticsHub": "LogisticsSettlementHub",
+  "Logistics": "LogisticsSettlementHub",
+  "LOGISTICS": "LogisticsSettlementHub",
+  "logistics": "LogisticsSettlementHub",
+  "Settlement": "LogisticsSettlementHub",
+  "SETTLEMENT": "LogisticsSettlementHub",
+  "Logistics & Settlement": "LogisticsSettlementHub",
+  "COD Settlement": "LogisticsSettlementHub",
   "Orders": "Orders",
   "Products": "Products",
   "DriveSync": "DriveSync",
@@ -1776,6 +1788,14 @@ function openAppModule(appName) {
       if (window.render && typeof window.render.TECHPACK === "function") return window.render.TECHPACK;
       if (typeof window.renderTechPackPO === "function") return window.renderTechPackPO;
       if (typeof window.renderTECHPACK === "function") return window.renderTECHPACK;
+    }
+
+    // Explicit fallback for Logistics & Settlement Hub
+    if (modKey.toLowerCase().includes("logistics") || modKey.toLowerCase().includes("settlement")) {
+      if (window.render && typeof window.render.LogisticsSettlementHub === "function") return window.render.LogisticsSettlementHub;
+      if (window.render && typeof window.render.LOGISTICS_HUB === "function") return window.render.LOGISTICS_HUB;
+      if (typeof window.renderLogisticsHub === "function") return window.renderLogisticsHub;
+      if (typeof window.renderLogisticsSettlementHub === "function") return window.renderLogisticsSettlementHub;
     }
 
     if (modKey === "Accounting" && typeof window.renderAccounting === "function") return window.renderAccounting;

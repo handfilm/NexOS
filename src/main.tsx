@@ -4,6 +4,7 @@ import App from './App';
 import TechPackPOEngine from './components/TechPackPOEngine';
 import VoicePOIngestion from './components/VoicePOIngestion';
 import CorporateSupplies from './components/CorporateSupplies';
+import LogisticsSettlementHub from './components/LogisticsSettlementHub';
 
 // Root instances cache to avoid duplicate createRoot warnings on container re-entry
 const rootInstances = new WeakMap<HTMLElement, Root>();
@@ -16,6 +17,38 @@ function getOrCreateRoot(container: HTMLElement): Root {
     rootInstances.set(container, r);
   }
   return r;
+}
+
+// ── 0. Renderer implementation for Logistics & Settlement Hub ──
+export function renderLogisticsHubComponent(container?: HTMLElement, initialOrder?: any) {
+  const target =
+    container ||
+    document.getElementById('mod-LogisticsSettlementHub') ||
+    document.getElementById('mod-LOGISTICS_HUB') ||
+    document.getElementById('mod-LogisticsHub') ||
+    document.getElementById('mod-Logistics') ||
+    document.getElementById('mod-Settlement') ||
+    document.getElementById('body');
+  if (!target) return;
+
+  try {
+    const root = getOrCreateRoot(target);
+    root.render(
+      <div className="logistics-module-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
+        <LogisticsSettlementHub
+          initialOrder={initialOrder}
+          mode="embedded"
+          onClose={() => {
+            if (typeof (window as any).navTo === 'function') {
+              (window as any).navTo('Home');
+            }
+          }}
+        />
+      </div>
+    );
+  } catch (err) {
+    console.error('Error mounting LogisticsSettlementHub:', err);
+  }
 }
 
 // ── 0. Renderer implementation for Corporate Supplies ──
@@ -188,6 +221,31 @@ if (typeof window !== 'undefined') {
   if (typeof (window as any).openVoicePOIngestion !== 'function') {
     (window as any).openVoicePOIngestion = () => {
       window.dispatchEvent(new CustomEvent('nexus:open-voice'));
+    };
+  }
+
+  // Logistics & Settlement Hub renderers (all case variations)
+  (window as any).render.LogisticsSettlementHub = renderLogisticsHubComponent;
+  (window as any).render.LOGISTICS_HUB = renderLogisticsHubComponent;
+  (window as any).render.LogisticsHub = renderLogisticsHubComponent;
+  (window as any).render.logistics_hub = renderLogisticsHubComponent;
+  (window as any).render.Logistics = renderLogisticsHubComponent;
+  (window as any).render.LOGISTICS = renderLogisticsHubComponent;
+  (window as any).render.logistics = renderLogisticsHubComponent;
+  (window as any).render.Settlement = renderLogisticsHubComponent;
+  (window as any).render.SETTLEMENT = renderLogisticsHubComponent;
+  (window as any).render['Logistics & Settlement'] = renderLogisticsHubComponent;
+  (window as any).render['logistics-settlement'] = renderLogisticsHubComponent;
+
+  // Window-level direct functions
+  (window as any).renderLogisticsHub = renderLogisticsHubComponent;
+  (window as any).renderLogisticsSettlementHub = renderLogisticsHubComponent;
+  (window as any).renderLOGISTICS_HUB = renderLogisticsHubComponent;
+  (window as any).renderLogistics = renderLogisticsHubComponent;
+
+  if (typeof (window as any).openLogisticsSettlementHub !== 'function') {
+    (window as any).openLogisticsSettlementHub = (order?: any) => {
+      window.dispatchEvent(new CustomEvent('nexus:open-logistics', { detail: { order } }));
     };
   }
 }
