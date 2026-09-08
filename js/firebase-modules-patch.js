@@ -104,14 +104,160 @@
     if (subTab === "Drive Sync Monitor") subTab = "drive_sync";
     window._viewState.products.subTab = subTab;
     const target = document.getElementById("mod-Products") || document.getElementById("body");
-    if (target) window.render.Products(target);
+    if (target) window.render.Products(target, { forceReload: true });
   };
 
-  window.render.Products = async function (container) {
+  window.renderProductCardsHtml = function (items) {
+    if (!items || !items.length) {
+      return `
+        <div class="empty" style="grid-column:1/-1;padding:40px;text-align:center;">
+          <div style="font-size:24px;margin-bottom:8px;color:var(--gold-dim);">📦</div>
+          <div style="font-size:13px;color:var(--ink);">No products found matching criteria</div>
+          <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">Click "+ Add Product" to create your first catalog item.</div>
+        </div>
+      `;
+    }
+
+    return items.map(p => {
+      const isSelected = window._selectedProductIds.has(p.id);
+
+      let buyerCount = 0;
+      if (window.OrdersService && Array.isArray(window.OrdersService._memCache)) {
+        window.OrdersService._memCache.forEach(ord => {
+          if (Array.isArray(ord.lineItems)) {
+            const matched = ord.lineItems.some(li => 
+              li.productId === p.id || 
+              (li.sku && li.sku === p.variants?.[0]?.sku) || 
+              (li.title && li.title.toLowerCase() === (p.title || '').toLowerCase())
+            );
+            if (matched) buyerCount++;
+          }
+        });
+      }
+      if (buyerCount === 0) {
+        const charSum = (p.id || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+        buyerCount = (charSum % 28) + 6;
+      }
+
+      return `
+        <div class="pcard ${isSelected ? 'is-selected' : ''}" style="position:relative;display:flex;flex-direction:column;transition:all 0.2s ease;">
+          <div style="position:absolute;top:8px;right:8px;z-index:10;" onclick="event.stopPropagation();">
+            <input type="checkbox" class="item-select-checkbox product-item-cb" 
+                   data-product-id="${p.id}" 
+                   ${isSelected ? 'checked' : ''} 
+                   onchange="window.toggleProductSelection('${p.id}', event)"/>
+          </div>
+
+          <div class="pim" onclick="window.openAdvancedProductForm('${p.id}')" style="cursor:pointer;overflow:hidden;position:relative;">
+            ${p.images?.[0]?.url
+              ? `<img src="${p.images[0].url}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' fill=\\'%23333\\'><rect width=\\'100\\' height=\\'100\\'/><text x=\\'50\\' y=\\'55\\' fill=\\'%23888\\' font-size=\\'14\\' text-anchor=\\'middle\\'>NO IMAGE</text></svg>'">`
+              : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--gold-dim);font-family:var(--display);font-size:18px;">${(p.title || 'PRD').slice(0, 3).toUpperCase()}</div>`
+            }
+            <div style="position:absolute;top:6px;left:6px;display:flex;gap:3px;z-index:2;">
+              <span class="pill ${p.status === 'active' ? 'ok' : p.status === 'draft' ? 'amber' : 'warn'}" style="font-size:7.5px;padding:2px 5px;font-weight:700;">${(p.status || 'active').toUpperCase()}</span>
+            </div>
+          </div>
+          <div class="pt" style="font-weight:700;margin-top:4px;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${p.title}">${p.title}</div>
+          <div class="pc" style="font-size:9.5px;color:var(--ink-3);display:flex;justify-content:space-between;align-items:center;margin:2px 0;">
+            <span>SKU: ${p.variants?.[0]?.sku || '—'}</span>
+            <span style="font-size:9.5px;color:${(p.totalInventory || 0) <= (p.lowStockThreshold || 5) ? 'var(--warn)' : 'var(--ok)'};font-weight:600;">
+              ▪ ${p.totalInventory || 0} in stock
+            </span>
+          </div>
+          <div class="pp" style="font-size:14.5px;font-weight:800;color:var(--coral);margin:2px 0 4px;">৳${Number(p.pricing?.price || 0).toLocaleString()}</div>
+          
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:2px 0 5px;padding:3px 6px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:4px;font-size:10px;font-family:var(--font-mono, monospace);">
+            <span style="color:var(--gold);font-weight:700;display:inline-flex;align-items:center;gap:3px;">
+              👥 ${buyerCount} Buyers
+            </span>
+            <span style="color:var(--ink-4);font-size:8.5px;text-transform:uppercase;">
+              Past Attributed
+            </span>
+          </div>
+
+          <button class="gallery-action-btn" style="width:100%;margin-bottom:6px;min-height:28px;padding:3px 6px;font-size:9.5px;font-weight:700;color:#fff;background:linear-gradient(135deg, #10b981 0%, #059669 100%);border:1px solid #059669;border-radius:4px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;" onclick="event.stopPropagation();window.createAudienceFromProductBuyers('${p.id}', '${(p.title || '').replace(/'/g, "\\'")}', '${p.variants?.[0]?.sku || ''}')" title="Target past buyers of this product in WhatsApp Broadcast tab">
+            <span>🎯</span>
+            <span>CREATE AUDIENCE FROM BUYERS</span>
+          </button>
+
+          <div style="display:flex;gap:4px;margin-top:auto;padding-top:4px;">
+            <button class="gallery-action-btn" style="flex:1;min-height:30px;padding:4px 6px;font-size:10.5px;" onclick="event.stopPropagation();window.openAdvancedProductForm('${p.id}')" title="Edit product">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Edit
+            </button>
+            <button class="gallery-action-btn" style="flex:1.1;min-height:30px;padding:4px 6px;font-size:10.5px;color:var(--gold);" title="Enrich Copy, SEO & Tags with Gemini AI" onclick="event.stopPropagation();window.AIProductService.openEnrichmentModal('${p.id}')">
+              ✨ Gemini
+            </button>
+            <button class="gallery-action-btn" style="flex:0.8;min-height:30px;padding:4px 4px;font-size:10.5px;color:var(--gold);" title="Generate & Print QR Code" onclick="event.stopPropagation();window.openProductQrModal('${p.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h4v4h-4zM14 21h3v-3h-3zM21 14v3h-3v-3z"/>
+              </svg>
+              QR
+            </button>
+            <button class="gallery-action-btn duplicate-btn" style="min-height:30px;padding:4px 6px;font-size:10.5px;" title="Duplicate Product" onclick="event.stopPropagation();window.duplicateProduct('${p.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+              Copy
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  };
+
+  window.updateProductsListInPlace = async function (optionalItems) {
+    const gridEl = document.querySelector("#products_catalog_grid") || document.querySelector("#mod-Products .pgrid") || document.querySelector(".pgrid");
+    if (!gridEl) {
+      const target = document.getElementById("mod-Products") || document.getElementById("body");
+      if (target) return window.render.Products(target, { forceReload: true });
+      return;
+    }
+
+    try {
+      let items = optionalItems;
+      if (!items) {
+        const state = window._viewState.products;
+        const res = await window.ProductsService.list({
+          status: state.status,
+          search: state.search,
+          sortBy: state.sortBy,
+          sortDir: state.sortDir
+        });
+        items = res?.items || [];
+      }
+      window._lastProductsCache = items;
+
+      gridEl.innerHTML = window.renderProductCardsHtml(items);
+
+      const countBadge = document.getElementById("products-subnav-catalog-badge");
+      if (countBadge) countBadge.innerText = `🏷️ Products Catalog (${items.length})`;
+
+      const cbAll = document.getElementById("cb_select_all_products");
+      if (cbAll) {
+        cbAll.checked = items.length > 0 && items.every(p => window._selectedProductIds.has(p.id));
+      }
+    } catch (e) {
+      console.warn("Product in-place update error:", e);
+    }
+  };
+
+  window.render.Products = async function (container, options = {}) {
     const target = container || document.getElementById("mod-Products") || document.getElementById("body");
     if (!target) return;
-    target.innerHTML = loading("Loading Product Catalog…");
     const state = window._viewState.products;
+    const activeSubTab = state.subTab || 'catalog';
+
+    const existingGrid = target.querySelector("#products_catalog_grid");
+    if (existingGrid && activeSubTab === 'catalog' && !options.forceReload) {
+      return window.updateProductsListInPlace();
+    }
+
+    if (!options.silent) {
+      target.innerHTML = loading("Loading Product Catalog…");
+    }
 
     try {
       const { items } = await window.ProductsService.list({
@@ -158,7 +304,7 @@
         <!-- Products Sub-Menu Navigation (Master Folder & Sync) -->
         <div class="products-sub-nav" style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--wire);margin-bottom:14px;">
           <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('catalog')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
-            <span>🏷️ Products Catalog (${items.length})</span>
+            <span id="products-subnav-catalog-badge">🏷️ Products Catalog (${items.length})</span>
           </button>
           <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_sync')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
             <span>⚡ Drive Sync Monitor (Master Drive)</span>
@@ -206,106 +352,8 @@
           </select>
         </div>
 
-        <div class="pgrid" style="padding:0 20px 80px;">
-          ${items.length ? items.map(p => {
-            const isSelected = window._selectedProductIds.has(p.id);
-
-            // Compute aggregated buyer count from orders or deterministic seed
-            let buyerCount = 0;
-            if (window.OrdersService && Array.isArray(window.OrdersService._memCache)) {
-              window.OrdersService._memCache.forEach(ord => {
-                if (Array.isArray(ord.lineItems)) {
-                  const matched = ord.lineItems.some(li => 
-                    li.productId === p.id || 
-                    (li.sku && li.sku === p.variants?.[0]?.sku) || 
-                    (li.title && li.title.toLowerCase() === (p.title || '').toLowerCase())
-                  );
-                  if (matched) buyerCount++;
-                }
-              });
-            }
-            if (buyerCount === 0) {
-              const charSum = (p.id || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-              buyerCount = (charSum % 28) + 6;
-            }
-
-            return `
-              <div class="pcard ${isSelected ? 'is-selected' : ''}" style="position:relative;display:flex;flex-direction:column;transition:all 0.2s ease;">
-                <!-- Card Multi-Select Checkbox Overlay -->
-                <div style="position:absolute;top:8px;right:8px;z-index:10;" onclick="event.stopPropagation();">
-                  <input type="checkbox" class="item-select-checkbox product-item-cb" 
-                         data-product-id="${p.id}" 
-                         ${isSelected ? 'checked' : ''} 
-                         onchange="window.toggleProductSelection('${p.id}', event)"/>
-                </div>
-
-                <div class="pim" onclick="window.openAdvancedProductForm('${p.id}')" style="cursor:pointer;overflow:hidden;position:relative;">
-                  ${p.images?.[0]?.url
-                    ? `<img src="${p.images[0].url}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' fill=\'%23333\'><rect width=\'100\' height=\'100\'/><text x=\'50\' y=\'55\' fill=\'%23888\' font-size=\'14\' text-anchor=\'middle\'>NO IMAGE</text></svg>'">`
-                    : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--gold-dim);font-family:var(--display);font-size:18px;">${(p.title || 'PRD').slice(0, 3).toUpperCase()}</div>`
-                  }
-                  <div style="position:absolute;top:6px;left:6px;display:flex;gap:3px;z-index:2;">
-                    <span class="pill ${p.status === 'active' ? 'ok' : p.status === 'draft' ? 'amber' : 'warn'}" style="font-size:7.5px;padding:2px 5px;font-weight:700;">${(p.status || 'active').toUpperCase()}</span>
-                  </div>
-                </div>
-                <div class="pt" style="font-weight:700;margin-top:4px;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${p.title}">${p.title}</div>
-                <div class="pc" style="font-size:9.5px;color:var(--ink-3);display:flex;justify-content:space-between;align-items:center;margin:2px 0;">
-                  <span>SKU: ${p.variants?.[0]?.sku || '—'}</span>
-                  <span style="font-size:9.5px;color:${(p.totalInventory || 0) <= (p.lowStockThreshold || 5) ? 'var(--warn)' : 'var(--ok)'};font-weight:600;">
-                    ▪ ${p.totalInventory || 0} in stock
-                  </span>
-                </div>
-                <div class="pp" style="font-size:14.5px;font-weight:800;color:var(--coral);margin:2px 0 4px;">৳${Number(p.pricing?.price || 0).toLocaleString()}</div>
-                
-                <!-- Aggregated Buyer Count Intelligence -->
-                <div style="display:flex;align-items:center;justify-content:space-between;margin:2px 0 5px;padding:3px 6px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:4px;font-size:10px;font-family:var(--font-mono, monospace);">
-                  <span style="color:var(--gold);font-weight:700;display:inline-flex;align-items:center;gap:3px;">
-                    👥 ${buyerCount} Buyers
-                  </span>
-                  <span style="color:var(--ink-4);font-size:8.5px;text-transform:uppercase;">
-                    Past Attributed
-                  </span>
-                </div>
-
-                <!-- One-click [CREATE AUDIENCE FROM BUYERS] Button -->
-                <button class="gallery-action-btn" style="width:100%;margin-bottom:6px;min-height:28px;padding:3px 6px;font-size:9.5px;font-weight:700;color:#fff;background:linear-gradient(135deg, #10b981 0%, #059669 100%);border:1px solid #059669;border-radius:4px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;" onclick="event.stopPropagation();window.createAudienceFromProductBuyers('${p.id}', '${(p.title || '').replace(/'/g, "\\'")}', '${p.variants?.[0]?.sku || ''}')" title="Target past buyers of this product in WhatsApp Broadcast tab">
-                  <span>🎯</span>
-                  <span>CREATE AUDIENCE FROM BUYERS</span>
-                </button>
-
-                <!-- Action Buttons -->
-                <div style="display:flex;gap:4px;margin-top:auto;padding-top:4px;">
-                  <button class="gallery-action-btn" style="flex:1;min-height:30px;padding:4px 6px;font-size:10.5px;" onclick="event.stopPropagation();window.openAdvancedProductForm('${p.id}')" title="Edit product">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;">
-                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                    Edit
-                  </button>
-                  <button class="gallery-action-btn" style="flex:1.1;min-height:30px;padding:4px 6px;font-size:10.5px;color:var(--gold);" title="Enrich Copy, SEO & Tags with Gemini AI" onclick="event.stopPropagation();window.AIProductService.openEnrichmentModal('${p.id}')">
-                    ✨ Gemini
-                  </button>
-                  <button class="gallery-action-btn" style="flex:0.8;min-height:30px;padding:4px 4px;font-size:10.5px;color:var(--gold);" title="Generate & Print QR Code" onclick="event.stopPropagation();window.openProductQrModal('${p.id}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;">
-                      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h4v4h-4zM14 21h3v-3h-3zM21 14v3h-3v-3z"/>
-                    </svg>
-                    QR
-                  </button>
-                  <button class="gallery-action-btn duplicate-btn" style="min-height:30px;padding:4px 6px;font-size:10.5px;" title="Duplicate Product" onclick="event.stopPropagation();window.duplicateProduct('${p.id}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;">
-                      <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-                    </svg>
-                    Copy
-                  </button>
-                </div>
-              </div>
-            `;
-          }).join('') : `
-            <div class="empty" style="grid-column:1/-1;padding:40px;text-align:center;">
-              <div style="font-size:24px;margin-bottom:8px;color:var(--gold-dim);">📦</div>
-              <div style="font-size:13px;color:var(--ink);">No products found matching criteria</div>
-              <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">Click "+ Add Product" to create your first catalog item.</div>
-            </div>
-          `}
+        <div class="pgrid" id="products_catalog_grid" style="padding:0 20px 80px;">
+          ${window.renderProductCardsHtml(items)}
         </div>
 
         <!-- Floating Batch Actions Toolbar for Products -->
@@ -725,9 +773,13 @@
   window.debounceProductSearch = function () {
     clearTimeout(_searchDebounceTimer);
     _searchDebounceTimer = setTimeout(() => {
-      const container = document.getElementById("mod-Products");
-      if (container) window.render.Products(container);
-    }, 280);
+      if (typeof window.updateProductsListInPlace === "function") {
+        window.updateProductsListInPlace();
+      } else {
+        const container = document.getElementById("mod-Products");
+        if (container) window.render.Products(container, { silent: true });
+      }
+    }, 200);
   };
 
   /* ── Image Upload & Device File Processing Helper ── */

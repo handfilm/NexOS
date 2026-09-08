@@ -989,6 +989,80 @@ Output purely valid JSON conforming to the schema.`;
   }
 });
 
+/* ── 3C. AI PRODUCT CLASSIFICATION (GEMINI POWERED) ── */
+app.post('/api/ai/classify-product', async (req, res) => {
+  try {
+    const { filename, code, rawName, imageUrl, text } = req.body || {};
+    const candidateText = [filename, rawName, code, text].filter(Boolean).join(' ');
+
+    const ai = getGeminiAI();
+    if (ai) {
+      try {
+        const prompt = `Analyze this product filename or reference from an industrial commerce inventory: "${candidateText}".
+Identify the genuine product type and top-level category without inventing fake descriptions or assuming everything is leather goods.
+Strict Instructions:
+1. If the item is clearly apparel (hoodie, t-shirt, jacket, coat), categorize as "Apparel & Streetwear".
+2. If it is corporate gifting, swag, executive kit, or drinkware, categorize as "Corporate Gifts".
+3. If it is genuine leather wallets, belts, or bags, categorize as "Wallets & Small Leather Goods", "Belts & Straps", or "Bags & Backpacks".
+4. If you CANNOT determine the exact product type with high confidence from the text, return productType as "" (empty string) and category as "Uncategorized". Never invent fake details or fake provenance.
+5. If description cannot be factually confirmed, return description as "" (empty string).
+
+JSON Schema:
+- category: Top-level category name or "Uncategorized"
+- productType: Specific product type (e.g. "Hoodie", "Wallet", "Gift Set") or ""
+- suggestedTitle: Factual clean title or ""
+- description: Factual description or ""
+- confidence: number 0.0 to 1.0`;
+
+        const { response } = await callGeminiWithFallback(ai, {
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                category: { type: Type.STRING },
+                productType: { type: Type.STRING },
+                suggestedTitle: { type: Type.STRING },
+                description: { type: Type.STRING },
+                confidence: { type: Type.NUMBER }
+              },
+              required: ['category', 'productType', 'suggestedTitle', 'description', 'confidence']
+            }
+          }
+        });
+
+        const parsed = JSON.parse(response.text);
+        if (parsed.confidence < 0.45) {
+          parsed.category = 'Uncategorized';
+          parsed.productType = '';
+          parsed.description = '';
+        }
+        return res.json({ ok: true, classification: parsed, source: 'gemini' });
+      } catch (geminiErr) {
+        console.warn('[ClassifyProduct] Gemini error, using fallback:', geminiErr.message);
+      }
+    }
+
+    // Deterministic keyword classifier
+    const detected = detectCategoryFromDriveFilename(candidateText, code);
+    return res.json({
+      ok: true,
+      classification: {
+        category: detected.category,
+        productType: detected.productType,
+        suggestedTitle: code || filename || '',
+        description: '',
+        confidence: detected.category !== 'Uncategorized' ? 0.75 : 0.0
+      },
+      source: 'deterministic'
+    });
+  } catch (err) {
+    console.error('Classify product error:', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 /* ── 4. Server-Side Excel & CSV Parsing Endpoint ── */
 app.post('/api/import/parse-excel', (req, res) => {
   try {
@@ -2680,13 +2754,37 @@ function detectCategoryFromDriveFilename(rawName, code = '') {
     };
   }
 
-  // Default fallback
+  // 8. Apparel & Textiles (Tees, Hoodies, Polo, Caps)
+  if (/(?:^|[_\W-])(TEES?|T-?SHIRTS?|HOODIES?|SWEATSHIRTS?|POLOS?|CAPS?|JERSEY)(?:$|[_\W-])/i.test(text) ||
+      text.includes('HOODIE') || text.includes('SHIRT') || text.includes('POLO')) {
+    return {
+      category: 'Apparel & Streetwear',
+      productType: 'Apparel',
+      categoryTag: 'apparel',
+      categoryIcon: '👕',
+      suggestedPrice: 1800
+    };
+  }
+
+  // 9. Corporate Gifts & Promotional Sets
+  if (/(?:^|[_\W-])(CORP(?:ORATE)?|GIFTS?|PROMO|SWAG|PRESENTATION|KIT|SET)(?:$|[_\W-])/i.test(text) ||
+      text.includes('GIFT') || text.includes('B2B') || text.includes('CORP')) {
+    return {
+      category: 'Corporate Gifts',
+      productType: 'Corporate Gifts',
+      categoryTag: 'corporate-gifts',
+      categoryIcon: '🎁',
+      suggestedPrice: 2800
+    };
+  }
+
+  // Default fallback: DO NOT assume Leather Goods or insert fake data!
   return {
-    category: 'Export Leather Goods',
-    productType: 'Leather Goods',
-    categoryTag: 'leather-goods',
-    categoryIcon: '🏷️',
-    suggestedPrice: 4200
+    category: 'Uncategorized',
+    productType: '',
+    categoryTag: 'uncategorized',
+    categoryIcon: '📦',
+    suggestedPrice: 0
   };
 }
 
@@ -3493,17 +3591,17 @@ app.post('/api/ingestion/publish/:id', (req, res) => {
     } else {
       const newProduct = {
         id: `prod-${(item.code || Date.now().toString(36)).toLowerCase()}`,
-        title: item.suggestedTitle || `${item.brand || 'Hands & Head'} ${item.code || 'Leather Item'}`,
+        title: item.suggestedTitle || item.code || 'Drive Ingested Item',
         handle: item.suggestedSlug || (item.code || 'product').toLowerCase(),
         status: 'active',
         vendor: item.brand === 'RAWX' ? 'RAWxOS' : 'Hands & Head',
-        productType: item.suggestedCategory || 'Export Leather Goods',
-        description: `Handcrafted premium leather asset created by master artisans in Dhaka, Bangladesh. Code: ${item.code || 'HH-STD'}.`,
-        tags: [item.brand?.toLowerCase() || 'leather', item.color?.toLowerCase() || 'natural', 'ingested-asset'],
-        pricing: { price: Number(item.suggestedPrice) || 3500, compareAtPrice: Math.round((Number(item.suggestedPrice) || 3500) * 1.3), cost: Math.round((Number(item.suggestedPrice) || 3500) * 0.45), currency: 'BDT' },
-        images: [{ url: imageUrl, alt: item.suggestedTitle || 'Leather Product' }],
+        productType: item.productType || item.suggestedCategory || '',
+        description: item.description || '',
+        tags: [item.brand?.toLowerCase() || '', item.color?.toLowerCase() || '', 'drive-sync'].filter(Boolean),
+        pricing: { price: Number(item.suggestedPrice) || 0, compareAtPrice: null, cost: null, currency: 'BDT' },
+        images: [{ url: imageUrl, alt: item.suggestedTitle || item.code || 'Product Image' }],
         variants: [
-          { id: `var-${Date.now().toString(36)}`, title: `${item.color || 'Standard'} / ${item.size || 'One'}`, sku: item.code || 'HH-STD', price: Number(item.suggestedPrice) || 3500, inventoryQty: 12, availableForSale: true }
+          { id: `var-${Date.now().toString(36)}`, title: `${item.color || 'Standard'} / ${item.size || 'One'}`, sku: item.code || 'HH-ITEM', price: Number(item.suggestedPrice) || 0, inventoryQty: 12, availableForSale: true }
         ],
         totalInventory: 12,
         lowStockThreshold: 3,

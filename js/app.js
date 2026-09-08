@@ -1058,6 +1058,9 @@ function renderTabbar() {
   if (mode === "production") {
     bar.innerHTML = `
       <button class="tb ${isHome ? 'on' : ''}" onclick="navTo('Home')" title="Home">${I.home}</button>
+      <button class="tb ${expScreen === 'Products' ? 'on' : ''}" onclick="openAppModule('Products')" title="Products">${I.tag}</button>
+      <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
+      <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
       <button class="tb ${expScreen === 'Inventory' ? 'on' : ''}" onclick="openAppModule('Inventory')" title="Stock">${I.box}</button>
       <button class="tb hiron-btn" onclick="exitProduction()" title="Exit">${I.exit}</button>
     `;
@@ -1066,19 +1069,20 @@ function renderTabbar() {
   if (mode === "lite") {
     bar.innerHTML = `
       <button class="tb ${isHome ? 'on' : ''}" onclick="navTo('Home')" title="Home">${I.home}</button>
-      <button class="tb ${expScreen === 'TechPackPO' ? 'on' : ''}" onclick="window.openTechPackPOEngine ? window.openTechPackPOEngine() : openAppModule('TechPackPO')" title="Tech-Pack PO">📋</button>
-      <button class="tb ${expScreen === 'VoiceIngest' ? 'on' : ''}" onclick="window.openVoicePOIngestion ? window.openVoicePOIngestion() : openAppModule('VoiceIngest')" title="Voice PO Ingest">🎙️</button>
-      <button class="tb ${expScreen === 'EUPortal' ? 'on' : ''}" onclick="openAppModule('EUPortal')" title="EU Portal">${I.eu}</button>
+      <button class="tb ${expScreen === 'Products' ? 'on' : ''}" onclick="openAppModule('Products')" title="Products">${I.tag}</button>
+      <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
+      <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
+      <button class="tb ${expScreen === 'CorporateSupplies' ? 'on' : ''}" onclick="openAppModule('CorporateSupplies')" title="Corporate Supplies & Gifts"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg></button>
       <button class="tb cam-fab" onclick="startCamera()" title="Capture">${I.cam}</button>
-      <button class="tb ${expScreen === 'Analytics' ? 'on' : ''}" onclick="openAppModule('Analytics')" title="Analytics">${I.chart}</button>
       <button class="tb" onclick="openGate('expert')" title="Expert Mode">${I.lock}</button>
     `;
   } else {
     bar.innerHTML = `
       <button class="tb ${isHome ? 'on' : ''}" onclick="navTo('Home')" title="Home">${I.home}</button>
-      <button class="tb ${expScreen === 'TechPackPO' ? 'on' : ''}" onclick="window.openTechPackPOEngine ? window.openTechPackPOEngine() : openAppModule('TechPackPO')" title="Tech-Pack PO">📋</button>
-      <button class="tb ${expScreen === 'VoiceIngest' ? 'on' : ''}" onclick="window.openVoicePOIngestion ? window.openVoicePOIngestion() : openAppModule('VoiceIngest')" title="Voice PO Ingest">🎙️</button>
+      <button class="tb ${expScreen === 'Products' ? 'on' : ''}" onclick="openAppModule('Products')" title="Products">${I.tag}</button>
       <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
+      <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
+      <button class="tb ${expScreen === 'CorporateSupplies' ? 'on' : ''}" onclick="openAppModule('CorporateSupplies')" title="Corporate Gifts & Supplies"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg></button>
       <button class="tb cam-fab" onclick="startCamera()" title="Capture">${I.cam}</button>
       <button class="tb" onclick="openDrawer()" title="Menu"><svg viewBox="0 0 24 24" style="width:19px;height:19px;"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.7"/></svg></button>
       <button class="tb exit-btn" onclick="exitExpert()" title="Exit Expert">${I.exit}</button>
@@ -1154,13 +1158,13 @@ const NAV_SECTIONS = [
     desc: "Primary commerce terminals and live order queues",
     items: [
       { label: "Home", icon: I.home, app: "Home", desc: "Main operator terminal & pinned shelf", ext: "DASH" },
-      { label: "Corporate Supplies", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`, app: "CorporateSupplies", chev: true, desc: "B2B enterprise corporate supplies, bespoke leatherware, executive tech & bulk RFQ matrix", ext: "B2B", extClass: "gold" },
+      { label: "Products", icon: I.tag, app: "Products", chev: true, desc: "Inventory catalog, variants & pricing matrix", ext: "CATALOG" },
+      { label: "Orders", icon: I.orders, app: "Orders", chev: true, desc: "Live order stream & fulfillment tracker", ext: "POS" },
+      { label: "Customers", icon: I.inbox, app: "CRM", chev: true, desc: "Global wholesale buyer CRM & accounts", ext: "CRM" },
+      { label: "Corporate Supplies & Gifts", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`, app: "CorporateSupplies", chev: true, desc: "B2B enterprise corporate supplies, bespoke corporate gifts, executive tech & bulk RFQ matrix", ext: "B2B", extClass: "gold" },
+      { label: "Drive Sync Monitor", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="12 11 12 17 14 15"></polyline></svg>`, app: "DriveSync", chev: true, desc: "Master Google Drive auto-sync, tokenized specs & staging", ext: "SYNC", extClass: "gold" },
       { label: "Tech-Pack PO Engine", icon: "📋", app: "TechPackPO", chev: true, desc: "Parametric apparel tech pack & factory PO calculations with WhatsApp dispatch", ext: "PO", extClass: "gold" },
       { label: "Voice PO Ingestion", icon: "🎙️", app: "VoiceIngest", chev: true, desc: "Gemini Flash audio transcription & RMG PO spec extraction", ext: "AI", extClass: "gold" },
-      { label: "Orders", icon: I.orders, app: "Orders", chev: true, desc: "Live order stream & fulfillment tracker", ext: "POS" },
-      { label: "Products", icon: I.tag, app: "Products", chev: true, desc: "Inventory catalog, variants & pricing matrix", ext: "CATALOG" },
-      { label: "Drive Sync Monitor", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="12 11 12 17 14 15"></polyline></svg>`, app: "DriveSync", chev: true, desc: "Master Google Drive auto-sync, tokenized specs & staging", ext: "SYNC", extClass: "gold" },
-      { label: "Customers", icon: I.inbox, app: "CRM", chev: true, desc: "Global wholesale buyer CRM & accounts", ext: "CRM" },
       { label: "Data Quality Center", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>`, app: "DataQuality", chev: true, desc: "Deterministic BD phone normalization, customer deduplication & audit", ext: "AUDIT", extClass: "gold" }
     ]
   },
@@ -2433,6 +2437,8 @@ window.SyncEngine = {
   },
 
   async syncProducts(forceRerender = false) {
+    if (this._syncingProducts) return;
+    this._syncingProducts = true;
     try {
       let prods = [];
       if (window.ProductsService) {
@@ -2442,19 +2448,30 @@ window.SyncEngine = {
       if (typeof window.refreshHomeProductGallery === "function") {
         window.refreshHomeProductGallery();
       }
-      if ((expScreen === "Products" || expScreen === "catalog") && window.render && window.render.Products) {
-        const modEl = document.getElementById("mod-Products");
-        if (modEl) window.render.Products(modEl);
+      if ((expScreen === "Products" || expScreen === "catalog")) {
+        // If smooth in-place updater exists, update without screen blinking or losing input focus
+        if (typeof window.updateProductsListInPlace === "function") {
+          window.updateProductsListInPlace(prods);
+        } else if (forceRerender && window.render && window.render.Products) {
+          const modEl = document.getElementById("mod-Products");
+          // Only re-render if user is NOT currently focusing on a search/filter input
+          const activeTag = document.activeElement ? document.activeElement.tagName : "";
+          if (modEl && activeTag !== "INPUT" && activeTag !== "TEXTAREA" && activeTag !== "SELECT") {
+            window.render.Products(modEl, { silent: true });
+          }
+        }
       }
       if (window.DriveSyncMonitor && typeof window.DriveSyncMonitor.refreshCurrentView === "function") {
         window.DriveSyncMonitor.refreshCurrentView();
       }
       if (window.NexEvents) {
         window.NexEvents.emit("DATA_SYNC", { type: "products", count: prods.length });
-        window.NexEvents.emit("PRODUCTS_CHANGED", { items: prods });
+        // NOTE: Do not re-emit PRODUCTS_CHANGED here to avoid infinite feedback loop
       }
     } catch (e) {
       console.debug("[SyncEngine] Sync products note:", e.message);
+    } finally {
+      this._syncingProducts = false;
     }
   },
 
