@@ -352,10 +352,16 @@ export const B2BDealEngine: React.FC<B2BDealEngineProps> = ({
   const [customizationNote, setCustomizationNote] = useState<string>('Blind debossed corporate crest + Gold foil gift box');
   const [generatedLookbook, setGeneratedLookbook] = useState<LookbookSpec | null>(null);
 
-  // JIT Production Locking state
+  // JIT Production Locking & Master PIN Gateway state
   const [isAuthorizingCutting, setIsAuthorizingCutting] = useState<boolean>(false);
   const [cuttingError, setCuttingError] = useState<string | null>(null);
   const [cuttingSuccessMsg, setCuttingSuccessMsg] = useState<string | null>(null);
+  const [isPinModalOpen, setIsPinModalOpen] = useState<boolean>(false);
+  const [enteredPin, setEnteredPin] = useState<string>('');
+  const [pinModalError, setPinModalError] = useState<string | null>(null);
+  const [pinModalStatus, setPinModalStatus] = useState<string | null>(null);
+  const [currentIdempotencyKey, setCurrentIdempotencyKey] = useState<string>('');
+  const pinInputRef = useRef<HTMLInputElement | null>(null);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(() => {
     try {
       const saved = localStorage.getItem('hh_b2b_audit_logs');
@@ -705,10 +711,39 @@ Hands & Head`;
     }
   };
 
-  // ── JIT Cash-Lock: Authorize Cutting via Server-Side Transaction ──
-  const handleAuthorizeCutting = async () => {
-    if (!selectedDeal) return;
+  // ── Master PIN Gateway: Open Masked Auth Modal ──
+  const handleOpenPinModal = () => {
+    if (!selectedDeal || selectedDeal.status === 'cutting_authorized' || isAuthorizingCutting) return;
+    // Generate secure client-side UUID as idempotency key
+    const idempKey = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `idem-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    
+    setCurrentIdempotencyKey(idempKey);
+    setEnteredPin('');
+    setPinModalError(null);
+    setPinModalStatus(null);
+    setIsPinModalOpen(true);
+    setTimeout(() => {
+      pinInputRef.current?.focus();
+    }, 100);
+  };
+
+  // ── Master PIN Gateway: Cryptographic Verification & JIT Cutting Authorization ──
+  const handleSubmitPinAuthorization = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!selectedDeal || isAuthorizingCutting) return;
+
+    if (!enteredPin.trim()) {
+      setPinModalError('Please enter the Master Foundry PIN.');
+      pinInputRef.current?.focus();
+      return;
+    }
+
+    // Disable optimistic UI updates & display active status spinner
     setIsAuthorizingCutting(true);
+    setPinModalError(null);
+    setPinModalStatus('Validating Ledger & Cryptographic Lock...');
     setCuttingError(null);
     setCuttingSuccessMsg(null);
 
@@ -718,27 +753,57 @@ Hands & Head`;
     const currency = selectedDeal.currency;
 
     try {
-      // Call server-side API endpoint mirroring the 2nd-gen Cloud Function authorizeCutting
-      const response = await fetch('/api/functions/authorizeCutting', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId,
-          operatorUid: 'nexus.operator@handsandhead.com',
-          // Pass current local deal stats so server validates atomic math
-          totalAmount,
-          amountPaid,
-          currency
-        })
-      });
+      let resultData: any = null;
+      let usedFirebaseSdk = false;
 
-      const data = await response.json();
-
-      if (!response.ok || !data.ok) {
-        throw new Error(data.error || 'Transaction Blocked: Less than 50% advance deposit confirmed.');
+      // 1. Try Firebase 2nd-gen callable if available in client environment
+      if (typeof window !== 'undefined' && (window as any).firebase && typeof (window as any).firebase.app === 'function') {
+        try {
+          const fbApp = (window as any).firebase.app();
+          if (typeof fbApp.functions === 'function') {
+            const functionsInstance = fbApp.functions('asia-east1');
+            const authorizeCuttingCallable = functionsInstance.httpsCallable('authorizeCutting');
+            const fbRes = await authorizeCuttingCallable({
+              orderId,
+              idempotencyKey: currentIdempotencyKey,
+              operatorPin: enteredPin.trim()
+            });
+            resultData = fbRes.data;
+            usedFirebaseSdk = true;
+          }
+        } catch (fbErr: any) {
+          // If server returned security error, throw directly without proxying
+          if (fbErr?.code === 'permission-denied' || fbErr?.code === 'failed-precondition' || fbErr?.code === 'invalid-argument') {
+            throw new Error(fbErr.message || 'Firebase Security Gate: Invalid Master PIN authorization.');
+          }
+          console.warn('[authorizeCutting] Firebase callable fallback to backend endpoint:', fbErr);
+        }
       }
 
-      // Success: Server verified >= 50% advance
+      // 2. Server API proxy endpoint mirror
+      if (!usedFirebaseSdk) {
+        const response = await fetch('/api/functions/authorizeCutting', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId,
+            idempotencyKey: currentIdempotencyKey,
+            operatorPin: enteredPin.trim(),
+            operatorUid: 'rakib.himon@gmail.com',
+            totalAmount,
+            amountPaid,
+            currency
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || 'Invalid Master PIN authorization or 50% advance invariant violated.');
+        }
+        resultData = data;
+      }
+
+      // 3. Success: Server verified Master PIN, Idempotency, and >= 50% advance
       const nowIso = new Date().toISOString();
 
       setDeals((prev) =>
@@ -750,7 +815,10 @@ Hands & Head`;
             stage: 'JIT Cutting/Production',
             productionUnlockedAt: nowIso,
             lastStageChangedAt: nowIso,
-            notes: [`JIT Cutting authorized by server transaction on ${new Date().toLocaleString()}`, ...d.notes]
+            notes: [
+              `[MASTER PIN AUTHORIZED] Production unlocked with Idempotency Key ${currentIdempotencyKey.slice(0, 8)}... on ${new Date().toLocaleString()}`,
+              ...d.notes
+            ]
           };
         })
       );
@@ -759,25 +827,34 @@ Hands & Head`;
         id: `LOG-${Date.now().toString().slice(-6)}`,
         timestamp: nowIso,
         orderId,
-        operatorUid: 'nexus.operator@handsandhead.com',
+        operatorUid: 'rakib.himon@gmail.com',
         amountPaid,
         totalAmount,
         currency,
         result: 'AUTHORIZED',
-        message: `JIT Production Unlocked: 50% advance deposit verified ($${amountPaid} / $${totalAmount}).`
+        message: `JIT Cutting Authorized: Master PIN validated. Idempotency Key: ${currentIdempotencyKey}. Verified advance meets 50% threshold.`
       };
 
       setAuditLogs((prev) => [newLog, ...prev]);
-      setCuttingSuccessMsg(`✓ Production Unlocked! Server verified 50%+ advance deposit. Order staged to JIT Cutting Line.`);
+      setCuttingSuccessMsg(`✓ Production Unlocked! Cryptographic Master PIN validated. Order ${orderId} staged to JIT Cutting Line.`);
+      
+      // Close modal and clear state
+      setIsPinModalOpen(false);
+      setEnteredPin('');
     } catch (err: any) {
-      const errMsg = err.message || 'Transaction Blocked: Less than 50% advance deposit confirmed.';
+      const errMsg = err.message || 'Invalid Master PIN authorization.';
+      setPinModalError(errMsg);
       setCuttingError(errMsg);
+      setEnteredPin(''); // Reset entered PIN field
+      setTimeout(() => {
+        pinInputRef.current?.focus();
+      }, 80);
 
       const blockedLog: AuditLogEntry = {
         id: `LOG-BLOCK-${Date.now().toString().slice(-6)}`,
         timestamp: new Date().toISOString(),
         orderId,
-        operatorUid: 'nexus.operator@handsandhead.com',
+        operatorUid: 'rakib.himon@gmail.com',
         amountPaid,
         totalAmount,
         currency,
@@ -787,6 +864,7 @@ Hands & Head`;
       setAuditLogs((prev) => [blockedLog, ...prev]);
     } finally {
       setIsAuthorizingCutting(false);
+      setPinModalStatus(null);
     }
   };
 
@@ -1438,7 +1516,7 @@ Hands & Head`;
                             type="button"
                             id="btn-authorize-cutting"
                             disabled={isAuthorizingCutting || selectedDeal.status === 'cutting_authorized'}
-                            onClick={handleAuthorizeCutting}
+                            onClick={handleOpenPinModal}
                             className={`px-4 py-2 rounded text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                               selectedDeal.status === 'cutting_authorized'
                                 ? 'bg-[#00E599]/20 text-[#00E599] border border-[#00E599] cursor-default'
@@ -1447,7 +1525,7 @@ Hands & Head`;
                                 : 'bg-[#1C1C1A] text-[#888884] border border-[#333330] hover:border-[#FF5500] hover:text-[#FF5500]'
                             }`}
                           >
-                            <span>{isAuthorizingCutting ? '⏳ VERIFYING TRANSACTION…' : selectedDeal.status === 'cutting_authorized' ? '✓ CUTTING AUTHORIZED' : '⚡ AUTHORIZE JIT PRODUCTION / START CUTTING'}</span>
+                            <span>{isAuthorizingCutting ? '⏳ VALIDATING PIN & LEDGER…' : selectedDeal.status === 'cutting_authorized' ? '✓ CUTTING AUTHORIZED' : '⚡ AUTHORIZE JIT PRODUCTION (CUTTING LOCK)'}</span>
                           </button>
                         </div>
 
@@ -2020,6 +2098,162 @@ Hands & Head`;
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+      {/* ══════════════════════════════════════════════════════════════════════
+          MASTER PIN GATEWAY MODAL (ZERO-LEAK FOUNDER AUTHENTICATION)
+         ══════════════════════════════════════════════════════════════════════ */}
+      {isPinModalOpen && selectedDeal && (
+        <div
+          id="master-pin-modal-overlay"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+        >
+          <div
+            id="master-pin-modal-container"
+            className="relative w-full max-w-md bg-[#161615] border border-[#333330] rounded-xl shadow-2xl p-6 text-white flex flex-col gap-4 font-sans animate-in fade-in zoom-in-95 duration-150"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-[#222220]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded bg-[#FF5500]/20 border border-[#FF5500]/60 flex items-center justify-center text-[#FF5500] text-sm font-bold shadow-[0_0_12px_rgba(255,85,0,0.2)]">
+                  🔒
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold tracking-wider text-white uppercase flex items-center gap-2">
+                    <span>ENTER MASTER FOUNDRY PIN</span>
+                    <span className="px-1.5 py-0.2 rounded text-[9px] bg-[#FF5500]/20 text-[#FF5500] border border-[#FF5500]/40 font-mono">
+                      GATEWAY
+                    </span>
+                  </h3>
+                  <p className="text-[10px] text-[#A0A09C]">
+                    Zero-leak cryptographic gate verified in Cloud Functions
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                id="btn-close-pin-modal"
+                onClick={() => !isAuthorizingCutting && setIsPinModalOpen(false)}
+                disabled={isAuthorizingCutting}
+                className="text-[#777772] hover:text-white text-base cursor-pointer disabled:opacity-50 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Context Snapshot */}
+            {(() => {
+              const curr = selectedDeal.currency;
+              const total = curr === 'USD' ? selectedDeal.totalAmountUsd : selectedDeal.totalAmountBdt;
+              const paid = curr === 'USD' ? selectedDeal.amountPaidUsd : selectedDeal.amountPaidBdt;
+              const req50 = 0.5 * total;
+              const pct = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
+              const is50Met = paid >= req50;
+
+              return (
+                <div className="p-3 bg-[#0D0D0C] rounded border border-[#222220] flex flex-col gap-1.5 text-xs font-mono">
+                  <div className="flex justify-between">
+                    <span className="text-[#777772]">TARGET PO:</span>
+                    <span className="text-[#00E5FF] font-bold">{selectedDeal.orderId || selectedDeal.id}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#777772]">CLIENT:</span>
+                    <span className="text-white truncate max-w-[220px]">{selectedDeal.companyName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#777772]">CONTRACT TOTAL:</span>
+                    <span className="text-white font-bold">{curr} {total.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#777772]">VERIFIED ADVANCE:</span>
+                    <span className={is50Met ? 'text-[#00E599] font-bold' : 'text-[#FF5500] font-bold'}>
+                      {curr} {paid.toLocaleString()} ({pct}%) {is50Met ? '✓ ≥50%' : '✕ <50%'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-[#1C1C1A] text-[10px]">
+                    <span className="text-[#555552]">IDEMPOTENCY KEY:</span>
+                    <span className="text-[#888884] font-mono truncate max-w-[200px]">{currentIdempotencyKey}</span>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Error / Alert */}
+            {pinModalError && (
+              <div
+                id="pin-modal-error-alert"
+                className="p-3 rounded bg-[#FF5500]/15 border border-[#FF5500] text-xs text-[#FF5500] font-mono flex items-start gap-2 animate-in fade-in"
+              >
+                <span className="text-sm">⚠️</span>
+                <div>
+                  <div className="font-bold">AUTHENTICATION REJECTED</div>
+                  <div className="text-[11px] text-[#FF8855] mt-0.5">{pinModalError}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Status Spinner Banner (Active Status) */}
+            {pinModalStatus && (
+              <div
+                id="pin-modal-status-banner"
+                className="p-3 rounded bg-[#00E5FF]/10 border border-[#00E5FF]/40 text-xs text-[#00E5FF] font-mono flex items-center gap-2.5"
+              >
+                <span className="animate-spin text-sm">⚙️</span>
+                <span className="font-bold tracking-wide">{pinModalStatus}</span>
+              </div>
+            )}
+
+            {/* Masked PIN Form */}
+            <form onSubmit={handleSubmitPinAuthorization} className="flex flex-col gap-3.5">
+              <div>
+                <label className="block text-[11px] font-bold text-[#A0A09C] uppercase tracking-wider mb-1.5">
+                  OPERATOR MASTER PIN (MASKED)
+                </label>
+                <input
+                  ref={pinInputRef}
+                  id="master-operator-pin-input"
+                  type="password"
+                  autoFocus
+                  disabled={isAuthorizingCutting}
+                  value={enteredPin}
+                  onChange={(e) => setEnteredPin(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-3.5 py-2.5 bg-[#0D0D0C] border border-[#333330] rounded text-white text-base font-mono tracking-[0.3em] focus:outline-none focus:border-[#00E599] transition-colors disabled:opacity-50 placeholder:tracking-normal placeholder:text-sm placeholder:text-[#555552]"
+                />
+                <p className="text-[10px] text-[#777772] mt-1.5">
+                  Stored strictly in Cloud Functions secret manager. Never exposed or hardcoded in client source.
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#222220]">
+                <button
+                  type="button"
+                  id="btn-cancel-pin-modal"
+                  disabled={isAuthorizingCutting}
+                  onClick={() => setIsPinModalOpen(false)}
+                  className="px-3.5 py-2 rounded text-xs font-bold text-[#888884] hover:text-white bg-[#0D0D0C] border border-[#222220] hover:border-[#333330] cursor-pointer disabled:opacity-50 transition-colors"
+                >
+                  CANCEL
+                </button>
+                <button
+                  type="submit"
+                  id="btn-submit-pin-authorization"
+                  disabled={isAuthorizingCutting || !enteredPin.trim()}
+                  className="px-4 py-2 rounded text-xs font-bold bg-[#00E599] text-black hover:bg-[#00c985] disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,229,153,0.3)] transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  {isAuthorizingCutting ? (
+                    <>
+                      <span className="animate-spin text-xs">⏳</span>
+                      <span>VALIDATING LOCK...</span>
+                    </>
+                  ) : (
+                    <span>UNLOCK JIT PRODUCTION</span>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

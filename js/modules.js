@@ -158,6 +158,82 @@
     window.render.Revenue = window.render.B2BDealEngine;
   }
 
+  /* ── Bridge for Production Floor & Settlement Bridge [FLOOR_BRIDGE] ── */
+  if (!window.render.ProductionFloorBridge) {
+    window.render.ProductionFloorBridge = function(container) {
+      if (typeof window.renderProductionFloorBridgeComponent === "function") {
+        return window.renderProductionFloorBridgeComponent(container);
+      }
+      if (container) {
+        container.innerHTML = '<div style="padding:24px;font-family:var(--mono);color:#00E5FF;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Initializing Production Floor & Settlement Bridge…</div>';
+        let retries = 0;
+        const poller = setInterval(function() {
+          retries++;
+          if (typeof window.renderProductionFloorBridgeComponent === "function") {
+            clearInterval(poller);
+            window.renderProductionFloorBridgeComponent(container);
+          } else if (retries > 30) {
+            clearInterval(poller);
+            if (typeof window.openProductionFloorBridge === "function") {
+              window.openProductionFloorBridge();
+            } else {
+              window.dispatchEvent(new CustomEvent('nexus:open-floor-bridge'));
+            }
+          }
+        }, 100);
+        return;
+      }
+      if (typeof window.openProductionFloorBridge === "function") {
+        return window.openProductionFloorBridge();
+      }
+      window.dispatchEvent(new CustomEvent('nexus:open-floor-bridge'));
+    };
+    window.render.FLOOR_BRIDGE = window.render.ProductionFloorBridge;
+    window.render.FloorBridge = window.render.ProductionFloorBridge;
+    window.render.ProductionFloor = window.render.ProductionFloorBridge;
+    window.render.PRODUCTION_FLOOR = window.render.ProductionFloorBridge;
+    window.render["Production Floor Bridge"] = window.render.ProductionFloorBridge;
+    window.render["Floor Bridge"] = window.render.ProductionFloorBridge;
+  }
+
+  /* ── Bridge for Vault & Reorder Engine [VAULT_REORDER] ── */
+  if (!window.render.VaultAndReorderEngine) {
+    window.render.VaultAndReorderEngine = function(container) {
+      if (typeof window.renderVaultReorderEngineComponent === "function") {
+        return window.renderVaultReorderEngineComponent(container);
+      }
+      if (container) {
+        container.innerHTML = '<div style="padding:24px;font-family:var(--mono);color:#00E599;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Initializing Vault & Reorder Engine…</div>';
+        let retries = 0;
+        const poller = setInterval(function() {
+          retries++;
+          if (typeof window.renderVaultReorderEngineComponent === "function") {
+            clearInterval(poller);
+            window.renderVaultReorderEngineComponent(container);
+          } else if (retries > 30) {
+            clearInterval(poller);
+            if (typeof window.openVaultReorderEngine === "function") {
+              window.openVaultReorderEngine();
+            } else {
+              window.dispatchEvent(new CustomEvent('nexus:open-vault-reorder'));
+            }
+          }
+        }, 100);
+        return;
+      }
+      if (typeof window.openVaultReorderEngine === "function") {
+        return window.openVaultReorderEngine();
+      }
+      window.dispatchEvent(new CustomEvent('nexus:open-vault-reorder'));
+    };
+    window.render.VAULT_REORDER = window.render.VaultAndReorderEngine;
+    window.render.VaultReorder = window.render.VaultAndReorderEngine;
+    window.render.ReorderEngine = window.render.VaultAndReorderEngine;
+    window.render["Vault & Reorder Engine"] = window.render.VaultAndReorderEngine;
+    window.render["Vault & Reorder"] = window.render.VaultAndReorderEngine;
+    window.render.ClearanceVault = window.render.VaultAndReorderEngine;
+  }
+
   /* ── Shared Helpers ── */
   function modHeader(title, tag, actions = []) {
     const btns = actions.map(a => `<button onclick="${a.fn}" style="padding:6px 11px;font-size:9px;border:1px solid var(--wire-hard);background:transparent;color:var(--gold-dim);font-family:var(--sans);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--wire-hard)';this.style.color='var(--gold-dim)'">${a.label}</button>`).join('');

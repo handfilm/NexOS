@@ -7,6 +7,8 @@ import CorporateSupplies from './components/CorporateSupplies';
 import LogisticsSettlementHub from './components/LogisticsSettlementHub';
 import FactorySlaFloorTracker from './components/FactorySlaFloorTracker';
 import B2BDealEngine from './components/B2BDealEngine';
+import ProductionFloorAndSettlementBridge from './components/ProductionFloorAndSettlementBridge';
+import VaultAndReorderEngine from './components/VaultAndReorderEngine';
 
 // Root instances cache to avoid duplicate createRoot warnings on container re-entry
 const rootInstances = new WeakMap<HTMLElement, Root>();
@@ -51,6 +53,69 @@ export function renderB2BDealEngineComponent(container?: HTMLElement, initialTab
     );
   } catch (err) {
     console.error('Error mounting B2BDealEngine:', err);
+  }
+}
+
+// ── 00A. Renderer implementation for Production Floor & Settlement Bridge [FLOOR_BRIDGE] ──
+export function renderProductionFloorBridgeComponent(container?: HTMLElement, initialPo?: string) {
+  const target =
+    container ||
+    document.getElementById('mod-ProductionFloorBridge') ||
+    document.getElementById('mod-FLOOR_BRIDGE') ||
+    document.getElementById('mod-ProductionFloor') ||
+    document.getElementById('mod-FloorBridge') ||
+    document.getElementById('mod-Floor') ||
+    document.getElementById('body');
+  if (!target) return;
+
+  try {
+    const root = getOrCreateRoot(target);
+    root.render(
+      <div className="floor-bridge-module-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
+        <ProductionFloorAndSettlementBridge
+          initialPo={initialPo}
+          mode="embedded"
+          onClose={() => {
+            if (typeof (window as any).navTo === 'function') {
+              (window as any).navTo('Home');
+            }
+          }}
+        />
+      </div>
+    );
+  } catch (err) {
+    console.error('Error mounting ProductionFloorAndSettlementBridge:', err);
+  }
+}
+
+// ── 00B. Renderer implementation for Vault & Reorder Engine [VAULT_REORDER] ──
+export function renderVaultReorderEngineComponent(container?: HTMLElement) {
+  const target =
+    container ||
+    document.getElementById('mod-VaultAndReorderEngine') ||
+    document.getElementById('mod-VAULT_REORDER') ||
+    document.getElementById('mod-VaultReorder') ||
+    document.getElementById('mod-Vault') ||
+    document.getElementById('mod-ReorderEngine') ||
+    document.getElementById('body');
+  if (!target) return;
+
+  try {
+    const root = getOrCreateRoot(target);
+    root.render(
+      <div className="vault-reorder-module-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
+        <VaultAndReorderEngine
+          mode="embedded"
+          onClose={() => {
+            if (typeof (window as any).navTo === 'function') {
+              (window as any).navTo('Home');
+            }
+          }}
+        />
+      </div>
+    );
+  } catch (err) {
+    console.error('Error mounting VaultAndReorderEngine:', err);
   }
 }
 
@@ -363,6 +428,48 @@ if (typeof window !== 'undefined') {
   if (typeof (window as any).openB2BDealEngine !== 'function') {
     (window as any).openB2BDealEngine = () => {
       window.dispatchEvent(new CustomEvent('nexus:open-b2b-deal-engine'));
+    };
+  }
+
+  // Production Floor & Settlement Bridge renderers (all naming variants)
+  (window as any).render.ProductionFloorBridge = renderProductionFloorBridgeComponent;
+  (window as any).render.FLOOR_BRIDGE = renderProductionFloorBridgeComponent;
+  (window as any).render.FloorBridge = renderProductionFloorBridgeComponent;
+  (window as any).render.floor_bridge = renderProductionFloorBridgeComponent;
+  (window as any).render['Production Floor Bridge'] = renderProductionFloorBridgeComponent;
+  (window as any).render['Floor Bridge'] = renderProductionFloorBridgeComponent;
+  (window as any).render.ProductionFloor = renderProductionFloorBridgeComponent;
+  (window as any).render.PRODUCTION_FLOOR = renderProductionFloorBridgeComponent;
+
+  // Window-level direct functions
+  (window as any).renderProductionFloorBridge = renderProductionFloorBridgeComponent;
+  (window as any).renderProductionFloorBridgeComponent = renderProductionFloorBridgeComponent;
+  (window as any).renderFLOOR_BRIDGE = renderProductionFloorBridgeComponent;
+
+  if (typeof (window as any).openProductionFloorBridge !== 'function') {
+    (window as any).openProductionFloorBridge = (po?: string) => {
+      window.dispatchEvent(new CustomEvent('nexus:open-floor-bridge', { detail: { po } }));
+    };
+  }
+
+  // Vault & Reorder Engine renderers (all naming variants)
+  (window as any).render.VaultAndReorderEngine = renderVaultReorderEngineComponent;
+  (window as any).render.VAULT_REORDER = renderVaultReorderEngineComponent;
+  (window as any).render.VaultReorder = renderVaultReorderEngineComponent;
+  (window as any).render.vault_reorder = renderVaultReorderEngineComponent;
+  (window as any).render['Vault & Reorder Engine'] = renderVaultReorderEngineComponent;
+  (window as any).render['Vault & Reorder'] = renderVaultReorderEngineComponent;
+  (window as any).render.ReorderEngine = renderVaultReorderEngineComponent;
+  (window as any).render.ClearanceVault = renderVaultReorderEngineComponent;
+
+  // Window-level direct functions
+  (window as any).renderVaultReorderEngine = renderVaultReorderEngineComponent;
+  (window as any).renderVaultReorderEngineComponent = renderVaultReorderEngineComponent;
+  (window as any).renderVAULT_REORDER = renderVaultReorderEngineComponent;
+
+  if (typeof (window as any).openVaultReorderEngine !== 'function') {
+    (window as any).openVaultReorderEngine = () => {
+      window.dispatchEvent(new CustomEvent('nexus:open-vault-reorder'));
     };
   }
 }

@@ -95,6 +95,33 @@
         "message": { "type": "string" }
       },
       "required": ["timestamp", "orderId", "operatorUid", "result"]
+    },
+    "PaymentLedgerEntry": {
+      "title": "PaymentLedgerEntry",
+      "description": "Append-only payment event record in /orders/{orderId}/paymentLedger",
+      "type": "object",
+      "properties": {
+        "amount": { "type": "number" },
+        "method": { "type": "string", "enum": ["BANK_TT", "BKASH", "CASH"] },
+        "referenceId": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "verifiedBy": { "type": "string" }
+      },
+      "required": ["amount", "method", "referenceId"]
+    },
+    "IdempotencyKey": {
+      "title": "IdempotencyKey",
+      "description": "Idempotency gate record preventing duplicate state transitions",
+      "type": "object",
+      "properties": {
+        "key": { "type": "string" },
+        "orderId": { "type": "string" },
+        "response": { "type": "object" },
+        "createdAt": { "type": "string" },
+        "expiresAt": { "type": "string" }
+      },
+      "required": ["key", "orderId", "response"]
     }
   },
   "firestore": {
@@ -110,6 +137,10 @@
       "schema": "Order",
       "description": "Global Firestore orders collection with JIT cutting protection"
     },
+    "/orders/{orderId}/paymentLedger/{ledgerId}": {
+      "schema": "PaymentLedgerEntry",
+      "description": "Append-only immutable payment ledger subcollection"
+    },
     "/deals/{dealId}": {
       "schema": "B2BDeal",
       "description": "B2B Deal Engine Pipeline collection"
@@ -117,6 +148,10 @@
     "/auditLogs/{logId}": {
       "schema": "AuditLog",
       "description": "Immutable audit ledger collection"
+    },
+    "/idempotencyKeys/{key}": {
+      "schema": "IdempotencyKey",
+      "description": "Idempotency locks with 24-hour expiration"
     }
   }
 }

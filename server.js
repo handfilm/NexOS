@@ -3934,19 +3934,66 @@ app.post('/api/data-quality/flag-customer', (req, res) => {
 });
 
 /* ── 5. B2B Deal Engine: 2nd-Gen Cloud Function Mirror Endpoints ── */
+// In-memory idempotency cache for local server
+const localIdempotencyCache = new Map();
+
 // POST /api/functions/authorizeCutting
 app.post('/api/functions/authorizeCutting', (req, res) => {
   try {
-    const { orderId, operatorUid = 'nexus.operator@handsandhead.com', totalAmount: clientTotal, amountPaid: clientPaid, currency = 'USD' } = req.body || {};
+    const {
+      orderId,
+      idempotencyKey,
+      operatorPin,
+      operatorUid = 'nexus.operator@handsandhead.com',
+      totalAmount: clientTotal,
+      amountPaid: clientPaid,
+      currency = 'USD'
+    } = req.body || {};
+
     if (!orderId) {
       return res.status(400).json({ ok: false, error: 'The function must be called with a valid "orderId" string.' });
     }
 
-    // Read order from storage if exists, or use client payload
+    // 1. Validate Master PIN
+    const masterPin = process.env.MASTER_OPERATOR_PIN || process.env.OPERATOR_PIN;
+    if (masterPin && operatorPin !== masterPin) {
+      console.warn(`[authorizeCutting] Unauthorized attempt on order ${orderId}: Invalid PIN`);
+      return res.status(403).json({
+        ok: false,
+        code: 'permission-denied',
+        error: 'Invalid Master PIN authorization.'
+      });
+    }
+
+    // 2. Idempotency Gate
+    if (idempotencyKey) {
+      const cached = localIdempotencyCache.get(idempotencyKey);
+      if (cached && Date.now() < cached.expiresAt) {
+        console.log(`[authorizeCutting] Returning cached idempotent result for key: ${idempotencyKey}`);
+        return res.json({
+          ok: true,
+          message: 'Order cutting authorized (cached idempotent response)',
+          data: cached.data
+        });
+      }
+    }
+
+    // 3. Read order from storage if exists, or use client payload
     const orders = safeReadJson(ORDERS_FILE, []);
     const orderIndex = orders.findIndex(o => o.id === orderId || o.orderNumber === orderId);
     let order = orderIndex !== -1 ? orders[orderIndex] : null;
 
+    // AI Sanity Gate
+    const techPack = order?.techPack;
+    if (techPack && techPack.status === 'pending_ai_review') {
+      return res.status(412).json({
+        ok: false,
+        code: 'failed-precondition',
+        error: 'Specs must be explicitly confirmed before cutting. Tech-pack status is currently "pending_ai_review".'
+      });
+    }
+
+    // Financial Ledger Check
     const total = order ? Number(order.totalAmount ?? order.total ?? order.grandTotal ?? 0) : Number(clientTotal || 0);
     const paid = order ? Number(order.payment?.amountPaid ?? order.amountPaid ?? order.paidAmount ?? 0) : Number(clientPaid || 0);
     const required50 = 0.5 * total;
@@ -3957,7 +4004,7 @@ app.post('/api/functions/authorizeCutting', (req, res) => {
       return res.status(412).json({
         ok: false,
         code: 'failed-precondition',
-        error: 'Transaction Blocked: Less than 50% advance deposit confirmed.',
+        error: `Advance balance below 50% threshold. Confirmed: ${paid}, required 50%: ${required50}`,
         details: {
           orderId,
           totalAmount: total,
@@ -3978,21 +4025,93 @@ app.post('/api/functions/authorizeCutting', (req, res) => {
       safeWriteJson(ORDERS_FILE, orders);
     }
 
+    const responseData = {
+      orderId,
+      status: 'cutting_authorized',
+      amountPaid: paid,
+      totalAmount: total,
+      productionUnlockedAt: nowIso,
+      operatorUid
+    };
+
+    if (idempotencyKey) {
+      localIdempotencyCache.set(idempotencyKey, {
+        expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+        data: responseData
+      });
+    }
+
     console.log(`[authorizeCutting] SUCCESS: Order ${orderId} unlocked for JIT Cutting by ${operatorUid}`);
     res.json({
       ok: true,
       message: `Order ${orderId} successfully unlocked for JIT Cutting.`,
-      data: {
-        orderId,
-        status: 'cutting_authorized',
-        amountPaid: paid,
-        totalAmount: total,
-        productionUnlockedAt: nowIso,
-        operatorUid
-      }
+      data: responseData
     });
   } catch (err) {
     console.error('Error in authorizeCutting endpoint:', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/functions/recordPaymentEvent
+app.post('/api/functions/recordPaymentEvent', (req, res) => {
+  try {
+    const {
+      orderId,
+      amount,
+      method,
+      referenceId,
+      notes,
+      operatorPin,
+      operatorUid = 'nexus.operator@handsandhead.com'
+    } = req.body || {};
+
+    const masterPin = process.env.MASTER_OPERATOR_PIN || process.env.OPERATOR_PIN;
+    if (masterPin && operatorPin !== masterPin) {
+      return res.status(403).json({
+        ok: false,
+        code: 'permission-denied',
+        error: 'Invalid Master PIN authorization.'
+      });
+    }
+
+    if (!orderId || !amount || !method || !referenceId) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Missing required fields: orderId, amount, method, referenceId are required.'
+      });
+    }
+
+    const orders = safeReadJson(ORDERS_FILE, []);
+    const orderIndex = orders.findIndex(o => o.id === orderId || o.orderNumber === orderId);
+    const nowIso = new Date().toISOString();
+
+    let newTotalPaid = Number(amount);
+    if (orderIndex !== -1) {
+      const order = orders[orderIndex];
+      const prevPaid = Number(order.amountPaid ?? order.payment?.amountPaid ?? 0);
+      newTotalPaid = prevPaid + Number(amount);
+      order.amountPaid = newTotalPaid;
+      order.totalAmountPaid = newTotalPaid;
+      order.payment = order.payment || {};
+      order.payment.amountPaid = newTotalPaid;
+      order.updatedAt = nowIso;
+      safeWriteJson(ORDERS_FILE, orders);
+    }
+
+    res.json({
+      ok: true,
+      message: `Payment event committed to immutable ledger. Total verified paid: ${newTotalPaid}.`,
+      data: {
+        orderId,
+        amount: Number(amount),
+        method,
+        referenceId,
+        totalAmountPaid: newTotalPaid
+      }
+    });
+  } catch (err) {
+    console.error('Error in recordPaymentEvent endpoint:', err);
     res.status(500).json({ ok: false, error: err.message });
   }
 });

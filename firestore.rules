@@ -2,7 +2,7 @@ rules_version = '2';
 
 // ═══════════════════════════════════════════════════════════════
 // HANDS & HEAD NEXUS — Hardened Firestore Security Rules
-// Master Gate & JIT Cash-Lock Enforcement
+// Master PIN Gateway, Idempotency, and Append-Only Ledger Enforcement
 // ═══════════════════════════════════════════════════════════════
 
 service cloud.firestore {
@@ -21,34 +21,51 @@ service cloud.firestore {
     }
 
     // ── 1. Orders Collection with JIT Cash-Lock Protection ──
-    // Strict Guardrail: Clients are FORBIDDEN from setting status to 'cutting_authorized'.
-    // 'cutting_authorized' and 'productionUnlockedAt' can ONLY be written by the Admin SDK
-    // inside the 2nd-Gen Cloud Function `authorizeCutting` after atomic deposit verification.
+    // Strict Guardrail: Direct client-side update setting status to 'cutting_authorized'
+    // is COMPLETELY BLOCKED. 'cutting_authorized', 'productionUnlockedAt', and 'totalAmountPaid'
+    // can ONLY be modified server-side by the Firebase Admin SDK inside the 2nd-Gen Cloud Function
+    // `authorizeCutting` and `recordPaymentEvent` following atomic verification.
     match /orders/{orderId} {
       allow read: if true;
 
       allow create: if isSignedIn() &&
         request.resource.data.status != 'cutting_authorized' &&
-        !('productionUnlockedAt' in request.resource.data);
+        !('productionUnlockedAt' in request.resource.data) &&
+        !('totalAmountPaid' in request.resource.data);
 
       allow update: if isSignedIn() &&
         // Block direct client elevation to cutting_authorized
         request.resource.data.status != 'cutting_authorized' &&
-        // Block tampering with productionUnlockedAt
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['productionUnlockedAt']);
+        // Block client tampering with productionUnlockedAt and cached totalAmountPaid
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['productionUnlockedAt', 'totalAmountPaid']);
 
       allow delete: if isAdmin();
+
+      // ── Subcollection: /orders/{orderId}/paymentLedger ──
+      // APPEND-ONLY IMMUTABLE LEDGER:
+      // Clients may read verified ledger entries, but can NEVER create, update, or delete.
+      // All ledger mutations MUST flow through the 2nd-Gen Cloud Function `recordPaymentEvent`.
+      match /paymentLedger/{ledgerId} {
+        allow read: if isSignedIn();
+        allow create, update, delete: if false;
+      }
     }
 
     // ── 2. Audit Logs: Completely Immutable Security Ledger ──
     // Read-only for authenticated admins.
-    // Zero client create/update/delete. Only writable by Firebase Admin SDK via Cloud Functions.
+    // Client SDK create, update, and delete are strictly forbidden (Admin SDK / Functions only).
     match /auditLogs/{logId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }
 
-    // ── 3. B2B Deals Pipeline Collection ──
+    // ── 3. Idempotency Keys: Internal System Gate ──
+    // Client SDKs cannot read, write, update, or delete idempotency keys directly.
+    match /idempotencyKeys/{key} {
+      allow read, write: if false;
+    }
+
+    // ── 4. B2B Deals Pipeline Collection ──
     match /deals/{dealId} {
       allow read: if true;
       allow create, update: if isSignedIn() &&
@@ -56,7 +73,7 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ── 4. Core Catalog, Customers & Commerce Collections ──
+    // ── 5. Core Catalog, Customers & Commerce Collections ──
     match /products/{productId} {
       allow read: if true;
       allow write: if isSignedIn();
