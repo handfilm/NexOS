@@ -3168,13 +3168,21 @@
     const state = window._homeGalleryState;
 
     try {
-      const { items } = await window.ProductsService.list({
-        search: state.search,
-        productType: state.category === "All" ? "" : state.category,
-        status: "all",
-        sortBy: "updatedAt",
-        sortDir: "desc"
-      });
+      let items = [];
+      if (window.ProductsService && typeof window.ProductsService.list === 'function') {
+        const res = await window.ProductsService.list({
+          search: state.search,
+          productType: state.category === "All" ? "" : state.category,
+          status: "all",
+          sortBy: "updatedAt",
+          sortDir: "desc"
+        });
+        items = res?.items || [];
+      } else if (window.ProductsService && typeof window.ProductsService.getAll === 'function') {
+        items = window.ProductsService.getAll() || [];
+      } else {
+        items = window._lastProductsCache || window.products || (window.DATA && window.DATA.products) || [];
+      }
 
       window._lastProductsCache = items;
 

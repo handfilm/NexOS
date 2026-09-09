@@ -2386,29 +2386,32 @@ window.SyncEngine = {
   },
 
   connectSse() {
-    if (typeof window === "undefined" || typeof EventSource === "undefined") return;
+    if (typeof window === "undefined") return;
     try {
       if (this._sse) {
         try { this._sse.close(); } catch(e) {}
+        this._sse = null;
       }
-      this._sse = new EventSource("/api/sync/stream");
-      this._sse.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === "products") {
-            this.syncProducts(true);
-          } else if (data.type === "orders") {
+      // Use direct Firebase SDK onSnapshot listeners instead of dead server route /api/sync/stream
+      if (window.Collections) {
+        if (window.Collections.orders && typeof window.Collections.orders.onSnapshot === "function") {
+          window.Collections.orders.onSnapshot(() => {
             this.syncOrders(true);
-          } else if (data.type === "customers") {
+          }, (err) => console.debug("[SyncEngine] orders onSnapshot notice:", err?.message));
+        }
+        if (window.Collections.products && typeof window.Collections.products.onSnapshot === "function") {
+          window.Collections.products.onSnapshot(() => {
+            this.syncProducts(true);
+          }, (err) => console.debug("[SyncEngine] products onSnapshot notice:", err?.message));
+        }
+        if (window.Collections.customers && typeof window.Collections.customers.onSnapshot === "function") {
+          window.Collections.customers.onSnapshot(() => {
             this.syncCustomers(true);
-          }
-        } catch (e) {}
-      };
-      this._sse.onerror = () => {
-        // EventSource will auto-reconnect, polling handles fallback
-      };
+          }, (err) => console.debug("[SyncEngine] customers onSnapshot notice:", err?.message));
+        }
+      }
     } catch (e) {
-      console.debug("[SyncEngine] SSE setup notice:", e.message);
+      console.debug("[SyncEngine] Direct Firestore listener notice:", e.message);
     }
   },
 
@@ -2450,48 +2453,16 @@ window.SyncEngine = {
     if (this._isSyncing) return;
     this._isSyncing = true;
     try {
-      const resp = await fetch("/api/sync?_t=" + Date.now(), { cache: "no-store" });
-      if (!resp.ok) return;
-      const data = await resp.json();
-      if (!data.ok || !data.signatures) return;
-
-      const sigs = data.signatures;
-      const prev = this._lastSignatures;
-      this._lastSignatures = sigs;
-
-      if (!prev) {
-        // Initial boot: synchronize ALL collections across devices
+      if (!this._lastSignatures) {
+        this._lastSignatures = { initialized: true };
         await Promise.allSettled([
           this.syncOrders(false),
           this.syncProducts(false),
           this.syncCustomers(false)
         ]);
-        return;
-      }
-
-      const ordersChanged = prev.orderSig !== sigs.orderSig ||
-                            prev.orders?.count !== sigs.orders?.count ||
-                            prev.orders?.lastUpdated !== sigs.orders?.lastUpdated ||
-                            prev.orders?.latestId !== sigs.orders?.latestId;
-
-      if (ordersChanged) {
-        await this.syncOrders(true);
-      }
-
-      const productsChanged = prev.productSig !== sigs.productSig ||
-                              prev.products?.count !== sigs.products?.count ||
-                              prev.products?.lastUpdated !== sigs.products?.lastUpdated;
-      if (productsChanged) {
-        await this.syncProducts(true);
-      }
-
-      const customersChanged = prev.customerSig !== sigs.customerSig ||
-                               prev.customers?.count !== sigs.customers?.count;
-      if (customersChanged) {
-        await this.syncCustomers(true);
       }
     } catch (e) {
-      console.debug("[SyncEngine] Heartbeat notice:", e.message);
+      console.debug("[SyncEngine] Sync check notice:", e.message);
     } finally {
       this._isSyncing = false;
     }

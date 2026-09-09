@@ -6,9 +6,11 @@ import VoicePOIngestion from './components/VoicePOIngestion';
 import CorporateSupplies from './components/CorporateSupplies';
 import LogisticsSettlementHub from './components/LogisticsSettlementHub';
 import FactorySlaFloorTracker from './components/FactorySlaFloorTracker';
-import B2BDealEngine from './components/B2BDealEngine';
+import AgentAutonomousFleet from './components/AgentAutonomousFleet';
+import { B2BDealEngine } from './components/B2BDealEngine';
 import ProductionFloorAndSettlementBridge from './components/ProductionFloorAndSettlementBridge';
 import VaultAndReorderEngine from './components/VaultAndReorderEngine';
+import EnterpriseSourcingAndFactoryEscrow from './components/EnterpriseSourcingAndFactoryEscrow';
 
 // Root instances cache to avoid duplicate createRoot warnings on container re-entry
 const rootInstances = new WeakMap<HTMLElement, Root>();
@@ -21,102 +23,6 @@ function getOrCreateRoot(container: HTMLElement): Root {
     rootInstances.set(container, r);
   }
   return r;
-}
-
-// ── 00. Renderer implementation for B2B Deal & Revenue Engine ──
-export function renderB2BDealEngineComponent(container?: HTMLElement, initialTab?: any) {
-  const target =
-    container ||
-    document.getElementById('mod-B2BDealEngine') ||
-    document.getElementById('mod-B2BDEAL') ||
-    document.getElementById('mod-B2B_DEAL') ||
-    document.getElementById('mod-Deals') ||
-    document.getElementById('mod-DEALS') ||
-    document.getElementById('mod-Revenue') ||
-    document.getElementById('body');
-  if (!target) return;
-
-  try {
-    const root = getOrCreateRoot(target);
-    root.render(
-      <div className="b2b-deal-module-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
-        <B2BDealEngine
-          initialTab={initialTab}
-          mode="embedded"
-          onClose={() => {
-            if (typeof (window as any).navTo === 'function') {
-              (window as any).navTo('Home');
-            }
-          }}
-        />
-      </div>
-    );
-  } catch (err) {
-    console.error('Error mounting B2BDealEngine:', err);
-  }
-}
-
-// ── 00A. Renderer implementation for Production Floor & Settlement Bridge [FLOOR_BRIDGE] ──
-export function renderProductionFloorBridgeComponent(container?: HTMLElement, initialPo?: string) {
-  const target =
-    container ||
-    document.getElementById('mod-ProductionFloorBridge') ||
-    document.getElementById('mod-FLOOR_BRIDGE') ||
-    document.getElementById('mod-ProductionFloor') ||
-    document.getElementById('mod-FloorBridge') ||
-    document.getElementById('mod-Floor') ||
-    document.getElementById('body');
-  if (!target) return;
-
-  try {
-    const root = getOrCreateRoot(target);
-    root.render(
-      <div className="floor-bridge-module-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
-        <ProductionFloorAndSettlementBridge
-          initialPo={initialPo}
-          mode="embedded"
-          onClose={() => {
-            if (typeof (window as any).navTo === 'function') {
-              (window as any).navTo('Home');
-            }
-          }}
-        />
-      </div>
-    );
-  } catch (err) {
-    console.error('Error mounting ProductionFloorAndSettlementBridge:', err);
-  }
-}
-
-// ── 00B. Renderer implementation for Vault & Reorder Engine [VAULT_REORDER] ──
-export function renderVaultReorderEngineComponent(container?: HTMLElement) {
-  const target =
-    container ||
-    document.getElementById('mod-VaultAndReorderEngine') ||
-    document.getElementById('mod-VAULT_REORDER') ||
-    document.getElementById('mod-VaultReorder') ||
-    document.getElementById('mod-Vault') ||
-    document.getElementById('mod-ReorderEngine') ||
-    document.getElementById('body');
-  if (!target) return;
-
-  try {
-    const root = getOrCreateRoot(target);
-    root.render(
-      <div className="vault-reorder-module-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
-        <VaultAndReorderEngine
-          mode="embedded"
-          onClose={() => {
-            if (typeof (window as any).navTo === 'function') {
-              (window as any).navTo('Home');
-            }
-          }}
-        />
-      </div>
-    );
-  } catch (err) {
-    console.error('Error mounting VaultAndReorderEngine:', err);
-  }
 }
 
 // ── 0. Renderer implementation for Logistics & Settlement Hub ──
@@ -184,6 +90,38 @@ export function renderFactorySlaComponent(container?: HTMLElement, initialPoNumb
   }
 }
 
+// ── 0C. Renderer implementation for Autonomous Agent Command Fleet ──
+export function renderAgentFleetComponent(container?: HTMLElement) {
+  const target =
+    container ||
+    document.getElementById('mod-AgentAutonomousFleet') ||
+    document.getElementById('mod-AGENT_ORCHESTRATION') ||
+    document.getElementById('mod-AgentFleet') ||
+    document.getElementById('mod-AGENT_FLEET') ||
+    document.getElementById('mod-AutonomousFleet') ||
+    document.getElementById('mod-Fleet') ||
+    document.getElementById('body');
+  if (!target) return;
+
+  try {
+    const root = getOrCreateRoot(target);
+    root.render(
+      <div className="agent-fleet-module-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
+        <AgentAutonomousFleet
+          mode="embedded"
+          onClose={() => {
+            if (typeof (window as any).navTo === 'function') {
+              (window as any).navTo('Home');
+            }
+          }}
+        />
+      </div>
+    );
+  } catch (err) {
+    console.error('Error mounting AgentAutonomousFleet:', err);
+  }
+}
+
 // ── 0. Renderer implementation for Corporate Supplies ──
 export function renderCorporateSuppliesComponent(container?: HTMLElement) {
   const target =
@@ -204,6 +142,130 @@ export function renderCorporateSuppliesComponent(container?: HTMLElement) {
     );
   } catch (err) {
     console.error('Error mounting CorporateSupplies:', err);
+  }
+}
+
+// ── 0E. Renderer implementation for B2B Deal & Revenue Engine ──
+export function renderB2BDealEngineComponent(container?: HTMLElement) {
+  const target =
+    container ||
+    document.getElementById('mod-B2BDealEngine') ||
+    document.getElementById('mod-B2B_DEAL') ||
+    document.getElementById('mod-B2BDeal') ||
+    document.getElementById('mod-B2B') ||
+    document.getElementById('mod-Deals') ||
+    document.getElementById('mod-DEALS') ||
+    document.getElementById('body');
+  if (!target) return;
+
+  try {
+    const root = getOrCreateRoot(target);
+    root.render(
+      <div className="b2b-deal-engine-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
+        <B2BDealEngine
+          mode="embedded"
+          onClose={() => {
+            if (typeof (window as any).navTo === 'function') {
+              (window as any).navTo('Home');
+            }
+          }}
+        />
+      </div>
+    );
+  } catch (err) {
+    console.error('Error mounting B2BDealEngine:', err);
+  }
+}
+
+// ── 0F. Renderer implementation for Production Floor & Settlement Bridge ──
+export function renderProductionFloorBridgeComponent(container?: HTMLElement) {
+  const target =
+    container ||
+    document.getElementById('mod-ProductionFloorBridge') ||
+    document.getElementById('mod-FLOOR_BRIDGE') ||
+    document.getElementById('mod-ProductionFloor') ||
+    document.getElementById('mod-FloorBridge') ||
+    document.getElementById('body');
+  if (!target) return;
+
+  try {
+    const root = getOrCreateRoot(target);
+    root.render(
+      <div className="production-floor-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
+        <ProductionFloorAndSettlementBridge
+          mode="embedded"
+          onClose={() => {
+            if (typeof (window as any).navTo === 'function') {
+              (window as any).navTo('Home');
+            }
+          }}
+        />
+      </div>
+    );
+  } catch (err) {
+    console.error('Error mounting ProductionFloorAndSettlementBridge:', err);
+  }
+}
+
+// ── 0G. Renderer implementation for Vault & Reorder Engine ──
+export function renderVaultReorderEngineComponent(container?: HTMLElement) {
+  const target =
+    container ||
+    document.getElementById('mod-VaultReorderEngine') ||
+    document.getElementById('mod-REORDER_VAULT') ||
+    document.getElementById('mod-Vault') ||
+    document.getElementById('mod-ReorderEngine') ||
+    document.getElementById('body');
+  if (!target) return;
+
+  try {
+    const root = getOrCreateRoot(target);
+    root.render(
+      <div className="vault-reorder-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
+        <VaultAndReorderEngine
+          mode="embedded"
+          onClose={() => {
+            if (typeof (window as any).navTo === 'function') {
+              (window as any).navTo('Home');
+            }
+          }}
+        />
+      </div>
+    );
+  } catch (err) {
+    console.error('Error mounting VaultAndReorderEngine:', err);
+  }
+}
+
+// ── 0H. Renderer implementation for Enterprise Sourcing & Factory Escrow ──
+export function renderSourcingEscrowComponent(container?: HTMLElement, initialContractPo?: string) {
+  const target =
+    container ||
+    document.getElementById('mod-EnterpriseSourcingAndFactoryEscrow') ||
+    document.getElementById('mod-SOURCING_ESCROW') ||
+    document.getElementById('mod-SourcingEscrow') ||
+    document.getElementById('mod-Sourcing') ||
+    document.getElementById('mod-Escrow') ||
+    document.getElementById('body');
+  if (!target) return;
+
+  try {
+    const root = getOrCreateRoot(target);
+    root.render(
+      <div className="sourcing-escrow-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
+        <EnterpriseSourcingAndFactoryEscrow
+          mode="embedded"
+          initialContractPo={initialContractPo}
+          onClose={() => {
+            if (typeof (window as any).navTo === 'function') {
+              (window as any).navTo('Home');
+            }
+          }}
+        />
+      </div>
+    );
+  } catch (err) {
+    console.error('Error mounting EnterpriseSourcingAndFactoryEscrow:', err);
   }
 }
 
@@ -405,25 +467,47 @@ if (typeof window !== 'undefined') {
     };
   }
 
-  // B2B Deal & Revenue Engine renderers (all naming variants)
+  // Autonomous Agent Fleet renderers (all naming variants)
+  (window as any).render.AgentAutonomousFleet = renderAgentFleetComponent;
+  (window as any).render.AGENT_ORCHESTRATION = renderAgentFleetComponent;
+  (window as any).render.AgentFleet = renderAgentFleetComponent;
+  (window as any).render.AGENT_FLEET = renderAgentFleetComponent;
+  (window as any).render['Agent Fleet'] = renderAgentFleetComponent;
+  (window as any).render['Autonomous Fleet'] = renderAgentFleetComponent;
+  (window as any).render.AutonomousFleet = renderAgentFleetComponent;
+  (window as any).render.Fleet = renderAgentFleetComponent;
+  (window as any).render.FLEET = renderAgentFleetComponent;
+  (window as any).render.agent_fleet = renderAgentFleetComponent;
+  (window as any).render.agent_orchestration = renderAgentFleetComponent;
+
+  // Window-level direct functions
+  (window as any).renderAgentFleet = renderAgentFleetComponent;
+  (window as any).renderAgentAutonomousFleet = renderAgentFleetComponent;
+  (window as any).renderAGENT_ORCHESTRATION = renderAgentFleetComponent;
+  (window as any).renderAutonomousFleet = renderAgentFleetComponent;
+
+  if (typeof (window as any).openAgentAutonomousFleet !== 'function') {
+    (window as any).openAgentAutonomousFleet = () => {
+      window.dispatchEvent(new CustomEvent('nexus:open-agent-fleet'));
+    };
+  }
+
+  // B2B Deal & Revenue Engine renderers
   (window as any).render.B2BDealEngine = renderB2BDealEngineComponent;
   (window as any).render.B2BDEAL = renderB2BDealEngineComponent;
   (window as any).render.B2B_DEAL = renderB2BDealEngineComponent;
   (window as any).render.B2BDeal = renderB2BDealEngineComponent;
-  (window as any).render.b2bdeal = renderB2BDealEngineComponent;
   (window as any).render['B2B Deal Engine'] = renderB2BDealEngineComponent;
   (window as any).render['B2B Deal & Revenue Engine'] = renderB2BDealEngineComponent;
   (window as any).render['B2B Deals'] = renderB2BDealEngineComponent;
   (window as any).render.Deals = renderB2BDealEngineComponent;
   (window as any).render.DEALS = renderB2BDealEngineComponent;
   (window as any).render.Revenue = renderB2BDealEngineComponent;
-  (window as any).render.REVENUE = renderB2BDealEngineComponent;
 
   // Window-level direct functions
   (window as any).renderB2BDealEngine = renderB2BDealEngineComponent;
   (window as any).renderB2BDealEngineComponent = renderB2BDealEngineComponent;
   (window as any).renderB2BDEAL = renderB2BDealEngineComponent;
-  (window as any).renderDeals = renderB2BDealEngineComponent;
 
   if (typeof (window as any).openB2BDealEngine !== 'function') {
     (window as any).openB2BDealEngine = () => {
@@ -431,45 +515,50 @@ if (typeof window !== 'undefined') {
     };
   }
 
-  // Production Floor & Settlement Bridge renderers (all naming variants)
+  // Production Floor & Settlement Bridge renderers
   (window as any).render.ProductionFloorBridge = renderProductionFloorBridgeComponent;
   (window as any).render.FLOOR_BRIDGE = renderProductionFloorBridgeComponent;
-  (window as any).render.FloorBridge = renderProductionFloorBridgeComponent;
-  (window as any).render.floor_bridge = renderProductionFloorBridgeComponent;
-  (window as any).render['Production Floor Bridge'] = renderProductionFloorBridgeComponent;
-  (window as any).render['Floor Bridge'] = renderProductionFloorBridgeComponent;
   (window as any).render.ProductionFloor = renderProductionFloorBridgeComponent;
-  (window as any).render.PRODUCTION_FLOOR = renderProductionFloorBridgeComponent;
-
-  // Window-level direct functions
-  (window as any).renderProductionFloorBridge = renderProductionFloorBridgeComponent;
+  (window as any).render['Production Floor Bridge'] = renderProductionFloorBridgeComponent;
   (window as any).renderProductionFloorBridgeComponent = renderProductionFloorBridgeComponent;
-  (window as any).renderFLOOR_BRIDGE = renderProductionFloorBridgeComponent;
+  (window as any).renderProductionFloorBridge = renderProductionFloorBridgeComponent;
 
   if (typeof (window as any).openProductionFloorBridge !== 'function') {
-    (window as any).openProductionFloorBridge = (po?: string) => {
-      window.dispatchEvent(new CustomEvent('nexus:open-floor-bridge', { detail: { po } }));
+    (window as any).openProductionFloorBridge = () => {
+      window.dispatchEvent(new CustomEvent('nexus:open-floor-bridge'));
     };
   }
 
-  // Vault & Reorder Engine renderers (all naming variants)
-  (window as any).render.VaultAndReorderEngine = renderVaultReorderEngineComponent;
-  (window as any).render.VAULT_REORDER = renderVaultReorderEngineComponent;
-  (window as any).render.VaultReorder = renderVaultReorderEngineComponent;
-  (window as any).render.vault_reorder = renderVaultReorderEngineComponent;
+  // Vault & Reorder Engine renderers
+  (window as any).render.VaultReorderEngine = renderVaultReorderEngineComponent;
+  (window as any).render.REORDER_VAULT = renderVaultReorderEngineComponent;
+  (window as any).render.Vault = renderVaultReorderEngineComponent;
   (window as any).render['Vault & Reorder Engine'] = renderVaultReorderEngineComponent;
-  (window as any).render['Vault & Reorder'] = renderVaultReorderEngineComponent;
-  (window as any).render.ReorderEngine = renderVaultReorderEngineComponent;
-  (window as any).render.ClearanceVault = renderVaultReorderEngineComponent;
-
-  // Window-level direct functions
-  (window as any).renderVaultReorderEngine = renderVaultReorderEngineComponent;
   (window as any).renderVaultReorderEngineComponent = renderVaultReorderEngineComponent;
-  (window as any).renderVAULT_REORDER = renderVaultReorderEngineComponent;
+  (window as any).renderVaultReorderEngine = renderVaultReorderEngineComponent;
 
   if (typeof (window as any).openVaultReorderEngine !== 'function') {
     (window as any).openVaultReorderEngine = () => {
-      window.dispatchEvent(new CustomEvent('nexus:open-vault-reorder'));
+      window.dispatchEvent(new CustomEvent('nexus:open-vault'));
+    };
+  }
+
+  // Enterprise Sourcing & Factory Escrow renderers
+  (window as any).render.EnterpriseSourcingAndFactoryEscrow = renderSourcingEscrowComponent;
+  (window as any).render.SOURCING_ESCROW = renderSourcingEscrowComponent;
+  (window as any).render.SourcingEscrow = renderSourcingEscrowComponent;
+  (window as any).render['Enterprise Sourcing & Escrow'] = renderSourcingEscrowComponent;
+  (window as any).render['Sourcing & Escrow'] = renderSourcingEscrowComponent;
+  (window as any).render['Sourcing Escrow'] = renderSourcingEscrowComponent;
+  (window as any).render.Sourcing = renderSourcingEscrowComponent;
+  (window as any).render.Escrow = renderSourcingEscrowComponent;
+  (window as any).render.sourcing_escrow = renderSourcingEscrowComponent;
+  (window as any).renderSourcingEscrowComponent = renderSourcingEscrowComponent;
+  (window as any).renderSourcingEscrow = renderSourcingEscrowComponent;
+
+  if (typeof (window as any).openSourcingEscrow !== 'function') {
+    (window as any).openSourcingEscrow = (initialPo?: string) => {
+      window.dispatchEvent(new CustomEvent('nexus:open-sourcing-escrow', { detail: { poNumber: initialPo } }));
     };
   }
 }

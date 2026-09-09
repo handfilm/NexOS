@@ -1,6 +1,6 @@
 {
   "name": "Hands & Head",
-  "description": "H&H NEXUS Business Command Center — Unified customer, order, product, and WhatsApp campaign operations with asynchronous Drive ingestion, high-density commerce engine, B2B Deal & Revenue Engine, Production Floor & Settlement Bridge, and Vault & Reorder Engine.",
+  "description": "H&H NEXUS Business Command Center — Unified customer, order, product, and WhatsApp campaign operations with asynchronous Drive ingestion, B2B Deal & Revenue Engine, Production Floor & Settlement Bridge, Vault & Reorder Engine, and Enterprise Sourcing & Factory Escrow.",
   "requestFramePermissions": [
     "camera",
     "microphone"

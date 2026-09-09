@@ -4,10 +4,24 @@ import VoicePOIngestion from './components/VoicePOIngestion';
 import CorporateSupplies from './components/CorporateSupplies';
 import LogisticsSettlementHub from './components/LogisticsSettlementHub';
 import FactorySlaFloorTracker from './components/FactorySlaFloorTracker';
-import B2BDealEngine from './components/B2BDealEngine';
+import AgentAutonomousFleet from './components/AgentAutonomousFleet';
+import { B2BDealEngine } from './components/B2BDealEngine';
 import ProductionFloorAndSettlementBridge from './components/ProductionFloorAndSettlementBridge';
 import VaultAndReorderEngine from './components/VaultAndReorderEngine';
+import EnterpriseSourcingAndFactoryEscrow from './components/EnterpriseSourcingAndFactoryEscrow';
 import { ExtractedPOSpec } from './components/VoicePOIngestion';
+import {
+  ensureFirestoreSeeded,
+  subscribeToCustomers,
+  subscribeToProducts,
+  subscribeToOrders,
+  saveProduct,
+  saveOrder,
+  saveCustomer,
+  ProductRecord,
+  OrderRecord,
+  CustomerRecord
+} from './lib/persistence';
 
 export interface AppProps {
   className?: string;
@@ -24,80 +38,139 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       if (hash === 'CORPORATESUPPLIES' || hash === 'CORPORATE_SUPPLIES' || hash === 'CORPORATE') return 'CORPORATESUPPLIES';
       if (hash === 'LOGISTICS' || hash === 'LOGISTICS_HUB' || hash === 'SETTLEMENT' || hash === 'LOGISTICSSETTLEMENTHUB') return 'LOGISTICS';
       if (hash === 'FACTORYSLA' || hash === 'FACTORY_SLA' || hash === 'FLOOR_TRACKER' || hash === 'SLA' || hash === 'FACTORY') return 'FACTORYSLA';
-      if (hash === 'B2BDEAL' || hash === 'B2B_DEAL' || hash === 'B2BDEALENGINE' || hash === 'DEALS' || hash === 'REVENUE') return 'B2BDEAL';
+      if (hash === 'AGENT_ORCHESTRATION' || hash === 'AGENTAUTONOMOUSFLEET' || hash === 'AGENT_FLEET' || hash === 'FLEET') return 'AGENT_ORCHESTRATION';
+      if (hash === 'B2B' || hash === 'B2BDEAL' || hash === 'B2B_DEAL' || hash === 'DEALS') return 'B2B';
+      if (hash === 'FLOOR_BRIDGE' || hash === 'PRODUCTION_FLOOR' || hash === 'FLOORBRIDGE') return 'FLOOR_BRIDGE';
+      if (hash === 'VAULT' || hash === 'VAULT_REORDER' || hash === 'REORDER_VAULT') return 'VAULT';
+      if (hash === 'SOURCING_ESCROW' || hash === 'SOURCING' || hash === 'ESCROW' || hash === 'ENTERPRISESOURCING') return 'SOURCING_ESCROW';
     }
     return 'DEFAULT';
   });
 
+  // Modal / Drawer States
   const [isTechPackOpen, setIsTechPackOpen] = useState<boolean>(false);
   const [isVoiceIngestOpen, setIsVoiceIngestOpen] = useState<boolean>(false);
   const [isLogisticsOpen, setIsLogisticsOpen] = useState<boolean>(false);
   const [isFactorySlaOpen, setIsFactorySlaOpen] = useState<boolean>(false);
+  const [isAgentFleetOpen, setIsAgentFleetOpen] = useState<boolean>(false);
   const [isB2BDealOpen, setIsB2BDealOpen] = useState<boolean>(false);
   const [isFloorBridgeOpen, setIsFloorBridgeOpen] = useState<boolean>(false);
-  const [isVaultReorderOpen, setIsVaultReorderOpen] = useState<boolean>(false);
+  const [isVaultOpen, setIsVaultOpen] = useState<boolean>(false);
+  const [isSourcingEscrowOpen, setIsSourcingEscrowOpen] = useState<boolean>(false);
+
+  // Selection parameters
   const [preSelectedCustomer, setPreSelectedCustomer] = useState<any | null>(null);
   const [preSelectedLogisticsOrder, setPreSelectedLogisticsOrder] = useState<any | null>(null);
   const [preSelectedSlaPo, setPreSelectedSlaPo] = useState<string | null>(null);
-  const [preSelectedFloorPo, setPreSelectedFloorPo] = useState<string | null>(null);
+  const [preSelectedEscrowPo, setPreSelectedEscrowPo] = useState<string | null>(null);
   const [lastExtractedSpec, setLastExtractedSpec] = useState<ExtractedPOSpec | null>(null);
   const [toastNotification, setToastNotification] = useState<string | null>(null);
 
-  const openFloorBridge = useCallback((po?: string) => {
-    if (po) {
-      setPreSelectedFloorPo(po);
-    }
-    setIsFloorBridgeOpen(true);
-    setIsTechPackOpen(false);
-    setIsVoiceIngestOpen(false);
-    setIsLogisticsOpen(false);
-    setIsFactorySlaOpen(false);
-    setIsB2BDealOpen(false);
-    setIsVaultReorderOpen(false);
+  // ── Firestore Real-Time Persistence State ──
+  const [customers, setCustomers] = useState<CustomerRecord[]>([]);
+  const [products, setProducts] = useState<ProductRecord[]>([]);
+  const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [syncStatus, setSyncStatus] = useState<'INITIALIZING' | 'CONNECTED' | 'SYNCED'>('INITIALIZING');
+
+  // Mount real-time Firestore synchronization
+  useEffect(() => {
+    // 1. Check and seed initial customer records if database is fresh
+    const inMemoryCustomers =
+      (window as any).PERMANENT_SEEDED_CUSTOMERS ||
+      (window as any).DATA?.customers ||
+      (window as any).customers ||
+      [];
+    ensureFirestoreSeeded(inMemoryCustomers).catch(err => {
+      console.warn('[App Persistence] Auto-seed check notice:', err);
+    });
+
+    // 2. Real-time onSnapshot Streams
+    const unsubCustomers = subscribeToCustomers(
+      (list) => {
+        setCustomers(list);
+        if (typeof window !== 'undefined') {
+          (window as any).customers = list;
+          if ((window as any).DATA) (window as any).DATA.customers = list;
+        }
+        setSyncStatus('SYNCED');
+      },
+      (err) => console.warn('[App Persistence] Customer stream notice:', err)
+    );
+
+    const unsubProducts = subscribeToProducts(
+      (list) => {
+        setProducts(list);
+        if (typeof window !== 'undefined') {
+          (window as any).products = list;
+          if ((window as any).DATA) (window as any).DATA.products = list;
+        }
+      },
+      (err) => console.warn('[App Persistence] Product stream notice:', err)
+    );
+
+    const unsubOrders = subscribeToOrders(
+      (list) => {
+        setOrders(list);
+        if (typeof window !== 'undefined') {
+          (window as any).orders = list;
+          if ((window as any).DATA) (window as any).DATA.orders = list;
+        }
+      },
+      (err) => console.warn('[App Persistence] Order stream notice:', err)
+    );
+
+    // 3. Custom event hooks for global persistence calls
+    const handleSaveProduct = async (e: any) => {
+      if (e.detail?.product) {
+        try {
+          await saveProduct(e.detail.product);
+        } catch (err) {
+          console.warn('[App] saveProduct error:', err);
+        }
+      }
+    };
+
+    const handleSaveOrder = async (e: any) => {
+      if (e.detail?.order) {
+        try {
+          await saveOrder(e.detail.order);
+        } catch (err) {
+          console.warn('[App] saveOrder error:', err);
+        }
+      }
+    };
+
+    const handleSaveCustomer = async (e: any) => {
+      if (e.detail?.customer) {
+        try {
+          await saveCustomer(e.detail.customer);
+        } catch (err) {
+          console.warn('[App] saveCustomer error:', err);
+        }
+      }
+    };
+
+    window.addEventListener('nexus:save-product', handleSaveProduct);
+    window.addEventListener('nexus:save-order', handleSaveOrder);
+    window.addEventListener('nexus:save-customer', handleSaveCustomer);
+
+    return () => {
+      unsubCustomers();
+      unsubProducts();
+      unsubOrders();
+      window.removeEventListener('nexus:save-product', handleSaveProduct);
+      window.removeEventListener('nexus:save-order', handleSaveOrder);
+      window.removeEventListener('nexus:save-customer', handleSaveCustomer);
+    };
   }, []);
 
-  const closeFloorBridge = useCallback(() => {
-    setIsFloorBridgeOpen(false);
-    setPreSelectedFloorPo(null);
-  }, []);
-
-  const openVaultReorder = useCallback(() => {
-    setIsVaultReorderOpen(true);
-    setIsTechPackOpen(false);
-    setIsVoiceIngestOpen(false);
-    setIsLogisticsOpen(false);
-    setIsFactorySlaOpen(false);
-    setIsB2BDealOpen(false);
-    setIsFloorBridgeOpen(false);
-  }, []);
-
-  const closeVaultReorder = useCallback(() => {
-    setIsVaultReorderOpen(false);
-  }, []);
-
-  const openB2BDeal = useCallback(() => {
-    setIsB2BDealOpen(true);
-    setIsTechPackOpen(false);
-    setIsVoiceIngestOpen(false);
-    setIsLogisticsOpen(false);
-    setIsFactorySlaOpen(false);
-    setIsFloorBridgeOpen(false);
-    setIsVaultReorderOpen(false);
-  }, []);
-
-  const closeB2BDeal = useCallback(() => {
-    setIsB2BDealOpen(false);
-  }, []);
-
+  // Handlers for Opening/Closing Modules
   const openTechPack = useCallback((customer?: any) => {
-    if (customer) {
-      setPreSelectedCustomer(customer);
-    }
+    if (customer) setPreSelectedCustomer(customer);
     setIsTechPackOpen(true);
     setIsVoiceIngestOpen(false);
     setIsLogisticsOpen(false);
     setIsFactorySlaOpen(false);
-    setIsB2BDealOpen(false);
   }, []);
 
   const closeTechPack = useCallback(() => {
@@ -110,7 +183,6 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     setIsTechPackOpen(false);
     setIsLogisticsOpen(false);
     setIsFactorySlaOpen(false);
-    setIsB2BDealOpen(false);
   }, []);
 
   const closeVoiceIngest = useCallback(() => {
@@ -118,14 +190,11 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
   }, []);
 
   const openLogistics = useCallback((order?: any) => {
-    if (order) {
-      setPreSelectedLogisticsOrder(order);
-    }
+    if (order) setPreSelectedLogisticsOrder(order);
     setIsLogisticsOpen(true);
     setIsTechPackOpen(false);
     setIsVoiceIngestOpen(false);
     setIsFactorySlaOpen(false);
-    setIsB2BDealOpen(false);
   }, []);
 
   const closeLogistics = useCallback(() => {
@@ -134,19 +203,50 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
   }, []);
 
   const openFactorySla = useCallback((poNumber?: string) => {
-    if (poNumber) {
-      setPreSelectedSlaPo(poNumber);
-    }
+    if (poNumber) setPreSelectedSlaPo(poNumber);
     setIsFactorySlaOpen(true);
     setIsTechPackOpen(false);
     setIsVoiceIngestOpen(false);
     setIsLogisticsOpen(false);
-    setIsB2BDealOpen(false);
   }, []);
 
   const closeFactorySla = useCallback(() => {
     setIsFactorySlaOpen(false);
     setPreSelectedSlaPo(null);
+  }, []);
+
+  const openB2BDeal = useCallback(() => {
+    setIsB2BDealOpen(true);
+  }, []);
+
+  const closeB2BDeal = useCallback(() => {
+    setIsB2BDealOpen(false);
+  }, []);
+
+  const openFloorBridge = useCallback(() => {
+    setIsFloorBridgeOpen(true);
+  }, []);
+
+  const closeFloorBridge = useCallback(() => {
+    setIsFloorBridgeOpen(false);
+  }, []);
+
+  const openVault = useCallback(() => {
+    setIsVaultOpen(true);
+  }, []);
+
+  const closeVault = useCallback(() => {
+    setIsVaultOpen(false);
+  }, []);
+
+  const openSourcingEscrow = useCallback((poNumber?: string) => {
+    if (poNumber) setPreSelectedEscrowPo(poNumber);
+    setIsSourcingEscrowOpen(true);
+  }, []);
+
+  const closeSourcingEscrow = useCallback(() => {
+    setIsSourcingEscrowOpen(false);
+    setPreSelectedEscrowPo(null);
   }, []);
 
   const handleVoiceSpecExtracted = useCallback((spec: ExtractedPOSpec) => {
@@ -158,7 +258,6 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     setToastNotification(msg);
     setTimeout(() => setToastNotification(null), 6000);
 
-    // Also trigger native app toast if available
     if (typeof (window as any).toast === 'function') {
       (window as any).toast(msg, 'ok');
     }
@@ -166,53 +265,18 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
 
   // Global window listeners & hash routing bridges
   useEffect(() => {
-    (window as any).openTechPackPOEngine = (cust?: any) => {
-      openTechPack(cust);
-    };
-    (window as any).closeTechPackPOEngine = () => {
-      closeTechPack();
-    };
-    (window as any).openVoicePOIngestion = () => {
-      openVoiceIngest();
-    };
-    (window as any).closeVoicePOIngestion = () => {
-      closeVoiceIngest();
-    };
-
-    (window as any).openLogisticsSettlementHub = (order?: any) => {
-      openLogistics(order);
-    };
-    (window as any).closeLogisticsSettlementHub = () => {
-      closeLogistics();
-    };
-
-    (window as any).openFactorySlaFloorTracker = (poNumber?: string) => {
-      openFactorySla(poNumber);
-    };
-    (window as any).closeFactorySlaFloorTracker = () => {
-      closeFactorySla();
-    };
-
-    (window as any).openB2BDealEngine = () => {
-      openB2BDeal();
-    };
-    (window as any).closeB2BDealEngine = () => {
-      closeB2BDeal();
-    };
-
-    (window as any).openProductionFloorBridge = (po?: string) => {
-      openFloorBridge(po);
-    };
-    (window as any).closeProductionFloorBridge = () => {
-      closeFloorBridge();
-    };
-
-    (window as any).openVaultReorderEngine = () => {
-      openVaultReorder();
-    };
-    (window as any).closeVaultReorderEngine = () => {
-      closeVaultReorder();
-    };
+    (window as any).openTechPackPOEngine = (cust?: any) => openTechPack(cust);
+    (window as any).closeTechPackPOEngine = () => closeTechPack();
+    (window as any).openVoicePOIngestion = () => openVoiceIngest();
+    (window as any).closeVoicePOIngestion = () => closeVoiceIngest();
+    (window as any).openLogisticsSettlementHub = (order?: any) => openLogistics(order);
+    (window as any).closeLogisticsSettlementHub = () => closeLogistics();
+    (window as any).openFactorySlaFloorTracker = (poNumber?: string) => openFactorySla(poNumber);
+    (window as any).closeFactorySlaFloorTracker = () => closeFactorySla();
+    (window as any).openB2BDealEngine = () => openB2BDeal();
+    (window as any).openProductionFloorBridge = () => openFloorBridge();
+    (window as any).openVaultReorderEngine = () => openVault();
+    (window as any).openSourcingEscrow = (po?: string) => openSourcingEscrow(po);
 
     (window as any).NexusApp = {
       openTechPack,
@@ -227,8 +291,13 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       closeB2BDeal,
       openFloorBridge,
       closeFloorBridge,
-      openVaultReorder,
-      closeVaultReorder,
+      openVault,
+      closeVault,
+      openSourcingEscrow,
+      closeSourcingEscrow,
+      saveProduct,
+      saveOrder,
+      saveCustomer,
       navigate: (route: string) => setCurrentRoute(route),
       getState: () => ({
         isTechPackOpen,
@@ -237,39 +306,32 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         isFactorySlaOpen,
         isB2BDealOpen,
         isFloorBridgeOpen,
-        isVaultReorderOpen,
+        isVaultOpen,
+        isSourcingEscrowOpen,
         currentRoute,
-        lastExtractedSpec
+        lastExtractedSpec,
+        customersCount: customers.length,
+        productsCount: products.length,
+        ordersCount: orders.length
       })
     };
 
-    const handleOpenTechPackEvent = (e: any) => {
-      openTechPack(e.detail?.customer);
-    };
-    const handleOpenVoiceEvent = () => {
-      openVoiceIngest();
-    };
-    const handleOpenCorporateEvent = () => {
-      setCurrentRoute('CORPORATESUPPLIES');
-    };
-    const handleOpenLogisticsEvent = (e: any) => {
-      const order = e.detail?.order || e.detail;
-      openLogistics(order);
-    };
+    const handleOpenTechPackEvent = (e: any) => openTechPack(e.detail?.customer);
+    const handleOpenVoiceEvent = () => openVoiceIngest();
+    const handleOpenCorporateEvent = () => setCurrentRoute('CORPORATESUPPLIES');
+    const handleOpenLogisticsEvent = (e: any) => openLogistics(e.detail?.order || e.detail);
     const handleOpenFactorySlaEvent = (e: any) => {
       const poNum = e.detail?.poNumber || e.detail?.id || e.detail;
       openFactorySla(typeof poNum === 'string' ? poNum : undefined);
     };
-    const handleOpenB2BDealEvent = () => {
-      openB2BDeal();
+    const handleOpenB2BEvent = () => openB2BDeal();
+    const handleOpenFloorBridgeEvent = () => openFloorBridge();
+    const handleOpenVaultEvent = () => openVault();
+    const handleOpenSourcingEscrowEvent = (e: any) => {
+      const poNum = e.detail?.poNumber || e.detail?.id || e.detail;
+      openSourcingEscrow(typeof poNum === 'string' ? poNum : undefined);
     };
-    const handleOpenFloorBridgeEvent = (e: any) => {
-      const po = e.detail?.po || e.detail?.poNumber || e.detail?.id || e.detail;
-      openFloorBridge(typeof po === 'string' ? po : undefined);
-    };
-    const handleOpenVaultReorderEvent = () => {
-      openVaultReorder();
-    };
+
     const handleNavigateEvent = (e: any) => {
       const target = (e.detail?.route || e.detail || '').toString().toUpperCase();
       if (target) setCurrentRoute(target);
@@ -287,12 +349,14 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         setCurrentRoute('LOGISTICS');
       } else if (hash === 'FACTORYSLA' || hash === 'FACTORY_SLA' || hash === 'FLOOR_TRACKER' || hash === 'SLA' || hash === 'FACTORY') {
         setCurrentRoute('FACTORYSLA');
-      } else if (hash === 'B2BDEAL' || hash === 'B2B_DEAL' || hash === 'B2BDEALENGINE' || hash === 'DEALS' || hash === 'REVENUE') {
-        setCurrentRoute('B2BDEAL');
-      } else if (hash === 'FLOOR_BRIDGE' || hash === 'FLOORBRIDGE' || hash === 'FLOOR' || hash === 'PRODUCTION_FLOOR') {
+      } else if (hash === 'B2B' || hash === 'B2BDEAL' || hash === 'B2B_DEAL' || hash === 'DEALS') {
+        setCurrentRoute('B2B');
+      } else if (hash === 'FLOOR_BRIDGE' || hash === 'PRODUCTION_FLOOR' || hash === 'FLOORBRIDGE') {
         setCurrentRoute('FLOOR_BRIDGE');
-      } else if (hash === 'VAULT_REORDER' || hash === 'VAULTREORDER' || hash === 'VAULT' || hash === 'REORDER') {
-        setCurrentRoute('VAULT_REORDER');
+      } else if (hash === 'VAULT' || hash === 'VAULT_REORDER' || hash === 'REORDER_VAULT') {
+        setCurrentRoute('VAULT');
+      } else if (hash === 'SOURCING_ESCROW' || hash === 'SOURCING' || hash === 'ESCROW' || hash === 'ENTERPRISESOURCING') {
+        setCurrentRoute('SOURCING_ESCROW');
       }
     };
 
@@ -301,9 +365,10 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     window.addEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
     window.addEventListener('nexus:open-logistics', handleOpenLogisticsEvent);
     window.addEventListener('nexus:open-factory-sla', handleOpenFactorySlaEvent);
-    window.addEventListener('nexus:open-b2b-deal-engine', handleOpenB2BDealEvent);
+    window.addEventListener('nexus:open-b2b-deal-engine', handleOpenB2BEvent);
     window.addEventListener('nexus:open-floor-bridge', handleOpenFloorBridgeEvent);
-    window.addEventListener('nexus:open-vault-reorder', handleOpenVaultReorderEvent);
+    window.addEventListener('nexus:open-vault', handleOpenVaultEvent);
+    window.addEventListener('nexus:open-sourcing-escrow', handleOpenSourcingEscrowEvent);
     window.addEventListener('nexus:navigate', handleNavigateEvent);
     window.addEventListener('hashchange', handleHashChange);
 
@@ -313,17 +378,17 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       window.removeEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
       window.removeEventListener('nexus:open-logistics', handleOpenLogisticsEvent);
       window.removeEventListener('nexus:open-factory-sla', handleOpenFactorySlaEvent);
-      window.removeEventListener('nexus:open-b2b-deal-engine', handleOpenB2BDealEvent);
+      window.removeEventListener('nexus:open-b2b-deal-engine', handleOpenB2BEvent);
       window.removeEventListener('nexus:open-floor-bridge', handleOpenFloorBridgeEvent);
-      window.removeEventListener('nexus:open-vault-reorder', handleOpenVaultReorderEvent);
+      window.removeEventListener('nexus:open-vault', handleOpenVaultEvent);
+      window.removeEventListener('nexus:open-sourcing-escrow', handleOpenSourcingEscrowEvent);
       window.removeEventListener('nexus:navigate', handleNavigateEvent);
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, openLogistics, closeLogistics, openFactorySla, closeFactorySla, openB2BDeal, closeB2BDeal, openFloorBridge, closeFloorBridge, openVaultReorder, closeVaultReorder, isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, isFactorySlaOpen, isB2BDealOpen, isFloorBridgeOpen, isVaultReorderOpen, currentRoute, lastExtractedSpec]);
+  }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, openLogistics, closeLogistics, openFactorySla, closeFactorySla, openB2BDeal, closeB2BDeal, openFloorBridge, closeFloorBridge, openVault, closeVault, openSourcingEscrow, closeSourcingEscrow, isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, isFactorySlaOpen, isB2BDealOpen, isFloorBridgeOpen, isVaultOpen, isSourcingEscrowOpen, currentRoute, lastExtractedSpec, customers, products, orders]);
 
   // View switch/case rendering
   const renderCurrentView = () => {
-    console.log('[Router] renderCurrentView active route:', currentRoute);
     switch (currentRoute.toUpperCase()) {
       case 'VOICEINGEST':
       case 'VOICE_INGEST':
@@ -436,43 +501,52 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
           </div>
         );
 
+      case 'B2B':
       case 'B2BDEAL':
       case 'B2B_DEAL':
-      case 'B2BDEALENGINE':
       case 'DEALS':
-      case 'REVENUE':
-      case 'B2B':
         return (
           <div className="b2b-deal-router-view max-w-7xl mx-auto my-4">
             <B2BDealEngine
-              mode="fullscreen"
+              mode="embedded"
               onClose={() => setCurrentRoute('DEFAULT')}
             />
           </div>
         );
 
       case 'FLOOR_BRIDGE':
-      case 'FLOORBRIDGE':
-      case 'FLOOR':
       case 'PRODUCTION_FLOOR':
+      case 'FLOORBRIDGE':
         return (
           <div className="floor-bridge-router-view max-w-7xl mx-auto my-4">
             <ProductionFloorAndSettlementBridge
-              initialPo={preSelectedFloorPo || undefined}
-              mode="fullscreen"
+              mode="embedded"
               onClose={() => setCurrentRoute('DEFAULT')}
             />
           </div>
         );
 
-      case 'VAULT_REORDER':
-      case 'VAULTREORDER':
       case 'VAULT':
-      case 'REORDER':
+      case 'VAULT_REORDER':
+      case 'REORDER_VAULT':
         return (
-          <div className="vault-reorder-router-view max-w-7xl mx-auto my-4">
+          <div className="vault-router-view max-w-7xl mx-auto my-4">
             <VaultAndReorderEngine
-              mode="fullscreen"
+              mode="embedded"
+              onClose={() => setCurrentRoute('DEFAULT')}
+            />
+          </div>
+        );
+
+      case 'SOURCING_ESCROW':
+      case 'SOURCING':
+      case 'ESCROW':
+      case 'ENTERPRISESOURCING':
+        return (
+          <div className="sourcing-escrow-router-view max-w-7xl mx-auto my-4">
+            <EnterpriseSourcingAndFactoryEscrow
+              mode="embedded"
+              initialContractPo={preSelectedEscrowPo || undefined}
               onClose={() => setCurrentRoute('DEFAULT')}
             />
           </div>
@@ -619,10 +693,10 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         </div>
       )}
 
-      {/* ── B2B Deal & Revenue Engine (Modal Mode) ── */}
+      {/* ── B2B Deal Engine (Modal Mode) ── */}
       {isB2BDealOpen && (
         <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto"
           onClick={closeB2BDeal}
         >
           <div
@@ -637,10 +711,10 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         </div>
       )}
 
-      {/* ── Production Floor & Settlement Bridge (Modal Mode) ── */}
+      {/* ── Production Floor Bridge (Modal Mode) ── */}
       {isFloorBridgeOpen && (
         <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto"
           onClick={closeFloorBridge}
         >
           <div
@@ -648,7 +722,6 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
             onClick={(e) => e.stopPropagation()}
           >
             <ProductionFloorAndSettlementBridge
-              initialPo={preSelectedFloorPo || undefined}
               mode="modal"
               onClose={closeFloorBridge}
             />
@@ -657,10 +730,10 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       )}
 
       {/* ── Vault & Reorder Engine (Modal Mode) ── */}
-      {isVaultReorderOpen && (
+      {isVaultOpen && (
         <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
-          onClick={closeVaultReorder}
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto"
+          onClick={closeVault}
         >
           <div
             className="relative w-full max-w-7xl overflow-hidden flex flex-col my-auto"
@@ -668,7 +741,26 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
           >
             <VaultAndReorderEngine
               mode="modal"
-              onClose={closeVaultReorder}
+              onClose={closeVault}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Enterprise Sourcing & Factory Escrow (Modal Mode) ── */}
+      {isSourcingEscrowOpen && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto"
+          onClick={closeSourcingEscrow}
+        >
+          <div
+            className="relative w-full max-w-7xl overflow-hidden flex flex-col my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <EnterpriseSourcingAndFactoryEscrow
+              mode="modal"
+              initialContractPo={preSelectedEscrowPo || undefined}
+              onClose={closeSourcingEscrow}
             />
           </div>
         </div>

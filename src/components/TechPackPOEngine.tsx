@@ -366,12 +366,10 @@ export const TechPackPOEngine: React.FC<TechPackPOEngineProps> = ({
         console.warn('[TechPackPOEngine] Firestore query fallback to /api/customers:', e);
       }
 
-      // Fallback to Express backend /api/customers
+      // Fallback to Express backend /api/customers or memory
       try {
-        const res = await fetch('/api/customers?limit=50');
-        const json = await res.json();
-        if (isMounted && json.ok && Array.isArray(json.items)) {
-          const list: CustomerOption[] = json.items.map((data: any) => ({
+        if (typeof window !== 'undefined' && Array.isArray((window as any).customers) && (window as any).customers.length > 0) {
+          const list: CustomerOption[] = (window as any).customers.slice(0, 50).map((data: any) => ({
             id: data.id,
             name: data.name || data.companyName || 'Buyer',
             companyName: data.companyName || data.name || '',
@@ -384,9 +382,29 @@ export const TechPackPOEngine: React.FC<TechPackPOEngineProps> = ({
           if (!selectedCustomer && !preSelectedCustomer && list.length > 0) {
             setSelectedCustomer(list[0]);
           }
+        } else {
+          const res = await fetch('/api/customers?limit=50').catch(() => null);
+          if (res && res.ok) {
+            const json = await res.json();
+            if (isMounted && json.ok && Array.isArray(json.items)) {
+              const list: CustomerOption[] = json.items.map((data: any) => ({
+                id: data.id,
+                name: data.name || data.companyName || 'Buyer',
+                companyName: data.companyName || data.name || '',
+                phone: normalizeBangladeshPhone(data.phone || data.canonicalPhone),
+                email: data.email || '',
+                country: data.country || 'BD',
+                totalSpent: Number(data.totalSpent || 0)
+              }));
+              setCustomerList(list);
+              if (!selectedCustomer && !preSelectedCustomer && list.length > 0) {
+                setSelectedCustomer(list[0]);
+              }
+            }
+          }
         }
       } catch (apiErr) {
-        console.warn('[TechPackPOEngine] Backend customer fetch error:', apiErr);
+        console.warn('[TechPackPOEngine] Customer fallback notice:', apiErr);
       } finally {
         if (isMounted) setLoadingCustomers(false);
       }
@@ -819,18 +837,20 @@ export const TechPackPOEngine: React.FC<TechPackPOEngineProps> = ({
       console.warn('[TechPackPOEngine] Direct Firestore save notice, attempting backend sync:', fsErr);
     }
 
-    // 3. Guaranteed Server-Side persistence fallback via Express `/api/factory-orders`
-    try {
-      const res = await fetch('/api/factory-orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(specRecord)
-      });
-      if (res.ok) {
-        firestoreSaved = true;
+    // 3. Server-Side persistence fallback via Express `/api/factory-orders`
+    if (!firestoreSaved) {
+      try {
+        const res = await fetch('/api/factory-orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(specRecord)
+        });
+        if (res.ok) {
+          firestoreSaved = true;
+        }
+      } catch (apiErr) {
+        console.warn('[TechPackPOEngine] Server API sync notice:', apiErr);
       }
-    } catch (apiErr) {
-      console.warn('[TechPackPOEngine] Server API sync error:', apiErr);
     }
 
     setIsSaving(false);

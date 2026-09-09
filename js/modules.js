@@ -131,9 +131,11 @@
           if (typeof window.renderB2BDealEngineComponent === "function") {
             clearInterval(poller);
             window.renderB2BDealEngineComponent(container);
-          } else if (retries > 30) {
+          } else if (retries >= 15) {
             clearInterval(poller);
-            if (typeof window.openB2BDealEngine === "function") {
+            if (typeof window.renderB2BDealEngineComponent === "function") {
+              window.renderB2BDealEngineComponent(container);
+            } else if (typeof window.openB2BDealEngine === "function") {
               window.openB2BDealEngine();
             } else {
               window.dispatchEvent(new CustomEvent('nexus:open-b2b-deal-engine'));
@@ -232,6 +234,47 @@
     window.render["Vault & Reorder Engine"] = window.render.VaultAndReorderEngine;
     window.render["Vault & Reorder"] = window.render.VaultAndReorderEngine;
     window.render.ClearanceVault = window.render.VaultAndReorderEngine;
+  }
+
+  /* ── Bridge for Enterprise Sourcing & Factory Escrow [SOURCING_ESCROW] ── */
+  if (!window.render.EnterpriseSourcingAndFactoryEscrow) {
+    window.render.EnterpriseSourcingAndFactoryEscrow = function(container) {
+      if (typeof window.renderSourcingEscrowComponent === "function") {
+        return window.renderSourcingEscrowComponent(container);
+      }
+      if (container) {
+        container.innerHTML = '<div style="padding:24px;font-family:var(--mono);color:#FF5500;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Initializing Sourcing & Escrow Engine…</div>';
+        let retries = 0;
+        const poller = setInterval(function() {
+          retries++;
+          if (typeof window.renderSourcingEscrowComponent === "function") {
+            clearInterval(poller);
+            window.renderSourcingEscrowComponent(container);
+          } else if (retries >= 15) {
+            clearInterval(poller);
+            if (typeof window.renderSourcingEscrowComponent === "function") {
+              window.renderSourcingEscrowComponent(container);
+            } else if (typeof window.openSourcingEscrow === "function") {
+              window.openSourcingEscrow();
+            } else {
+              window.dispatchEvent(new CustomEvent('nexus:open-sourcing-escrow'));
+            }
+          }
+        }, 100);
+        return;
+      }
+      if (typeof window.openSourcingEscrow === "function") {
+        return window.openSourcingEscrow();
+      }
+      window.dispatchEvent(new CustomEvent('nexus:open-sourcing-escrow'));
+    };
+    window.render.SOURCING_ESCROW = window.render.EnterpriseSourcingAndFactoryEscrow;
+    window.render.SourcingEscrow = window.render.EnterpriseSourcingAndFactoryEscrow;
+    window.render.Sourcing = window.render.EnterpriseSourcingAndFactoryEscrow;
+    window.render.Escrow = window.render.EnterpriseSourcingAndFactoryEscrow;
+    window.render["Enterprise Sourcing & Escrow"] = window.render.EnterpriseSourcingAndFactoryEscrow;
+    window.render["Sourcing & Escrow"] = window.render.EnterpriseSourcingAndFactoryEscrow;
+    window.render["Factory Escrow"] = window.render.EnterpriseSourcingAndFactoryEscrow;
   }
 
   /* ── Shared Helpers ── */

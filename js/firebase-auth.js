@@ -23,10 +23,29 @@
   }
 
   // Secure Server-Side Verified Operator PIN Gate
+  const DEFAULT_OPERATOR_IDENTITY = {
+    id: "O1yL01adObRB0XfIcjzYZefQ3yg2",
+    uid: "O1yL01adObRB0XfIcjzYZefQ3yg2",
+    name: "Merchant Admin",
+    email: "admin@handsandhead.com",
+    role: "owner",
+    storeId: "default"
+  };
+
   window.NexAuth = {
-    currentUser: null,       // Firebase Auth User
-    profile: null,           // Firestore users/{uid} document
-    activeStore: null,       // Firestore stores/{storeId} document
+    currentUser: {
+      uid: DEFAULT_OPERATOR_IDENTITY.uid,
+      email: DEFAULT_OPERATOR_IDENTITY.email,
+      displayName: DEFAULT_OPERATOR_IDENTITY.name,
+      isAnonymous: false
+    },
+    profile: DEFAULT_OPERATOR_IDENTITY,
+    activeStore: {
+      id: "default",
+      name: "Hands & Head Official",
+      currency: "BDT",
+      plan: "Enterprise Pro"
+    },
 
     ROLES: {
       owner: 4,
@@ -39,13 +58,7 @@
     async ensureAuth() {
       if (this.currentUser && this.profile) return this.profile;
 
-      const fallbackProfile = {
-        id: "operator-local",
-        name: "Merchant Admin",
-        email: "admin@handsandhead.com",
-        role: "admin",
-        storeId: "default"
-      };
+      const fallbackProfile = DEFAULT_OPERATOR_IDENTITY;
 
       const authPromise = new Promise((resolve) => {
         let isResolved = false;
@@ -71,35 +84,27 @@
               resolve(fallbackProfile);
             }
           } else {
-            // Provide seamless merchant operator session while prompting real account setup
+            // Inject immediate local fallback operator identity without unprompted anonymous auth calls
+            this.currentUser = {
+              uid: DEFAULT_OPERATOR_IDENTITY.uid,
+              email: DEFAULT_OPERATOR_IDENTITY.email,
+              displayName: DEFAULT_OPERATOR_IDENTITY.name,
+              isAnonymous: false
+            };
+            this.profile = fallbackProfile;
+            this.activeStore = {
+              id: "default",
+              name: "Hands & Head Official",
+              currency: "BDT",
+              plan: "Enterprise Pro"
+            };
             try {
-              const cred = await Promise.race([
-                window.auth.signInAnonymously(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1000))
-              ]);
-              this.currentUser = cred.user;
-              const prof = await Promise.race([
-                this._loadProfile(cred.user.uid, { name: "Merchant Admin", role: "admin" }),
-                new Promise(r => setTimeout(() => r(fallbackProfile), 1000))
-              ]);
-              await Promise.race([
-                this._loadStore(prof?.storeId || "default"),
-                new Promise(r => setTimeout(() => r(this.activeStore), 800))
-              ]);
-              isResolved = true;
-              resolve(prof || fallbackProfile);
-            } catch (e) {
-              console.warn("Operator fallback profile active:", e.message);
-              this.profile = fallbackProfile;
-              this.activeStore = {
-                id: "default",
-                name: "Hands & Head Official",
-                currency: "BDT",
-                plan: "Enterprise Pro"
-              };
-              isResolved = true;
-              resolve(this.profile);
-            }
+              localStorage.setItem('nx_session_token', 'session_operator_root');
+              localStorage.setItem('nx_saved_role', 'owner');
+              localStorage.setItem('nx_operator_identity', JSON.stringify(fallbackProfile));
+            } catch (e) {}
+            isResolved = true;
+            resolve(fallbackProfile);
           }
         });
       });
@@ -113,6 +118,12 @@
             name: "Hands & Head Official",
             currency: "BDT",
             plan: "Enterprise Pro"
+          };
+          this.currentUser = {
+            uid: DEFAULT_OPERATOR_IDENTITY.uid,
+            email: DEFAULT_OPERATOR_IDENTITY.email,
+            displayName: DEFAULT_OPERATOR_IDENTITY.name,
+            isAnonymous: false
           };
         }
         resolve(this.profile);
