@@ -123,15 +123,19 @@
       if (typeof window.renderB2BDealEngineComponent === "function") {
         return window.renderB2BDealEngineComponent(container);
       }
+      if (typeof window.openB2BDealEngine === "function") {
+        return window.openB2BDealEngine();
+      }
+      window.dispatchEvent(new CustomEvent('nexus:open-b2b-deal-engine'));
+
       if (container) {
-        container.innerHTML = '<div style="padding:24px;font-family:var(--mono);color:#FF5500;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Initializing B2B Deal & Revenue Engine…</div>';
         let retries = 0;
         const poller = setInterval(function() {
           retries++;
           if (typeof window.renderB2BDealEngineComponent === "function") {
             clearInterval(poller);
             window.renderB2BDealEngineComponent(container);
-          } else if (retries >= 15) {
+          } else if (retries >= 8) {
             clearInterval(poller);
             if (typeof window.renderB2BDealEngineComponent === "function") {
               window.renderB2BDealEngineComponent(container);
@@ -142,12 +146,7 @@
             }
           }
         }, 100);
-        return;
       }
-      if (typeof window.openB2BDealEngine === "function") {
-        return window.openB2BDealEngine();
-      }
-      window.dispatchEvent(new CustomEvent('nexus:open-b2b-deal-engine'));
     };
     window.render.B2BDEAL = window.render.B2BDealEngine;
     window.render.B2B_DEAL = window.render.B2BDealEngine;

@@ -331,3 +331,29 @@ export function subscribeToDeals(callback: (deals: any[]) => void): Unsubscribe 
     console.warn('[PERSISTENCE] deals onSnapshot notice:', err?.message);
   });
 }
+
+/**
+ * Universal direct Firestore document write helper:
+ * setDoc(doc(db, collectionName, id), payload, { merge: true });
+ */
+export async function writeDocument(collectionName: string, id: string, payload: any): Promise<any> {
+  const db = getDb();
+  const cleanId = String(id || `${collectionName}_${Date.now()}`);
+  const data = {
+    ...payload,
+    id: cleanId,
+    updatedAt: new Date().toISOString()
+  };
+  const docRef = doc(db, collectionName, cleanId);
+  await setDoc(docRef, data, { merge: true });
+  return data;
+}
+
+if (typeof window !== 'undefined') {
+  (window as any).saveProduct = saveProduct;
+  (window as any).saveCustomer = saveCustomer;
+  (window as any).saveOrder = saveOrder;
+  (window as any).saveB2BDeal = saveB2BDeal;
+  (window as any).writeDocument = writeDocument;
+}
+

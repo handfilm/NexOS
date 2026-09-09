@@ -356,6 +356,13 @@ export const B2BDealEngine: React.FC<B2BDealEngineProps> = ({
   mode = 'embedded'
 }) => {
   // ── State Management ──
+  const [isInitializing, setIsInitializing] = useState<boolean>(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsInitializing(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   const [deals, setDeals] = useState<B2BDeal[]>(() => {
     try {
       const saved = localStorage.getItem('hh_b2b_deals_v3') || localStorage.getItem('hh_b2b_deals_v2');

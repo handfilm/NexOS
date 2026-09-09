@@ -420,7 +420,7 @@ window.ProductsService = {
     };
 
     // 1. Persist to global Cloud Firestore collection with resilient timeout
-    await this._safeDocWrite(docRef, payload);
+    await this._safeDocWrite(docRef, payload, true);
     this._syncInventory(newId, totalInventory).catch(() => {});
     this._logActivity("product_created", newId, payload.title).catch(() => {});
 

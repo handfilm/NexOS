@@ -8,9 +8,21 @@ import LogisticsSettlementHub from './components/LogisticsSettlementHub';
 import FactorySlaFloorTracker from './components/FactorySlaFloorTracker';
 import AgentAutonomousFleet from './components/AgentAutonomousFleet';
 import { B2BDealEngine } from './components/B2BDealEngine';
+import { B2BDealRevenueEngine } from './components/B2BDealRevenueEngine';
 import ProductionFloorAndSettlementBridge from './components/ProductionFloorAndSettlementBridge';
 import VaultAndReorderEngine from './components/VaultAndReorderEngine';
 import EnterpriseSourcingAndFactoryEscrow from './components/EnterpriseSourcingAndFactoryEscrow';
+
+// ── Automatic purge of stale service workers to prevent 404 caching loops ──
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    for (const registration of registrations) {
+      registration.unregister();
+    }
+  }).catch(err => {
+    console.debug('ServiceWorker unregister notice:', err);
+  });
+}
 
 // Root instances cache to avoid duplicate createRoot warnings on container re-entry
 const rootInstances = new WeakMap<HTMLElement, Root>();

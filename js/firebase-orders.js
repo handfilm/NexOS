@@ -338,7 +338,7 @@ window.OrdersService = {
     };
 
     // 1. Strictly persist to global Cloud Firestore collection with resilient timeout
-    await this._safeDocWrite(orderRef, orderData);
+    await this._safeDocWrite(orderRef, orderData, true);
 
     // 2. Decrement inventory in Firestore for line items
     for (const item of resolvedLineItems) {

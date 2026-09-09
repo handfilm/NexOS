@@ -239,73 +239,37 @@ window.CourierAPI = {
   }
 };
 
-/* ── 5. SERVICE WORKER & PUSH ENGINE (Offline Caching & Notifications) ── */
+/* ── 5. SERVICE WORKER & PUSH ENGINE (Purge & Clean Decommission) ── */
 window.NexServiceWorker = {
   _reg: null,
   _isReady: false,
 
   async register() {
-    if (!('serviceWorker' in navigator)) {
-      console.log('[SW] Service Worker not supported in this browser environment.');
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
       return null;
     }
 
     try {
-      const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-      this._reg = reg;
-      reg.update();
-
-      // Handle worker updates
-      reg.addEventListener('updatefound', () => {
-        const newWorker = reg.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[SW] New version available, active cache updated.');
-              if (window.toast) window.toast('Offline cache updated to latest version');
-            }
-          });
-        }
-      });
-
-      // Wait until ready
-      navigator.serviceWorker.ready.then((readyReg) => {
-        this._isReady = true;
-        this._reg = readyReg;
-        console.log('[SW] Service Worker active and caching enabled.');
-      });
-
-      // Listen for messages from SW
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        const data = event.data || {};
-        if (data.type === 'SW_READY') {
-          console.log('[SW] Service Worker ready, version:', data.version);
-        }
-      });
-
-      return reg;
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        await reg.unregister();
+      }
+      return null;
     } catch (e) {
-      console.warn('[SW] Registration failed:', e);
+      console.debug('[SW] Service worker cleanup notice:', e);
       return null;
     }
   },
 
-  // Pre-cache product catalog images into Service Worker Cache
-  cacheProductImages(imageUrls) {
-    if (!navigator.serviceWorker || !navigator.serviceWorker.controller) return;
-    const urls = Array.isArray(imageUrls) ? imageUrls.filter(u => u && typeof u === 'string') : [];
-    if (urls.length > 0) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'CACHE_CATALOG_IMAGES',
-        payload: urls
-      });
-    }
-  },
+  // Pre-cache stub for legacy callers
+  cacheProductImages() {},
 
   async clearAllCaches() {
-    if (!('caches' in window)) return;
-    const keys = await caches.keys();
-    await Promise.all(keys.map(k => caches.delete(k)));
+    if (typeof caches === 'undefined') return;
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    } catch (e) {}
     if (window.toast) window.toast('Offline cache cleared');
   }
 };
@@ -314,8 +278,7 @@ window.PushEngine = {
   _sw: null,
 
   async init() {
-    this._sw = await window.NexServiceWorker.register();
-    return !!this._sw;
+    return true;
   },
 
   async requestPermission() {
@@ -326,16 +289,12 @@ window.PushEngine = {
 
   async notify(title, body, icon = '/favicon.ico') {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    if (this._sw && this._sw.showNotification) {
-      this._sw.showNotification(title, { body, icon, badge: '/favicon.ico', vibrate: [100, 50, 100] });
-    } else {
-      try {
-        new Notification(title, { body, icon });
-      } catch (e) {}
-    }
+    try {
+      new Notification(title, { body, icon });
+    } catch (e) {}
   },
 
   notifyNewOrder(order) {
-    this.notify('⚡ New Order', `${order.t} — ${order.s}`, '/favicon.ico');
+    this.notify('⚡ New Order', `${order.t || ''} — ${order.s || ''}`, '/favicon.ico');
   }
 };

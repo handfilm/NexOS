@@ -149,46 +149,7 @@ window.CustomersService = {
     await this._ensureInit();
     try { await window.NexAuth.ensureAuth(); } catch (e) {}
 
-    // 1. Prefer Ultra-fast Server API query backed by permanent 16K+ customer database
-    try {
-      const qParams = new URLSearchParams();
-      if (search && search.trim()) qParams.set("search", search.trim());
-      if (country && country !== "all") qParams.set("country", country);
-      const activeCohort = cohortTag || tag;
-      if (activeCohort && activeCohort !== "all") qParams.set("cohortTag", activeCohort);
-      if (minSpend && Number(minSpend) > 0) qParams.set("minSpend", String(minSpend));
-      if (orderCountFilter && orderCountFilter !== "all") qParams.set("orderCountFilter", orderCountFilter);
-      if (sortBy) qParams.set("sortBy", sortBy);
-      if (sortDir) qParams.set("sortDir", sortDir);
-      if (page) qParams.set("page", String(page));
-      if (limit) qParams.set("limit", String(limit));
-
-      const res = await fetch(`/api/customers?${qParams.toString()}`);
-      const data = await res.json();
-      if (data && data.ok && Array.isArray(data.items)) {
-        const normalizedItems = data.items.map(c => ({
-          ...c,
-          phone: window.normalizeBangladeshPhone(c.phone || c.mobile || c.tel)
-        }));
-        this._memCache = normalizedItems;
-        this._totalDatabaseCount = data.databaseTotal || data.totalCount || normalizedItems.length;
-        this._totalSpentAll = data.totalSpentAll || 0;
-        return {
-          items: normalizedItems,
-          count: data.totalCount !== undefined ? data.totalCount : normalizedItems.length,
-          totalCount: data.totalCount !== undefined ? data.totalCount : normalizedItems.length,
-          databaseTotal: data.databaseTotal || 16420,
-          page: data.page || page,
-          limit: data.limit || limit,
-          totalPages: data.totalPages || Math.ceil((data.totalCount || normalizedItems.length) / (data.limit || limit)),
-          totalSpentAll: data.totalSpentAll || 0
-        };
-      }
-    } catch (apiErr) {
-      console.debug("API customer fetch fallback:", apiErr?.message);
-    }
-
-    // 2. Resilient Firestore / Memory Cache Fallback
+    // 1. Direct Firestore collection query first
     let items = [];
     const col = this._getCollection();
 
@@ -205,13 +166,18 @@ window.CustomersService = {
 
       const snap = await q.limit(this.PAGE_SIZE).get();
       if (snap && !snap.empty) {
-        items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        items = snap.docs.map(d => ({
+          id: d.id,
+          ...d.data(),
+          phone: window.normalizeBangladeshPhone(d.data().phone || d.data().mobile || d.data().tel)
+        }));
         this._lastDoc = snap.docs[snap.docs.length - 1] || null;
       }
     } catch (err) {
-      console.warn("Firestore customers fetch notice:", err?.message);
+      console.warn("Direct Firestore customers query notice:", err?.message);
     }
 
+    // Fallback to in-memory cache or bundled seed customers array if offline or empty
     if (!items.length && this._memCache && this._memCache.length) {
       items = [...this._memCache];
     } else if (!items.length) {
@@ -441,7 +407,7 @@ window.CustomersService = {
     };
 
     // 1. Strictly persist to global Cloud Firestore collection with resilient timeout
-    await this._safeDocWrite(docRef, payload);
+    await this._safeDocWrite(docRef, payload, true);
     this._logActivity("customer_created", newId, payload.companyName || payload.name).catch(() => {});
 
     // 2. Server persistence backup for cross-system consistency

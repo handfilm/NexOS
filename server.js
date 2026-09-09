@@ -14,6 +14,18 @@ const PORT = 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Explicit endpoint for service worker requests to guarantee 200 OK and prevent 404 update errors
+app.get(['/sw.js', '/service-worker.js'], (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  const swPath = path.join(__dirname, 'sw.js');
+  if (fs.existsSync(swPath)) {
+    return res.sendFile(swPath);
+  }
+  return res.send(`self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',(e)=>e.waitUntil(self.registration.unregister()));\n`);
+});
+
 // Helper to get Gemini AI instance
 function getGeminiAI() {
   const apiKey = process.env.GEMINI_API_KEY;
