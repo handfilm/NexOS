@@ -162,18 +162,23 @@
   /* ── Bridge for Production Floor & Settlement Bridge [FLOOR_BRIDGE] ── */
   if (!window.render.ProductionFloorBridge) {
     window.render.ProductionFloorBridge = function(container) {
-      if (typeof window.renderProductionFloorBridgeComponent === "function") {
-        return window.renderProductionFloorBridgeComponent(container);
+      const renderComponent = window.renderProductionFloorBridgeComponent || window.renderProductionFloorBridge;
+      if (typeof renderComponent === "function") {
+        return renderComponent(container);
+      }
+      if (typeof window.openProductionFloorBridge === "function") {
+        return window.openProductionFloorBridge();
       }
       if (container) {
         container.innerHTML = '<div style="padding:24px;font-family:var(--mono);color:#00E5FF;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Initializing Production Floor & Settlement Bridge…</div>';
         let retries = 0;
         const poller = setInterval(function() {
           retries++;
-          if (typeof window.renderProductionFloorBridgeComponent === "function") {
+          const comp = window.renderProductionFloorBridgeComponent || window.renderProductionFloorBridge;
+          if (typeof comp === "function") {
             clearInterval(poller);
-            window.renderProductionFloorBridgeComponent(container);
-          } else if (retries > 30) {
+            comp(container);
+          } else if (retries >= 30) {
             clearInterval(poller);
             if (typeof window.openProductionFloorBridge === "function") {
               window.openProductionFloorBridge();
@@ -181,11 +186,8 @@
               window.dispatchEvent(new CustomEvent('nexus:open-floor-bridge'));
             }
           }
-        }, 100);
+        }, 80);
         return;
-      }
-      if (typeof window.openProductionFloorBridge === "function") {
-        return window.openProductionFloorBridge();
       }
       window.dispatchEvent(new CustomEvent('nexus:open-floor-bridge'));
     };
@@ -194,39 +196,45 @@
     window.render.ProductionFloor = window.render.ProductionFloorBridge;
     window.render.PRODUCTION_FLOOR = window.render.ProductionFloorBridge;
     window.render["Production Floor Bridge"] = window.render.ProductionFloorBridge;
+    window.render["Production Floor & Settlement Bridge"] = window.render.ProductionFloorBridge;
     window.render["Floor Bridge"] = window.render.ProductionFloorBridge;
   }
 
   /* ── Bridge for Vault & Reorder Engine [VAULT_REORDER] ── */
   if (!window.render.VaultAndReorderEngine) {
     window.render.VaultAndReorderEngine = function(container) {
-      if (typeof window.renderVaultReorderEngineComponent === "function") {
-        return window.renderVaultReorderEngineComponent(container);
+      const renderComponent = window.renderVaultReorderEngineComponent || window.renderVaultAndReorderEngineComponent || window.renderVaultReorderEngine;
+      if (typeof renderComponent === "function") {
+        return renderComponent(container);
+      }
+      if (typeof window.openVaultReorderEngine === "function") {
+        return window.openVaultReorderEngine();
       }
       if (container) {
         container.innerHTML = '<div style="padding:24px;font-family:var(--mono);color:#00E599;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Initializing Vault & Reorder Engine…</div>';
         let retries = 0;
         const poller = setInterval(function() {
           retries++;
-          if (typeof window.renderVaultReorderEngineComponent === "function") {
+          const comp = window.renderVaultReorderEngineComponent || window.renderVaultAndReorderEngineComponent || window.renderVaultReorderEngine;
+          if (typeof comp === "function") {
             clearInterval(poller);
-            window.renderVaultReorderEngineComponent(container);
-          } else if (retries > 30) {
+            comp(container);
+          } else if (retries >= 30) {
             clearInterval(poller);
             if (typeof window.openVaultReorderEngine === "function") {
               window.openVaultReorderEngine();
             } else {
+              window.dispatchEvent(new CustomEvent('nexus:open-vault'));
               window.dispatchEvent(new CustomEvent('nexus:open-vault-reorder'));
             }
           }
-        }, 100);
+        }, 80);
         return;
       }
-      if (typeof window.openVaultReorderEngine === "function") {
-        return window.openVaultReorderEngine();
-      }
+      window.dispatchEvent(new CustomEvent('nexus:open-vault'));
       window.dispatchEvent(new CustomEvent('nexus:open-vault-reorder'));
     };
+    window.render.VaultReorderEngine = window.render.VaultAndReorderEngine;
     window.render.VAULT_REORDER = window.render.VaultAndReorderEngine;
     window.render.VaultReorder = window.render.VaultAndReorderEngine;
     window.render.ReorderEngine = window.render.VaultAndReorderEngine;

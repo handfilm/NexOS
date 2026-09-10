@@ -223,7 +223,9 @@ export function renderProductionFloorBridgeComponent(container?: HTMLElement) {
 export function renderVaultReorderEngineComponent(container?: HTMLElement) {
   const target =
     container ||
+    document.getElementById('mod-VaultAndReorderEngine') ||
     document.getElementById('mod-VaultReorderEngine') ||
+    document.getElementById('mod-VAULT_REORDER') ||
     document.getElementById('mod-REORDER_VAULT') ||
     document.getElementById('mod-Vault') ||
     document.getElementById('mod-ReorderEngine') ||
@@ -509,6 +511,7 @@ if (typeof window !== 'undefined') {
   (window as any).render.B2BDEAL = renderB2BDealEngineComponent;
   (window as any).render.B2B_DEAL = renderB2BDealEngineComponent;
   (window as any).render.B2BDeal = renderB2BDealEngineComponent;
+  (window as any).render.b2bdeal = renderB2BDealEngineComponent;
   (window as any).render['B2B Deal Engine'] = renderB2BDealEngineComponent;
   (window as any).render['B2B Deal & Revenue Engine'] = renderB2BDealEngineComponent;
   (window as any).render['B2B Deals'] = renderB2BDealEngineComponent;
@@ -520,6 +523,7 @@ if (typeof window !== 'undefined') {
   (window as any).renderB2BDealEngine = renderB2BDealEngineComponent;
   (window as any).renderB2BDealEngineComponent = renderB2BDealEngineComponent;
   (window as any).renderB2BDEAL = renderB2BDealEngineComponent;
+  (window as any).renderB2B = renderB2BDealEngineComponent;
 
   if (typeof (window as any).openB2BDealEngine !== 'function') {
     (window as any).openB2BDealEngine = () => {
@@ -530,10 +534,16 @@ if (typeof window !== 'undefined') {
   // Production Floor & Settlement Bridge renderers
   (window as any).render.ProductionFloorBridge = renderProductionFloorBridgeComponent;
   (window as any).render.FLOOR_BRIDGE = renderProductionFloorBridgeComponent;
+  (window as any).render.FloorBridge = renderProductionFloorBridgeComponent;
   (window as any).render.ProductionFloor = renderProductionFloorBridgeComponent;
+  (window as any).render.PRODUCTION_FLOOR = renderProductionFloorBridgeComponent;
+  (window as any).render.PRODUCTION_FLOOR_BRIDGE = renderProductionFloorBridgeComponent;
   (window as any).render['Production Floor Bridge'] = renderProductionFloorBridgeComponent;
+  (window as any).render['Production Floor & Settlement Bridge'] = renderProductionFloorBridgeComponent;
+  (window as any).render['Floor Bridge'] = renderProductionFloorBridgeComponent;
   (window as any).renderProductionFloorBridgeComponent = renderProductionFloorBridgeComponent;
   (window as any).renderProductionFloorBridge = renderProductionFloorBridgeComponent;
+  (window as any).renderFloorBridge = renderProductionFloorBridgeComponent;
 
   if (typeof (window as any).openProductionFloorBridge !== 'function') {
     (window as any).openProductionFloorBridge = () => {
@@ -542,16 +552,25 @@ if (typeof window !== 'undefined') {
   }
 
   // Vault & Reorder Engine renderers
+  (window as any).render.VaultAndReorderEngine = renderVaultReorderEngineComponent;
   (window as any).render.VaultReorderEngine = renderVaultReorderEngineComponent;
+  (window as any).render.VaultReorder = renderVaultReorderEngineComponent;
+  (window as any).render.VAULT_REORDER = renderVaultReorderEngineComponent;
   (window as any).render.REORDER_VAULT = renderVaultReorderEngineComponent;
   (window as any).render.Vault = renderVaultReorderEngineComponent;
+  (window as any).render.VAULT = renderVaultReorderEngineComponent;
+  (window as any).render.ReorderEngine = renderVaultReorderEngineComponent;
   (window as any).render['Vault & Reorder Engine'] = renderVaultReorderEngineComponent;
+  (window as any).render['Vault & Reorder'] = renderVaultReorderEngineComponent;
   (window as any).renderVaultReorderEngineComponent = renderVaultReorderEngineComponent;
   (window as any).renderVaultReorderEngine = renderVaultReorderEngineComponent;
+  (window as any).renderVaultAndReorderEngine = renderVaultReorderEngineComponent;
+  (window as any).renderVaultAndReorderEngineComponent = renderVaultReorderEngineComponent;
 
   if (typeof (window as any).openVaultReorderEngine !== 'function') {
     (window as any).openVaultReorderEngine = () => {
       window.dispatchEvent(new CustomEvent('nexus:open-vault'));
+      window.dispatchEvent(new CustomEvent('nexus:open-vault-reorder'));
     };
   }
 

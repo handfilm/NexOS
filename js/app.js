@@ -1826,6 +1826,36 @@ function openAppModule(appName) {
       }
     }
 
+    // Explicit fallback for B2B Deal & Revenue Engine
+    if (modKey.toLowerCase().includes("b2b") || modKey.toLowerCase().includes("deal")) {
+      if (window.render && typeof window.render.B2BDealEngine === "function") return window.render.B2BDealEngine;
+      if (window.render && typeof window.render.B2BDEAL === "function") return window.render.B2BDEAL;
+      if (typeof window.renderB2BDealEngineComponent === "function") return window.renderB2BDealEngineComponent;
+      if (typeof window.renderB2BDealEngine === "function") return window.renderB2BDealEngine;
+      if (window.render && typeof window.render["B2B Deal & Revenue Engine"] === "function") return window.render["B2B Deal & Revenue Engine"];
+    }
+
+    // Explicit fallback for Production Floor & Settlement Bridge
+    if (modKey.toLowerCase().includes("productionfloor") || modKey.toLowerCase().includes("floorbridge") || (modKey.toLowerCase().includes("production") && modKey.toLowerCase().includes("floor"))) {
+      if (window.render && typeof window.render.ProductionFloorBridge === "function") return window.render.ProductionFloorBridge;
+      if (window.render && typeof window.render.FLOOR_BRIDGE === "function") return window.render.FLOOR_BRIDGE;
+      if (typeof window.renderProductionFloorBridgeComponent === "function") return window.renderProductionFloorBridgeComponent;
+      if (typeof window.renderProductionFloorBridge === "function") return window.renderProductionFloorBridge;
+      if (typeof window.renderFloorBridge === "function") return window.renderFloorBridge;
+      if (window.render && typeof window.render["Production Floor & Settlement Bridge"] === "function") return window.render["Production Floor & Settlement Bridge"];
+    }
+
+    // Explicit fallback for Vault & Reorder Engine
+    if (modKey.toLowerCase().includes("vault") || modKey.toLowerCase().includes("reorder")) {
+      if (window.render && typeof window.render.VaultAndReorderEngine === "function") return window.render.VaultAndReorderEngine;
+      if (window.render && typeof window.render.VaultReorderEngine === "function") return window.render.VaultReorderEngine;
+      if (window.render && typeof window.render.VAULT_REORDER === "function") return window.render.VAULT_REORDER;
+      if (typeof window.renderVaultReorderEngineComponent === "function") return window.renderVaultReorderEngineComponent;
+      if (typeof window.renderVaultAndReorderEngine === "function") return window.renderVaultAndReorderEngine;
+      if (typeof window.renderVaultReorderEngine === "function") return window.renderVaultReorderEngine;
+      if (window.render && typeof window.render["Vault & Reorder Engine"] === "function") return window.render["Vault & Reorder Engine"];
+    }
+
     // Explicit fallback for Corporate Supplies
     if (modKey.toLowerCase().includes("corporate")) {
       if (window.render && typeof window.render.CorporateSupplies === "function") return window.render.CorporateSupplies;
@@ -1859,7 +1889,7 @@ function openAppModule(appName) {
     }
 
     // Explicit fallback for Factory Floor & SLA Tracker
-    if (modKey.toLowerCase().includes("factory") || modKey.toLowerCase().includes("sla") || modKey.toLowerCase().includes("floor")) {
+    if (modKey.toLowerCase().includes("factory") || modKey.toLowerCase().includes("sla")) {
       if (window.render && typeof window.render.FactorySlaFloorTracker === "function") return window.render.FactorySlaFloorTracker;
       if (window.render && typeof window.render.FACTORY_SLA === "function") return window.render.FACTORY_SLA;
       if (window.render && typeof window.render.FactorySLA === "function") return window.render.FactorySLA;

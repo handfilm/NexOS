@@ -368,6 +368,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     window.addEventListener('nexus:open-b2b-deal-engine', handleOpenB2BEvent);
     window.addEventListener('nexus:open-floor-bridge', handleOpenFloorBridgeEvent);
     window.addEventListener('nexus:open-vault', handleOpenVaultEvent);
+    window.addEventListener('nexus:open-vault-reorder', handleOpenVaultEvent);
     window.addEventListener('nexus:open-sourcing-escrow', handleOpenSourcingEscrowEvent);
     window.addEventListener('nexus:navigate', handleNavigateEvent);
     window.addEventListener('hashchange', handleHashChange);
@@ -381,6 +382,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       window.removeEventListener('nexus:open-b2b-deal-engine', handleOpenB2BEvent);
       window.removeEventListener('nexus:open-floor-bridge', handleOpenFloorBridgeEvent);
       window.removeEventListener('nexus:open-vault', handleOpenVaultEvent);
+      window.removeEventListener('nexus:open-vault-reorder', handleOpenVaultEvent);
       window.removeEventListener('nexus:open-sourcing-escrow', handleOpenSourcingEscrowEvent);
       window.removeEventListener('nexus:navigate', handleNavigateEvent);
       window.removeEventListener('hashchange', handleHashChange);
