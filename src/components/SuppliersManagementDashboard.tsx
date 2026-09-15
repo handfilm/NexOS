@@ -41,8 +41,28 @@ import {
   CheckSquare,
   LayoutGrid,
   List,
-  Sparkles
+  Sparkles,
+  BarChart3,
+  PieChart as PieChartIcon,
+  TrendingUp,
+  ChevronDown,
+  ChevronUp,
+  Compass,
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  Legend as RechartsLegend,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  CartesianGrid,
+} from 'recharts';
+import SuppliersGeographicMap from './SuppliersGeographicMap';
 
 export interface SupplierRecord {
   id: string;
@@ -83,6 +103,29 @@ export interface SupplierStats {
   unknownCount: number;
   bondedRatio: number;
   topDistricts: { district: string; count: number; percentage: number }[];
+  regionalDistribution?: {
+    district: string;
+    count: number;
+    bondedCount: number;
+    nonBondedCount: number;
+    percentage: number;
+  }[];
+  specializations?: {
+    name: string;
+    count: number;
+    percentage: number;
+  }[];
+  topHsCodes?: {
+    code: string;
+    description: string;
+    count: number;
+    percentage: number;
+  }[];
+  certifications?: {
+    name: string;
+    count: number;
+    percentage: number;
+  }[];
 }
 
 export interface SuppliersManagementProps {
@@ -110,6 +153,92 @@ const HS_CODE_DESCRIPTIONS: Record<string, string> = {
   '6505': "Hats and other headgear, knitted or crocheted",
 };
 
+const REGION_PALETTE = [
+  '#0f172a', // Dhaka - Deep industrial slate
+  '#059669', // Gazipur - Emerald green
+  '#d97706', // Narayanganj - Amber
+  '#2563eb', // Chittagong - Maritime blue
+  '#7c3aed', // Mymensingh - Purple
+  '#0891b2', // Narsingdi - Cyan
+  '#ea580c', // Comilla - Orange
+  '#db2777', // Pabna - Rose
+  '#475569', // Tangail - Slate
+  '#65a30d', // Jessore - Lime
+];
+
+const SPEC_PALETTE: Record<string, string> = {
+  'Knit': '#059669',
+  'Woven': '#0284c7',
+  'Sweater': '#d97706',
+  'Fabrics': '#7c3aed',
+  'Garments Accessories': '#db2777',
+  'Terry Towel': '#0d9488',
+  'Yarn Manufacturer': '#ea580c',
+  'Exporter': '#475569',
+};
+
+const HS_PALETTE = [
+  '#0284c7',
+  '#059669',
+  '#d97706',
+  '#7c3aed',
+  '#2563eb',
+  '#db2777',
+  '#0d9488',
+  '#ea580c',
+];
+
+const CERT_PALETTE = [
+  '#059669',
+  '#0284c7',
+  '#7c3aed',
+  '#d97706',
+  '#2563eb',
+  '#db2777',
+  '#0891b2',
+  '#475569',
+];
+
+const CustomChartTooltip: React.FC<any> = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const title = data.district || data.name || (data.code ? `HS ${data.code}` : label);
+    const subtitle = data.description || null;
+    const count = data.count !== undefined ? data.count : payload[0].value;
+    const percentage = data.percentage !== undefined ? data.percentage : null;
+
+    return (
+      <div className="bg-slate-900 text-white text-xs font-mono p-3 rounded-lg shadow-xl border border-slate-700 min-w-[200px] z-50">
+        <div className="font-bold text-slate-100 text-sm mb-0.5">{title}</div>
+        {subtitle && <div className="text-[11px] text-slate-400 mb-2 leading-tight">{subtitle}</div>}
+        <div className="space-y-1 my-1.5 border-t border-slate-800 pt-1.5">
+          <div className="flex items-center justify-between gap-4 text-slate-300">
+            <span>Verified Facilities:</span>
+            <span className="font-bold text-white">{Number(count).toLocaleString()}</span>
+          </div>
+          {percentage !== null && (
+            <div className="flex items-center justify-between gap-4 text-slate-300">
+              <span>National Share:</span>
+              <span className="font-bold text-amber-400">{percentage}%</span>
+            </div>
+          )}
+          {data.bondedCount !== undefined && (
+            <div className="flex items-center justify-between gap-4 text-slate-400 text-[10px] pt-1 border-t border-slate-800">
+              <span>Customs Bonded (CBW):</span>
+              <span className="text-emerald-400 font-bold">{data.bondedCount.toLocaleString()}</span>
+            </div>
+          )}
+        </div>
+        <div className="pt-2 border-t border-slate-800 text-[10px] text-amber-400 font-sans flex items-center gap-1">
+          <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+          <span>Click to filter directory list</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export const SuppliersManagementDashboard: React.FC<SuppliersManagementProps> = ({
   onClose,
   mode = 'embedded',
@@ -120,8 +249,8 @@ export const SuppliersManagementDashboard: React.FC<SuppliersManagementProps> = 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // View Mode: 'cards' vs 'table'
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  // View Mode: 'cards' vs 'table' vs 'map'
+  const [viewMode, setViewMode] = useState<'cards' | 'table' | 'map'>('cards');
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -131,6 +260,64 @@ export const SuppliersManagementDashboard: React.FC<SuppliersManagementProps> = 
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedCert, setSelectedCert] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
+
+  // Expanded Supplier Row for Inline Full Details
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+
+  const toggleExpandRow = (supplierId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setExpandedRowId((prev) => (prev === supplierId ? null : supplierId));
+  };
+
+  // ── Charts & Macro Analytics State ──
+  const [showChartsSection, setShowChartsSection] = useState<boolean>(true);
+  const [activeChartTab, setActiveChartTab] = useState<'regions' | 'specializations' | 'hscodes' | 'certifications' | 'geomap'>('regions');
+  const [chartVisualizationType, setChartVisualizationType] = useState<'bar' | 'pie'>('bar');
+
+  const handleViewSupplierOnMap = (supplier: SupplierRecord) => {
+    if (supplier.district) {
+      setSelectedDistrict(supplier.district.toLowerCase());
+    }
+    setViewMode('map');
+    showToast(`Focusing map on ${supplier.companyName} (${supplier.district} corridor)`);
+  };
+
+  const handleChartDistrictClick = (district: string) => {
+    const target = district.toLowerCase();
+    setSelectedDistrict(selectedDistrict === target ? 'all' : target);
+    setCurrentPage(1);
+    showToast(selectedDistrict === target ? 'Cleared hub filter' : `Filtered directory by hub: ${district}`);
+  };
+
+  const handleChartSpecializationClick = (specName: string) => {
+    let filterKey = specName.toLowerCase();
+    if (filterKey.includes('knit')) filterKey = 'knit';
+    else if (filterKey.includes('woven')) filterKey = 'woven';
+    else if (filterKey.includes('sweater')) filterKey = 'sweater';
+    else if (filterKey.includes('denim')) filterKey = 'denim';
+    setSelectedType(selectedType === filterKey ? 'all' : filterKey);
+    setCurrentPage(1);
+    showToast(selectedType === filterKey ? 'Cleared fabric filter' : `Filtered directory by specialization: ${specName}`);
+  };
+
+  const handleChartHsCodeClick = (code: string) => {
+    setSearchQuery(searchQuery === code ? '' : code);
+    setCurrentPage(1);
+    showToast(searchQuery === code ? 'Cleared HS filter' : `Filtered directory by HS Code: ${code}`);
+  };
+
+  const handleChartCertClick = (certName: string) => {
+    let certKey = certName.toLowerCase();
+    if (certKey.includes('oeko')) certKey = 'oeko';
+    else if (certKey.includes('bsci')) certKey = 'bsci';
+    else if (certKey.includes('wrap')) certKey = 'wrap';
+    else if (certKey.includes('gots')) certKey = 'gots';
+    else if (certKey.includes('iso')) certKey = 'iso';
+    else if (certKey.includes('sedex')) certKey = 'sedex';
+    setSelectedCert(selectedCert === certKey ? 'all' : certKey);
+    setCurrentPage(1);
+    showToast(selectedCert === certKey ? 'Cleared certification filter' : `Filtered directory by certification: ${certName}`);
+  };
 
   // Pagination
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -583,7 +770,7 @@ admin.handsandhead.com`);
 
         {/* Global Action Bar */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* View Toggle (Cards vs Table) */}
+          {/* View Toggle (Cards vs Table vs Map) */}
           <div className="inline-flex rounded-lg border border-slate-300 p-0.5 bg-slate-100 mr-1 shadow-xs">
             <button
               type="button"
@@ -607,6 +794,17 @@ admin.handsandhead.com`);
               <List className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">TABLE</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('map')}
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono font-bold rounded-md transition cursor-pointer ${
+                viewMode === 'map' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+              title="Geographic Map View"
+            >
+              <Compass className="w-3.5 h-3.5 text-amber-600" />
+              <span className="hidden sm:inline">MAP</span>
+            </button>
           </div>
 
           <button
@@ -617,6 +815,20 @@ admin.handsandhead.com`);
           >
             <RefreshCw className="w-3.5 h-3.5 text-amber-600" />
             <span>INGEST / SYNC</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowChartsSection((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-bold rounded-lg transition shadow-xs cursor-pointer border ${
+              showChartsSection
+                ? 'bg-slate-900 text-white border-slate-900'
+                : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-50'
+            }`}
+            title="Toggle Supply Chain Analytics & Distribution Charts"
+          >
+            <BarChart3 className="w-3.5 h-3.5 text-amber-500" />
+            <span>{showChartsSection ? 'CHARTS ON' : 'CHARTS'}</span>
           </button>
 
           <button
@@ -743,6 +955,821 @@ admin.handsandhead.com`);
           </div>
         </div>
       </div>
+
+      {/* ── Visual Distribution & Macro Analytics Section (Recharts) ── */}
+      {showChartsSection ? (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs mb-6 overflow-hidden transition-all duration-300">
+          {/* Section Header with Tabs & Controls */}
+          <div className="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-slate-500 mb-1">
+                <BarChart3 className="w-4 h-4 text-amber-600" />
+                <span>Supply Chain Intelligence & Distribution</span>
+                <span className="text-slate-300">•</span>
+                <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                  {stats ? stats.totalCount.toLocaleString() : '2,749'} Exporters Analyzed
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+                <span>Manufacturer Distribution Matrix</span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Interactive distribution of verified Bangladesh RMG manufacturers by industrial corridor, product specializations, customs HS codes, and compliance standards. Click any chart element to filter the directory.
+              </p>
+            </div>
+
+            {/* Controls: Tabs & Format Switcher */}
+            <div className="flex flex-wrap items-center gap-2 self-start lg:self-center">
+              {/* Category Tabs */}
+              <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-white shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setActiveChartTab('regions')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold rounded-md transition cursor-pointer ${
+                    activeChartTab === 'regions'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>REGIONS</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveChartTab('geomap')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold rounded-md transition cursor-pointer ${
+                    activeChartTab === 'geomap'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Compass className="w-3.5 h-3.5 text-amber-500" />
+                  <span>GEOMAP</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveChartTab('specializations')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold rounded-md transition cursor-pointer ${
+                    activeChartTab === 'specializations'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>SPECIALIZATION</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveChartTab('hscodes')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold rounded-md transition cursor-pointer ${
+                    activeChartTab === 'hscodes'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Tag className="w-3.5 h-3.5" />
+                  <span>HS CODES</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveChartTab('certifications')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold rounded-md transition cursor-pointer ${
+                    activeChartTab === 'certifications'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>STANDARDS</span>
+                </button>
+              </div>
+
+              {/* Chart Format Toggle (Bar vs Donut) */}
+              {(activeChartTab === 'regions' || activeChartTab === 'specializations') && (
+                <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-white shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => setChartVisualizationType('bar')}
+                    className={`p-1.5 rounded-md transition cursor-pointer ${
+                      chartVisualizationType === 'bar'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                    title="Bar Density Chart"
+                  >
+                    <BarChart3 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChartVisualizationType('pie')}
+                    className={`p-1.5 rounded-md transition cursor-pointer ${
+                      chartVisualizationType === 'pie'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                    title="Donut Market Share"
+                  >
+                    <PieChartIcon className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {/* Minimize Section Button */}
+              <button
+                type="button"
+                onClick={() => setShowChartsSection(false)}
+                className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-white transition cursor-pointer"
+                title="Collapse Analytics Section"
+              >
+                <ChevronUp className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Active Filter Notification Bar if filtered */}
+          {(selectedDistrict !== 'all' || selectedType !== 'all' || selectedCert !== 'all' || searchQuery) && (
+            <div className="bg-amber-50 border-b border-amber-200/80 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-amber-900">
+              <div className="flex flex-wrap items-center gap-2">
+                <Filter className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                <span className="font-bold">Active Filter:</span>
+                {selectedDistrict !== 'all' && (
+                  <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-300 font-semibold capitalize flex items-center gap-1">
+                    Hub: {selectedDistrict}
+                    <button onClick={() => setSelectedDistrict('all')} className="hover:text-black">✕</button>
+                  </span>
+                )}
+                {selectedType !== 'all' && (
+                  <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-300 font-semibold capitalize flex items-center gap-1">
+                    Fabric: {selectedType}
+                    <button onClick={() => setSelectedType('all')} className="hover:text-black">✕</button>
+                  </span>
+                )}
+                {selectedCert !== 'all' && (
+                  <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-300 font-semibold uppercase flex items-center gap-1">
+                    Cert: {selectedCert}
+                    <button onClick={() => setSelectedCert('all')} className="hover:text-black">✕</button>
+                  </span>
+                )}
+                {searchQuery && (
+                  <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-300 font-semibold flex items-center gap-1">
+                    Search: "{searchQuery}"
+                    <button onClick={() => setSearchQuery('')} className="hover:text-black">✕</button>
+                  </span>
+                )}
+                <span className="text-amber-700 font-sans text-[11px] ml-1">
+                  (Showing {totalCount.toLocaleString()} matching manufacturers below)
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="text-xs font-bold text-amber-900 hover:text-amber-950 underline cursor-pointer"
+              >
+                Reset All Filters
+              </button>
+            </div>
+          )}
+
+          {/* Chart Content Body */}
+          <div className="p-4 sm:p-6">
+            {/* ── TAB 1: REGIONS ── */}
+            {activeChartTab === 'regions' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                {/* Visual Chart Area (8 cols) */}
+                <div className="lg:col-span-8 flex flex-col">
+                  <div className="flex items-center justify-between mb-3 text-xs font-mono text-slate-500">
+                    <span className="flex items-center gap-1.5 font-bold text-slate-700 uppercase">
+                      <MapPin className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Manufacturing Hub Volume & Bonded Facilities</span>
+                    </span>
+                    <span className="text-[11px] text-slate-400">Click any bar to filter</span>
+                  </div>
+
+                  <div className="w-full h-80 relative bg-slate-50/40 rounded-xl border border-slate-100 p-2">
+                    {chartVisualizationType === 'bar' ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={stats?.regionalDistribution || stats?.topDistricts || []}
+                          margin={{ top: 20, right: 20, left: -10, bottom: 25 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis
+                            dataKey="district"
+                            tick={{ fontSize: 11, fill: '#475569', fontFamily: 'monospace' }}
+                            interval={0}
+                            angle={-25}
+                            textAnchor="end"
+                            height={35}
+                          />
+                          <YAxis
+                            tick={{ fontSize: 11, fill: '#64748b', fontFamily: 'monospace' }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <RechartsTooltip content={<CustomChartTooltip />} />
+                          <Bar
+                            dataKey="count"
+                            radius={[6, 6, 0, 0]}
+                            cursor="pointer"
+                            onClick={(entry: any) => handleChartDistrictClick(entry.district)}
+                          >
+                            {(stats?.regionalDistribution || stats?.topDistricts || []).map((entry, index) => (
+                              <Cell
+                                key={`cell-region-${index}`}
+                                fill={
+                                  selectedDistrict === entry.district.toLowerCase()
+                                    ? '#d97706'
+                                    : REGION_PALETTE[index % REGION_PALETTE.length]
+                                }
+                                opacity={
+                                  selectedDistrict === 'all' || selectedDistrict === entry.district.toLowerCase()
+                                    ? 1
+                                    : 0.35
+                                }
+                              />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RechartsPieChart>
+                            <RechartsTooltip content={<CustomChartTooltip />} />
+                            <Pie
+                              data={stats?.regionalDistribution || stats?.topDistricts || []}
+                              dataKey="count"
+                              nameKey="district"
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={65}
+                              outerRadius={105}
+                              paddingAngle={3}
+                              cursor="pointer"
+                              onClick={(entry: any) => handleChartDistrictClick(entry.district)}
+                            >
+                              {(stats?.regionalDistribution || stats?.topDistricts || []).map((entry, index) => (
+                                <Cell
+                                  key={`cell-pie-reg-${index}`}
+                                  fill={
+                                  selectedDistrict === entry.district.toLowerCase()
+                                    ? '#d97706'
+                                    : REGION_PALETTE[index % REGION_PALETTE.length]
+                                  }
+                                  stroke="#ffffff"
+                                  strokeWidth={2}
+                                />
+                              ))}
+                            </Pie>
+                          </RechartsPieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute flex flex-col items-center justify-center pointer-events-none text-center">
+                          <span className="text-2xl font-bold font-mono text-slate-900">
+                            {stats?.totalCount ? stats.totalCount.toLocaleString() : '2,749'}
+                          </span>
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
+                            Exporters
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Ranked Hub Breakdown (4 cols) */}
+                <div className="lg:col-span-4 bg-slate-50/70 border border-slate-200 rounded-xl p-4 flex flex-col justify-between h-full">
+                  <div>
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-200 mb-3">
+                      <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                        Manufacturing Hub Ranks
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-400">Share %</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {(stats?.regionalDistribution || stats?.topDistricts || []).slice(0, 6).map((d, idx) => {
+                        const isSelected = selectedDistrict === d.district.toLowerCase();
+                        return (
+                          <div
+                            key={d.district}
+                            onClick={() => handleChartDistrictClick(d.district)}
+                            className={`p-2.5 rounded-lg border text-xs cursor-pointer transition flex items-center justify-between gap-3 ${
+                              isSelected
+                                ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
+                                : 'bg-white border-slate-200 hover:bg-slate-100/80 text-slate-800'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-mono font-bold shrink-0 ${
+                                  isSelected ? 'bg-amber-400 text-slate-900' : 'bg-slate-200 text-slate-700'
+                                }`}
+                              >
+                                {idx + 1}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="font-bold truncate">{d.district}</div>
+                                <div className={`text-[10px] font-mono ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                                  {d.count.toLocaleString()} factories (100% Bonded)
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0 font-mono font-bold">
+                              <span className={isSelected ? 'text-amber-400' : 'text-slate-700'}>
+                                {d.percentage}%
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-200 text-[11px] text-slate-500 font-mono flex items-center justify-between">
+                    <span>Gazipur & Dhaka: <strong className="text-slate-800">65.1%</strong> total output</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedDistrict('all');
+                        setCurrentPage(1);
+                      }}
+                      className="text-amber-700 font-bold hover:underline"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB 2: SPECIALIZATIONS ── */}
+            {activeChartTab === 'specializations' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                {/* Visual Chart Area (8 cols) */}
+                <div className="lg:col-span-8 flex flex-col">
+                  <div className="flex items-center justify-between mb-3 text-xs font-mono text-slate-500">
+                    <span className="flex items-center gap-1.5 font-bold text-slate-700 uppercase">
+                      <Layers className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Product Category & Fabric Specialization</span>
+                    </span>
+                    <span className="text-[11px] text-slate-400">Click any bar to filter</span>
+                  </div>
+
+                  <div className="w-full h-80 relative bg-slate-50/40 rounded-xl border border-slate-100 p-2">
+                    {chartVisualizationType === 'bar' ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={stats?.specializations || []}
+                          margin={{ top: 20, right: 20, left: -10, bottom: 25 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis
+                            dataKey="name"
+                            tick={{ fontSize: 11, fill: '#475569', fontFamily: 'monospace' }}
+                            interval={0}
+                            angle={-20}
+                            textAnchor="end"
+                            height={35}
+                          />
+                          <YAxis
+                            tick={{ fontSize: 11, fill: '#64748b', fontFamily: 'monospace' }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <RechartsTooltip content={<CustomChartTooltip />} />
+                          <Bar
+                            dataKey="count"
+                            radius={[6, 6, 0, 0]}
+                            cursor="pointer"
+                            onClick={(entry: any) => handleChartSpecializationClick(entry.name)}
+                          >
+                            {(stats?.specializations || []).map((entry, index) => {
+                              const isSelected = selectedType !== 'all' && entry.name.toLowerCase().includes(selectedType);
+                              return (
+                                <Cell
+                                  key={`cell-spec-${index}`}
+                                  fill={
+                                    isSelected
+                                      ? '#d97706'
+                                      : SPEC_PALETTE[entry.name] || REGION_PALETTE[index % REGION_PALETTE.length]
+                                  }
+                                  opacity={
+                                    selectedType === 'all' || isSelected ? 1 : 0.35
+                                  }
+                                />
+                              );
+                            })}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RechartsPieChart>
+                            <RechartsTooltip content={<CustomChartTooltip />} />
+                            <Pie
+                              data={stats?.specializations || []}
+                              dataKey="count"
+                              nameKey="name"
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={65}
+                              outerRadius={105}
+                              paddingAngle={3}
+                              cursor="pointer"
+                              onClick={(entry: any) => handleChartSpecializationClick(entry.name)}
+                            >
+                              {(stats?.specializations || []).map((entry, index) => {
+                                const isSelected = selectedType !== 'all' && entry.name.toLowerCase().includes(selectedType);
+                                return (
+                                  <Cell
+                                    key={`cell-pie-spec-${index}`}
+                                    fill={
+                                      isSelected
+                                        ? '#d97706'
+                                        : SPEC_PALETTE[entry.name] || REGION_PALETTE[index % REGION_PALETTE.length]
+                                    }
+                                    stroke="#ffffff"
+                                    strokeWidth={2}
+                                  />
+                                );
+                              })}
+                            </Pie>
+                          </RechartsPieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute flex flex-col items-center justify-center pointer-events-none text-center">
+                          <span className="text-2xl font-bold font-mono text-slate-900">
+                            {stats?.specializations?.[0]?.count ? stats.specializations[0].count.toLocaleString() : '1,894'}
+                          </span>
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
+                            Knit Composite
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Ranked Specializations (4 cols) */}
+                <div className="lg:col-span-4 bg-slate-50/70 border border-slate-200 rounded-xl p-4 flex flex-col justify-between h-full">
+                  <div>
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-200 mb-3">
+                      <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                        Top Manufacturing Lines
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-400">Factory Share</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {(stats?.specializations || []).slice(0, 6).map((spec, idx) => {
+                        const isSelected = selectedType !== 'all' && spec.name.toLowerCase().includes(selectedType);
+                        return (
+                          <div
+                            key={spec.name}
+                            onClick={() => handleChartSpecializationClick(spec.name)}
+                            className={`p-2.5 rounded-lg border text-xs cursor-pointer transition flex items-center justify-between gap-3 ${
+                              isSelected
+                                ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
+                                : 'bg-white border-slate-200 hover:bg-slate-100/80 text-slate-800'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-mono font-bold shrink-0 ${
+                                  isSelected ? 'bg-amber-400 text-slate-900' : 'bg-slate-200 text-slate-700'
+                                }`}
+                              >
+                                {idx + 1}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="font-bold truncate">{spec.name}</div>
+                                <div className={`text-[10px] font-mono ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                                  {spec.count.toLocaleString()} factories
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0 font-mono font-bold">
+                              <span className={isSelected ? 'text-amber-400' : 'text-slate-700'}>
+                                {spec.percentage}%
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-200 text-[11px] text-slate-500 font-mono flex items-center justify-between">
+                    <span>Dominant: <strong className="text-slate-800">Knit & Woven</strong> composite</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedType('all');
+                        setCurrentPage(1);
+                      }}
+                      className="text-amber-700 font-bold hover:underline"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB 3: HS CODES ── */}
+            {activeChartTab === 'hscodes' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                {/* Visual Chart Area (8 cols) */}
+                <div className="lg:col-span-8 flex flex-col">
+                  <div className="flex items-center justify-between mb-3 text-xs font-mono text-slate-500">
+                    <span className="flex items-center gap-1.5 font-bold text-slate-700 uppercase">
+                      <Tag className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Customs Tariff Classification Volume (HS 4-Digit)</span>
+                    </span>
+                    <span className="text-[11px] text-slate-400">Click code to search</span>
+                  </div>
+
+                  <div className="w-full h-80 relative bg-slate-50/40 rounded-xl border border-slate-100 p-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={stats?.topHsCodes || []}
+                        margin={{ top: 20, right: 20, left: -10, bottom: 25 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis
+                          dataKey="code"
+                          tick={{ fontSize: 11, fill: '#475569', fontFamily: 'monospace' }}
+                          tickFormatter={(code) => `HS ${code}`}
+                          interval={0}
+                          height={30}
+                        />
+                        <YAxis
+                          tick={{ fontSize: 11, fill: '#64748b', fontFamily: 'monospace' }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <RechartsTooltip content={<CustomChartTooltip />} />
+                        <Bar
+                          dataKey="count"
+                          radius={[6, 6, 0, 0]}
+                          cursor="pointer"
+                          onClick={(entry: any) => handleChartHsCodeClick(entry.code)}
+                        >
+                          {(stats?.topHsCodes || []).map((entry, index) => {
+                            const isSelected = searchQuery === entry.code;
+                            return (
+                              <Cell
+                                key={`cell-hs-${index}`}
+                                fill={isSelected ? '#d97706' : HS_PALETTE[index % HS_PALETTE.length]}
+                                opacity={!searchQuery || isSelected ? 1 : 0.35}
+                              />
+                            );
+                          })}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Ranked HS Codes (4 cols) */}
+                <div className="lg:col-span-4 bg-slate-50/70 border border-slate-200 rounded-xl p-4 flex flex-col justify-between h-full">
+                  <div>
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-200 mb-3">
+                      <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                        Top Customs Tariff Lines
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-400">Factories</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {(stats?.topHsCodes || []).slice(0, 6).map((hs, idx) => {
+                        const isSelected = searchQuery === hs.code;
+                        return (
+                          <div
+                            key={hs.code}
+                            onClick={() => handleChartHsCodeClick(hs.code)}
+                            className={`p-2.5 rounded-lg border text-xs cursor-pointer transition flex items-center justify-between gap-3 ${
+                              isSelected
+                                ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
+                                : 'bg-white border-slate-200 hover:bg-slate-100/80 text-slate-800'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                className={`px-1.5 py-0.5 rounded font-mono font-bold text-[11px] shrink-0 ${
+                                  isSelected ? 'bg-amber-400 text-slate-900' : 'bg-slate-200 text-slate-800'
+                                }`}
+                              >
+                                {hs.code}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="font-bold truncate text-[11px]">{hs.description}</div>
+                                <div className={`text-[10px] font-mono ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                                  {hs.count.toLocaleString()} factories authorized
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0 font-mono font-bold">
+                              <span className={isSelected ? 'text-amber-400' : 'text-slate-700'}>
+                                {hs.percentage}%
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-200 text-[11px] text-slate-500 font-mono flex items-center justify-between">
+                    <span>HS 6110 & 6109 leading Knit exports</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setCurrentPage(1);
+                      }}
+                      className="text-amber-700 font-bold hover:underline"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB 4: CERTIFICATIONS ── */}
+            {activeChartTab === 'certifications' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                {/* Visual Chart Area (8 cols) */}
+                <div className="lg:col-span-8 flex flex-col">
+                  <div className="flex items-center justify-between mb-3 text-xs font-mono text-slate-500">
+                    <span className="flex items-center gap-1.5 font-bold text-slate-700 uppercase">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Audit & Compliance Certification Adoption</span>
+                    </span>
+                    <span className="text-[11px] text-slate-400">Click standard to filter</span>
+                  </div>
+
+                  <div className="w-full h-80 relative bg-slate-50/40 rounded-xl border border-slate-100 p-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={stats?.certifications || []}
+                        margin={{ top: 20, right: 20, left: -10, bottom: 40 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis
+                          dataKey="name"
+                          tick={{ fontSize: 10, fill: '#475569', fontFamily: 'monospace' }}
+                          tickFormatter={(val) => {
+                            if (val.includes('OEKO')) return 'OEKO-TEX';
+                            if (val.includes('BSCI')) return 'BSCI';
+                            if (val.includes('Sedex')) return 'Sedex';
+                            if (val.includes('ISO')) return 'ISO 9001';
+                            if (val.includes('GOTS')) return 'GOTS';
+                            if (val.includes('WRAP')) return 'WRAP';
+                            if (val.includes('GRS')) return 'GRS';
+                            if (val.includes('Accord') || val.includes('RSC')) return 'RSC Safety';
+                            return val.slice(0, 10);
+                          }}
+                          interval={0}
+                          angle={-20}
+                          textAnchor="end"
+                          height={45}
+                        />
+                        <YAxis
+                          tick={{ fontSize: 11, fill: '#64748b', fontFamily: 'monospace' }}
+                          unit="%"
+                          axisLine={false}
+                          tickLine={false}
+                          domain={[0, 100]}
+                        />
+                        <RechartsTooltip content={<CustomChartTooltip />} />
+                        <Bar
+                          dataKey="percentage"
+                          radius={[6, 6, 0, 0]}
+                          cursor="pointer"
+                          onClick={(entry: any) => handleChartCertClick(entry.name)}
+                        >
+                          {(stats?.certifications || []).map((entry, index) => {
+                            const isSelected = selectedCert !== 'all' && entry.name.toLowerCase().includes(selectedCert);
+                            return (
+                              <Cell
+                                key={`cell-cert-${index}`}
+                                fill={isSelected ? '#d97706' : CERT_PALETTE[index % CERT_PALETTE.length]}
+                                opacity={selectedCert === 'all' || isSelected ? 1 : 0.35}
+                              />
+                            );
+                          })}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Ranked Standards (4 cols) */}
+                <div className="lg:col-span-4 bg-slate-50/70 border border-slate-200 rounded-xl p-4 flex flex-col justify-between h-full">
+                  <div>
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-200 mb-3">
+                      <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                        International Standards
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-400">Adoption %</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {(stats?.certifications || []).slice(0, 6).map((cert, idx) => {
+                        const isSelected = selectedCert !== 'all' && cert.name.toLowerCase().includes(selectedCert);
+                        return (
+                          <div
+                            key={cert.name}
+                            onClick={() => handleChartCertClick(cert.name)}
+                            className={`p-2.5 rounded-lg border text-xs cursor-pointer transition flex items-center justify-between gap-3 ${
+                              isSelected
+                                ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
+                                : 'bg-white border-slate-200 hover:bg-slate-100/80 text-slate-800'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-mono font-bold shrink-0 ${
+                                  isSelected ? 'bg-amber-400 text-slate-900' : 'bg-slate-200 text-slate-700'
+                                }`}
+                              >
+                                {idx + 1}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="font-bold truncate text-[11px]">{cert.name}</div>
+                                <div className={`text-[10px] font-mono ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                                  {cert.count.toLocaleString()} certified factories
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0 font-mono font-bold">
+                              <span className={isSelected ? 'text-amber-400' : 'text-emerald-700'}>
+                                {cert.percentage}%
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-200 text-[11px] text-slate-500 font-mono flex items-center justify-between">
+                    <span>100% OEKO-TEX & BSCI Verified</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCert('all');
+                        setCurrentPage(1);
+                      }}
+                      className="text-amber-700 font-bold hover:underline"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB 5: Interactive Geographic Distribution Map ── */}
+            {activeChartTab === 'geomap' && (
+              <div className="pt-2">
+                <SuppliersGeographicMap
+                  suppliers={suppliers}
+                  allSuppliersCount={totalCount || 2749}
+                  selectedDistrict={selectedDistrict}
+                  onSelectDistrict={(dist) => {
+                    setSelectedDistrict(dist);
+                    setCurrentPage(1);
+                  }}
+                  onInspectSupplier={(sup) => handleInspectSupplier(sup)}
+                  regionalDistribution={stats?.regionalDistribution}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Collapsed Analytics Banner */
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs mb-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center gap-2 text-slate-700">
+            <BarChart3 className="w-4 h-4 text-amber-600 shrink-0" />
+            <span className="font-bold text-slate-900">Macro Analytics Collapsed:</span>
+            <span className="text-slate-500 hidden md:inline">
+              2,749 Verified Manufacturers across Dhaka (33.3%), Gazipur (31.8%), Narayanganj (15.5%), and Chattogram (12.7%).
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowChartsSection(true)}
+            className="inline-flex items-center gap-1.5 text-slate-900 font-bold hover:text-amber-700 transition cursor-pointer px-2.5 py-1 rounded-md border border-slate-200 hover:border-slate-300 bg-slate-50"
+          >
+            <span>Show Visual Charts</span>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+          </button>
+        </div>
+      )}
 
       {/* ── Interactive Filter & Search Bar ── */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs mb-5 space-y-3">
@@ -1085,6 +2112,15 @@ admin.handsandhead.com`);
               <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-1.5">
                 <button
                   type="button"
+                  onClick={() => handleViewSupplierOnMap(s)}
+                  className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-white rounded border border-transparent hover:border-slate-200 transition cursor-pointer"
+                  title={`View ${s.district} on Geographic Map`}
+                >
+                  <Compass className="w-3.5 h-3.5" />
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => handleOpenRfqModal(s)}
                   className="flex-1 py-1.5 px-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-mono font-bold transition flex items-center justify-center gap-1 cursor-pointer shadow-xs"
                 >
@@ -1114,13 +2150,16 @@ admin.handsandhead.com`);
             </div>
           ))}
         </div>
-      ) : (
+      ) : viewMode === 'table' ? (
         /* ── TABLE VIEW ── */
         <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden mb-6">
           <div className="overflow-x-auto min-h-[380px]">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-mono uppercase tracking-wider">
+                  <th className="py-3 px-3 w-10 text-center font-semibold" title="Expand Details">
+                    <span className="sr-only">Toggle Details</span>
+                  </th>
                   <th className="py-3 px-4 font-semibold">Exporter & Address</th>
                   <th className="py-3 px-4 font-semibold">District Hub</th>
                   <th className="py-3 px-4 font-semibold">Capacity / MOQ</th>
@@ -1131,114 +2170,410 @@ admin.handsandhead.com`);
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {suppliers.map((s, idx) => (
-                  <tr
-                    key={s.id || s.slug || `sup_row_${idx}`}
-                    className="hover:bg-slate-50/80 transition group cursor-pointer"
-                    onClick={() => handleInspectSupplier(s)}
-                  >
-                    {/* Company Name & Address */}
-                    <td className="py-3 px-4">
-                      <div className="flex flex-col">
-                        <div className="font-semibold text-slate-900 group-hover:text-amber-800 transition flex items-center gap-1.5 text-sm">
-                          <span>{s.companyName}</span>
-                          {s.isVerified && (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" title="EPB & BGMEA Verified" />
-                          )}
-                        </div>
-                        <span className="text-[11px] font-mono text-slate-400 truncate max-w-[260px]">
-                          {s.factoryAddress || `${s.district}, Bangladesh`}
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* District */}
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 font-mono text-slate-800 font-medium bg-slate-100 px-2 py-0.5 rounded">
-                        <MapPin className="w-3 h-3 text-slate-400" />
-                        <span>{s.district}</span>
-                      </span>
-                    </td>
-
-                    {/* Capacity & MOQ */}
-                    <td className="py-3 px-4 font-mono">
-                      <div className="font-semibold text-slate-900">{s.capacityMonthly || '850k/mo'}</div>
-                      <div className="text-[11px] text-slate-500">MOQ: {s.moq || '1,000 pcs'}</div>
-                    </td>
-
-                    {/* Bond Status */}
-                    <td className="py-3 px-4">
-                      {s.bondStatus === 'BONDED' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <ShieldCheck className="w-3 h-3" />
-                          <span>BONDED</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                          <span>{s.bondStatus}</span>
-                        </span>
-                      )}
-                    </td>
-
-                    {/* HS Codes */}
-                    <td className="py-3 px-4">
-                      <div className="flex flex-wrap gap-1 max-w-[180px]">
-                        {s.hsCodes?.slice(0, 3).map((code) => (
-                          <span
-                            key={code}
-                            className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200 font-mono text-[10px] font-bold"
+                {suppliers.map((s, idx) => {
+                  const isExpanded = expandedRowId === s.id;
+                  return (
+                    <React.Fragment key={s.id || s.slug || `sup_row_${idx}`}>
+                      <tr
+                        className={`transition group cursor-pointer ${
+                          isExpanded
+                            ? 'bg-amber-50/70 border-l-4 border-l-amber-600 font-medium'
+                            : 'hover:bg-slate-50/80'
+                        }`}
+                        onClick={() => toggleExpandRow(s.id)}
+                      >
+                        {/* Expand Chevron Column */}
+                        <td className="py-3 px-3 text-center" onClick={(e) => toggleExpandRow(s.id, e)}>
+                          <button
+                            type="button"
+                            aria-expanded={isExpanded}
+                            aria-label={isExpanded ? `Collapse details for ${s.companyName}` : `Expand details for ${s.companyName}`}
+                            className={`p-1 rounded transition-colors cursor-pointer ${
+                              isExpanded ? 'text-amber-700 bg-amber-100/80' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                            }`}
                           >
-                            {code}
-                          </span>
-                        ))}
-                        {s.hsCodes && s.hsCodes.length > 3 && (
-                          <span className="text-[10px] font-mono text-slate-400 self-center">
-                            +{s.hsCodes.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    </td>
+                            <ChevronRight
+                              className={`w-4 h-4 transition-transform duration-200 ${
+                                isExpanded ? 'rotate-90 text-amber-700' : ''
+                              }`}
+                            />
+                          </button>
+                        </td>
 
-                    {/* Contact & Lead */}
-                    <td className="py-3 px-4 font-mono text-[11px]">
-                      <div className="font-semibold text-slate-800">{s.contactPerson || 'Merchandiser'}</div>
-                      <div className="text-slate-500">{s.phone || '+880 ...'}</div>
-                    </td>
+                        {/* Company Name & Address */}
+                        <td className="py-3 px-4">
+                          <div className="flex flex-col">
+                            <div className="font-semibold text-slate-900 group-hover:text-amber-800 transition flex items-center gap-1.5 text-sm">
+                              <span>{s.companyName}</span>
+                              {s.isVerified && (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" title="EPB & BGMEA Verified" />
+                              )}
+                            </div>
+                            <span className="text-[11px] font-mono text-slate-400 truncate max-w-[260px]">
+                              {s.factoryAddress || `${s.district}, Bangladesh`}
+                            </span>
+                          </div>
+                        </td>
 
-                    {/* Actions */}
-                    <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="inline-flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenRfqModal(s)}
-                          className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded font-mono text-[11px] font-bold flex items-center gap-1"
-                          title="Generate RFQ"
-                        >
-                          <Send className="w-3 h-3 text-amber-400" />
-                          <span>RFQ</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleInspectSupplier(s)}
-                          className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded transition"
-                          title="Inspect Details"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteSupplier(s.id, s.companyName)}
-                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition"
-                          title="Delete Exporter Record"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                        {/* District */}
+                        <td className="py-3 px-4">
+                          <span className="inline-flex items-center gap-1 font-mono text-slate-800 font-medium bg-slate-100 px-2 py-0.5 rounded">
+                            <MapPin className="w-3 h-3 text-slate-400" />
+                            <span>{s.district}</span>
+                          </span>
+                        </td>
+
+                        {/* Capacity & MOQ */}
+                        <td className="py-3 px-4 font-mono">
+                          <div className="font-semibold text-slate-900">{s.capacityMonthly || '850k/mo'}</div>
+                          <div className="text-[11px] text-slate-500">MOQ: {s.moq || '1,000 pcs'}</div>
+                        </td>
+
+                        {/* Bond Status */}
+                        <td className="py-3 px-4">
+                          {s.bondStatus === 'BONDED' ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <ShieldCheck className="w-3 h-3" />
+                              <span>BONDED</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                              <span>{s.bondStatus}</span>
+                            </span>
+                          )}
+                        </td>
+
+                        {/* HS Codes */}
+                        <td className="py-3 px-4">
+                          <div className="flex flex-wrap gap-1 max-w-[180px]">
+                            {s.hsCodes?.slice(0, 3).map((code) => (
+                              <span
+                                key={code}
+                                className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200 font-mono text-[10px] font-bold"
+                              >
+                                {code}
+                              </span>
+                            ))}
+                            {s.hsCodes && s.hsCodes.length > 3 && (
+                              <span className="text-[10px] font-mono text-slate-400 self-center">
+                                +{s.hsCodes.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Contact & Lead */}
+                        <td className="py-3 px-4 font-mono text-[11px]">
+                          <div className="font-semibold text-slate-800">{s.contactPerson || 'Merchandiser'}</div>
+                          <div className="text-slate-500">{s.phone || '+880 ...'}</div>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                          <div className="inline-flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewSupplierOnMap(s);
+                              }}
+                              className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-slate-100 rounded transition cursor-pointer"
+                              title={`View ${s.district} on Geographic Map`}
+                            >
+                              <Compass className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenRfqModal(s)}
+                              className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded font-mono text-[11px] font-bold flex items-center gap-1"
+                              title="Generate RFQ"
+                            >
+                              <Send className="w-3 h-3 text-amber-400" />
+                              <span>RFQ</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleInspectSupplier(s)}
+                              className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded transition"
+                              title="Inspect Full Dossier"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSupplier(s.id, s.companyName)}
+                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition"
+                              title="Delete Exporter Record"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* ── EXPANDED FULL DETAILS SUB-ROW WITH SLIDE-IN ANIMATION ── */}
+                      {isExpanded && (
+                        <tr className="bg-slate-50/70 border-b border-slate-200">
+                          <td colSpan={8} className="p-0">
+                            <div className="supplier-row-expanded-details p-4 sm:p-5 bg-gradient-to-r from-amber-50/40 via-white to-slate-50 border-l-4 border-l-amber-600 shadow-inner">
+                              <div className="flex flex-col lg:flex-row items-start justify-between gap-5">
+                                {/* Left Section: Comprehensive Specifications & Compliance */}
+                                <div className="flex-1 space-y-3">
+                                  {/* Verification & Facility Status Badges */}
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded border border-amber-300">
+                                      {s.district} Manufacturing Hub
+                                    </span>
+                                    <span className="text-[11px] font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                      {s.bondStatus === 'BONDED' ? 'Customs Bonded Warehouse (CBW License Verified)' : s.bondStatus}
+                                    </span>
+                                    {s.isVerified && (
+                                      <span className="text-[11px] font-mono font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 flex items-center gap-1">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                        EPB Registered &amp; Verified
+                                      </span>
+                                    )}
+                                    <span className="text-[11px] font-mono font-bold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                                      Audit Rating: <strong className="text-emerald-700">{s.complianceScore || 96}%</strong>
+                                    </span>
+                                  </div>
+
+                                  {/* Metric Cards Grid */}
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                    <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+                                      <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                        <Factory className="w-3 h-3 text-slate-500" />
+                                        Production Capacity
+                                      </div>
+                                      <div className="font-bold text-slate-900 text-sm">
+                                        {s.capacityMonthly || '850,000 pcs / month'}
+                                      </div>
+                                      <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                                        MOQ: {s.moq || '1,000 pcs'} • Lead Time: {s.leadTimeDays || 45} Days
+                                      </div>
+                                    </div>
+
+                                    <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+                                      <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                        <Phone className="w-3 h-3 text-slate-500" />
+                                        Commercial Contact
+                                      </div>
+                                      <div className="font-bold text-slate-900 text-xs truncate">
+                                        {s.contactPerson || 'Head of Merchandising'}
+                                      </div>
+                                      <div className="text-[11px] text-slate-500 font-mono truncate">
+                                        {s.designation || 'Export Sales Director'}
+                                      </div>
+                                      <div className="flex items-center gap-3 mt-1 text-xs font-mono">
+                                        {s.phone && (
+                                          <a
+                                            href={`tel:${s.phone}`}
+                                            className="text-amber-800 hover:underline font-bold"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            {s.phone}
+                                          </a>
+                                        )}
+                                        {s.email && (
+                                          <a
+                                            href={`mailto:${s.email}`}
+                                            className="text-slate-500 hover:text-slate-800 underline truncate max-w-[130px]"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            {s.email}
+                                          </a>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+                                      <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                        <MapPin className="w-3 h-3 text-slate-500" />
+                                        Factory Address
+                                      </div>
+                                      <p className="text-xs text-slate-700 leading-relaxed">
+                                        {s.factoryAddress || `${s.district}, Bangladesh`}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Certifications & Export Destinations */}
+                                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-0.5 text-xs">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="font-mono text-[10px] text-slate-500 uppercase font-bold">Certifications:</span>
+                                      {(s.certifications && s.certifications.length > 0 ? s.certifications : ['OEKO-TEX 100', 'BSCI Audit', 'WRAP Gold', 'Sedex SMETA']).map((cert) => (
+                                        <span
+                                          key={cert}
+                                          className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono text-[10px] font-bold"
+                                        >
+                                          {cert}
+                                        </span>
+                                      ))}
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="font-mono text-[10px] text-slate-500 uppercase font-bold">Export Markets:</span>
+                                      {(s.exportMarkets && s.exportMarkets.length > 0 ? s.exportMarkets : ['EU', 'USA', 'UK', 'Japan']).map((market) => (
+                                        <span
+                                          key={market}
+                                          className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[10px]"
+                                        >
+                                          {market}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  {/* Machinery & HS Codes note */}
+                                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-mono text-slate-600 bg-white/90 p-2.5 rounded-lg border border-slate-200">
+                                    <div>
+                                      <span className="font-bold text-slate-800">Machinery Setup: </span>
+                                      <span>{s.machineryLines || 'Multi-line Juki sewing, automated CAD cutters, and dedicated in-house QA lab.'}</span>
+                                    </div>
+                                    <div className="shrink-0 flex items-center gap-1">
+                                      <span className="text-slate-400">HS Codes: </span>
+                                      {s.hsCodes?.map((code) => (
+                                        <span key={code} className="font-bold text-amber-900 bg-amber-50 px-1 rounded border border-amber-200">
+                                          {code}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Right Section: Quick Action Controls */}
+                                <div className="w-full lg:w-48 shrink-0 flex flex-col gap-2 pt-1 border-t lg:border-t-0 lg:border-l lg:border-slate-200 lg:pl-5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenRfqModal(s)}
+                                    className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-mono font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                                  >
+                                    <Send className="w-3.5 h-3.5 text-amber-400" />
+                                    <span>Send RFQ</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleInspectSupplier(s)}
+                                    className="w-full py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-lg text-xs font-mono font-bold border border-amber-200 flex items-center justify-center gap-1.5 transition cursor-pointer"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5 text-amber-700" />
+                                    <span>Full Dossier &amp; Edit</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleViewSupplierOnMap(s)}
+                                    className="w-full py-2 px-3 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-mono font-semibold border border-slate-200 flex items-center justify-center gap-1.5 transition cursor-pointer"
+                                  >
+                                    <Compass className="w-3.5 h-3.5 text-amber-600" />
+                                    <span>Locate on Map</span>
+                                  </button>
+
+                                  {s.bayxBengalUrl && (
+                                    <a
+                                      href={s.bayxBengalUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="w-full py-1.5 px-3 text-center text-[11px] font-mono text-slate-500 hover:text-slate-800 hover:underline flex items-center justify-center gap-1"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <span>Bay x Bengal</span>
+                                      <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
+          </div>
+        </div>
+      ) : (
+        /* ── GEOGRAPHIC MAP WORKSPACE VIEW ── */
+        <div className="space-y-4 mb-6">
+          <SuppliersGeographicMap
+            suppliers={suppliers}
+            allSuppliersCount={totalCount || 2749}
+            selectedDistrict={selectedDistrict}
+            onSelectDistrict={(dist) => {
+              setSelectedDistrict(dist);
+              setCurrentPage(1);
+            }}
+            onInspectSupplier={(sup) => handleInspectSupplier(sup)}
+            regionalDistribution={stats?.regionalDistribution}
+          />
+
+          {/* Quick Filtered Directory Strip below Map */}
+          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3 border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-amber-600" />
+                <h4 className="font-bold text-sm text-slate-900">
+                  {selectedDistrict === 'all'
+                    ? 'All Active Manufacturers on Current Page'
+                    : `Active Facilities in ${selectedDistrict.toUpperCase()} Corridor`}
+                </h4>
+                <span className="text-xs font-mono text-slate-500">({suppliers.length} shown)</span>
+              </div>
+              {selectedDistrict !== 'all' && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedDistrict('all')}
+                  className="text-xs font-mono text-amber-700 hover:underline font-bold"
+                >
+                  Reset to All Corridors
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-[420px] overflow-y-auto pr-1">
+              {suppliers.map((s, idx) => (
+                <div
+                  key={`map_sub_${s.id || idx}`}
+                  onClick={() => handleInspectSupplier(s)}
+                  className="p-3 bg-slate-50 hover:bg-slate-100/90 border border-slate-200 hover:border-amber-400 rounded-lg transition cursor-pointer group flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-1 mb-1">
+                      <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded">
+                        {s.district}
+                      </span>
+                      <span className="text-[10px] font-mono text-emerald-700 font-bold">
+                        {s.bondStatus === 'BONDED' ? 'CBW BONDED' : s.bondStatus}
+                      </span>
+                    </div>
+                    <div className="font-bold text-xs text-slate-900 group-hover:text-amber-800 line-clamp-1 mb-1">
+                      {s.companyName}
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-mono line-clamp-1 mb-2">
+                      {s.factoryAddress || `${s.district}, Bangladesh`}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 text-[10px] font-mono">
+                    <span className="text-slate-600 truncate max-w-[120px]">{s.capacityMonthly || 'Export Ready'}</span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenRfqModal(s);
+                      }}
+                      className="text-amber-800 hover:text-amber-950 font-bold underline"
+                    >
+                      RFQ &rarr;
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -1330,7 +2665,7 @@ admin.handsandhead.com`);
           onClick={handleCloseDrawer}
         >
           <div
-            className="w-full max-w-xl bg-white h-full shadow-2xl flex flex-col overflow-y-auto border-l border-slate-200 animate-in slide-in-from-right duration-200"
+            className="w-full max-w-xl bg-white h-full shadow-2xl flex flex-col overflow-y-auto border-l border-slate-200 animate-drawer-slide-in"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drawer Header */}

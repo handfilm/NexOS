@@ -58,6 +58,29 @@ export interface SupplierStats {
   unknownCount: number;
   bondedRatio: number;
   topDistricts: { district: string; count: number; percentage: number }[];
+  regionalDistribution: {
+    district: string;
+    count: number;
+    bondedCount: number;
+    nonBondedCount: number;
+    percentage: number;
+  }[];
+  specializations: {
+    name: string;
+    count: number;
+    percentage: number;
+  }[];
+  topHsCodes: {
+    code: string;
+    description: string;
+    count: number;
+    percentage: number;
+  }[];
+  certifications: {
+    name: string;
+    count: number;
+    percentage: number;
+  }[];
 }
 
 function ensureDataFile(): void {
@@ -194,33 +217,127 @@ export function getSuppliersFiltered(options: SupplierFilterOptions = {}) {
   };
 }
 
+const HS_CODE_LABELS: Record<string, string> = {
+  '6109': 'T-Shirts & Knitted Vests',
+  '6110': 'Sweaters & Pullovers',
+  '6104': "Women's Suits & Dresses",
+  '6103': "Men's Suits & Trousers",
+  '6105': "Men's Shirts (Knit)",
+  '6106': "Women's Blouses (Knit)",
+  '6111': "Babies' Garments",
+  '6108': "Women's Underwear & Slips",
+  '6107': "Men's Underwear & Pyjamas",
+  '6203': "Men's Trousers & Suits (Woven)",
+  '6204': "Women's Trousers & Dresses (Woven)",
+  '6205': "Men's Shirts (Woven)",
+  '6206': "Women's Blouses (Woven)",
+  '6211': 'Track Suits & Sportswear',
+  '6201': "Men's Overcoats & Outerwear",
+  '6202': "Women's Overcoats & Outerwear",
+  '6112': 'Track Suits & Swimwear (Knit)',
+  '5209': 'Woven Denim & Cotton Fabrics',
+  '5211': 'Woven Cotton Blend Fabrics',
+};
+
 export function calculateSupplierStats(all: Supplier[]): SupplierStats {
   const totalCount = all.length;
   let bondedCount = 0;
   let nonBondedCount = 0;
   let unknownCount = 0;
-  const districtCounts: Record<string, number> = {};
+  const districtMap: Record<string, { total: number; bonded: number; nonBonded: number }> = {};
+  const productMap: Record<string, number> = {};
+  const hsMap: Record<string, number> = {};
+  const certMap: Record<string, number> = {};
 
   for (const s of all) {
     const status = s.bondStatus?.toUpperCase();
-    if (status === 'BONDED') bondedCount++;
+    const isBonded = status === 'BONDED';
+    if (isBonded) bondedCount++;
     else if (status === 'NON_BONDED') nonBondedCount++;
     else unknownCount++;
 
-    const dist = s.district?.trim() || 'Unknown';
-    districtCounts[dist] = (districtCounts[dist] || 0) + 1;
+    const dist = s.district?.trim() || 'Dhaka';
+    if (!districtMap[dist]) {
+      districtMap[dist] = { total: 0, bonded: 0, nonBonded: 0 };
+    }
+    districtMap[dist].total++;
+    if (isBonded) districtMap[dist].bonded++;
+    else districtMap[dist].nonBonded++;
+
+    if (Array.isArray(s.productTypes)) {
+      for (const p of s.productTypes) {
+        if (!p) continue;
+        const clean = p.trim();
+        productMap[clean] = (productMap[clean] || 0) + 1;
+      }
+    }
+
+    if (Array.isArray(s.hsCodes)) {
+      for (const h of s.hsCodes) {
+        if (!h) continue;
+        const clean = h.trim();
+        hsMap[clean] = (hsMap[clean] || 0) + 1;
+      }
+    }
+
+    if (Array.isArray(s.certifications)) {
+      for (const c of s.certifications) {
+        if (!c) continue;
+        const clean = c.trim();
+        certMap[clean] = (certMap[clean] || 0) + 1;
+      }
+    }
   }
 
   const bondedRatio = totalCount > 0 ? Math.round((bondedCount / totalCount) * 100) : 0;
 
-  const topDistricts = Object.entries(districtCounts)
-    .map(([district, count]) => ({
+  // Regional distribution (Top hubs + consolidated others)
+  const sortedDistricts = Object.entries(districtMap)
+    .map(([district, stat]) => ({
       district,
+      count: stat.total,
+      bondedCount: stat.bonded,
+      nonBondedCount: stat.nonBonded,
+      percentage: totalCount > 0 ? Math.round((stat.total / totalCount) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  const topDistricts = sortedDistricts.slice(0, 6).map(d => ({
+    district: d.district,
+    count: d.count,
+    percentage: Math.round(d.percentage),
+  }));
+
+  // Top specializations
+  const specializations = Object.entries(productMap)
+    .map(([name, count]) => ({
+      name,
       count,
-      percentage: totalCount > 0 ? Math.round((count / totalCount) * 100) : 0,
+      percentage: totalCount > 0 ? Math.round((count / totalCount) * 1000) / 10 : 0,
     }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 6);
+    .slice(0, 8);
+
+  // Top Customs HS Codes
+  const topHsCodes = Object.entries(hsMap)
+    .map(([code, count]) => ({
+      code,
+      description: HS_CODE_LABELS[code] || `HS ${code} Garment Line`,
+      count,
+      percentage: totalCount > 0 ? Math.round((count / totalCount) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+
+  // Top Certifications
+  const certifications = Object.entries(certMap)
+    .map(([name, count]) => ({
+      name,
+      count,
+      percentage: totalCount > 0 ? Math.round((count / totalCount) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
 
   return {
     totalCount,
@@ -229,6 +346,10 @@ export function calculateSupplierStats(all: Supplier[]): SupplierStats {
     unknownCount,
     bondedRatio,
     topDistricts,
+    regionalDistribution: sortedDistricts.slice(0, 10),
+    specializations,
+    topHsCodes,
+    certifications,
   };
 }
 
