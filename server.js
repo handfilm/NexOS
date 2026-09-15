@@ -4197,7 +4197,7 @@ app.post('/api/functions/markSpecVerified', (req, res) => {
       return res.status(429).json({ ok: false, code: 'resource-exhausted', error: rateLock });
     }
 
-    const masterPin = process.env.MASTER_OPERATOR_PIN || process.env.OPERATOR_PIN;
+    const masterPin = process.env.MASTER_OPERATOR_PIN || process.env.OPERATOR_PIN || '1981';
     if (masterPin && operatorPin !== masterPin) {
       const attempts = recordServerFailedAttempt(callerId);
       return res.status(403).json({
@@ -4272,7 +4272,7 @@ app.post('/api/functions/authorizeCutting', (req, res) => {
     }
 
     // 2. Validate Master PIN
-    const masterPin = process.env.MASTER_OPERATOR_PIN || process.env.OPERATOR_PIN;
+    const masterPin = process.env.MASTER_OPERATOR_PIN || process.env.OPERATOR_PIN || '1981';
     if (masterPin && operatorPin !== masterPin) {
       const attempts = recordServerFailedAttempt(callerId);
       console.warn(`[authorizeCutting] Unauthorized attempt on order ${orderId}: Invalid PIN (Attempt ${attempts}/5)`);
@@ -4409,7 +4409,7 @@ app.post('/api/functions/recordPaymentEvent', (req, res) => {
     }
 
     // 2. Validate Master PIN
-    const masterPin = process.env.MASTER_OPERATOR_PIN || process.env.OPERATOR_PIN;
+    const masterPin = process.env.MASTER_OPERATOR_PIN || process.env.OPERATOR_PIN || '1981';
     if (masterPin && operatorPin !== masterPin) {
       const attempts = recordServerFailedAttempt(callerId);
       return res.status(403).json({
