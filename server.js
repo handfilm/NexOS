@@ -12,7 +12,7 @@ import {
   deleteSupplierRecord,
   readAllSuppliers,
   calculateSupplierStats,
-} from './lib/supplierStorage.ts';
+} from './lib/supplierStorage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -2832,7 +2832,14 @@ app.delete('/api/suppliers', (req, res) => {
 app.post('/api/suppliers/sync', async (req, res) => {
   try {
     const { startPage = 1, endPage = 5, delayMs = 500 } = req.body || {};
-    const { syncSuppliers } = await import('./scripts/sync-suppliers.ts');
+    let syncSuppliers;
+    try {
+      const mod = await import('./scripts/sync-suppliers.js');
+      syncSuppliers = mod.syncSuppliers;
+    } catch (e) {
+      const mod = await import('./scripts/sync-suppliers.ts');
+      syncSuppliers = mod.syncSuppliers;
+    }
     const syncResult = await syncSuppliers({ startPage, endPage, delayMs });
     res.json({ success: true, ...syncResult });
   } catch (err) {
