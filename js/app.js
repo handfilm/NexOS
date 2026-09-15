@@ -255,7 +255,9 @@ const I = {
   rmg:'<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
   mic:'<svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="currentColor"/><path d="M19 10v2a7 7 0 01-14 0v-2H3v2a9 9 0 008 8.94V23h2v-2.06A9 9 0 0021 12v-2h-2z" fill="currentColor"/></svg>',
   copy:'<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2" fill="none"/></svg>',
-  grid:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'
+  grid:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+  factory:'<svg viewBox="0 0 24 24"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/></svg>',
+  warehouse:'<svg viewBox="0 0 24 24"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect width="12" height="12" x="6" y="10"/></svg>'
 };
 
 /* ── State ── */
@@ -1081,6 +1083,7 @@ function renderTabbar() {
       <button class="tb ${expScreen === 'Products' ? 'on' : ''}" onclick="openAppModule('Products')" title="Products">${I.tag}</button>
       <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
       <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
+      <button class="tb ${expScreen === 'Suppliers' ? 'on' : ''}" onclick="if(window.openSuppliersManagement) window.openSuppliersManagement(); else openAppModule('Suppliers');" title="Suppliers" style="color:#38BDF8;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect width="12" height="12" x="6" y="10"/></svg></button>
       <button class="tb ${expScreen === 'B2BDealEngine' || expScreen === 'B2BDEAL' || expScreen === 'Deals' ? 'on' : ''}" onclick="openAppModule('B2BDealEngine')" title="B2B Deal Engine" style="color:#FF5500;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
       <button class="tb ${expScreen === 'ProductionFloorBridge' || expScreen === 'FLOOR_BRIDGE' ? 'on' : ''}" onclick="openAppModule('ProductionFloorBridge')" title="Production Floor & Settlement Bridge" style="color:#00E5FF;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg></button>
       <button class="tb ${expScreen === 'VaultAndReorderEngine' || expScreen === 'VAULT_REORDER' ? 'on' : ''}" onclick="openAppModule('VaultAndReorderEngine')" title="Vault & Reorder Engine" style="color:#00E599;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></button>
@@ -1096,6 +1099,7 @@ function renderTabbar() {
       <button class="tb ${expScreen === 'Products' ? 'on' : ''}" onclick="openAppModule('Products')" title="Products">${I.tag}</button>
       <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
       <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
+      <button class="tb ${expScreen === 'Suppliers' ? 'on' : ''}" onclick="if(window.openSuppliersManagement) window.openSuppliersManagement(); else openAppModule('Suppliers');" title="Suppliers" style="color:#38BDF8;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect width="12" height="12" x="6" y="10"/></svg></button>
       <button class="tb ${expScreen === 'B2BDealEngine' || expScreen === 'B2BDEAL' || expScreen === 'Deals' ? 'on' : ''}" onclick="openAppModule('B2BDealEngine')" title="B2B Deal Engine" style="color:#FF5500;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
       <button class="tb ${expScreen === 'ProductionFloorBridge' || expScreen === 'FLOOR_BRIDGE' ? 'on' : ''}" onclick="openAppModule('ProductionFloorBridge')" title="Production Floor & Settlement Bridge" style="color:#00E5FF;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg></button>
       <button class="tb ${expScreen === 'VaultAndReorderEngine' || expScreen === 'VAULT_REORDER' ? 'on' : ''}" onclick="openAppModule('VaultAndReorderEngine')" title="Vault & Reorder Engine" style="color:#00E599;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></button>
@@ -1180,6 +1184,7 @@ const NAV_SECTIONS = [
       { label: "Products", icon: I.tag, app: "Products", chev: true, desc: "Inventory catalog, variants & pricing matrix", ext: "CATALOG" },
       { label: "Orders", icon: I.orders, app: "Orders", chev: true, desc: "Live order stream & fulfillment tracker", ext: "POS" },
       { label: "Customers", icon: I.inbox, app: "CRM", chev: true, desc: "Global wholesale buyer CRM & accounts", ext: "CRM" },
+      { label: "Suppliers", icon: I.warehouse, app: "Suppliers", url: "/admin/suppliers", fn: "if(window.openSuppliersManagement){window.openSuppliersManagement();}else if(window.openAppModule){window.openAppModule('Suppliers');}else{window.location.href='/admin/suppliers';}", chev: true, desc: "Verified RMG exporters, customs bonded status & HS codes registry", ext: "SUPPLIERS", extClass: "gold" },
       { label: "B2B Deal & Revenue Engine", icon: "⚡", app: "B2BDealEngine", chev: true, desc: "High-density B2B deal closer: Apollo lead scoring, 10-stage pipeline, quick offers & JIT cash-lock", ext: "DEALS", extClass: "gold" },
       { label: "Production Floor & Settlement Bridge", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:#00E5FF;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg>`, app: "ProductionFloorBridge", chev: true, desc: "Production pipeline, 5-stage checkpoints, one-click courier routing & balance settlement", ext: "FLOOR", extClass: "gold" },
       { label: "Vault & Reorder Engine", icon: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:#00E599;stroke-width:2;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`, app: "VaultAndReorderEngine", chev: true, desc: "Courier remittance reconciliation, 30-day corporate re-ignition radar & deadstock clearance vault", ext: "VAULT", extClass: "gold" },
@@ -1351,6 +1356,15 @@ const MODULE_MAP = {
   "Corporate": "CorporateSupplies",
   "CORPORATESUPPLIES": "CorporateSupplies",
   "B2BSupplies": "CorporateSupplies",
+  "Suppliers": "Suppliers",
+  "suppliers": "Suppliers",
+  "Supplier": "Suppliers",
+  "supplier": "Suppliers",
+  "SuppliersManagement": "Suppliers",
+  "SuppliersManagementDashboard": "Suppliers",
+  "GarmentExporters": "Suppliers",
+  "Exporters": "Suppliers",
+  "Garments": "Suppliers",
   "TechPackPO": "TechPackPO",
   "TECHPACKPO": "TechPackPO",
   "techpackpo": "TechPackPO",
@@ -1742,11 +1756,26 @@ function navTo(label) {
   const modKey = MODULE_MAP[label] || label;
   if (modKey === "Home" || modKey === "dashboard") {
     expScreen = "dashboard";
+    try {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("nexus:navigate", { detail: "DEFAULT" }));
+        if (window.NexusApp && typeof window.NexusApp.navigate === "function") {
+          window.NexusApp.navigate("DEFAULT");
+        }
+        if (window.location.pathname.includes('/admin/suppliers')) {
+          window.history.pushState({}, '', '/');
+        }
+      }
+      document.body.classList.remove('has-active-module');
+    } catch(e) {}
     const b = document.getElementById("body");
     if (b) {
+      b.style.display = "";
       if (mode === "production") renderProductionView(b);
       else renderLiteHome(b);
     }
+    const rootEl = document.getElementById("react-app-root");
+    if (rootEl) rootEl.style.display = "none";
     renderTabbar();
     window.scrollTo({ top: 0, behavior: "smooth" });
     return;
@@ -1772,6 +1801,13 @@ function openAppModule(appName) {
   if (modKey === "Home" || modKey === "dashboard") {
     navTo("Home");
     return;
+  }
+
+  if (modKey === "Suppliers" || modKey === "SuppliersManagementDashboard" || modKey === "SuppliersManagement" || modKey.toString().toLowerCase().includes("supplier")) {
+    if (typeof window.openSuppliersManagement === "function") {
+      window.openSuppliersManagement();
+      return;
+    }
   }
 
   const b = document.getElementById("body");
@@ -1897,6 +1933,14 @@ function openAppModule(appName) {
       if (typeof window.renderFactorySla === "function") return window.renderFactorySla;
       if (typeof window.renderFactorySlaFloorTracker === "function") return window.renderFactorySlaFloorTracker;
       if (typeof window.renderFactorySlaComponent === "function") return window.renderFactorySlaComponent;
+    }
+
+    // Explicit fallback for Suppliers Management Dashboard
+    if (modKey.toLowerCase().includes("supplier") || modKey.toLowerCase().includes("exporter") || modKey.toLowerCase() === "garments") {
+      if (window.render && typeof window.render.SuppliersManagementDashboard === "function") return window.render.SuppliersManagementDashboard;
+      if (window.render && typeof window.render.Suppliers === "function") return window.render.Suppliers;
+      if (window.render && typeof window.render.SuppliersManagement === "function") return window.render.SuppliersManagement;
+      if (typeof window.renderSuppliersManagementComponent === "function") return window.renderSuppliersManagementComponent;
     }
 
     if (modKey === "Accounting" && typeof window.renderAccounting === "function") return window.renderAccounting;

@@ -4,6 +4,15 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
 import * as XLSX from 'xlsx';
+import { z } from 'zod';
+import {
+  getSuppliersFiltered,
+  upsertSupplierRecord,
+  updateSupplierRecord,
+  deleteSupplierRecord,
+  readAllSuppliers,
+  calculateSupplierStats,
+} from './lib/supplierStorage.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -2638,6 +2647,196 @@ app.get('/api/sync', (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/* ── SUPPLIERS MANAGEMENT API (BayXBengal Scraped Exporters Registry) ── */
+const SupplierCreateSchema = z.object({
+  companyName: z.string().min(2, 'Company name must be at least 2 characters').max(150),
+  slug: z.string().optional(),
+  category: z.string().default('Garments & RMG'),
+  productTypes: z.array(z.string()).min(1).default(['Knit', 'Woven']),
+  bondStatus: z.enum(['BONDED', 'NON_BONDED', 'UNKNOWN']).default('BONDED'),
+  district: z.string().min(2, 'District is required'),
+  hsCodes: z.array(z.string()).default([]),
+  verificationSource: z.string().nullable().optional().default('EPB'),
+  isVerified: z.boolean().default(true),
+  factoryAddress: z.string().optional(),
+  contactPerson: z.string().optional(),
+  designation: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().optional(),
+  website: z.string().optional(),
+  capacityMonthly: z.string().optional(),
+  moq: z.string().optional(),
+  leadTimeDays: z.number().optional(),
+  certifications: z.array(z.string()).optional(),
+  exportMarkets: z.array(z.string()).optional(),
+  machineryLines: z.string().optional(),
+  complianceScore: z.number().optional(),
+  rating: z.number().optional(),
+  epbId: z.string().optional(),
+  bayxBengalUrl: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const SupplierUpdateSchema = z.object({
+  id: z.string().min(1, 'Supplier ID is required for update'),
+  companyName: z.string().min(2).max(150).optional(),
+  slug: z.string().optional(),
+  category: z.string().optional(),
+  productTypes: z.array(z.string()).optional(),
+  bondStatus: z.enum(['BONDED', 'NON_BONDED', 'UNKNOWN']).optional(),
+  district: z.string().min(2).optional(),
+  hsCodes: z.array(z.string()).optional(),
+  verificationSource: z.string().nullable().optional(),
+  isVerified: z.boolean().optional(),
+  factoryAddress: z.string().optional(),
+  contactPerson: z.string().optional(),
+  designation: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().optional(),
+  website: z.string().optional(),
+  capacityMonthly: z.string().optional(),
+  moq: z.string().optional(),
+  leadTimeDays: z.number().optional(),
+  certifications: z.array(z.string()).optional(),
+  exportMarkets: z.array(z.string()).optional(),
+  machineryLines: z.string().optional(),
+  complianceScore: z.number().optional(),
+  rating: z.number().optional(),
+  epbId: z.string().optional(),
+  bayxBengalUrl: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+// GET /api/suppliers
+app.get('/api/suppliers', (req, res) => {
+  try {
+    const { page, limit, q, district, bondStatus, type, cert, sort } = req.query;
+    const result = getSuppliersFiltered({
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 20,
+      q: q ? String(q) : '',
+      district: district ? String(district) : '',
+      bondStatus: bondStatus ? String(bondStatus) : '',
+      type: type ? String(type) : '',
+      cert: cert ? String(cert) : '',
+      sort: sort ? String(sort) : 'newest',
+    });
+
+    res.json({
+      success: true,
+      data: result.suppliers,
+      pagination: result.pagination,
+      stats: result.stats,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/suppliers/stats
+app.get('/api/suppliers/stats', (req, res) => {
+  try {
+    const all = readAllSuppliers();
+    const stats = calculateSupplierStats(all);
+    res.json({ success: true, stats });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/suppliers/:id
+app.get('/api/suppliers/:id', (req, res) => {
+  try {
+    const all = readAllSuppliers();
+    const found = all.find(s => s.id === req.params.id || s.slug === req.params.id);
+    if (!found) {
+      return res.status(404).json({ success: false, error: 'Supplier not found' });
+    }
+    res.json({ success: true, data: found });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/suppliers
+app.post('/api/suppliers', (req, res) => {
+  try {
+    const validated = SupplierCreateSchema.parse(req.body);
+    const slug =
+      validated.slug?.trim() ||
+      validated.companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') +
+        '-' +
+        Math.floor(1000 + Math.random() * 9000);
+
+    const created = upsertSupplierRecord({
+      ...validated,
+      slug,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Supplier "${created.companyName}" created successfully.`,
+      data: created,
+    });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ success: false, error: 'Validation failed', details: err.errors });
+    }
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// PUT /api/suppliers
+app.put('/api/suppliers', (req, res) => {
+  try {
+    const validated = SupplierUpdateSchema.parse(req.body);
+    const { id, ...updates } = validated;
+    const updated = updateSupplierRecord(id, updates);
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Supplier not found' });
+    }
+    res.json({
+      success: true,
+      message: `Supplier "${updated.companyName}" updated successfully.`,
+      data: updated,
+    });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ success: false, error: 'Validation failed', details: err.errors });
+    }
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/suppliers
+app.delete('/api/suppliers', (req, res) => {
+  try {
+    const id = req.query.id || req.body?.id;
+    if (!id) {
+      return res.status(400).json({ success: false, error: 'Supplier ID is required' });
+    }
+    const removed = deleteSupplierRecord(String(id));
+    if (!removed) {
+      return res.status(404).json({ success: false, error: 'Supplier not found' });
+    }
+    res.json({ success: true, message: 'Supplier deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/suppliers/sync - trigger background scrape
+app.post('/api/suppliers/sync', async (req, res) => {
+  try {
+    const { startPage = 1, endPage = 5, delayMs = 500 } = req.body || {};
+    const { syncSuppliers } = await import('./scripts/sync-suppliers.ts');
+    const syncResult = await syncSuppliers({ startPage, endPage, delayMs });
+    res.json({ success: true, ...syncResult });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

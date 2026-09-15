@@ -9,6 +9,8 @@ import { B2BDealEngine } from './components/B2BDealEngine';
 import ProductionFloorAndSettlementBridge from './components/ProductionFloorAndSettlementBridge';
 import VaultAndReorderEngine from './components/VaultAndReorderEngine';
 import EnterpriseSourcingAndFactoryEscrow from './components/EnterpriseSourcingAndFactoryEscrow';
+import SuppliersManagementDashboard from './components/SuppliersManagementDashboard';
+import { Warehouse, Factory, Building2, Layers, ShieldCheck, Truck, FileText, Mic, Coins, ArrowLeft } from 'lucide-react';
 import { ExtractedPOSpec } from './components/VoicePOIngestion';
 import {
   ensureFirestoreSeeded,
@@ -32,6 +34,8 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
   const [currentRoute, setCurrentRoute] = useState<string>(() => {
     if (initialRoute && initialRoute !== 'DEFAULT') return initialRoute;
     if (typeof window !== 'undefined') {
+      const pathname = (window.location.pathname || '').toLowerCase();
+      if (pathname.includes('/admin/suppliers') || pathname.includes('/suppliers')) return 'SUPPLIERS';
       const hash = window.location.hash.replace('#/', '').replace('#', '').toUpperCase();
       if (hash === 'VOICEINGEST' || hash === 'VOICE_INGEST' || hash === 'VOICE') return 'VOICEINGEST';
       if (hash === 'TECHPACK' || hash === 'TECHPACKPO' || hash === 'TECHPACK_PO') return 'TECHPACK';
@@ -43,6 +47,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       if (hash === 'FLOOR_BRIDGE' || hash === 'PRODUCTION_FLOOR' || hash === 'FLOORBRIDGE') return 'FLOOR_BRIDGE';
       if (hash === 'VAULT' || hash === 'VAULT_REORDER' || hash === 'REORDER_VAULT') return 'VAULT';
       if (hash === 'SOURCING_ESCROW' || hash === 'SOURCING' || hash === 'ESCROW' || hash === 'ENTERPRISESOURCING') return 'SOURCING_ESCROW';
+      if (hash === 'SUPPLIERS' || hash === 'GARMENTS' || hash === 'EXPORTERS' || hash === 'SUPPLIER_MANAGEMENT') return 'SUPPLIERS';
     }
     return 'DEFAULT';
   });
@@ -164,6 +169,70 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     };
   }, []);
 
+  // Synchronize active module state with body and containers for smooth scrolling
+  useEffect(() => {
+    const isModuleActive = currentRoute !== 'DEFAULT';
+    if (typeof document !== 'undefined') {
+      const bodyEl = document.getElementById('body');
+      const rootEl = document.getElementById('react-app-root');
+
+      if (isModuleActive) {
+        document.body.classList.add('has-active-module');
+        if (bodyEl) bodyEl.style.display = 'none';
+        if (rootEl) {
+          rootEl.style.display = 'flex';
+          rootEl.scrollTop = 0;
+        }
+      } else {
+        document.body.classList.remove('has-active-module');
+        if (bodyEl) bodyEl.style.display = '';
+        if (rootEl) {
+          rootEl.style.display = 'none';
+        }
+      }
+    }
+  }, [currentRoute]);
+
+  // Listen to popstate, hashchange, and nexus:navigate events
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window === 'undefined') return;
+      const pathname = (window.location.pathname || '').toLowerCase();
+      if (pathname.includes('/admin/suppliers') || pathname.includes('/suppliers')) {
+        setCurrentRoute('SUPPLIERS');
+      } else {
+        const hash = window.location.hash.replace('#/', '').replace('#', '').toUpperCase();
+        if (hash === 'SUPPLIERS' || hash === 'GARMENTS' || hash === 'EXPORTERS') {
+          setCurrentRoute('SUPPLIERS');
+        } else if (!hash || hash === 'HOME' || hash === 'DEFAULT') {
+          setCurrentRoute('DEFAULT');
+        }
+      }
+    };
+
+    const handleNexusNav = (e: any) => {
+      const dest = e.detail?.destination || e.detail?.screen || e.detail;
+      if (dest === 'Home' || dest === 'dashboard' || dest === 'DEFAULT') {
+        if (typeof window !== 'undefined' && window.location.pathname.includes('/admin/suppliers')) {
+          try { window.history.pushState({}, '', '/'); } catch(err) {}
+        }
+        setCurrentRoute('DEFAULT');
+      } else if (dest === 'Suppliers' || dest === 'SUPPLIERS' || dest === 'Garments' || dest === 'Exporters') {
+        setCurrentRoute('SUPPLIERS');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    window.addEventListener('nexus:navigate', handleNexusNav);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+      window.removeEventListener('nexus:navigate', handleNexusNav);
+    };
+  }, []);
+
   // Handlers for Opening/Closing Modules
   const openTechPack = useCallback((customer?: any) => {
     if (customer) setPreSelectedCustomer(customer);
@@ -277,6 +346,14 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     (window as any).openProductionFloorBridge = () => openFloorBridge();
     (window as any).openVaultReorderEngine = () => openVault();
     (window as any).openSourcingEscrow = (po?: string) => openSourcingEscrow(po);
+    (window as any).openSuppliersManagement = () => {
+      if (typeof window !== 'undefined' && window.location.pathname !== '/admin/suppliers') {
+        try {
+          window.history.pushState({}, '', '/admin/suppliers');
+        } catch (e) {}
+      }
+      setCurrentRoute('SUPPLIERS');
+    };
 
     (window as any).NexusApp = {
       openTechPack,
@@ -357,6 +434,15 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         setCurrentRoute('VAULT');
       } else if (hash === 'SOURCING_ESCROW' || hash === 'SOURCING' || hash === 'ESCROW' || hash === 'ENTERPRISESOURCING') {
         setCurrentRoute('SOURCING_ESCROW');
+      } else if (hash === 'SUPPLIERS' || hash === 'GARMENTS' || hash === 'EXPORTERS' || hash === 'SUPPLIER_MANAGEMENT') {
+        setCurrentRoute('SUPPLIERS');
+      }
+    };
+
+    const handlePopState = () => {
+      const pathname = (window.location.pathname || '').toLowerCase();
+      if (pathname.includes('/admin/suppliers') || pathname.includes('/suppliers')) {
+        setCurrentRoute('SUPPLIERS');
       }
     };
 
@@ -372,6 +458,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     window.addEventListener('nexus:open-sourcing-escrow', handleOpenSourcingEscrowEvent);
     window.addEventListener('nexus:navigate', handleNavigateEvent);
     window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handlePopState);
 
     return () => {
       window.removeEventListener('nexus:open-techpack', handleOpenTechPackEvent);
@@ -386,8 +473,78 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       window.removeEventListener('nexus:open-sourcing-escrow', handleOpenSourcingEscrowEvent);
       window.removeEventListener('nexus:navigate', handleNavigateEvent);
       window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, openLogistics, closeLogistics, openFactorySla, closeFactorySla, openB2BDeal, closeB2BDeal, openFloorBridge, closeFloorBridge, openVault, closeVault, openSourcingEscrow, closeSourcingEscrow, isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, isFactorySlaOpen, isB2BDealOpen, isFloorBridgeOpen, isVaultOpen, isSourcingEscrowOpen, currentRoute, lastExtractedSpec, customers, products, orders]);
+
+  // Tab-based navigation helper for modular views
+  const renderTabNav = (activeTab: string) => {
+    const tabs = [
+      { id: 'SUPPLIERS', label: 'Suppliers', icon: Warehouse, path: '/admin/suppliers', count: '400 Verified' },
+      { id: 'B2B', label: 'B2B Deals', icon: Layers },
+      { id: 'FLOOR_BRIDGE', label: 'Production Floor', icon: Factory },
+      { id: 'VAULT', label: 'Vault & Reorder', icon: Coins },
+      { id: 'FACTORYSLA', label: 'Factory SLA', icon: ShieldCheck },
+      { id: 'LOGISTICS', label: 'Logistics Hub', icon: Truck },
+      { id: 'CORPORATESUPPLIES', label: 'Corporate Supplies', icon: Building2 },
+      { id: 'TECHPACK', label: 'Tech-Pack PO', icon: FileText },
+      { id: 'VOICEINGEST', label: 'Voice Ingest', icon: Mic }
+    ];
+
+    return (
+      <div className="flex items-center justify-between border-b border-slate-700/60 bg-slate-900/95 backdrop-blur px-3 sm:px-4 py-2 text-xs text-white">
+        <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  if (tab.path) {
+                    try { window.history.pushState({}, '', tab.path); } catch(e) {}
+                  } else if (typeof window !== 'undefined' && window.location.pathname.includes('/admin/suppliers')) {
+                    try { window.history.pushState({}, '', '/'); } catch(e) {}
+                  }
+                  setCurrentRoute(tab.id);
+                }}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-[11px] font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                  isActive
+                    ? 'bg-sky-500 text-slate-950 shadow-sm font-bold'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{tab.label}</span>
+                {tab.count && (
+                  <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${
+                    isActive ? 'bg-sky-950 text-sky-200' : 'bg-slate-800 text-sky-400 border border-sky-500/20'
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (typeof window !== 'undefined' && window.location.pathname.includes('/admin/suppliers')) {
+              try { window.history.pushState({}, '', '/'); } catch(e) {}
+            }
+            setCurrentRoute('DEFAULT');
+          }}
+          className="ml-2 px-2.5 py-1 rounded font-mono text-[11px] font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+          title="Return to Main Dashboard"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Exit</span>
+        </button>
+      </div>
+    );
+  };
 
   // View switch/case rendering
   const renderCurrentView = () => {
@@ -551,6 +708,28 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
               initialContractPo={preSelectedEscrowPo || undefined}
               onClose={() => setCurrentRoute('DEFAULT')}
             />
+          </div>
+        );
+
+      case 'SUPPLIERS':
+      case 'GARMENTS':
+      case 'EXPORTERS':
+      case 'SUPPLIER_REGISTRY':
+      case 'SUPPLIER_MANAGEMENT':
+        return (
+          <div className="suppliers-router-view w-full min-h-full bg-slate-50 text-slate-900 flex flex-col">
+            {renderTabNav('SUPPLIERS')}
+            <div className="w-full flex-1 pb-16">
+              <SuppliersManagementDashboard
+                mode="embedded"
+                onClose={() => {
+                  if (typeof window !== 'undefined' && window.location.pathname.includes('/admin/suppliers')) {
+                    try { window.history.pushState({}, '', '/'); } catch(e) {}
+                  }
+                  setCurrentRoute('DEFAULT');
+                }}
+              />
+            </div>
           </div>
         );
 

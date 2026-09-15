@@ -12,6 +12,7 @@ import { B2BDealRevenueEngine } from './components/B2BDealRevenueEngine';
 import ProductionFloorAndSettlementBridge from './components/ProductionFloorAndSettlementBridge';
 import VaultAndReorderEngine from './components/VaultAndReorderEngine';
 import EnterpriseSourcingAndFactoryEscrow from './components/EnterpriseSourcingAndFactoryEscrow';
+import SuppliersManagementDashboard from './components/SuppliersManagementDashboard';
 
 // ── Automatic purge of stale service workers to prevent 404 caching loops ──
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
@@ -591,6 +592,59 @@ if (typeof window !== 'undefined') {
     (window as any).openSourcingEscrow = (initialPo?: string) => {
       window.dispatchEvent(new CustomEvent('nexus:open-sourcing-escrow', { detail: { poNumber: initialPo } }));
     };
+  }
+
+  // Verified Garment Exporters & Suppliers Management renderers
+  (window as any).render.SuppliersManagementDashboard = renderSuppliersManagementComponent;
+  (window as any).render.Suppliers = renderSuppliersManagementComponent;
+  (window as any).render.SUPPLIERS = renderSuppliersManagementComponent;
+  (window as any).render.Exporters = renderSuppliersManagementComponent;
+  (window as any).render.Garments = renderSuppliersManagementComponent;
+  (window as any).render.SuppliersManagement = renderSuppliersManagementComponent;
+  (window as any).render['Suppliers Management'] = renderSuppliersManagementComponent;
+  (window as any).render['Garment Exporters'] = renderSuppliersManagementComponent;
+  (window as any).renderSuppliersManagementComponent = renderSuppliersManagementComponent;
+
+  if (typeof (window as any).openSuppliersManagement !== 'function') {
+    (window as any).openSuppliersManagement = () => {
+      if (typeof (window as any).NexusApp?.navigate === 'function') {
+        (window as any).NexusApp.navigate('SUPPLIERS');
+      } else {
+        renderSuppliersManagementComponent();
+      }
+    };
+  }
+}
+
+// ── 0I. Renderer implementation for Suppliers Management Dashboard ──
+export function renderSuppliersManagementComponent(container?: HTMLElement) {
+  const target =
+    container ||
+    document.getElementById('mod-SuppliersManagement') ||
+    document.getElementById('mod-SuppliersManagementDashboard') ||
+    document.getElementById('mod-Suppliers') ||
+    document.getElementById('mod-SUPPLIERS') ||
+    document.getElementById('mod-Garments') ||
+    document.getElementById('mod-Exporters') ||
+    document.getElementById('body');
+  if (!target) return;
+
+  try {
+    const root = getOrCreateRoot(target);
+    root.render(
+      <div className="suppliers-management-module-wrapper p-2 sm:p-4 max-w-7xl mx-auto">
+        <SuppliersManagementDashboard
+          mode="embedded"
+          onClose={() => {
+            if (typeof (window as any).navTo === 'function') {
+              (window as any).navTo('Home');
+            }
+          }}
+        />
+      </div>
+    );
+  } catch (err) {
+    console.error('Error mounting SuppliersManagementDashboard:', err);
   }
 }
 

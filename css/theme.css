@@ -4262,6 +4262,47 @@ div:has(> table)::-webkit-scrollbar-thumb {
   }
 }
 
+/* ── React Master Module Integration & Smooth Scroll System ── */
+#react-app-root {
+  display: none;
+  width: 100%;
+}
+
+/* When a React module is active (Suppliers, B2B, TechPack, Logistics, etc.) */
+body.has-active-module #body {
+  display: none !important;
+}
+
+body.has-active-module #react-app-root {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  position: relative !important;
+  z-index: 10 !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain !important;
+  padding-bottom: calc(var(--bar-h, 72px) + 56px) !important;
+}
+
+.nexus-react-system {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.suppliers-router-view {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 
 
 

@@ -12,6 +12,7 @@
 <meta property="og:title" content="Hands &amp; Head | Business Command Center"/>
 <meta property="og:description" content="H&amp;H NEXUS Business Command Center — Unified customer, order, product, and WhatsApp campaign operations with asynchronous Drive ingestion, high-density commerce engine, B2B Deal &amp; Revenue Engine, Production Floor &amp; Settlement Bridge, and Vault &amp; Reorder Engine."/>
 <title>Hands &amp; Head | Business Command Center</title>
+<base href="/">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -177,6 +178,10 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   </div>
 
   <div class="tbar-right">
+    <button class="tbar-btn tbar-suppliers-btn" onclick="if(window.openSuppliersManagement) window.openSuppliersManagement(); else if(window.openAppModule) window.openAppModule('SuppliersManagementDashboard');" title="Garment Exporters Registry (BayXBengal Scraped)" style="display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 10px;color:#38BDF8;border:1px solid #1E222B;background:#0D0E12;border-radius:6px;cursor:pointer;transition:background 0.2s;">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M3 21h18M3 7v14M21 7v14M6 21V11M10 21V11M14 21V11M18 21V11M12 3l9 4H3l9-4z"/></svg>
+      <span class="tbar-suppliers-text" style="letter-spacing:0.5px;">SUPPLIERS</span>
+    </button>
     <button class="tbar-btn tbar-factory-btn" onclick="openAppModule('FactorySlaFloorTracker')" title="Factory Floor & SLA Monitor" style="display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 10px;color:#00E599;border:1px solid #1E222B;background:#0D0E12;border-radius:6px;cursor:pointer;transition:background 0.2s;">
       <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg>
       <span class="tbar-factory-text" style="letter-spacing:0.5px;">FACTORY SLA</span>
