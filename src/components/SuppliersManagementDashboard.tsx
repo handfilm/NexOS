@@ -737,191 +737,199 @@ admin.handsandhead.com`);
   const isFiltered = debouncedQuery || selectedDistrict !== 'all' || selectedBondStatus !== 'ALL' || selectedType !== 'all' || selectedCert !== 'all';
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-3 sm:p-6 font-sans text-slate-900 transition-all">
+    <div className="w-full max-w-7xl mx-auto p-3 sm:p-6 font-sans text-neutral-100 transition-all min-h-screen">
       {/* ── Toast Notification ── */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-[10050] bg-slate-900 text-white text-xs font-mono px-4 py-2.5 rounded-lg shadow-xl border border-slate-700 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+        <div className="fixed bottom-6 right-6 z-[10050] bg-neutral-900/90 text-white text-xs font-mono px-4 py-2.5 rounded-xl shadow-2xl border border-white/20 backdrop-blur-xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <Sparkles className="w-4 h-4 text-orange-400 shrink-0" />
           <span>{toastMessage}</span>
-          <button onClick={() => setToastMessage(null)} className="ml-2 text-slate-400 hover:text-white">✕</button>
+          <button onClick={() => setToastMessage(null)} className="ml-2 text-neutral-400 hover:text-white cursor-pointer">✕</button>
         </div>
       )}
 
-      {/* ── Top Header & Industrial Breadcrumb ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-200">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-slate-500 mb-1">
-            <span>admin.handsandhead.com</span>
-            <span>/</span>
-            <span className="text-amber-600">Supply Chain Division</span>
-            <span>/</span>
-            <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-              EPB & BGMEA Verified
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-3">
-            <Factory className="w-7 h-7 text-slate-800" />
-            <span>Garment Exporters Directory</span>
-          </h1>
-          <p className="text-sm text-slate-500 mt-1 max-w-3xl">
-            Directory of permanent, verified Bangladesh RMG manufacturers, bonded warehouse facilities, and production lines with direct contacts, compliance scores, and customs HS code mapping.
-          </p>
-        </div>
-
-        {/* Global Action Bar */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* View Toggle (Cards vs Table vs Map) */}
-          <div className="inline-flex rounded-lg border border-slate-300 p-0.5 bg-slate-100 mr-1 shadow-xs">
-            <button
-              type="button"
-              onClick={() => setViewMode('cards')}
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono font-bold rounded-md transition cursor-pointer ${
-                viewMode === 'cards' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-              title="Industrial Cards View"
-            >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">CARDS</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('table')}
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono font-bold rounded-md transition cursor-pointer ${
-                viewMode === 'table' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-              title="Density Table View"
-            >
-              <List className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">TABLE</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('map')}
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono font-bold rounded-md transition cursor-pointer ${
-                viewMode === 'map' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-              title="Geographic Map View"
-            >
-              <Compass className="w-3.5 h-3.5 text-amber-600" />
-              <span className="hidden sm:inline">MAP</span>
-            </button>
+      {/* ── Top Header & Industrial Breadcrumb (Obsidian Glass Panel) ── */}
+      <div className="bg-neutral-900/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] rounded-2xl p-4 sm:p-6 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] font-mono font-semibold uppercase tracking-wider text-neutral-400 mb-2">
+              <span>admin.handsandhead.com</span>
+              <span className="text-neutral-600">/</span>
+              <span className="text-orange-400 font-bold">Supply Chain Division</span>
+              <span className="text-neutral-600">/</span>
+              <span className="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30 whitespace-nowrap">
+                EPB &amp; BGMEA Verified
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-2.5 sm:gap-3">
+              <Factory className="w-6 h-6 sm:w-7 h-7 text-orange-500 shrink-0" />
+              <span>Garment Exporters Directory</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
+              Directory of permanent, verified Bangladesh RMG manufacturers, bonded warehouse facilities, and production lines with direct contacts, compliance scores, and customs HS code mapping.
+            </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsSyncModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-bold text-slate-800 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition shadow-xs cursor-pointer"
-            title="Permanent Ingestion from BayXBengal"
-          >
-            <RefreshCw className="w-3.5 h-3.5 text-amber-600" />
-            <span>INGEST / SYNC</span>
-          </button>
+          {/* Global Action Bar */}
+          <div className="flex flex-wrap items-center gap-2 pt-2 lg:pt-0">
+            {/* View Toggle (Cards vs Table vs Map) */}
+            <div className="inline-flex rounded-xl border border-white/10 p-1 bg-neutral-950/80 shadow-xs">
+              <button
+                type="button"
+                onClick={() => setViewMode('cards')}
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono font-bold rounded-lg transition cursor-pointer ${
+                  viewMode === 'cards'
+                    ? 'bg-orange-600 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+                title="Industrial Cards View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">CARDS</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono font-bold rounded-lg transition cursor-pointer ${
+                  viewMode === 'table'
+                    ? 'bg-orange-600 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+                title="Density Table View"
+              >
+                <List className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">TABLE</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('map')}
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono font-bold rounded-lg transition cursor-pointer ${
+                  viewMode === 'map'
+                    ? 'bg-orange-600 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+                title="Geographic Map View"
+              >
+                <Compass className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">MAP</span>
+              </button>
+            </div>
 
-          <button
-            type="button"
-            onClick={() => setShowChartsSection((prev) => !prev)}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-bold rounded-lg transition shadow-xs cursor-pointer border ${
-              showChartsSection
-                ? 'bg-slate-900 text-white border-slate-900'
-                : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-50'
-            }`}
-            title="Toggle Supply Chain Analytics & Distribution Charts"
-          >
-            <BarChart3 className="w-3.5 h-3.5 text-amber-500" />
-            <span>{showChartsSection ? 'CHARTS ON' : 'CHARTS'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleExportCSV}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-bold text-slate-800 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition shadow-xs cursor-pointer"
-            title="Export filtered suppliers to CSV"
-          >
-            <Download className="w-3.5 h-3.5 text-slate-600" />
-            <span>EXPORT CSV</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-mono font-bold text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition shadow-xs cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>+ NEW SUPPLIER</span>
-          </button>
-
-          {onClose && (
             <button
               type="button"
-              onClick={onClose}
-              className="px-3 py-2 text-xs font-mono font-bold text-slate-500 hover:text-slate-800 border border-slate-200 rounded-lg bg-white"
+              onClick={() => setIsSyncModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-bold text-neutral-200 bg-neutral-900/80 hover:bg-white/10 border border-white/10 hover:border-orange-500/40 rounded-xl transition shadow-xs cursor-pointer"
+              title="Permanent Ingestion from BayXBengal"
             >
-              ✕ CLOSE
+              <RefreshCw className="w-3.5 h-3.5 text-orange-500" />
+              <span>INGEST / SYNC</span>
             </button>
-          )}
+
+            <button
+              type="button"
+              onClick={() => setShowChartsSection((prev) => !prev)}
+              className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-bold rounded-xl transition shadow-xs cursor-pointer border ${
+                showChartsSection
+                  ? 'bg-orange-600 text-white border-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.4)]'
+                  : 'bg-neutral-900/80 text-neutral-200 border-white/10 hover:bg-white/10 hover:border-orange-500/40'
+              }`}
+              title="Toggle Supply Chain Analytics & Distribution Charts"
+            >
+              <BarChart3 className="w-3.5 h-3.5 text-amber-400" />
+              <span>{showChartsSection ? 'CHARTS ON' : 'CHARTS'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportCSV}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-bold text-neutral-200 bg-neutral-900/80 hover:bg-white/10 border border-white/10 hover:border-orange-500/40 rounded-xl transition shadow-xs cursor-pointer"
+              title="Export filtered suppliers to CSV"
+            >
+              <Download className="w-3.5 h-3.5 text-neutral-400" />
+              <span>EXPORT CSV</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-mono font-bold text-white bg-orange-600 hover:bg-orange-500 border border-orange-500/50 rounded-xl transition shadow-[0_0_15px_rgba(249,115,22,0.4)] cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ NEW SUPPLIER</span>
+            </button>
+
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-3 py-2 text-xs font-mono font-bold text-neutral-400 hover:text-white border border-white/10 rounded-xl bg-neutral-900/80 hover:bg-white/10 transition cursor-pointer"
+              >
+                ✕ CLOSE
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* ── Stats Metric Row ── */}
+      {/* ── Stats Metric Row (Obsidian Glass Panels) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 my-6">
         {/* Total Exporters */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs relative overflow-hidden">
+        <div className="bg-neutral-900/60 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-400">
               Total Ingested Exporters
             </span>
-            <Building2 className="w-4 h-4 text-slate-400" />
+            <Building2 className="w-4 h-4 text-orange-500" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-slate-900">
+            <span className="text-2xl font-bold font-mono text-white">
               {stats ? stats.totalCount.toLocaleString() : '...'}
             </span>
-            <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-mono">
+            <span className="text-xs font-medium text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/30 font-mono">
               100% Workable
             </span>
           </div>
-          <div className="text-[11px] text-slate-500 mt-2 flex items-center gap-1.5 font-mono">
+          <div className="text-[11px] text-neutral-400 mt-2 flex items-center gap-1.5 font-mono">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>Permanent Storage in data/suppliers.json</span>
           </div>
         </div>
 
         {/* Bonded Ratio */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs relative overflow-hidden">
+        <div className="bg-neutral-900/60 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-400">
               Customs Bond Status
             </span>
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-slate-900">
+            <span className="text-2xl font-bold font-mono text-white">
               {stats ? `${stats.bondedRatio}%` : '...'}
             </span>
-            <span className="text-xs text-slate-600 font-mono">
+            <span className="text-xs text-neutral-400 font-mono">
               ({stats?.bondedCount || 0} CBW Licensed)
             </span>
           </div>
           {/* Visual Progress Bar */}
-          <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2.5 overflow-hidden">
+          <div className="w-full bg-white/10 h-1.5 rounded-full mt-2.5 overflow-hidden">
             <div
-              className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+              className="bg-orange-500 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]"
               style={{ width: `${stats?.bondedRatio || 100}%` }}
             />
           </div>
-          <div className="text-[11px] text-slate-500 mt-1.5 flex justify-between font-mono">
+          <div className="text-[11px] text-neutral-400 mt-1.5 flex justify-between font-mono">
             <span>Duty-Free Raw Material Import Cleared</span>
           </div>
         </div>
 
         {/* Top District Density */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs sm:col-span-2 relative overflow-hidden">
+        <div className="bg-neutral-900/60 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] sm:col-span-2 relative overflow-hidden">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-slate-500" />
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-orange-500" />
               <span>Manufacturing Hub Distribution</span>
             </span>
-            <span className="text-[11px] font-mono text-slate-400">Click hub to filter</span>
+            <span className="text-[11px] font-mono text-neutral-500">Click hub to filter</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
@@ -932,26 +940,26 @@ admin.handsandhead.com`);
                   setSelectedDistrict(selectedDistrict === d.district.toLowerCase() ? 'all' : d.district.toLowerCase());
                   setCurrentPage(1);
                 }}
-                className={`p-2 rounded-lg border text-xs cursor-pointer transition ${
+                className={`p-2 rounded-xl border text-xs cursor-pointer transition ${
                   selectedDistrict === d.district.toLowerCase()
-                    ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
-                    : 'border-slate-200 bg-slate-50 hover:bg-slate-100/80 text-slate-800'
+                    ? 'border-orange-500/60 bg-orange-600 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
+                    : 'border-white/10 bg-neutral-950/60 hover:bg-white/10 hover:border-orange-500/40 text-neutral-200'
                 }`}
               >
                 <div className="flex justify-between items-center font-bold">
                   <span className="truncate">{d.district}</span>
                   <span className="font-mono text-[11px] opacity-80">{d.count}</span>
                 </div>
-                <div className="w-full bg-black/10 h-1 rounded-full mt-1.5 overflow-hidden">
+                <div className="w-full bg-white/10 h-1 rounded-full mt-1.5 overflow-hidden">
                   <div
                     className={`h-full rounded-full ${
-                      selectedDistrict === d.district.toLowerCase() ? 'bg-amber-400' : 'bg-slate-400'
+                      selectedDistrict === d.district.toLowerCase() ? 'bg-white' : 'bg-orange-500'
                     }`}
                     style={{ width: `${Math.min(100, d.percentage * 2)}%` }}
                   />
                 </div>
               </div>
-            )) || <div className="text-xs text-slate-400 col-span-4">Loading industrial distribution...</div>}
+            )) || <div className="text-xs text-neutral-500 col-span-4 font-mono">Loading industrial distribution...</div>}
           </div>
         </div>
       </div>
@@ -1771,24 +1779,24 @@ admin.handsandhead.com`);
         </div>
       )}
 
-      {/* ── Interactive Filter & Search Bar ── */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs mb-5 space-y-3">
+      {/* ── Interactive Filter & Search Bar (Obsidian Glass Panel) ── */}
+      <div className="bg-neutral-900/60 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] mb-5 space-y-3">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Search Box */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by Exporter Name, Contact Person, HS Code (e.g. 6109, 6203), or Address..."
-              className="w-full pl-9 pr-8 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white text-slate-900 placeholder:text-slate-400 transition"
+              className="w-full pl-10 pr-8 py-2.5 text-xs sm:text-sm bg-neutral-950/80 border border-white/15 rounded-xl focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-white placeholder:text-neutral-500 transition"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-xs cursor-pointer"
               >
                 ✕
               </button>
@@ -1798,29 +1806,29 @@ admin.handsandhead.com`);
           {/* Faceted Dropdown Selectors */}
           <div className="flex flex-wrap items-center gap-2">
             {/* District Selector */}
-            <div className="relative min-w-[130px]">
+            <div className="relative min-w-[130px] flex-1 sm:flex-initial">
               <select
                 value={selectedDistrict}
                 onChange={(e) => {
                   setSelectedDistrict(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full py-2 pl-3 pr-8 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-800 cursor-pointer"
+                className="w-full py-2 pl-3 pr-8 text-xs font-mono bg-neutral-950/80 border border-white/15 rounded-xl focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-neutral-200 cursor-pointer"
               >
-                <option value="all">All Hubs / Districts</option>
-                <option value="gazipur">Gazipur (Knit/Woven Belt)</option>
-                <option value="dhaka">Dhaka (Tejgaon / Mirpur)</option>
-                <option value="narayanganj">Narayanganj (Knit City)</option>
-                <option value="chittagong">Chattogram / Ctg Port</option>
-                <option value="savar">Savar / DEPZ</option>
-                <option value="mymensingh">Mymensingh (Bhaluka)</option>
-                <option value="comilla">Comilla EPZ</option>
-                <option value="tangail">Tangail (Gorai)</option>
+                <option value="all" className="bg-neutral-900 text-white">All Hubs / Districts</option>
+                <option value="gazipur" className="bg-neutral-900 text-white">Gazipur (Knit/Woven Belt)</option>
+                <option value="dhaka" className="bg-neutral-900 text-white">Dhaka (Tejgaon / Mirpur)</option>
+                <option value="narayanganj" className="bg-neutral-900 text-white">Narayanganj (Knit City)</option>
+                <option value="chittagong" className="bg-neutral-900 text-white">Chattogram / Ctg Port</option>
+                <option value="savar" className="bg-neutral-900 text-white">Savar / DEPZ</option>
+                <option value="mymensingh" className="bg-neutral-900 text-white">Mymensingh (Bhaluka)</option>
+                <option value="comilla" className="bg-neutral-900 text-white">Comilla EPZ</option>
+                <option value="tangail" className="bg-neutral-900 text-white">Tangail (Gorai)</option>
               </select>
             </div>
 
             {/* Bond Status Selector */}
-            <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
+            <div className="inline-flex rounded-xl border border-white/15 p-1 bg-neutral-950/80">
               {(['ALL', 'BONDED', 'NON_BONDED'] as const).map((status) => (
                 <button
                   key={status}
@@ -1829,10 +1837,10 @@ admin.handsandhead.com`);
                     setSelectedBondStatus(status);
                     setCurrentPage(1);
                   }}
-                  className={`px-2.5 py-1 text-xs font-mono font-semibold rounded-md transition cursor-pointer ${
+                  className={`px-2.5 py-1 text-xs font-mono font-semibold rounded-lg transition cursor-pointer ${
                     selectedBondStatus === status
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-orange-600 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
+                      : 'text-neutral-400 hover:text-white'
                   }`}
                 >
                   {status === 'ALL' ? 'All Bonds' : status === 'BONDED' ? 'Bonded' : 'Non-Bonded'}
@@ -1841,55 +1849,55 @@ admin.handsandhead.com`);
             </div>
 
             {/* Fabric Type Selector */}
-            <div className="relative min-w-[110px]">
+            <div className="relative min-w-[110px] flex-1 sm:flex-initial">
               <select
                 value={selectedType}
                 onChange={(e) => {
                   setSelectedType(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full py-2 pl-3 pr-8 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-800 cursor-pointer"
+                className="w-full py-2 pl-3 pr-8 text-xs font-mono bg-neutral-950/80 border border-white/15 rounded-xl focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-neutral-200 cursor-pointer"
               >
-                <option value="all">All Fabrics</option>
-                <option value="knit">Knitwear</option>
-                <option value="woven">Woven</option>
-                <option value="sweater">Sweaters</option>
-                <option value="denim">Denim</option>
+                <option value="all" className="bg-neutral-900 text-white">All Fabrics</option>
+                <option value="knit" className="bg-neutral-900 text-white">Knitwear</option>
+                <option value="woven" className="bg-neutral-900 text-white">Woven</option>
+                <option value="sweater" className="bg-neutral-900 text-white">Sweaters</option>
+                <option value="denim" className="bg-neutral-900 text-white">Denim</option>
               </select>
             </div>
 
             {/* Certification Selector */}
-            <div className="relative min-w-[130px]">
+            <div className="relative min-w-[130px] flex-1 sm:flex-initial">
               <select
                 value={selectedCert}
                 onChange={(e) => {
                   setSelectedCert(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full py-2 pl-3 pr-8 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-800 cursor-pointer"
+                className="w-full py-2 pl-3 pr-8 text-xs font-mono bg-neutral-950/80 border border-white/15 rounded-xl focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-neutral-200 cursor-pointer"
               >
-                <option value="all">All Certifications</option>
-                <option value="oeko">OEKO-TEX 100</option>
-                <option value="bsci">BSCI Certified</option>
-                <option value="wrap">WRAP Gold</option>
-                <option value="gots">GOTS Organic</option>
-                <option value="iso">ISO 9001</option>
-                <option value="sedex">Sedex SMETA</option>
+                <option value="all" className="bg-neutral-900 text-white">All Certifications</option>
+                <option value="oeko" className="bg-neutral-900 text-white">OEKO-TEX 100</option>
+                <option value="bsci" className="bg-neutral-900 text-white">BSCI Certified</option>
+                <option value="wrap" className="bg-neutral-900 text-white">WRAP Gold</option>
+                <option value="gots" className="bg-neutral-900 text-white">GOTS Organic</option>
+                <option value="iso" className="bg-neutral-900 text-white">ISO 9001</option>
+                <option value="sedex" className="bg-neutral-900 text-white">Sedex SMETA</option>
               </select>
             </div>
 
             {/* Sort Selector */}
-            <div className="relative min-w-[130px]">
+            <div className="relative min-w-[130px] flex-1 sm:flex-initial">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full py-2 pl-3 pr-8 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-800 cursor-pointer"
+                className="w-full py-2 pl-3 pr-8 text-xs font-mono bg-neutral-950/80 border border-white/15 rounded-xl focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-neutral-200 cursor-pointer"
               >
-                <option value="newest">Latest Sync</option>
-                <option value="rating_desc">Top Rating (★)</option>
-                <option value="compliance_desc">Compliance Score</option>
-                <option value="name_asc">Name (A-Z)</option>
-                <option value="district">District Hub</option>
+                <option value="newest" className="bg-neutral-900 text-white">Latest Sync</option>
+                <option value="rating_desc" className="bg-neutral-900 text-white">Top Rating (★)</option>
+                <option value="compliance_desc" className="bg-neutral-900 text-white">Compliance Score</option>
+                <option value="name_asc" className="bg-neutral-900 text-white">Name (A-Z)</option>
+                <option value="district" className="bg-neutral-900 text-white">District Hub</option>
               </select>
             </div>
 
@@ -1898,7 +1906,7 @@ admin.handsandhead.com`);
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="px-2.5 py-2 text-xs font-mono text-amber-800 hover:text-amber-900 hover:bg-amber-50 rounded-lg transition cursor-pointer font-bold"
+                className="px-3 py-2 text-xs font-mono text-orange-400 hover:text-white hover:bg-orange-600/20 border border-orange-500/30 rounded-xl transition cursor-pointer font-bold"
                 title="Reset all filters"
               >
                 ✕ Reset
@@ -1908,8 +1916,8 @@ admin.handsandhead.com`);
         </div>
 
         {/* Quick Filter Chips */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs font-mono border-t border-slate-100">
-          <span className="text-slate-400 mr-1 text-[11px]">Quick Hubs:</span>
+        <div className="flex flex-wrap items-center gap-1.5 pt-2 text-xs font-mono border-t border-white/10">
+          <span className="text-neutral-400 mr-1 text-[11px]">Quick Hubs:</span>
           {['all', 'gazipur', 'dhaka', 'narayanganj', 'chittagong', 'savar'].map((d) => (
             <button
               key={d}
@@ -1918,17 +1926,17 @@ admin.handsandhead.com`);
                 setSelectedDistrict(d);
                 setCurrentPage(1);
               }}
-              className={`px-2 py-0.5 rounded text-[11px] transition cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-[11px] transition cursor-pointer ${
                 selectedDistrict === d
-                  ? 'bg-slate-900 text-white font-bold'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-orange-600 text-white font-bold shadow-[0_0_10px_rgba(249,115,22,0.4)]'
+                  : 'bg-neutral-950/60 hover:bg-white/10 text-neutral-300 border border-white/10 hover:border-orange-500/40'
               }`}
             >
               {d === 'all' ? 'All Districts' : d.charAt(0).toUpperCase() + d.slice(1)}
             </button>
           ))}
-          <span className="text-slate-300 mx-1">|</span>
-          <span className="text-slate-400 mr-1 text-[11px]">Fabric:</span>
+          <span className="text-neutral-600 mx-1 hidden sm:inline">|</span>
+          <span className="text-neutral-400 mr-1 text-[11px] hidden sm:inline">Fabric:</span>
           {['all', 'knit', 'woven', 'sweater', 'denim'].map((t) => (
             <button
               key={t}
@@ -1937,10 +1945,10 @@ admin.handsandhead.com`);
                 setSelectedType(t);
                 setCurrentPage(1);
               }}
-              className={`px-2 py-0.5 rounded text-[11px] transition cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-[11px] transition cursor-pointer ${
                 selectedType === t
-                  ? 'bg-amber-600 text-white font-bold'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-orange-600 text-white font-bold shadow-[0_0_10px_rgba(249,115,22,0.4)]'
+                  : 'bg-neutral-950/60 hover:bg-white/10 text-neutral-300 border border-white/10 hover:border-orange-500/40'
               }`}
             >
               {t === 'all' ? 'All' : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -1990,35 +1998,35 @@ admin.handsandhead.com`);
           </div>
         </div>
       ) : viewMode === 'cards' ? (
-        /* ── GRID / CARD VIEW ── */
+        /* ── GRID / CARD VIEW (Obsidian Glass Panels) ── */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
           {suppliers.map((s, idx) => (
             <div
               key={s.id || s.slug || `sup_${idx}`}
-              className="bg-white rounded-xl border border-slate-200 hover:border-slate-400 hover:shadow-md transition flex flex-col justify-between group overflow-hidden"
+              className="bg-neutral-900/60 backdrop-blur-xl rounded-2xl border border-white/10 hover:border-orange-500/50 hover:shadow-[0_8px_32px_0_rgba(249,115,22,0.2)] transition-all duration-200 flex flex-col justify-between group overflow-hidden"
             >
               {/* Card Header */}
-              <div className="p-4 pb-3 border-b border-slate-100">
+              <div className="p-4 pb-3 border-b border-white/10">
                 <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 truncate">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/30 truncate">
                     {s.district} Hub
                   </span>
                   <div className="flex items-center gap-1 shrink-0">
                     <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span className="text-xs font-mono font-bold text-slate-800">{s.rating || 4.8}</span>
+                    <span className="text-xs font-mono font-bold text-white">{s.rating || 4.8}</span>
                   </div>
                 </div>
 
                 <h3
                   onClick={() => handleInspectSupplier(s)}
-                  className="font-bold text-slate-900 group-hover:text-amber-800 transition cursor-pointer text-sm leading-snug line-clamp-1"
+                  className="font-bold text-white group-hover:text-orange-400 transition cursor-pointer text-sm leading-snug line-clamp-1"
                   title={s.companyName}
                 >
                   {s.companyName}
                 </h3>
 
-                <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 font-mono">
-                  <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                <div className="flex items-center gap-1.5 mt-1 text-[11px] text-neutral-400 font-mono">
+                  <MapPin className="w-3 h-3 text-orange-500 shrink-0" />
                   <span className="truncate">{s.factoryAddress || `${s.district}, Bangladesh`}</span>
                 </div>
               </div>
@@ -2026,28 +2034,28 @@ admin.handsandhead.com`);
               {/* Card Specs Grid */}
               <div className="p-4 py-3 space-y-2.5 flex-1 text-xs">
                 {/* Capacity & MOQ */}
-                <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-100 font-mono">
+                <div className="grid grid-cols-2 gap-2 bg-neutral-950/60 p-2.5 rounded-xl border border-white/10 font-mono">
                   <div>
-                    <div className="text-[10px] text-slate-400 uppercase">Capacity</div>
-                    <div className="font-bold text-slate-900 truncate">{s.capacityMonthly || '850,000/mo'}</div>
+                    <div className="text-[10px] text-neutral-500 uppercase">Capacity</div>
+                    <div className="font-bold text-white truncate">{s.capacityMonthly || '850,000/mo'}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-slate-400 uppercase">MOQ / Lead</div>
-                    <div className="font-bold text-slate-900 truncate">{s.moq || '1k pcs'} ({s.leadTimeDays || 45}d)</div>
+                    <div className="text-[10px] text-neutral-500 uppercase">MOQ / Lead</div>
+                    <div className="font-bold text-white truncate">{s.moq || '1k pcs'} ({s.leadTimeDays || 45}d)</div>
                   </div>
                 </div>
 
                 {/* Contact Person & Merchandiser */}
                 <div className="flex items-center justify-between text-[11px] pt-0.5">
                   <div className="truncate pr-2">
-                    <span className="font-semibold text-slate-800 block truncate">{s.contactPerson || 'Commercial Lead'}</span>
-                    <span className="text-slate-400 text-[10px] block truncate">{s.designation || 'Merchandising'}</span>
+                    <span className="font-semibold text-neutral-200 block truncate">{s.contactPerson || 'Commercial Lead'}</span>
+                    <span className="text-neutral-500 text-[10px] block truncate">{s.designation || 'Merchandising'}</span>
                   </div>
                   {s.phone && (
                     <a
                       href={`tel:${s.phone}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="p-1.5 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded transition shrink-0"
+                      className="p-1.5 text-orange-400 hover:text-white hover:bg-orange-500/20 border border-orange-500/30 rounded-lg transition shrink-0"
                       title={`Call ${s.phone}`}
                     >
                       <Phone className="w-3.5 h-3.5" />
@@ -2058,14 +2066,14 @@ admin.handsandhead.com`);
                 {/* Customs HS Codes & Bond Status */}
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400 font-mono text-[10px]">HS CLASSIFICATION:</span>
+                    <span className="text-neutral-400 font-mono text-[10px]">HS CLASSIFICATION:</span>
                     {s.bondStatus === 'BONDED' ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/30">
                         <ShieldCheck className="w-3 h-3" />
                         CBW BONDED
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/30">
                         {s.bondStatus}
                       </span>
                     )}
@@ -2075,14 +2083,14 @@ admin.handsandhead.com`);
                     {s.hsCodes?.slice(0, 3).map((code) => (
                       <span
                         key={code}
-                        className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 font-mono text-[10px] font-bold border border-amber-200"
+                        className="px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-300 font-mono text-[10px] font-bold border border-orange-500/30"
                         title={HS_CODE_DESCRIPTIONS[code] || 'Garment export classification'}
                       >
                         {code}
                       </span>
                     ))}
                     {s.hsCodes && s.hsCodes.length > 3 && (
-                      <span className="text-[10px] font-mono text-slate-400 self-center">
+                      <span className="text-[10px] font-mono text-neutral-400 self-center">
                         +{s.hsCodes.length - 3}
                       </span>
                     )}
@@ -2094,14 +2102,14 @@ admin.handsandhead.com`);
                   {(s.certifications || ['OEKO-TEX Standard 100', 'BSCI']).slice(0, 2).map((cert) => (
                     <span
                       key={cert}
-                      className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[9px] font-mono truncate max-w-[130px]"
+                      className="px-1.5 py-0.5 bg-white/10 text-neutral-300 rounded text-[9px] font-mono truncate max-w-[130px]"
                       title={cert}
                     >
                       {cert.split(' ')[0]}
                     </span>
                   ))}
                   {s.complianceScore && (
-                    <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[9px] font-mono font-bold ml-auto border border-emerald-200">
+                    <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 rounded text-[9px] font-mono font-bold ml-auto border border-emerald-500/30">
                       {s.complianceScore}% SCORE
                     </span>
                   )}
@@ -2109,11 +2117,11 @@ admin.handsandhead.com`);
               </div>
 
               {/* Card Footer Actions */}
-              <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-1.5">
+              <div className="p-3 bg-neutral-950/80 border-t border-white/10 flex items-center justify-between gap-1.5">
                 <button
                   type="button"
                   onClick={() => handleViewSupplierOnMap(s)}
-                  className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-white rounded border border-transparent hover:border-slate-200 transition cursor-pointer"
+                  className="p-1.5 text-neutral-400 hover:text-orange-400 hover:bg-white/10 rounded-xl border border-white/10 transition cursor-pointer"
                   title={`View ${s.district} on Geographic Map`}
                 >
                   <Compass className="w-3.5 h-3.5" />
@@ -2122,16 +2130,16 @@ admin.handsandhead.com`);
                 <button
                   type="button"
                   onClick={() => handleOpenRfqModal(s)}
-                  className="flex-1 py-1.5 px-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-mono font-bold transition flex items-center justify-center gap-1 cursor-pointer shadow-xs"
+                  className="flex-1 py-1.5 px-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-mono font-bold transition flex items-center justify-center gap-1 cursor-pointer shadow-[0_0_12px_rgba(249,115,22,0.4)]"
                 >
-                  <Send className="w-3 h-3 text-amber-400" />
+                  <Send className="w-3 h-3 text-white" />
                   <span>RFQ</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleInspectSupplier(s)}
-                  className="py-1.5 px-2.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 rounded text-xs font-mono font-bold transition cursor-pointer"
+                  className="py-1.5 px-2.5 bg-neutral-900 hover:bg-white/10 text-neutral-300 border border-white/10 rounded-xl text-xs font-mono font-bold transition cursor-pointer"
                   title="Inspect Full Factory Dossier"
                 >
                   SPECS
@@ -2141,7 +2149,7 @@ admin.handsandhead.com`);
                   href={s.bayxBengalUrl || `https://www.bayxbengal.com/exporters/${s.slug}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="p-1.5 text-slate-400 hover:text-amber-800 hover:bg-white rounded border border-transparent hover:border-slate-200 transition"
+                  className="p-1.5 text-neutral-400 hover:text-orange-400 hover:bg-white/10 rounded-xl border border-white/10 transition"
                   title="View original profile on BayXBengal"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />

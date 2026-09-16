@@ -1137,6 +1137,8 @@ window.openDockMoreMenu = function() {
     { key: 'CRM', label: 'Buyer CRM', icon: '👥', color: '#D4AF37', desc: 'Wholesalers & Accounts', badge: 'CRM' },
     { key: 'Suppliers', label: 'Exporters Registry', icon: '🏢', color: '#38BDF8', desc: 'BayXBengal Verified', badge: 'MILLS' },
     { key: 'B2BDealEngine', label: 'B2B Deal Engine', icon: '⚡', color: '#FF5500', desc: 'RFQ Ingestion & Deals', badge: 'DEALS' },
+    { key: 'RMG', label: 'RMG Apparel ↗', icon: '👔', color: '#F97316', desc: 'rmg.handsandhead.com · Mill & Garment Export', badge: 'RMG ↗', url: 'https://rmg.handsandhead.com' },
+    { key: 'Arutemika', label: 'Arutemika Flagship ↗', icon: '✨', color: '#F97316', desc: 'arutemika.com · Global Leather Store', badge: 'GLOBAL ↗', url: 'https://arutemika.com' },
     { key: 'LogisticsSettlementHub', label: 'Logistics & COD', icon: '🚚', color: '#FF4400', desc: 'Courier & Settlements', badge: 'COD' },
     { key: 'FactorySlaFloorTracker', label: 'Factory SLA Floor', icon: '⏱️', color: '#00E599', desc: 'Cutting & Sewing SLA', badge: 'FLOOR' },
     { key: 'ProductionFloorBridge', label: 'Floor Bridge', icon: '🏭', color: '#00E5FF', desc: 'Live QC & Cost Sync', badge: 'SYNC' },
@@ -1218,7 +1220,11 @@ window.handleExpertSwitch = function() {
 
 window.handleDockMoreSelect = function(key) {
   closeSheet();
-  if (key === 'Camera') {
+  if (key === 'RMG') {
+    window.open('https://rmg.handsandhead.com', '_blank', 'noopener,noreferrer');
+  } else if (key === 'Arutemika') {
+    window.open('https://arutemika.com', '_blank', 'noopener,noreferrer');
+  } else if (key === 'Camera') {
     startCamera();
   } else if (key === 'Drawer') {
     openDrawer();
@@ -1376,8 +1382,8 @@ const NAV_SECTIONS = [
     badge: "GLOBAL",
     desc: "Dedicated export portals for European & International buyers",
     items: [
-      { label: "Arutemika — Leather EU", icon: I.leather, app: "PortalArutemika", desc: "Wholesale leather goods catalog & RFQ for EU buyers", ext: "EU B2B", extClass: "b2b" },
-      { label: "HANDS & HEAD — RMG", icon: I.rmg, app: "PortalRMG", desc: "RMG apparel manufacturing portal for EU & US brands", ext: "RMG B2B", extClass: "b2b" },
+      { label: "Arutemika (Global Store)", icon: I.leather, url: "https://arutemika.com", target: "_blank", rel: "noopener noreferrer", desc: "arutemika.com · Luxury Leather Goods & Global D2C Flagship", ext: "GLOBAL ↗", extClass: "d2c" },
+      { label: "RMG (Garment & Mills)", icon: I.rmg, url: "https://rmg.handsandhead.com", target: "_blank", rel: "noopener noreferrer", desc: "rmg.handsandhead.com · Apparel Manufacturing & Mill Sourcing", ext: "RMG ↗", extClass: "b2b" },
       { label: "EU Buyer Portal", icon: I.eu, app: "EUPortal", desc: "Curated collection & sample requests for EU buyers", ext: "PORTAL" },
       { label: "Quote Builder", icon: I.doc, app: "QuoteBuilder", desc: "Interactive pricing calculator & quotation generator", ext: "RFQ" }
     ]
@@ -1926,6 +1932,16 @@ function openAppModule(appName) {
       window.openSuppliersManagement();
       return;
     }
+  }
+
+  if (modKey === "PortalRMG" || modKey === "RMG" || modKey === "rmg") {
+    window.open("https://rmg.handsandhead.com", "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  if (modKey === "PortalArutemika" || modKey === "Arutemika" || modKey === "arutemika") {
+    window.open("https://arutemika.com", "_blank", "noopener,noreferrer");
+    return;
   }
 
   const b = document.getElementById("body");
