@@ -1,0 +1,14 @@
+# Ignore version control and environment configs
+.git
+.gitignore
+.gcloudignore
+.dockerignore
+.dev.env.json
+.dev.pid
+
+# Node dependencies must be installed by Cloud Build, not uploaded in the source bundle
+node_modules/
+
+# Logs
+*.log
+npm-debug.log

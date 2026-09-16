@@ -18,7 +18,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3000;
+
+// Health check endpoint for Cloud Run startup and liveness probes
+app.get(['/health', '/api/health', '/_health'], (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    port: 3000,
+  });
+});
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -4548,7 +4557,35 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`NexOS server running with Gemini AI on http://0.0.0.0:${PORT}`);
+const PORT = 3000;
+const host = '0.0.0.0';
+
+// Primary listener on port 3000 (standard ingress port for AI Studio container proxy)
+const primaryServer = app.listen(PORT, host, () => {
+  console.log(`[NexOS] Server active and listening on http://${host}:${PORT}`);
 });
+
+primaryServer.on('error', (err) => {
+  console.error('[NexOS] Primary server listener error on port 3000:', err);
+});
+
+// If Cloud Run sets PORT to something other than 3000 (e.g. 8080 in standalone mode),
+// also bind to that port concurrently so Cloud Run direct health checks pass instantly.
+const envPort = process.env.PORT ? parseInt(process.env.PORT, 10) : null;
+if (envPort && envPort !== PORT) {
+  try {
+    const directServer = app.listen(envPort, host, () => {
+      console.log(`[NexOS] Cloud Run direct listener active on http://${host}:${envPort}`);
+    });
+    directServer.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.log(`[NexOS] Port ${envPort} occupied by container reverse proxy; traffic routed to internal port ${PORT}.`);
+      } else {
+        console.warn(`[NexOS] Secondary listener notice on port ${envPort}:`, err.message);
+      }
+    });
+  } catch (listenErr) {
+    console.warn('[NexOS] Non-fatal secondary listen attempt:', listenErr.message);
+  }
+}
 

@@ -1,0 +1,9 @@
+# Docker build ignore
+node_modules
+.git
+.gitignore
+.gcloudignore
+.dockerignore
+.dev.env.json
+.dev.pid
+npm-debug.log
