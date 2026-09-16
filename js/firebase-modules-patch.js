@@ -3820,6 +3820,252 @@
   };
 
   /* ═══════════════════════════════════════════════════════════
+     CUSTOMER EXPAND & STRIP INTERACTION HANDLERS (ORDER VIEW PARADIGM)
+     ═══════════════════════════════════════════════════════════ */
+  window.toggleCustomerExpand = function (customerId, evt) {
+    if (evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
+    }
+    const drawer = document.getElementById(`custDrawer_${customerId}`);
+    const btn = document.getElementById(`expandCustBtn_${customerId}`);
+    const row = document.getElementById(`custStrip_${customerId}`);
+
+    if (!drawer) return;
+    const isHidden = drawer.style.display === 'none' || drawer.classList.contains('hidden');
+    if (isHidden) {
+      drawer.style.display = 'block';
+      drawer.classList.remove('hidden');
+      if (btn) btn.classList.add('expanded');
+      if (row) row.classList.add('is-expanded-row');
+    } else {
+      drawer.style.display = 'none';
+      drawer.classList.add('hidden');
+      if (btn) btn.classList.remove('expanded');
+      if (row) row.classList.remove('is-expanded-row');
+    }
+  };
+
+  window.handleCustomerStripClick = function (customerId, evt) {
+    if (evt && (
+      evt.target.closest('.crow-act-btn') || 
+      evt.target.closest('.btn') || 
+      evt.target.closest('.crow-code') || 
+      evt.target.closest('a') || 
+      evt.target.closest('input') || 
+      evt.target.closest('.item-select-checkbox')
+    )) {
+      return;
+    }
+    window.toggleCustomerExpand(customerId, evt);
+  };
+
+  window.setCustomerViewMode = function (mode) {
+    window._viewState.customers = window._viewState.customers || {};
+    window._viewState.customers.viewMode = mode;
+    window.updateCustomerListInPlace();
+  };
+
+  /* ═══════════════════════════════════════════════════════════
+     CUSTOMER STRIP RENDERER (ORDER VIEW DENSITY & RESPONSIVENESS)
+     ═══════════════════════════════════════════════════════════ */
+  window.renderCustomerStripsHtml = function (items) {
+    if (!items || !items.length) {
+      return `
+        <div class="empty" style="padding:48px 20px;text-align:center;background:rgba(18,22,31,0.75);backdrop-filter:blur(14px);border:1px dashed rgba(255,255,255,0.15);border-radius:18px;">
+          <div style="font-size:28px;margin-bottom:8px;color:#fb923c;">👥</div>
+          <div style="font-size:13px;font-weight:700;color:#FFFFFF;letter-spacing:0.5px;">No customers found matching your filter</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:4px;font-family:var(--mono);">Try searching another name, phone number, or select All Countries.</div>
+        </div>
+      `;
+    }
+
+    return items.map(c => {
+      const displayName = c.companyName || c.name || "Unnamed Buyer";
+      const safeId = encodeURIComponent(c.id || "");
+      const safeName = displayName.replace(/"/g, '&quot;');
+      const flagIcon = c.flag || '🏢';
+      const countryCode = c.country || 'BD';
+      const currency = c.currency || 'BDT';
+      const totalSpentNum = Number(c.totalSpent || 0);
+      const ordersCount = Number(c.totalOrders || 0);
+      const aov = ordersCount > 0 ? Math.round(totalSpentNum / ordersCount) : totalSpentNum;
+      const isSelected = window._selectedCustomerIds && window._selectedCustomerIds.has(c.id);
+
+      // Derive monogram and cohort pill
+      const monogram = (displayName.replace(/[^a-zA-Z0-9]/g, '') || 'HH').slice(0, 2).toUpperCase();
+      let cohortClass = 'ok';
+      let cohortLabel = 'REGISTERED';
+      if (totalSpentNum >= 50000 || c.cohortTag === 'vip') {
+        cohortClass = 'amber';
+        cohortLabel = 'VIP PATRON';
+      } else if (c.cohortTag === 'wholesale') {
+        cohortClass = 'coral';
+        cohortLabel = 'WHOLESALE';
+      } else if (ordersCount >= 2 || c.cohortTag === 'repeat') {
+        cohortClass = 'ok';
+        cohortLabel = 'REPEAT BUYER';
+      } else if (c.cohortTag === 'atelier') {
+        cohortClass = 'purple';
+        cohortLabel = 'ATELIER DIRECT';
+      }
+
+      return `
+        <!-- Single-Line Ultra-Compact Horizontal Customer Strip (38px height) -->
+        <div class="crow-strip ${isSelected ? 'is-selected' : ''}" 
+             id="custStrip_${c.id}" 
+             data-customer-id="${c.id}"
+             onclick="window.handleCustomerStripClick('${c.id}', event)">
+          
+          <!-- Multi-Select Checkbox -->
+          <div style="display:flex;align-items:center;padding-right:2px;" onclick="event.stopPropagation();">
+            <input type="checkbox" class="item-select-checkbox customer-item-cb" 
+                   data-customer-id="${c.id}" 
+                   ${isSelected ? 'checked' : ''} 
+                   onchange="window.toggleCustomerSelection('${c.id}', event)"/>
+          </div>
+
+          <!-- Expandable Chevron Button -->
+          <button class="customer-expand-toggle-btn" 
+                  id="expandCustBtn_${c.id}" 
+                  onclick="window.toggleCustomerExpand('${c.id}', event)" 
+                  title="Toggle Deep Customer Dossier &amp; Specs">
+            <svg class="chev-icon" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+
+          <!-- Monogram Avatar Badge -->
+          <div style="width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg, #f97316 0%, #ea580c 100%);color:#FFFFFF;font-weight:800;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px rgba(249,115,22,0.3);">
+            ${monogram}
+          </div>
+
+          <!-- Customer Code Badge -->
+          <span class="crow-code" onclick="event.stopPropagation(); window.openCompanyDetail('${safeId}');" title="Open Full Dossier">
+            CUST-${(c.id || '').slice(0, 8).toUpperCase()}
+          </span>
+
+          <!-- Inline Cohort Badge -->
+          <span class="pill ${cohortClass} crow-cohort-pill" style="font-size:8px;padding:2px 6px;font-weight:700;">
+            ${cohortLabel}
+          </span>
+
+          <!-- Customer Name & Hub -->
+          <div class="crow-name-cell">
+            <span class="crow-name" title="${safeName}">${displayName}</span>
+            <span class="crow-location-chip" style="font-size:9.5px;color:#94a3b8;font-family:var(--mono);">
+              ${flagIcon} ${countryCode} · <strong style="color:#10b981;">${ordersCount} ORD</strong>
+            </span>
+          </div>
+
+          <!-- Contact Snippet (Tablet & Desktop) -->
+          <div class="hidden md:flex items-center gap-2 font-mono text-[10.5px] text-slate-400" style="flex-shrink:0;margin-right:6px;">
+            ${c.phone ? `<span>📞 ${c.phone}</span>` : ''}
+            <span style="color:#fb923c;font-weight:600;">💎 AOV: ৳${aov.toLocaleString()}</span>
+          </div>
+
+          <!-- Lifetime Spend Total (Prominent Orange/Gold) -->
+          <div class="crow-total">
+            ৳${totalSpentNum.toLocaleString()}
+          </div>
+
+          <!-- Row Quick Actions -->
+          <div class="crow-quick-actions" onclick="event.stopPropagation()">
+            <button class="btn btn-xs btn-emerald" style="font-size:9.5px;padding:2px 7px;font-weight:700;height:24px;display:inline-flex;align-items:center;gap:3px;" onclick="window.openWhatsAppCampaignStudio({ customerIds: ['${safeId}'] });" title="Broadcast WhatsApp message to this customer">
+              📲 <span class="crow-act-label">WA</span>
+            </button>
+            <button class="crow-act-btn" style="color:#f59e0b;" onclick="window.openCustomerGeminiModal('${safeId}');" title="Gemini AI Prediction">
+              ✨ <span class="crow-act-label">AI</span>
+            </button>
+            <button class="crow-act-btn" style="color:#38bdf8;" onclick="window.openCompanyDetail('${safeId}');" title="Inspect Full Dossier">
+              👁️
+            </button>
+            <button class="crow-act-btn" style="color:#fb923c;" onclick="window.openCustomerFastOrder('${safeId}');" title="Quick Order for this Customer">
+              ⚡
+            </button>
+          </div>
+        </div>
+
+        <!-- Expandable Accordion Drawer for Deep Customer Details -->
+        <div class="customer-expand-drawer hidden" id="custDrawer_${c.id}" style="display:none;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:12px;padding-top:4px;">
+            <!-- Column 1: Customer Profile & Contact -->
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:10px;font-family:var(--mono);color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;gap:5px;">
+                <span>🏢</span> Customer &amp; Delivery Hub
+              </div>
+              <div style="font-size:13px;font-weight:700;color:#F8FAFC;margin-top:4px;">${displayName}</div>
+              <div style="font-size:11px;color:#CBD5E1;margin-top:3px;">
+                👤 ${c.contactPerson || 'Commercial Lead'} ${c.designation ? `(${c.designation})` : ''}
+              </div>
+              <div style="font-size:10.5px;color:#38BDF8;font-family:var(--mono);margin-top:4px;display:flex;flex-direction:column;gap:2px;">
+                ${c.phone ? `<span>📞 <a href="tel:${c.phone}" onclick="event.stopPropagation();" style="color:#38BDF8;text-decoration:none;">${c.phone}</a></span>` : ''}
+                ${c.email ? `<span>✉️ <a href="mailto:${c.email}" onclick="event.stopPropagation();" style="color:#94A3B8;text-decoration:none;">${c.email}</a></span>` : ''}
+              </div>
+              <div style="font-size:10.5px;color:#94A3B8;margin-top:4px;">
+                📍 ${c.address || c.addressLine1 || `${c.city || 'Dhaka'}, ${countryCode}`}
+              </div>
+            </div>
+
+            <!-- Column 2: Commercial & Financial Metrics -->
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:10px;font-family:var(--mono);color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;gap:5px;">
+                <span>💎</span> Commercial Velocity
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;font-family:var(--mono);">
+                <div>
+                  <div style="font-size:9.5px;color:#94A3B8;text-transform:uppercase;">Lifetime Spend</div>
+                  <div style="font-size:14px;font-weight:800;color:#F97316;">৳${totalSpentNum.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div style="font-size:9.5px;color:#94A3B8;text-transform:uppercase;">Average Order (AOV)</div>
+                  <div style="font-size:14px;font-weight:800;color:#38BDF8;">৳${aov.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div style="font-size:9.5px;color:#94A3B8;text-transform:uppercase;">Orders Placed</div>
+                  <div style="font-size:12px;font-weight:700;color:#10B981;">${ordersCount} Orders</div>
+                </div>
+                <div>
+                  <div style="font-size:9.5px;color:#94A3B8;text-transform:uppercase;">Payment Score</div>
+                  <div style="font-size:12px;font-weight:700;color:#F59E0B;">99% On-Time</div>
+                </div>
+              </div>
+              <div style="margin-top:8px;padding-top:6px;border-top:1px dashed rgba(255,255,255,0.08);font-size:10px;color:#94A3B8;display:flex;align-items:center;justify-content:space-between;">
+                <span>Cohort: <strong style="color:#CBD5E1;">${cohortLabel}</strong></span>
+                <span>Currency: <strong style="color:#CBD5E1;">${currency}</strong></span>
+              </div>
+            </div>
+
+            <!-- Column 3: Instant Action Operations -->
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between;">
+              <div style="font-size:10px;font-family:var(--mono);color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;gap:5px;">
+                <span>⚡</span> Direct Actions
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+                <button class="btn btn-emerald btn-xs" onclick="event.stopPropagation(); window.openWhatsAppCampaignStudio({ customerIds: ['${safeId}'] });" style="padding:6px 12px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;">
+                  📲 Broadcast WhatsApp
+                </button>
+                <button class="btn btn-gold btn-xs" onclick="event.stopPropagation(); window.openCustomerFastOrder('${safeId}');" style="padding:6px 12px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;">
+                  ⚡ Fast Order for ${displayName.slice(0, 18)}
+                </button>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:8px;padding-top:6px;border-top:1px dashed rgba(255,255,255,0.08);">
+                <button class="gallery-action-btn" onclick="event.stopPropagation(); window.openCompanyDetail('${safeId}');" style="flex:1;font-size:10px;padding:4px 6px;color:#E2E8F0;">
+                  👁️ Full Dossier
+                </button>
+                <button class="gallery-action-btn" onclick="event.stopPropagation(); window.openCustomerGeminiModal('${safeId}');" style="flex:1;font-size:10px;padding:4px 6px;color:#F59E0B;">
+                  ✨ AI Insights
+                </button>
+                <button class="gallery-action-btn" onclick="event.stopPropagation(); window.openCustomerQrModal('${safeId}');" style="flex:0.8;font-size:10px;padding:4px 6px;color:#38BDF8;">
+                  📋 QR vCard
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  };
+
+  /* ═══════════════════════════════════════════════════════════
      CRM / CUSTOMERS CARD RENDERER (Matching Product Page Paradigm)
      ═══════════════════════════════════════════════════════════ */
   window.renderCustomerCardsHtml = function (items) {
@@ -4038,7 +4284,11 @@
       const totalPages = res.totalPages || Math.ceil(totalCount / state.limit) || 1;
       window._lastCustomersCache = items;
 
-      listEl.innerHTML = window.renderCustomerCardsHtml(items);
+      const isCards = state.viewMode === 'cards';
+      listEl.className = isCards 
+        ? "crm-customer-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5" 
+        : "crm-customer-strips-container flex flex-col gap-1.5";
+      listEl.innerHTML = isCards ? window.renderCustomerCardsHtml(items) : window.renderCustomerStripsHtml(items);
       const pagEl = document.getElementById("crm-pagination-container");
       if (pagEl) pagEl.innerHTML = window.renderCustomerPaginationHtml(state, totalPages, totalCount);
 
@@ -4179,6 +4429,18 @@
             <div style="font-size:11px;color:#94a3b8;padding:0 4px;">
               Page ${state.page} / ${totalPages}
             </div>
+
+            <!-- View Switcher (Order View Strips vs Grid Cards) -->
+            <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.12);padding:2px;border-radius:8px;margin-left:auto;">
+              <button type="button" onclick="window.setCustomerViewMode('strips')" style="padding:4px 10px;font-size:10.5px;border-radius:6px;cursor:pointer;border:none;background:${state.viewMode !== 'cards' ? '#f97316' : 'transparent'};color:${state.viewMode !== 'cards' ? '#ffffff' : '#94a3b8'};font-weight:700;display:inline-flex;align-items:center;gap:4px;box-shadow:${state.viewMode !== 'cards' ? '0 2px 8px rgba(249,115,22,0.3)' : 'none'};" title="High Density Order View Strips">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <span>Strips (Order View)</span>
+              </button>
+              <button type="button" onclick="window.setCustomerViewMode('cards')" style="padding:4px 10px;font-size:10.5px;border-radius:6px;cursor:pointer;border:none;background:${state.viewMode === 'cards' ? '#f97316' : 'transparent'};color:${state.viewMode === 'cards' ? '#ffffff' : '#94a3b8'};font-weight:700;display:inline-flex;align-items:center;gap:4px;box-shadow:${state.viewMode === 'cards' ? '0 2px 8px rgba(249,115,22,0.3)' : 'none'};" title="Grid Cards View">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <span>Cards</span>
+              </button>
+            </div>
           </div>
 
           <!-- Bottom Row: Min Spend Preset Buttons -->
@@ -4202,8 +4464,8 @@
           </div>
         </div>
 
-        <div id="crm-customer-cards-list" class="crm-customer-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5" style="padding:0 20px 24px;transition:opacity 0.15s ease;">
-          ${window.renderCustomerCardsHtml(items)}
+        <div id="crm-customer-cards-list" class="${state.viewMode === 'cards' ? 'crm-customer-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5' : 'crm-customer-strips-container flex flex-col gap-1.5'}" style="padding:0 20px 24px;transition:opacity 0.15s ease;">
+          ${state.viewMode === 'cards' ? window.renderCustomerCardsHtml(items) : window.renderCustomerStripsHtml(items)}
         </div>
 
         <div id="crm-pagination-container">
@@ -4636,33 +4898,293 @@
     }
   };
 
+  /* ═══════════════════════════════════════════════════════════════
+     REAL-TIME SLIDING GLASS ORDER FILTER ENGINE
+     ═══════════════════════════════════════════════════════════════ */
+  window.classifyOrderFilterStatus = function (o) {
+    if (!o) return 'pending';
+    const stage = (window.inferOrderStage ? window.inferOrderStage(o)?.id : (o.lifecycleStage || '')).toLowerCase();
+    const fulfill = String(o.fulfillmentStatus || '').toLowerCase();
+    const status = String(o.status || '').toLowerCase();
+
+    // 1. Shipped / Fulfilled / Dispatched / Delivered
+    if (
+      stage === 'shipped' ||
+      ['shipped', 'fulfilled', 'delivered', 'dispatched'].includes(fulfill) ||
+      (status === 'completed' && fulfill !== 'unfulfilled')
+    ) {
+      return 'shipped';
+    }
+
+    // 2. In-Production / JIT Cutting / Workshop Floor / Assembly
+    if (
+      stage === 'jit_cutting' ||
+      stage === 'in_production' ||
+      stage === 'production' ||
+      fulfill === 'jit_cutting' ||
+      (fulfill === 'in_production' && stage !== 'lead' && stage !== '50_paid') ||
+      status === 'in_production' ||
+      status === 'jit_cutting'
+    ) {
+      return 'in_production';
+    }
+
+    // 3. Pending: Lead / 50% Paid (deposit secured awaiting production) / Unfulfilled
+    return 'pending';
+  };
+
+  window.updateSlidingGlassPill = function () {
+    const toggle = document.getElementById("orders-glass-toggle");
+    const pill = document.getElementById("orders-glass-pill");
+    if (!toggle || !pill) return;
+    const activeBtn = toggle.querySelector(".glass-toggle-btn.active") || toggle.querySelector(".glass-toggle-btn");
+    if (!activeBtn) return;
+    pill.style.left = activeBtn.offsetLeft + "px";
+    pill.style.width = activeBtn.offsetWidth + "px";
+  };
+
+  window.setOrderRealtimeStatusFilter = function (statusKey, btnElement) {
+    window._orderStatusFilter = statusKey;
+    if (window._viewState && window._viewState.orders) {
+      window._viewState.orders.statusFilter = statusKey;
+    }
+    const toggle = document.getElementById("orders-glass-toggle");
+    const pill = document.getElementById("orders-glass-pill");
+    if (toggle) {
+      const targetBtn = btnElement || toggle.querySelector(`.glass-toggle-btn[data-filter="${statusKey}"]`);
+      toggle.querySelectorAll(".glass-toggle-btn").forEach(b => b.classList.remove("active"));
+      if (targetBtn) {
+        targetBtn.classList.add("active");
+        if (pill) {
+          pill.style.left = targetBtn.offsetLeft + "px";
+          pill.style.width = targetBtn.offsetWidth + "px";
+        }
+      }
+    }
+    window.applyOrderClientFilter();
+  };
+
+  window.handleOrderRealtimeSearch = function (searchVal) {
+    if (!window._viewState) window._viewState = {};
+    if (!window._viewState.orders) window._viewState.orders = {};
+    window._viewState.orders.search = searchVal;
+    window.applyOrderClientFilter();
+  };
+
+  window.handleOrderSecondaryFilter = function () {
+    window.applyOrderClientFilter();
+  };
+
+  window.clearAllOrderFilters = function () {
+    const searchInput = document.getElementById("order_search_input");
+    if (searchInput) searchInput.value = "";
+    const paymentSelect = document.getElementById("order_payment_filter_select");
+    if (paymentSelect) paymentSelect.value = "all";
+    if (window._viewState && window._viewState.orders) {
+      window._viewState.orders.search = "";
+      window._viewState.orders.paymentStatus = "all";
+    }
+    window.setOrderRealtimeStatusFilter("all");
+  };
+
+  window.applyOrderClientFilter = function () {
+    const currentStatus = window._orderStatusFilter || 'all';
+    const searchInput = document.getElementById("order_search_input");
+    const searchVal = (searchInput ? searchInput.value : (window._viewState?.orders?.search || "")).toLowerCase().trim();
+    const paymentSelect = document.getElementById("order_payment_filter_select");
+    const payVal = paymentSelect ? paymentSelect.value : (window._viewState?.orders?.paymentStatus || "all");
+
+    const container = document.querySelector(".orders-density-container");
+    if (!container) return;
+
+    const strips = container.querySelectorAll(".orow-strip");
+    let visibleCount = 0;
+    let visibleVolume = 0;
+    let visiblePending = 0;
+
+    strips.forEach(strip => {
+      const oStatus = strip.getAttribute("data-filter-status") || "pending";
+      const oTotal = parseFloat(strip.getAttribute("data-order-total") || "0");
+      const oPayment = (strip.getAttribute("data-payment-status") || "").toLowerCase();
+      const orderId = strip.getAttribute("data-order-id");
+      const drawer = document.getElementById(`orderDrawer_${orderId}`);
+
+      // Status check
+      const statusMatch = (currentStatus === 'all' || oStatus === currentStatus);
+
+      // Payment check
+      const paymentMatch = (payVal === 'all' || oPayment === payVal);
+
+      // Search text check
+      let searchMatch = true;
+      if (searchVal) {
+        const searchText = (strip.getAttribute("data-search-text") || strip.innerText).toLowerCase();
+        searchMatch = searchText.includes(searchVal);
+      }
+
+      if (statusMatch && paymentMatch && searchMatch) {
+        strip.style.display = 'flex';
+        visibleCount++;
+        visibleVolume += oTotal;
+        if (oStatus === 'pending') visiblePending++;
+      } else {
+        strip.style.display = 'none';
+        if (drawer) {
+          drawer.style.display = 'none';
+          drawer.classList.add('hidden');
+        }
+        strip.classList.remove('is-expanded-row');
+        const expandBtn = document.getElementById(`expandBtn_${orderId}`);
+        if (expandBtn) expandBtn.classList.remove('expanded');
+      }
+    });
+
+    // Handle Empty Filter State
+    let emptyEl = container.querySelector(".order-filter-empty");
+    if (visibleCount === 0 && strips.length > 0) {
+      if (!emptyEl) {
+        emptyEl = document.createElement("div");
+        emptyEl.className = "empty order-filter-empty";
+        emptyEl.style.cssText = "padding:48px 20px;text-align:center;background:rgba(18,22,31,0.75);backdrop-filter:blur(14px);border:1px dashed rgba(255,255,255,0.15);border-radius:18px;margin:12px 0;";
+        container.appendChild(emptyEl);
+      }
+      emptyEl.style.display = "block";
+      const statusLabel = currentStatus === 'pending' ? 'Pending' : currentStatus === 'in_production' ? 'In-Production' : currentStatus === 'shipped' ? 'Shipped' : 'selected filter';
+      emptyEl.innerHTML = `
+        <div style="font-size:28px;margin-bottom:8px;color:#FB923C;">🧾</div>
+        <div style="font-size:13.5px;font-weight:700;color:#FFFFFF;letter-spacing:0.5px;">No ${statusLabel} orders match criteria</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:6px;font-family:var(--mono);">
+          ${searchVal ? `No orders matched query "${searchVal}".` : `No orders currently residing in ${statusLabel} status.`}
+        </div>
+        <button class="btn btn-dark btn-xs" onclick="window.clearAllOrderFilters();" style="margin-top:14px;font-size:11px;padding:6px 14px;color:#CBD5E1;border:1px solid rgba(255,255,255,0.18);">
+          ✕ Reset Filters &amp; Show All
+        </button>
+      `;
+    } else if (emptyEl) {
+      emptyEl.style.display = "none";
+    }
+
+    // Dynamic Filter Description Pill
+    const descEl = document.getElementById("orders-active-filter-desc");
+    if (descEl) {
+      const name = currentStatus === 'pending' ? 'Pending' : currentStatus === 'in_production' ? 'In-Production' : currentStatus === 'shipped' ? 'Shipped' : 'All Orders';
+      descEl.innerHTML = `Showing <strong>${name}</strong> (${visibleCount} of ${strips.length} orders)`;
+    }
+
+    // Reset button visibility
+    const clearBtn = document.getElementById("order_clear_filters_btn");
+    if (clearBtn) {
+      const hasActiveFilters = (currentStatus !== 'all' || searchVal.length > 0 || payVal !== 'all');
+      clearBtn.style.display = hasActiveFilters ? 'inline-flex' : 'none';
+    }
+
+    // Update Select All Checkbox label & state based on visible items
+    const selectAllCb = document.getElementById("cb_select_all_orders");
+    const selectAllLabel = document.getElementById("select_all_orders_count_label");
+    if (selectAllLabel) {
+      selectAllLabel.innerText = `Select All (${visibleCount})`;
+    }
+    if (selectAllCb) {
+      const visibleCbs = Array.from(container.querySelectorAll(".orow-strip"))
+        .filter(s => s.style.display !== 'none')
+        .map(s => s.querySelector(".order-item-cb"))
+        .filter(Boolean);
+      const allChecked = visibleCbs.length > 0 && visibleCbs.every(cb => cb.checked);
+      const someChecked = visibleCbs.some(cb => cb.checked);
+      selectAllCb.checked = allChecked;
+      selectAllCb.indeterminate = !allChecked && someChecked;
+    }
+
+    // Update floating batch actions toolbar
+    if (typeof window.updateOrderSelectionUI === 'function') {
+      window.updateOrderSelectionUI();
+    }
+  };
+
+  window.refreshOrderFilterCounts = function () {
+    const container = document.querySelector(".orders-density-container");
+    if (!container) return;
+    const strips = Array.from(container.querySelectorAll(".orow-strip"));
+    const total = strips.length;
+    let pending = 0;
+    let inProd = 0;
+    let shipped = 0;
+
+    strips.forEach(s => {
+      const st = s.getAttribute("data-filter-status");
+      if (st === 'pending') pending++;
+      else if (st === 'in_production') inProd++;
+      else if (st === 'shipped') shipped++;
+    });
+
+    const cAll = document.getElementById("count-filter-all");
+    const cPend = document.getElementById("count-filter-pending");
+    const cProd = document.getElementById("count-filter-in_production");
+    const cShip = document.getElementById("count-filter-shipped");
+
+    if (cAll) cAll.innerText = total;
+    if (cPend) cPend.innerText = pending;
+    if (cProd) cProd.innerText = inProd;
+    if (cShip) cShip.innerText = shipped;
+  };
+
+  // Wire up window resize to keep glass pill aligned
+  if (!window._ordersResizeListenerBound) {
+    window._ordersResizeListenerBound = true;
+    window.addEventListener('resize', () => {
+      if (typeof window.updateSlidingGlassPill === 'function') {
+        window.updateSlidingGlassPill();
+      }
+    });
+  }
+
+  // Hook into cycleOrderStatus for real-time filter reactive update
+  if (!window._cycleOrderStatusHooked && typeof window.cycleOrderStatus === 'function') {
+    window._cycleOrderStatusHooked = true;
+    const _baseCycle = window.cycleOrderStatus;
+    window.cycleOrderStatus = function (orderId, evt) {
+      _baseCycle(orderId, evt);
+      setTimeout(() => {
+        const strip = document.getElementById(`orderStrip_${orderId}`);
+        if (strip && window.inferOrderStage) {
+          let order = null;
+          if (window._lastOrdersCache && Array.isArray(window._lastOrdersCache)) {
+            order = window._lastOrdersCache.find(o => o.id === orderId || o.orderNumber === orderId);
+          }
+          if (!order && Array.isArray(window.dOrders)) {
+            order = window.dOrders.find(o => o.id === orderId || o.orderNumber === orderId);
+          }
+          if (order && window.classifyOrderFilterStatus) {
+            const newStatus = window.classifyOrderFilterStatus(order);
+            strip.setAttribute("data-filter-status", newStatus);
+          }
+        }
+        if (typeof window.refreshOrderFilterCounts === 'function') {
+          window.refreshOrderFilterCounts();
+        }
+        if (typeof window.applyOrderClientFilter === 'function') {
+          window.applyOrderClientFilter();
+        }
+      }, 50);
+    };
+  }
+
   window.render.Orders = async function (container) {
     const target = container || document.getElementById("mod-Orders") || document.getElementById("body");
     if (!target) return;
     target.innerHTML = loading("Loading Commerce Orders…");
-    const state = window._viewState.orders;
+    const state = window._viewState.orders || {};
 
     try {
-      let { items } = await window.OrdersService.list({
-        status: state.status,
-        paymentStatus: state.paymentStatus,
-        fulfillmentStatus: state.fulfillmentStatus,
-        search: state.search
-      });
-
-      if (state.shipmentStatus && state.shipmentStatus !== 'all') {
-        if (state.shipmentStatus === 'shipped') {
-          items = items.filter(o => ['shipped', 'delivered', 'fulfilled', 'dispatched'].includes(String(o.fulfillmentStatus || '').toLowerCase()) && o.status !== 'cancelled');
-        } else if (state.shipmentStatus === 'in_transit') {
-          items = items.filter(o => ['in_transit', 'transit', 'out_for_delivery', 'processing'].includes(String(o.fulfillmentStatus || '').toLowerCase()) && o.status !== 'cancelled');
-        } else if (state.shipmentStatus === 'pending') {
-          items = items.filter(o => (!o.fulfillmentStatus || o.fulfillmentStatus === 'unfulfilled' || o.fulfillmentStatus === 'pending') && o.status !== 'cancelled');
-        } else if (state.shipmentStatus === 'cancelled') {
-          items = items.filter(o => o.status === 'cancelled');
-        }
-      }
+      let { items } = await window.OrdersService.list({});
 
       window._lastOrdersCache = items;
+
+      const totalOrdersCount = items.length;
+      const pendingCount = items.filter(o => window.classifyOrderFilterStatus(o) === 'pending').length;
+      const inProdCount = items.filter(o => window.classifyOrderFilterStatus(o) === 'in_production').length;
+      const shippedCount = items.filter(o => window.classifyOrderFilterStatus(o) === 'shipped').length;
+      const currentFilter = window._orderStatusFilter || 'all';
 
       const totalRevenue = items.reduce((s, o) => s + (o.status !== 'cancelled' ? (o.total || 0) : 0), 0);
       const pendingFulfillment = items.filter(o => o.fulfillmentStatus === 'unfulfilled' && o.status !== 'cancelled').length;
@@ -4675,6 +5197,54 @@
         { label: "⚡ Fast FB/WA Order", fn: "window.openFastOrderModal()", primary: true },
         { label: "+ Standard Order", fn: "window.openAdvancedOrderForm()", primary: false }
       ]) + `
+        <!-- REAL-TIME SLIDING GLASS TOGGLE SWITCH FILTER -->
+        <div class="orders-glass-filter-wrapper">
+          <div class="sliding-glass-toggle" id="orders-glass-toggle" role="tablist" aria-label="Order Status Filter">
+            <div class="sliding-glass-pill" id="orders-glass-pill"></div>
+            
+            <button type="button" class="glass-toggle-btn ${currentFilter === 'all' ? 'active' : ''}" 
+                    data-filter="all" 
+                    onclick="window.setOrderRealtimeStatusFilter('all', this)"
+                    title="View all orders across all production stages">
+              <span class="glass-toggle-label">All</span>
+              <span class="glass-toggle-count" id="count-filter-all">${totalOrdersCount}</span>
+            </button>
+
+            <button type="button" class="glass-toggle-btn ${currentFilter === 'pending' ? 'active' : ''}" 
+                    data-filter="pending" 
+                    onclick="window.setOrderRealtimeStatusFilter('pending', this)"
+                    title="View Pending orders (Leads & 50% Paid deposits awaiting factory cutting)">
+              <span class="glass-toggle-dot dot-pending"></span>
+              <span class="glass-toggle-label">Pending</span>
+              <span class="glass-toggle-count count-pending" id="count-filter-pending">${pendingCount}</span>
+            </button>
+
+            <button type="button" class="glass-toggle-btn ${currentFilter === 'in_production' ? 'active' : ''}" 
+                    data-filter="in_production" 
+                    onclick="window.setOrderRealtimeStatusFilter('in_production', this)"
+                    title="View In-Production orders (JIT cutting floor & artisan bench assembly)">
+              <span class="glass-toggle-dot dot-in-production"></span>
+              <span class="glass-toggle-label">In-Production</span>
+              <span class="glass-toggle-count count-in-production" id="count-filter-in_production">${inProdCount}</span>
+            </button>
+
+            <button type="button" class="glass-toggle-btn ${currentFilter === 'shipped' ? 'active' : ''}" 
+                    data-filter="shipped" 
+                    onclick="window.setOrderRealtimeStatusFilter('shipped', this)"
+                    title="View Shipped orders (Air freight dispatch & fulfilled deliveries)">
+              <span class="glass-toggle-dot dot-shipped"></span>
+              <span class="glass-toggle-label">Shipped</span>
+              <span class="glass-toggle-count count-shipped" id="count-filter-shipped">${shippedCount}</span>
+            </button>
+          </div>
+
+          <!-- Live Pulse Filter Summary -->
+          <div id="orders-filter-summary-pill" class="orders-filter-summary-pill">
+            <span class="pulse-indicator"></span>
+            <span id="orders-active-filter-desc">Showing <strong>${currentFilter === 'pending' ? 'Pending' : currentFilter === 'in_production' ? 'In-Production' : currentFilter === 'shipped' ? 'Shipped' : 'All Orders'}</strong> (${totalOrdersCount} total)</span>
+          </div>
+        </div>
+
         <!-- Filter & Multi-Select Toolbar -->
         <div class="orders-toolbar" style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
           <!-- Select All Checkbox Component -->
@@ -4682,39 +5252,25 @@
             <input type="checkbox" id="cb_select_all_orders" class="item-select-checkbox" 
                    ${isAllSelected ? 'checked' : ''} 
                    onchange="window.toggleSelectAllOrders(this.checked)"/>
-            <span style="font-size:11px;font-weight:700;color:var(--ink-2);font-family:var(--mono);">Select All (${items.length})</span>
+            <span id="select_all_orders_count_label" style="font-size:11px;font-weight:700;color:var(--ink-2);font-family:var(--mono);">Select All (${items.length})</span>
           </label>
 
-          <input type="text" placeholder="Search order #, buyer, product SKU…" 
+          <input type="text" id="order_search_input" placeholder="Real-time filter order #, buyer, SKU, city…" 
                  value="${state.search || ''}" 
-                 oninput="window._viewState.orders.search = this.value; window.debounceOrderSearch();" 
-                 style="flex:1;min-width:180px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
+                 oninput="window.handleOrderRealtimeSearch(this.value);" 
+                 style="flex:1;min-width:180px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;outline:none;"/>
           
-          <!-- Dynamic Shipment Status Filter -->
-          <select onchange="window._viewState.orders.shipmentStatus = this.value; window.render.Orders(document.getElementById('mod-Orders'));" 
+          <select id="order_payment_filter_select" onchange="window.handleOrderSecondaryFilter();" 
                   style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
-            <option value="all" ${state.shipmentStatus === 'all' || !state.shipmentStatus ? 'selected' : ''}>All Shipments</option>
-            <option value="shipped" ${state.shipmentStatus === 'shipped' ? 'selected' : ''}>🟢 Shipped / Fulfilled</option>
-            <option value="in_transit" ${state.shipmentStatus === 'in_transit' ? 'selected' : ''}>🔵 In Transit</option>
-            <option value="pending" ${state.shipmentStatus === 'pending' ? 'selected' : ''}>🟠 Pending (Unfulfilled)</option>
-            <option value="cancelled" ${state.shipmentStatus === 'cancelled' ? 'selected' : ''}>🔴 Cancelled</option>
-          </select>
-
-          <select onchange="window._viewState.orders.status = this.value; window.render.Orders(document.getElementById('mod-Orders'));" 
-                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
-            <option value="all" ${state.status === 'all' ? 'selected' : ''}>All Status</option>
-            <option value="open" ${state.status === 'open' ? 'selected' : ''}>Open</option>
-            <option value="completed" ${state.status === 'completed' ? 'selected' : ''}>Completed</option>
-            <option value="cancelled" ${state.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-          </select>
-
-          <select onchange="window._viewState.orders.paymentStatus = this.value; window.render.Orders(document.getElementById('mod-Orders'));" 
-                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
-            <option value="all" ${state.paymentStatus === 'all' ? 'selected' : ''}>All Payments</option>
+            <option value="all" ${state.paymentStatus === 'all' || !state.paymentStatus ? 'selected' : ''}>All Payments</option>
             <option value="paid" ${state.paymentStatus === 'paid' ? 'selected' : ''}>Paid</option>
             <option value="pending" ${state.paymentStatus === 'pending' ? 'selected' : ''}>Pending</option>
             <option value="refunded" ${state.paymentStatus === 'refunded' ? 'selected' : ''}>Refunded</option>
           </select>
+
+          <button id="order_clear_filters_btn" class="btn btn-xs btn-dark" style="display:none;height:34px;padding:0 10px;font-size:10.5px;color:#94A3B8;" onclick="window.clearAllOrderFilters()">
+            ✕ Reset Filters
+          </button>
         </div>
 
         <div class="orders-density-container" style="margin:0 auto 80px;width:100%;max-width:100%;padding:0 20px;">
@@ -4726,10 +5282,18 @@
             const totalFmt = '৳' + Number(o.total || 0).toLocaleString();
             const itemsSummary = (o.lineItems || []).map(li => `${li.title} (${li.quantity}x)`).join(', ') || 'Custom Leather Goods';
             const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString() : (new Date(o.createdAt || Date.now())).toLocaleDateString();
+            const classifiedStatus = window.classifyOrderFilterStatus(o);
 
             return `
               <!-- Single-Line Ultra-Compact Horizontal Order Strip (38px height) -->
-              <div class="orow-strip ${isSelected ? 'is-selected' : ''}" id="orderStrip_${o.id}" onclick="window.handleOrderStripClick('${o.id}', event)">
+              <div class="orow-strip ${isSelected ? 'is-selected' : ''}" 
+                   id="orderStrip_${o.id}" 
+                   data-order-id="${o.id}"
+                   data-filter-status="${classifiedStatus}"
+                   data-order-total="${Number(o.total || 0)}"
+                   data-payment-status="${String(o.paymentStatus || '').toLowerCase()}"
+                   data-search-text="${(o.orderNumber + ' ' + buyer + ' ' + loc + ' ' + itemsSummary + ' ' + (o.notes || '')).toLowerCase()}"
+                   onclick="window.handleOrderStripClick('${o.id}', event)">
                 <!-- Row Multi-Select Checkbox -->
                 <div style="display:flex;align-items:center;padding-right:2px;" onclick="event.stopPropagation();">
                   <input type="checkbox" class="item-select-checkbox order-item-cb" 
@@ -4742,12 +5306,12 @@
                 <button class="order-expand-toggle-btn" 
                         id="expandBtn_${o.id}" 
                         onclick="window.toggleOrderExpand('${o.id}', event)" 
-                        title="Toggle Fulfillment Specs &amp; Life-Cycle Drawer">
+                        title="Toggle Detailed View (Customer Notes, Timeline, Logistics)">
                   <svg class="chev-icon" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                 </button>
 
                 <!-- Order ID Badge -->
-                <span class="order-num-text" onclick="window.openOrderDetail('${o.id}')" title="Open Full Order Ledger">${o.orderNumber}</span>
+                <span class="order-num-text" title="Click row to expand details">${o.orderNumber}</span>
 
                 <!-- Inline Status Cycling Badge (Lead ➔ 50% Paid ➔ JIT Cutting ➔ Shipped) -->
                 <button class="order-cycle-btn ${stage.badgeClass}" 
@@ -4779,7 +5343,7 @@
                   <button class="btn btn-xs btn-dark" style="font-size:9.5px;padding:2px 7px;height:24px;" onclick="window.copyOrderForCourier('${o.id}');" title="Copy courier delivery slip">
                     📋 <span class="order-act-label">Slip</span>
                   </button>
-                  <button class="order-act-btn" onclick="window.openOrderDetail('${o.id}')" title="Inspect Order Details">
+                  <button class="order-act-btn" onclick="window.toggleOrderExpand('${o.id}', event)" title="Toggle Detailed View (Customer Notes, Timeline, Logistics)">
                     👁️
                   </button>
                 </div>
@@ -4787,33 +5351,7 @@
 
               <!-- Expandable Accordion Drawer for Deep Fulfillment Details & Lifecycle Stepper -->
               <div class="order-expand-drawer hidden" id="orderDrawer_${o.id}" style="display:none;">
-                <div id="drawerStepper_${o.id}">
-                  ${window.renderLifecycleStepperHtml ? window.renderLifecycleStepperHtml(o.id, stage.id) : ''}
-                </div>
-
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-top:10px;">
-                  <div style="flex:1;min-width:220px;">
-                    <div style="font-size:10px;font-family:var(--mono);color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Customer &amp; Shipping Spec</div>
-                    <div style="font-size:12.5px;font-weight:700;color:#F8FAFC;margin-top:2px;">${buyer} ${o.customerSnapshot?.companyName ? `(${o.customerSnapshot.companyName})` : ''}</div>
-                    <div style="font-size:11px;color:#CBD5E1;margin-top:2px;">📍 ${o.customerSnapshot?.address || o.shippingAddress?.line1 || loc}</div>
-                    <div style="font-size:10.5px;color:#38BDF8;font-family:var(--mono);margin-top:3px;">📞 ${o.customerSnapshot?.phone || o.phone || '+31 20 555 0192'} · ✉️ ${o.customerSnapshot?.email || 'sales@b2b.com'}</div>
-                  </div>
-
-                  <div style="flex:1;min-width:220px;">
-                    <div style="font-size:10px;font-family:var(--mono);color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Commercial Terms &amp; Line Items</div>
-                    <div style="font-size:11.5px;color:#E2E8F0;margin-top:2px;">
-                      Items (${(o.lineItems || []).length}): <span style="color:#CBD5E1;">${itemsSummary}</span>
-                    </div>
-                    <div style="font-size:11px;color:#D4AF37;font-family:var(--mono);font-weight:700;margin-top:3px;">
-                      Subtotal: ${totalFmt} ${o.deliveryCharge ? `· Delivery: ৳${o.deliveryCharge}` : ''}
-                    </div>
-                  </div>
-
-                  <div style="display:flex;gap:8px;align-items:center;align-self:center;">
-                    <button class="btn btn-xs btn-dark" onclick="window.openOrderDetail('${o.id}')" style="font-size:11px;padding:5px 12px;">Full Ledger →</button>
-                    <button class="btn btn-xs btn-coral" onclick="window.cycleOrderStatus('${o.id}', event)" style="font-size:11px;padding:5px 12px;">Advance Stage ↻</button>
-                  </div>
-                </div>
+                ${window.renderOrderExpandDrawerHtml ? window.renderOrderExpandDrawerHtml(o, o.id, stage) : ''}
               </div>
             `;
           }).join('') : `
@@ -4852,6 +5390,17 @@
           </button>
         </div>
       `;
+
+      // Instant activation of sliding glass toggle & client-side filter
+      setTimeout(() => {
+        if (typeof window.updateSlidingGlassPill === 'function') {
+          window.updateSlidingGlassPill();
+        }
+        if (typeof window.applyOrderClientFilter === 'function') {
+          window.applyOrderClientFilter();
+        }
+      }, 30);
+
     } catch (err) {
       target.innerHTML = `<div style="padding:20px;color:var(--warn);">Failed to load orders: ${err.message}</div>`;
     }

@@ -249,8 +249,8 @@ export const SuppliersManagementDashboard: React.FC<SuppliersManagementProps> = 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // View Mode: 'cards' vs 'table' vs 'map'
-  const [viewMode, setViewMode] = useState<'cards' | 'table' | 'map'>('cards');
+  // View Mode: 'cards' (Strips Order View) vs 'grid' (Cards) vs 'table' vs 'map'
+  const [viewMode, setViewMode] = useState<'cards' | 'grid' | 'table' | 'map'>('cards');
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -1957,7 +1957,78 @@ admin.handsandhead.com`);
         </div>
       </div>
 
-      {/* ── Main View: Cards vs Table ── */}
+      {/* ── View Switcher & Result Metric Bar (Order View Paradigm) ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 px-1">
+        <div className="flex items-center gap-2 text-xs font-mono text-neutral-400">
+          <span className="font-bold text-white bg-orange-500/10 border border-orange-500/30 px-2 py-0.5 rounded-full text-[11px] text-orange-400">
+            {totalCount ? totalCount.toLocaleString() : suppliers.length} EXPORTERS
+          </span>
+          <span className="hidden md:inline">
+            Verified Bangladesh RMG &amp; Garment Industrial Exporters
+          </span>
+        </div>
+
+        {/* View Mode Tabs (Order View Strips, Grid Cards, Table Ledger, Geographic Map) */}
+        <div className="inline-flex rounded-xl border border-white/15 p-1 bg-neutral-950/80 backdrop-blur-md self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => setViewMode('cards')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold rounded-lg transition cursor-pointer ${
+              viewMode === 'cards'
+                ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
+                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+            }`}
+            title="High Density Order-Style Horizontal Strips with Expandable Dossier"
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Strips (Order View)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setViewMode('grid')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold rounded-lg transition cursor-pointer ${
+              viewMode === 'grid'
+                ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
+                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+            }`}
+            title="Multi-column Obsidian Cards Grid"
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span>Cards</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setViewMode('table')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold rounded-lg transition cursor-pointer ${
+              viewMode === 'table'
+                ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
+                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+            }`}
+            title="Tabular Ledger View"
+          >
+            <List className="w-3.5 h-3.5" />
+            <span>Table</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setViewMode('map')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold rounded-lg transition cursor-pointer ${
+              viewMode === 'map'
+                ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
+                : 'text-neutral-400 hover:text-white hover:bg-white/5'
+            }`}
+            title="Geographic Corridor Map"
+          >
+            <Compass className="w-3.5 h-3.5 text-amber-400" />
+            <span>Map</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Main View: Strips vs Cards vs Table vs Map ── */}
       {isLoading ? (
         <div className="bg-white rounded-xl border border-slate-200 p-16 text-center shadow-xs">
           <div className="flex flex-col items-center justify-center gap-3">
@@ -1998,6 +2069,283 @@ admin.handsandhead.com`);
           </div>
         </div>
       ) : viewMode === 'cards' ? (
+        /* ── STRIP VIEW (Order View Paradigm: Ultra-compact horizontal strips with prominent orange hover & expandable drawers) ── */
+        <div className="flex flex-col gap-1.5 mb-6">
+          {suppliers.map((s, idx) => {
+            const rowKey = s.id || s.slug || `sup_${idx}`;
+            const isExpanded = expandedRowId === rowKey;
+            const monogram = (s.companyName?.replace(/[^a-zA-Z0-9]/g, '') || 'MF').slice(0, 2).toUpperCase();
+
+            return (
+              <React.Fragment key={rowKey}>
+                <div
+                  className={`srow-strip ${isExpanded ? 'is-expanded-row' : ''}`}
+                  onClick={() => toggleExpandRow(rowKey)}
+                >
+                  {/* Expand Chevron Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => toggleExpandRow(rowKey, e)}
+                    className={`supplier-expand-toggle-btn ${isExpanded ? 'expanded' : ''}`}
+                    title={isExpanded ? 'Collapse Factory Specifications' : 'Expand Deep Factory Specifications'}
+                  >
+                    <ChevronRight className="chev-icon w-3 h-3 transition-transform" />
+                  </button>
+
+                  {/* Monogram Badge */}
+                  <div className="w-6 h-6 rounded-md bg-gradient-to-br from-orange-600 to-amber-600 text-white font-black text-[10px] flex items-center justify-center shrink-0 shadow-xs">
+                    {monogram}
+                  </div>
+
+                  {/* Supplier Code */}
+                  <span
+                    className="srow-code cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleInspectSupplier(s);
+                    }}
+                    title="Inspect Full Factory Dossier"
+                  >
+                    EXP-{(s.id || s.slug || '').slice(0, 7).toUpperCase()}
+                  </span>
+
+                  {/* District Hub Pill */}
+                  <span className="srow-hub-pill pill ok text-[8px] py-0.5 px-1.5 font-bold uppercase shrink-0">
+                    {s.district} HUB
+                  </span>
+
+                  {/* Factory Name & Location */}
+                  <div className="srow-name-cell">
+                    <span
+                      className="srow-name cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleInspectSupplier(s);
+                      }}
+                      title={s.companyName}
+                    >
+                      {s.companyName}
+                    </span>
+                    <span className="srow-location-chip text-neutral-400 font-mono text-[9.5px] items-center gap-1 shrink-0">
+                      <MapPin className="w-2.5 h-2.5 text-orange-400 inline" />
+                      {s.factoryAddress || `${s.district}, Bangladesh`}
+                    </span>
+                  </div>
+
+                  {/* Capacity & MOQ (Tablet & Desktop) */}
+                  <div className="hidden md:flex items-center gap-2 font-mono text-[10.5px] text-neutral-400 shrink-0 mr-1.5">
+                    <span>⚡ {s.capacityMonthly || '850K/mo'}</span>
+                    <span className="text-neutral-500">·</span>
+                    <span>📦 MOQ {s.moq || '1k'} ({s.leadTimeDays || 45}d)</span>
+                  </div>
+
+                  {/* Customs / Compliance Score */}
+                  <div className="srow-metric">
+                    {s.bondStatus === 'BONDED' ? (
+                      <span className="text-emerald-400 font-mono text-[11px] font-bold">CBW BONDED</span>
+                    ) : (
+                      <span className="text-orange-400 font-mono text-[11px] font-bold">
+                        {s.complianceScore ? `${s.complianceScore}% SCORE` : 'VERIFIED'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Quick Action Buttons */}
+                  <div className="srow-quick-actions" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenRfqModal(s)}
+                      className="btn btn-xs bg-orange-600 hover:bg-orange-500 text-white font-bold"
+                      title={`Send RFQ to ${s.companyName}`}
+                    >
+                      <Send className="w-2.5 h-2.5 inline mr-1" />
+                      <span className="srow-act-label">RFQ</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleViewSupplierOnMap(s)}
+                      className="srow-act-btn text-amber-400 hover:text-white"
+                      title="View on Geographic Map"
+                    >
+                      <Compass className="w-3 h-3" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleInspectSupplier(s)}
+                      className="srow-act-btn text-sky-400 hover:text-white"
+                      title="Inspect Full Factory Dossier"
+                    >
+                      <span className="srow-act-label">SPECS</span>
+                      <span className="md:hidden">👁️</span>
+                    </button>
+
+                    <a
+                      href={s.bayxBengalUrl || `https://www.bayxbengal.com/exporters/${s.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="srow-act-btn text-neutral-400 hover:text-orange-400"
+                      title="View original profile on BayXBengal"
+                    >
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  </div>
+                </div>
+
+                {/* Deep Accordion Drawer for Factory Specifications */}
+                {isExpanded && (
+                  <div className="supplier-expand-drawer">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
+                      {/* Column 1: Manufacturing Capabilities */}
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                            <Factory className="w-3 h-3 text-orange-400" />
+                            <span>Production Capacity</span>
+                          </div>
+                          <div className="space-y-1.5 font-mono text-[11px]">
+                            <div className="flex justify-between">
+                              <span className="text-neutral-400">Monthly Run:</span>
+                              <span className="font-bold text-white">{s.capacityMonthly || '850,000 pcs/mo'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-neutral-400">Production Lines:</span>
+                              <span className="font-bold text-neutral-200">{s.totalLines || 24} Sewing Lines</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-neutral-400">Minimum Order:</span>
+                              <span className="font-bold text-orange-400">{s.moq || '1,000 pcs'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-neutral-400">Standard Lead:</span>
+                              <span className="font-bold text-neutral-200">{s.leadTimeDays || 45} Calendar Days</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="pt-2 mt-2 border-t border-white/10 flex flex-wrap gap-1">
+                          {(s.productSpecializations || ['Knitwear', 'T-Shirts', 'Polo', 'Hoodies']).map((spec) => (
+                            <span key={spec} className="px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-300 text-[9.5px] font-mono border border-orange-500/20">
+                              {spec}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Column 2: Customs Classifications & Logistics */}
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                            <Tag className="w-3 h-3 text-amber-400" />
+                            <span>Customs &amp; Bonded Status</span>
+                          </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-neutral-400 font-mono text-[11px]">Bond Regime:</span>
+                            {s.bondStatus === 'BONDED' ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+                                <ShieldCheck className="w-3 h-3" />
+                                CBW BONDED
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-mono text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/30">
+                                {s.bondStatus || 'NON-BONDED'}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[10px] font-mono text-neutral-400 mb-1">Authorized Tariff Lines:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {(s.hsCodes || ['6109.10', '6110.20', '6203.42']).map((code) => (
+                              <span
+                                key={code}
+                                className="px-1.5 py-0.5 rounded bg-neutral-900 text-orange-400 font-mono text-[10px] font-bold border border-white/10"
+                                title={HS_CODE_DESCRIPTIONS[code] || 'Export tariff line'}
+                              >
+                                {code}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="pt-2 mt-2 border-t border-white/10 text-[10px] font-mono text-neutral-400 flex justify-between">
+                          <span>Hub: <strong className="text-neutral-200 uppercase">{s.district}</strong></span>
+                          <span>Port: <strong className="text-neutral-200">Ctg Sea / DAC Air</strong></span>
+                        </div>
+                      </div>
+
+                      {/* Column 3: Compliance & Sustainability */}
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                            <Award className="w-3 h-3 text-emerald-400" />
+                            <span>Audits &amp; Certifications</span>
+                          </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-neutral-400 font-mono text-[11px]">Audit Score:</span>
+                            <span className="text-emerald-400 font-mono font-bold text-xs bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+                              {s.complianceScore || 96}% COMPLIANT
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {(s.certifications || ['OEKO-TEX Standard 100', 'BSCI Audited', 'WRAP Gold', 'Sedex SMETA']).map((cert) => (
+                              <span key={cert} className="px-1.5 py-0.5 bg-white/10 text-neutral-300 rounded text-[9.5px] font-mono border border-white/10">
+                                {cert}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="pt-2 mt-2 border-t border-white/10 text-[10px] text-neutral-400 font-mono flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                          <span>Accord / RSC Safety Clearance</span>
+                        </div>
+                      </div>
+
+                      {/* Column 4: Contact & Operations */}
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                            <Send className="w-3 h-3 text-sky-400" />
+                            <span>Commercial Merchandising</span>
+                          </div>
+                          <div className="font-bold text-white text-sm">{s.contactPerson || 'Commercial Lead'}</div>
+                          <div className="text-neutral-400 text-[11px] mb-2">{s.designation || 'Head of Merchandising & Marketing'}</div>
+                          <div className="space-y-1 font-mono text-[10.5px]">
+                            {s.phone && (
+                              <a href={`tel:${s.phone}`} onClick={(e) => e.stopPropagation()} className="text-orange-400 hover:underline flex items-center gap-1">
+                                <Phone className="w-2.5 h-2.5" /> {s.phone}
+                              </a>
+                            )}
+                            {s.email && (
+                              <a href={`mailto:${s.email}`} onClick={(e) => e.stopPropagation()} className="text-sky-400 hover:underline flex items-center gap-1">
+                                <Mail className="w-2.5 h-2.5" /> {s.email}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <div className="pt-2 mt-2 border-t border-white/10 flex gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenRfqModal(s)}
+                            className="flex-1 py-1.5 px-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-xs font-mono font-bold transition flex items-center justify-center gap-1"
+                          >
+                            <Send className="w-3 h-3" />
+                            <span>RFQ</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInspectSupplier(s)}
+                            className="py-1.5 px-2.5 bg-white/10 hover:bg-white/20 text-neutral-200 rounded-lg text-xs font-mono font-bold transition"
+                          >
+                            DOSSIER
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      ) : viewMode === 'grid' ? (
         /* ── GRID / CARD VIEW (Obsidian Glass Panels) ── */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
           {suppliers.map((s, idx) => (
