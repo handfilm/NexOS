@@ -1562,7 +1562,7 @@ a { color:var(--coral); text-decoration:none; }
   }
 }
 
-/* ── White Glassmorphic Customer Card Styling with Subtle Brutalist Hover ── */
+/* ── Obsidian Glassmorphic Customer Card Styling with Electric Orange Contrast ── */
 .company-card,
 .crm-customer-card {
   position: relative;
@@ -1570,38 +1570,46 @@ a { color:var(--coral); text-decoration:none; }
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  min-height: 220px;
+  min-height: 240px;
   box-sizing: border-box;
-  padding: 15px 16px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1.5px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 2px 2px 0px rgba(15, 23, 42, 0.04), 4px 4px 16px rgba(166, 180, 200, 0.25);
+  padding: 14px 14px 12px;
+  border-radius: 18px;
+  background: rgba(18, 22, 31, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   cursor: pointer;
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease, background 0.18s ease;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, background 0.2s ease;
   overflow: hidden;
 }
 
-/* Subtle Brutalist hover interaction: crisp mechanical offset shadow & translate lift */
+/* Electric Safety Orange contrast interaction on card hover */
 .company-card:hover,
 .crm-customer-card:hover {
-  transform: translate(-3px, -3px);
-  border-color: #1e293b;
-  box-shadow: 4px 4px 0px #1e293b, 0 12px 24px rgba(160, 175, 198, 0.35);
-  background: rgba(255, 255, 255, 0.98);
+  transform: translateY(-4px) scale(1.01);
+  border-color: #F97316 !important;
+  box-shadow: 0 12px 36px 0 rgba(249, 115, 22, 0.28), 0 0 0 1px rgba(249, 115, 22, 0.45);
+  background: rgba(26, 31, 44, 0.96);
 }
 
 .company-card:hover .company-name,
 .crm-customer-card:hover .company-name {
-  color: var(--gold, #d4af37) !important;
+  color: #FB923C !important;
+  text-shadow: 0 0 12px rgba(249, 115, 22, 0.4);
+}
+
+.company-card.is-selected,
+.crm-customer-card.is-selected {
+  border-color: #F97316 !important;
+  background: rgba(249, 115, 22, 0.12) !important;
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.3), inset 0 0 12px rgba(249, 115, 22, 0.1);
 }
 
 .company-card:active,
 .crm-customer-card:active {
-  transform: translate(0px, 0px);
-  box-shadow: 1.5px 1.5px 0px #1e293b;
+  transform: translateY(1px) scale(0.99);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 /* ── AI Chat Window ── */
@@ -4601,15 +4609,46 @@ body.has-active-module #react-app-root {
   user-select: none;
   white-space: nowrap;
 }
-.orow-strip:hover {
-  background: rgba(26, 31, 42, 0.98);
-  border-color: rgba(255, 255, 255, 0.2);
+.orow-strip:hover,
+.orow-strip:focus-within,
+.orow-strip:active {
+  background: linear-gradient(90deg, rgba(249, 115, 22, 0.16) 0%, rgba(22, 27, 38, 0.98) 100%) !important;
+  border-color: #F97316 !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 18px rgba(249, 115, 22, 0.35), inset 0 0 10px rgba(249, 115, 22, 0.08), 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+}
+.orow-strip:hover .order-num-text,
+.orow-strip:focus-within .order-num-text,
+.orow-strip:active .order-num-text {
+  color: #FB923C !important;
+  text-shadow: 0 0 8px rgba(249, 115, 22, 0.5);
+}
+.orow-strip:hover .order-total-cell,
+.orow-strip:focus-within .order-total-cell,
+.orow-strip:active .order-total-cell {
+  color: #FB923C !important;
+  font-weight: 800;
+  text-shadow: 0 0 8px rgba(249, 115, 22, 0.35);
+}
+.orow-strip:hover .buyer-name,
+.orow-strip:focus-within .buyer-name,
+.orow-strip:active .buyer-name {
+  color: #FFFFFF !important;
+}
+.orow-strip:hover .order-expand-toggle-btn,
+.orow-strip:active .order-expand-toggle-btn {
+  border-color: rgba(249, 115, 22, 0.5) !important;
+  color: #FB923C !important;
+}
+.orow-strip:hover .order-cycle-btn,
+.orow-strip:active .order-cycle-btn {
+  border-color: rgba(249, 115, 22, 0.6) !important;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.25);
 }
 .orow-strip.is-selected {
-  background: rgba(255, 91, 53, 0.12);
-  border-color: rgba(255, 91, 53, 0.45);
+  background: rgba(249, 115, 22, 0.18) !important;
+  border-color: #F97316 !important;
+  box-shadow: 0 0 14px rgba(249, 115, 22, 0.28);
 }
 .orow-strip.is-expanded-row {
   border-bottom-left-radius: 0;
@@ -5244,30 +5283,105 @@ body.has-active-module #react-app-root {
 
 /* ── Mobile Scale & Fit Optimizations ── */
 @media (max-width: 640px) {
+  .orders-density-container {
+    padding: 0 4px !important;
+    margin: 0 auto 60px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
   .orow-strip {
-    padding: 2px 6px;
-    gap: 4px;
-    font-size: 11px;
-    min-height: 36px;
-    height: 36px;
+    padding: 2px 4px !important;
+    gap: 3px !important;
+    font-size: 11px !important;
+    min-height: 38px !important;
+    height: 38px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
-  .order-buyer-cell {
-    min-width: 80px;
-  }
-  .order-buyer-cell .location-chip {
-    display: none;
-  }
-  .order-act-btn:not(.btn-fulfillment-quick) {
-    display: none;
-  }
-  .order-sku-badge {
-    max-width: 65px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .order-num-text {
+    font-size: 10.5px !important;
+    min-width: 52px !important;
+    max-width: 68px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    flex-shrink: 0 !important;
   }
   .order-cycle-btn {
-    padding: 2px 6px;
-    font-size: 9px;
+    padding: 2px 4px !important;
+    font-size: 8.5px !important;
+    gap: 2px !important;
+    flex-shrink: 0 !important;
+    max-width: 72px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .order-cycle-btn .cycle-arrow {
+    display: none !important;
+  }
+  .order-buyer-cell {
+    flex: 1 1 45px !important;
+    min-width: 35px !important;
+    max-width: 95px !important;
+    overflow: hidden !important;
+  }
+  .order-buyer-cell .buyer-name {
+    font-size: 10.5px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
+  }
+  .order-buyer-cell .location-chip {
+    display: none !important;
+  }
+  .order-items-snippet {
+    display: none !important;
+  }
+  .order-total-cell {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    flex-shrink: 0 !important;
+    padding: 0 2px !important;
+    white-space: nowrap !important;
+  }
+  .order-quick-actions {
+    display: flex !important;
+    gap: 2px !important;
+    flex-shrink: 0 !important;
+    align-items: center !important;
+  }
+  .order-quick-actions .btn,
+  .order-quick-actions .order-act-btn {
+    padding: 2px 4px !important;
+    min-width: 22px !important;
+    height: 24px !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .order-act-label {
+    display: none !important;
+  }
+  .order-expand-toggle-btn {
+    width: 20px !important;
+    height: 20px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Customer Cards Mobile Grid & Sizing */
+  .crm-customer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 0 4px !important;
+  }
+  .crm-customer-card,
+  .company-card {
+    min-height: auto !important;
+    padding: 12px !important;
   }
   
   /* Prevent horizontal scroll clipping on dashboard header */

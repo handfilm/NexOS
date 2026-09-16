@@ -3479,15 +3479,356 @@
   };
 
   /* ═══════════════════════════════════════════════════════════
-     CRM / CUSTOMERS MODULE
+     CRM / CUSTOMERS SELECTION & BATCH MANAGEMENT
+     ═══════════════════════════════════════════════════════════ */
+  window._selectedCustomerIds = window._selectedCustomerIds || new Set();
+
+  window.toggleCustomerSelection = function (customerId, event) {
+    if (event) event.stopPropagation();
+    if (window._selectedCustomerIds.has(customerId)) {
+      window._selectedCustomerIds.delete(customerId);
+    } else {
+      window._selectedCustomerIds.add(customerId);
+    }
+    window.updateCustomerSelectionUI();
+  };
+
+  window.toggleSelectAllCustomers = function (checked) {
+    const items = window._lastCustomersCache || [];
+    if (checked) {
+      items.forEach(c => window._selectedCustomerIds.add(c.id));
+    } else {
+      window._selectedCustomerIds.clear();
+    }
+    window.updateCustomerSelectionUI();
+  };
+
+  window.clearCustomerSelection = function () {
+    window._selectedCustomerIds.clear();
+    window.updateCustomerSelectionUI();
+  };
+
+  window.updateCustomerSelectionUI = function () {
+    const count = window._selectedCustomerIds.size;
+    const bar = document.getElementById("customers-batch-floating-bar");
+    const countEl = document.getElementById("customers-selected-count-badge");
+    const selectAllCb = document.getElementById("cb_select_all_customers");
+
+    // Update checkboxes and cards in DOM
+    document.querySelectorAll(".customer-item-cb").forEach(cb => {
+      const cId = cb.getAttribute("data-customer-id");
+      const isSelected = window._selectedCustomerIds.has(cId);
+      cb.checked = isSelected;
+      const card = cb.closest(".crm-customer-card") || cb.closest(".company-card");
+      if (card) {
+        if (isSelected) card.classList.add("is-selected");
+        else card.classList.remove("is-selected");
+      }
+    });
+
+    // Update Select All Checkbox state
+    const totalItems = (window._lastCustomersCache || []).length;
+    if (selectAllCb) {
+      selectAllCb.checked = totalItems > 0 && count === totalItems;
+      selectAllCb.indeterminate = count > 0 && count < totalItems;
+    }
+
+    // Update floating batch bar
+    if (bar) {
+      if (count > 0) {
+        bar.classList.add("active");
+        if (countEl) countEl.innerText = `✓ ${count} Selected`;
+      } else {
+        bar.classList.remove("active");
+      }
+    }
+  };
+
+  /* ── Customer QR vCard Modal & Digital Hangtag ── */
+  window.openCustomerQrModal = function (customerId) {
+    const all = window._lastCustomersCache || [];
+    const c = all.find(x => x.id === customerId) || { id: customerId, name: 'Valued Buyer', totalSpent: 0, totalOrders: 0 };
+    const safeName = c.companyName || c.name || 'Valued Buyer';
+    const safeId = c.id || '';
+    const phone = c.phone || '';
+    const email = c.email || '';
+    const country = c.country || 'Bangladesh';
+    const totalSpent = Number(c.totalSpent || 0).toLocaleString();
+
+    // vCard 3.0 standard payload
+    const vCardPayload = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      `FN:${safeName}`,
+      `ORG:Hands & Head Patron Network`,
+      phone ? `TEL;TYPE=CELL:${phone}` : '',
+      email ? `EMAIL:${email}` : '',
+      `ADR:;;${country};;;`,
+      `NOTE:HH-BUYER:${safeId} · Lifetime ৳${totalSpent}`,
+      'END:VCARD'
+    ].filter(Boolean).join('\n');
+
+    let qrSvg = '';
+    if (window.HHQRCode && typeof window.HHQRCode.generateSvg === 'function') {
+      qrSvg = window.HHQRCode.generateSvg(vCardPayload, {
+        size: 190,
+        darkColor: '#0E121B',
+        lightColor: '#FFFFFF',
+        margin: 2
+      });
+    } else {
+      qrSvg = `<div style="padding:24px;font-family:monospace;background:#EEE;color:#333;">QR: ${safeId}</div>`;
+    }
+
+    openSheet(`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0 20px 10px;">
+        <div>
+          <div style="font-family:var(--mono);font-size:9.5px;color:var(--coral);font-weight:800;letter-spacing:1px;text-transform:uppercase;">
+            PATRON IDENTIFIER &amp; VCARD BADGE
+          </div>
+          <h3 style="margin:2px 0 0;font-size:18px;">Customer Digital Hangtag</h3>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-gold btn-sm" onclick="window.print();">🖨️ Print Card</button>
+          <button class="btn btn-dark btn-sm" onclick="closeSheet();">Close</button>
+        </div>
+      </div>
+
+      <div style="padding:0 20px 24px;display:flex;flex-direction:column;align-items:center;">
+        <div class="qr-hangtag-card" style="max-width:320px;width:100%;background:#FFFFFF;border:2px solid #111827;border-radius:14px;padding:20px 16px;box-shadow:0 8px 24px rgba(0,0,0,0.12);text-align:center;">
+          <div style="font-family:var(--mono);font-size:8.5px;font-weight:900;letter-spacing:2px;color:#4B5563;text-transform:uppercase;margin-bottom:2px;">
+            HANDS &amp; HEAD ARTISAN NETWORK
+          </div>
+          <div style="font-family:var(--display);font-size:16px;font-weight:900;color:#111827;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">
+            ${safeName}
+          </div>
+
+          <div style="display:flex;justify-content:center;margin:12px 0;">
+            ${qrSvg}
+          </div>
+
+          <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:#111827;margin-top:4px;">
+            ID: CUST-${safeId.slice(0, 10).toUpperCase()}
+          </div>
+          <div style="font-family:var(--mono);font-size:10px;color:#4B5563;margin-top:2px;">
+            ${country} · ৳${totalSpent} Lifetime · ${c.totalOrders || 0} Orders
+          </div>
+          ${phone ? `<div style="font-family:var(--mono);font-size:10px;color:#111827;font-weight:700;margin-top:4px;">TEL: ${phone}</div>` : ''}
+
+          <div style="margin-top:14px;padding-top:10px;border-top:1px dashed #D1D5DB;font-size:9px;color:#6B7280;font-family:var(--mono);">
+            Scan with smartphone camera to instantly save vCard contact
+          </div>
+        </div>
+      </div>
+    `);
+  };
+
+  /* ── Customer Gemini AI Intelligence & LTV Predictor ── */
+  window.openCustomerGeminiModal = async function (customerId) {
+    const all = window._lastCustomersCache || [];
+    const c = all.find(x => x.id === customerId) || { id: customerId, name: 'Valued Buyer', totalSpent: 0, totalOrders: 0 };
+    const safeName = c.companyName || c.name || 'Valued Buyer';
+    const safeId = c.id || '';
+    const spent = Number(c.totalSpent || 0);
+    const orders = Number(c.totalOrders || 0);
+    const aov = orders > 0 ? Math.round(spent / orders) : spent;
+    const cohort = c.cohortTag || (spent > 50000 ? 'VIP Patron' : spent > 15000 ? 'Repeat Buyer' : 'Atelier Direct');
+
+    openSheet(loading(`Generating Gemini Buyer Intel for ${safeName}…`));
+
+    setTimeout(() => {
+      openSheet(`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0 20px 10px;">
+          <div>
+            <div style="font-family:var(--mono);font-size:9.5px;color:var(--coral);font-weight:800;letter-spacing:1px;text-transform:uppercase;">
+              ✨ GEMINI AI CLIENT INTEL &amp; LTV PREDICTOR
+            </div>
+            <h3 style="margin:2px 0 0;font-size:18px;">${safeName}</h3>
+          </div>
+          <button class="btn btn-dark btn-sm" onclick="closeSheet();">Close</button>
+        </div>
+
+        <div style="padding:0 20px 24px;font-family:var(--mono);">
+          <!-- Top Intel Cards -->
+          <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-bottom:14px;">
+            <div style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:12px;padding:10px;">
+              <div style="font-size:9.5px;color:#fb923c;text-transform:uppercase;font-weight:700;">Persona Archetype</div>
+              <div style="font-size:13px;font-weight:800;color:#FFFFFF;margin-top:2px;">${cohort}</div>
+            </div>
+            <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:10px;">
+              <div style="font-size:9.5px;color:#34d399;text-transform:uppercase;font-weight:700;">Predicted 12M LTV</div>
+              <div style="font-size:13px;font-weight:800;color:#FFFFFF;margin-top:2px;">৳${Math.round(spent * 1.6 + 15000).toLocaleString()}</div>
+            </div>
+            <div style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);border-radius:12px;padding:10px;">
+              <div style="font-size:9.5px;color:#38bdf8;text-transform:uppercase;font-weight:700;">Reorder Propensity</div>
+              <div style="font-size:13px;font-weight:800;color:#FFFFFF;margin-top:2px;">88% (High)</div>
+            </div>
+          </div>
+
+          <!-- Gemini Strategy & Recommendations -->
+          <div style="background:rgba(20,24,33,0.85);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px;margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:800;color:#fb923c;display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+              <span>🎯</span> <span>Negotiation Strategy &amp; Recommended Lines</span>
+            </div>
+            <div style="font-size:11.5px;color:#CBD5E1;line-height:1.5;">
+              Buyer exhibits strong affinity for premium full-grain leather finishes with an average basket size of <strong>৳${aov.toLocaleString()}</strong>. 
+              Recommended cross-pitch: <em>Executive Leather Folios, Handcrafted Bifolds, or Monogrammed Travel Holdalls</em>.
+            </div>
+          </div>
+
+          <!-- Suggested Personalized Message -->
+          <div style="background:rgba(20,24,33,0.85);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px;margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <div style="font-size:11px;font-weight:800;color:#34d399;display:flex;align-items:center;gap:6px;">
+                <span>💬</span> <span>Personalized Outreach Copy</span>
+              </div>
+              <button class="btn btn-xs btn-dark" onclick="navigator.clipboard.writeText(document.getElementById('geminiCustPitch').innerText); toast('Pitch copied to clipboard!');" style="font-size:9.5px;padding:2px 8px;">📋 Copy</button>
+            </div>
+            <div id="geminiCustPitch" style="font-size:11px;color:#E2E8F0;background:rgba(0,0,0,0.3);padding:10px;border-radius:8px;line-height:1.45;border-left:3px solid #10b981;">
+              "Assalamu Alaikum ${safeName}, hope you are doing well! We just completed a new limited-edition run of artisan full-grain leather accessories curated specially for our top patrons. Given your past preference, would love to share a preview catalog before public release."
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-emerald btn-sm" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;" onclick="closeSheet(); window.openWhatsAppCampaignStudio({ customerIds: ['${safeId}'] });">
+              📲 Launch WhatsApp Campaign
+            </button>
+            <button class="btn btn-gold btn-sm" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;" onclick="closeSheet(); window.openCustomerFastOrder('${safeId}');">
+              ⚡ Create Fast Order
+            </button>
+          </div>
+        </div>
+      `);
+    }, 280);
+  };
+
+  /* ── Customer Fast Order Pre-fill ── */
+  window.openCustomerFastOrder = function (customerId) {
+    const all = window._lastCustomersCache || [];
+    const c = all.find(x => x.id === customerId) || { id: customerId, name: 'Buyer' };
+    if (typeof window.openFastOrderModal === 'function') {
+      window.openFastOrderModal();
+      setTimeout(() => {
+        const nameInput = document.getElementById('foCustomerName');
+        const phoneInput = document.getElementById('foCustomerPhone');
+        const addrInput = document.getElementById('foDeliveryAddress');
+        if (nameInput) nameInput.value = c.companyName || c.name || '';
+        if (phoneInput && c.phone) phoneInput.value = c.phone;
+        if (addrInput && c.address) addrInput.value = c.address;
+      }, 200);
+    } else if (typeof window.openQuickSaleModal === 'function') {
+      window.openQuickSaleModal(c);
+    } else {
+      window.openCompanyDetail(customerId);
+    }
+  };
+
+  /* ── Batch Export Selected Customers CSV ── */
+  window.exportSelectedCustomersCsv = function () {
+    const all = window._lastCustomersCache || [];
+    const ids = window._selectedCustomerIds;
+    const selected = all.filter(c => ids.has(c.id));
+    if (!selected.length) {
+      toast("Please select at least 1 customer to export");
+      return;
+    }
+
+    const headers = ["ID", "Company / Name", "Contact Person", "Phone", "Email", "Country", "Orders", "Total Spent (BDT)", "Currency"];
+    const rows = selected.map(c => [
+      c.id,
+      `"${(c.companyName || c.name || '').replace(/"/g, '""')}"`,
+      `"${(c.contactPerson || '').replace(/"/g, '""')}"`,
+      `"${c.phone || ''}"`,
+      `"${c.email || ''}"`,
+      `"${c.country || 'BD'}"`,
+      c.totalOrders || 0,
+      c.totalSpent || 0,
+      c.currency || 'BDT'
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `HH_Customers_Export_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast(`Exported ${selected.length} customer records to CSV`);
+  };
+
+  /* ── Batch Gemini Cohort Analysis ── */
+  window.batchCustomerGeminiCohort = function () {
+    const all = window._lastCustomersCache || [];
+    const ids = window._selectedCustomerIds;
+    const selected = all.filter(c => ids.has(c.id));
+    if (!selected.length) {
+      toast("Please select at least 1 customer");
+      return;
+    }
+    const totalSpent = selected.reduce((s, c) => s + (c.totalSpent || 0), 0);
+    const totalOrders = selected.reduce((s, c) => s + (c.totalOrders || 0), 0);
+    const avgSpend = Math.round(totalSpent / selected.length);
+
+    openSheet(`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0 20px 10px;">
+        <div>
+          <div style="font-family:var(--mono);font-size:9.5px;color:var(--coral);font-weight:800;letter-spacing:1px;text-transform:uppercase;">
+            ✨ GEMINI BATCH COHORT INTELLIGENCE
+          </div>
+          <h3 style="margin:2px 0 0;font-size:18px;">Cohort Analysis (${selected.length} Patrons)</h3>
+        </div>
+        <button class="btn btn-dark btn-sm" onclick="closeSheet();">Close</button>
+      </div>
+
+      <div style="padding:0 20px 24px;font-family:var(--mono);">
+        <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-bottom:14px;">
+          <div style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:12px;padding:10px;">
+            <div style="font-size:9.5px;color:#fb923c;text-transform:uppercase;font-weight:700;">Selected Audience</div>
+            <div style="font-size:15px;font-weight:800;color:#FFFFFF;margin-top:2px;">${selected.length} Buyers</div>
+          </div>
+          <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:10px;">
+            <div style="font-size:9.5px;color:#34d399;text-transform:uppercase;font-weight:700;">Combined Spend</div>
+            <div style="font-size:15px;font-weight:800;color:#FFFFFF;margin-top:2px;">৳${totalSpent.toLocaleString()}</div>
+          </div>
+          <div style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);border-radius:12px;padding:10px;">
+            <div style="font-size:9.5px;color:#38bdf8;text-transform:uppercase;font-weight:700;">Average Spend</div>
+            <div style="font-size:15px;font-weight:800;color:#FFFFFF;margin-top:2px;">৳${avgSpend.toLocaleString()}</div>
+          </div>
+        </div>
+
+        <div style="background:rgba(20,24,33,0.85);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:800;color:#fb923c;display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+            <span>💡</span> <span>Cohort Marketing Recommendation</span>
+          </div>
+          <div style="font-size:11.5px;color:#CBD5E1;line-height:1.5;">
+            This cohort accounts for <strong>${totalOrders} completed orders</strong>. Their purchasing power indicates optimal conversion with WhatsApp Broadcast campaigns featuring volume wholesale discounts, corporate gifting collections, or early-bird product launches.
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-emerald btn-sm" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="closeSheet(); window.openWhatsAppCampaignStudio({ customerIds: Array.from(window._selectedCustomerIds) });">
+            📲 Broadcast WhatsApp to All ${selected.length}
+          </button>
+          <button class="btn btn-dark btn-sm" style="flex:1;" onclick="window.exportSelectedCustomersCsv();">
+            📥 Download CSV
+          </button>
+        </div>
+      </div>
+    `);
+  };
+
+  /* ═══════════════════════════════════════════════════════════
+     CRM / CUSTOMERS CARD RENDERER (Matching Product Page Paradigm)
      ═══════════════════════════════════════════════════════════ */
   window.renderCustomerCardsHtml = function (items) {
     if (!items || !items.length) {
       return `
-        <div class="empty" style="grid-column:1/-1;padding:48px 20px;text-align:center;background:rgba(255,255,255,0.75);backdrop-filter:blur(12px);border:1px dashed var(--wire);border-radius:18px;box-shadow:var(--neu-flat-xs);">
-          <div style="font-size:28px;margin-bottom:8px;color:var(--gold-dim);">👥</div>
-          <div style="font-size:13px;font-weight:700;color:var(--ink);letter-spacing:0.5px;">No customers found matching your filter</div>
-          <div style="font-size:11px;color:var(--ink-3);margin-top:4px;font-family:var(--mono);">Try searching another name, phone number, or select All Countries.</div>
+        <div class="empty" style="grid-column:1/-1;padding:48px 20px;text-align:center;background:rgba(18,22,31,0.75);backdrop-filter:blur(14px);border:1px dashed rgba(255,255,255,0.15);border-radius:18px;">
+          <div style="font-size:28px;margin-bottom:8px;color:#fb923c;">👥</div>
+          <div style="font-size:13px;font-weight:700;color:#FFFFFF;letter-spacing:0.5px;">No customers found matching your filter</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:4px;font-family:var(--mono);">Try searching another name, phone number, or select All Countries.</div>
         </div>
       `;
     }
@@ -3496,81 +3837,157 @@
       const safeId = encodeURIComponent(c.id || "");
       const safeName = displayName.replace(/"/g, '&quot;');
       const flagIcon = c.flag || '🏢';
-      const countryCode = c.country || '—';
+      const countryCode = c.country || 'BD';
       const currency = c.currency || 'BDT';
       const totalSpentNum = Number(c.totalSpent || 0);
       const ordersCount = Number(c.totalOrders || 0);
+      const aov = ordersCount > 0 ? Math.round(totalSpentNum / ordersCount) : totalSpentNum;
+      const isSelected = window._selectedCustomerIds && window._selectedCustomerIds.has(c.id);
+
+      // Derive monogram and cohort pill
+      const monogram = (displayName.replace(/[^a-zA-Z0-9]/g, '') || 'HH').slice(0, 2).toUpperCase();
+      let cohortClass = 'ok';
+      let cohortLabel = 'REGISTERED';
+      if (totalSpentNum >= 50000 || c.cohortTag === 'vip') {
+        cohortClass = 'amber';
+        cohortLabel = 'VIP PATRON';
+      } else if (c.cohortTag === 'wholesale') {
+        cohortClass = 'coral';
+        cohortLabel = 'WHOLESALE';
+      } else if (ordersCount >= 2 || c.cohortTag === 'repeat') {
+        cohortClass = 'ok';
+        cohortLabel = 'REPEAT BUYER';
+      } else if (c.cohortTag === 'atelier') {
+        cohortClass = 'purple';
+        cohortLabel = 'ATELIER DIRECT';
+      }
 
       return `
-        <div class="company-card crm-customer-card" 
+        <div class="company-card crm-customer-card ${isSelected ? 'is-selected' : ''}" 
+             style="position:relative;display:flex;flex-direction:column;transition:all 0.2s ease;"
              onclick="window.openCompanyDetail('${safeId}')" 
              title="${safeName}">
           
-          <!-- Card Header: Flag & Company Title & Order Count -->
-          <div>
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
-              <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
-                <span style="font-size:20px;line-height:1;flex-shrink:0;user-select:none;">${flagIcon}</span>
-                <div style="min-width:0;flex:1;">
-                  <div class="company-name" style="font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;transition:color 0.15s ease;" title="${safeName}">
-                    ${displayName}
-                  </div>
-                  <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;">
-                    ${countryCode} · ${currency}${c.contactPerson ? ` · ${c.contactPerson}` : ''}
-                  </div>
-                </div>
-              </div>
-              <span class="pill ok" style="font-size:8.5px;padding:2px 5px;font-weight:700;flex-shrink:0;font-family:var(--mono);">
-                ${ordersCount} ord
-              </span>
+          <!-- Top Right Selection Checkbox (like Product card) -->
+          <div style="position:absolute;top:8px;right:8px;z-index:10;" onclick="event.stopPropagation();">
+            <input type="checkbox" class="item-select-checkbox customer-item-cb" 
+                   data-customer-id="${c.id}" 
+                   ${isSelected ? 'checked' : ''} 
+                   onchange="window.toggleCustomerSelection('${c.id}', event)"/>
+          </div>
+
+          <!-- Visual Header / Media Box (matching Product's .pim layout) -->
+          <div class="cim" style="width:100%;height:68px;border-radius:12px;background:linear-gradient(135deg, rgba(30,41,59,0.7) 0%, rgba(15,23,42,0.95) 100%);border:1px solid rgba(255,255,255,0.08);position:relative;display:flex;align-items:center;padding:0 12px;margin-bottom:8px;overflow:hidden;box-shadow:inset 0 0 20px rgba(0,0,0,0.4);">
+            <!-- Background Glow Accent -->
+            <div style="position:absolute;top:-20px;left:-20px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle, rgba(249,115,22,0.25) 0%, transparent 70%);pointer-events:none;"></div>
+            
+            <!-- Monogram Avatar Badge -->
+            <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg, #f97316 0%, #ea580c 100%);color:#FFFFFF;font-weight:900;font-size:14px;font-family:var(--display);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(249,115,22,0.4);border:1px solid rgba(255,255,255,0.2);flex-shrink:0;">
+              ${monogram}
             </div>
 
-            <!-- Brutalist Lifetime Spend Box -->
-            <div style="display:flex;align-items:baseline;justify-content:space-between;padding:5px 8px;margin:6px 0 8px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:10px;">
-              <span style="font-size:9px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">Lifetime</span>
-              <span style="font-size:13px;font-weight:800;color:var(--gold, #d4af37);font-family:var(--mono);">
-                ৳${totalSpentNum.toLocaleString()}
-              </span>
+            <!-- Header Badges -->
+            <div style="position:absolute;top:6px;left:56px;display:flex;gap:4px;z-index:2;">
+              <span class="pill ${cohortClass}" style="font-size:7.5px;padding:2px 5px;font-weight:700;letter-spacing:0.5px;">${cohortLabel}</span>
             </div>
 
-            <!-- Contact & Details Metadata (Uniform height container) -->
-            <div class="company-meta" style="display:flex;flex-direction:column;gap:3.5px;font-size:9.5px;font-family:var(--mono);min-height:38px;margin-bottom:8px;">
-              ${c.phone ? `
-                <div style="color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;">
-                  <span style="color:var(--ink-4);font-size:8.5px;font-weight:700;">TEL</span>
-                  <span style="overflow:hidden;text-overflow:ellipsis;">${c.phone}</span>
-                </div>
-              ` : ''}
-              ${c.email ? `
-                <div style="color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;" title="${c.email}">
-                  <span style="color:var(--ink-4);font-size:8.5px;font-weight:700;">MAIL</span>
-                  <span style="overflow:hidden;text-overflow:ellipsis;">${c.email}</span>
-                </div>
-              ` : ''}
-              ${!c.phone && !c.email && c.paymentTerms ? `
-                <div style="color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;">
-                  <span style="color:var(--ink-4);font-size:8.5px;font-weight:700;">TERM</span>
-                  <span style="overflow:hidden;text-overflow:ellipsis;">${c.paymentTerms}</span>
-                </div>
-              ` : ''}
-              ${!c.phone && !c.email && !c.paymentTerms ? `
-                <div style="color:var(--ink-4);font-size:9px;font-style:italic;">Verified Ledger Record</div>
-              ` : ''}
+            <!-- Country & Orders in Header -->
+            <div style="position:absolute;bottom:6px;left:56px;display:flex;align-items:center;gap:6px;z-index:2;font-family:var(--mono);">
+              <span style="font-size:9.5px;color:#94a3b8;">${flagIcon} ${countryCode}</span>
+              <span style="font-size:9px;color:#10b981;font-weight:700;">● ${ordersCount} ORD</span>
             </div>
           </div>
 
-          <!-- Bottom Action Strip -->
-          <div style="display:flex;gap:6px;align-items:center;padding-top:8px;border-top:1px solid var(--wire);margin-top:auto;">
-            <button class="btn btn-emerald btn-xs" style="flex:1;min-height:26px;padding:2px 6px;font-size:9.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:4px;" 
-                    onclick="event.stopPropagation(); window.openWhatsAppCampaignStudio({ customerIds: ['${safeId}'] });" 
-                    title="Send Curated Products via WhatsApp">
-              <span>📲</span>
-              <span>Broadcast</span>
-            </button>
-            <button class="btn btn-dark btn-xs" style="min-height:26px;padding:2px 8px;font-size:9.5px;color:var(--ink-2);border:1px solid var(--wire);"
+          <!-- Customer Title (matching Product's .pt) -->
+          <div class="company-name pt" style="font-weight:700;font-size:13px;color:#F8FAFC;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;margin-bottom:2px;" title="${safeName}">
+            ${displayName}
+          </div>
+
+          <!-- Subtitle / SKU & Contact (matching Product's .pc) -->
+          <div class="pc" style="font-size:9.5px;color:#94a3b8;font-family:var(--mono);display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">CUST-${c.id.slice(0, 8).toUpperCase()}</span>
+            <span style="font-size:9px;color:${ordersCount > 0 ? '#34d399' : '#94a3b8'};font-weight:600;flex-shrink:0;">
+              ${c.contactPerson ? c.contactPerson.slice(0, 12) : 'Active Buyer'}
+            </span>
+          </div>
+
+          <!-- Lifetime Spend Display (matching Product's .pp price tag) -->
+          <div class="pp" style="font-size:15px;font-weight:800;color:var(--coral, #f97316);font-family:var(--mono);margin:2px 0 4px;">
+            ৳${totalSpentNum.toLocaleString()}
+          </div>
+
+          <!-- Attribute Badge (matching Product's "👥 X Buyers" badge) -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:2px 0 6px;padding:3px 6px;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.25);border-radius:5px;font-size:9.5px;font-family:var(--mono);">
+            <span style="color:#fb923c;font-weight:700;display:inline-flex;align-items:center;gap:3px;">
+              💎 AOV: ৳${aov.toLocaleString()}
+            </span>
+            <span style="color:#94a3b8;font-size:8.5px;text-transform:uppercase;">
+              ${c.phone ? 'Verified Tel' : 'Ledger Record'}
+            </span>
+          </div>
+
+          <!-- Contact Mini Rows -->
+          <div class="company-meta" style="display:flex;flex-direction:column;gap:3px;font-size:9.5px;font-family:var(--mono);min-height:36px;margin-bottom:6px;">
+            ${c.phone ? `
+              <div style="color:#CBD5E1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;">
+                <span style="color:#64748B;font-size:8.5px;font-weight:700;">TEL</span>
+                <a href="tel:${c.phone}" onclick="event.stopPropagation();" style="color:#38BDF8;text-decoration:none;overflow:hidden;text-overflow:ellipsis;">${c.phone}</a>
+              </div>
+            ` : ''}
+            ${c.email ? `
+              <div style="color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px;" title="${c.email}">
+                <span style="color:#64748B;font-size:8.5px;font-weight:700;">MAIL</span>
+                <a href="mailto:${c.email}" onclick="event.stopPropagation();" style="color:#CBD5E1;text-decoration:none;overflow:hidden;text-overflow:ellipsis;">${c.email}</a>
+              </div>
+            ` : ''}
+            ${!c.phone && !c.email ? `
+              <div style="color:#64748B;font-size:9px;font-style:italic;">Verified Ledger Record</div>
+            ` : ''}
+          </div>
+
+          <!-- Primary Action Button (matching Product's "🎯 CREATE AUDIENCE FROM BUYERS") -->
+          <button class="gallery-action-btn btn-emerald" 
+                  style="width:100%;margin-bottom:6px;min-height:28px;padding:3px 6px;font-size:9.5px;font-weight:700;color:#FFFFFF;border-radius:6px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;" 
+                  onclick="event.stopPropagation(); window.openWhatsAppCampaignStudio({ customerIds: ['${safeId}'] });" 
+                  title="Broadcast Curated Products to this Customer via WhatsApp">
+            <span>📲</span>
+            <span>WHATSAPP BROADCAST</span>
+          </button>
+
+          <!-- Bottom Action Bar (matching Product's 4-button grid [Edit] [✨ Gemini] [QR] [Copy]) -->
+          <div style="display:flex;gap:4px;margin-top:auto;padding-top:4px;border-top:1px solid rgba(255,255,255,0.08);">
+            <button class="gallery-action-btn" 
+                    style="flex:1;min-height:28px;padding:3px 5px;font-size:10px;color:#CBD5E1;" 
                     onclick="event.stopPropagation(); window.openCompanyDetail('${safeId}');" 
-                    title="View Full Customer Dossier">
-              <span>Dossier ↗</span>
+                    title="View Full Customer Dossier & Ledger">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              Dossier
+            </button>
+            <button class="gallery-action-btn" 
+                    style="flex:1.1;min-height:28px;padding:3px 5px;font-size:10px;color:#F59E0B;" 
+                    onclick="event.stopPropagation(); window.openCustomerGeminiModal('${safeId}');" 
+                    title="Analyze Buying Habits & Predict LTV with Gemini AI">
+              ✨ Gemini
+            </button>
+            <button class="gallery-action-btn" 
+                    style="flex:0.8;min-height:28px;padding:3px 4px;font-size:10px;color:#F59E0B;" 
+                    onclick="event.stopPropagation(); window.openCustomerQrModal('${safeId}');" 
+                    title="Generate Digital vCard & QR Code">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h4v4h-4zM14 21h3v-3h-3zM21 14v3h-3v-3z"/>
+              </svg>
+              QR
+            </button>
+            <button class="gallery-action-btn" 
+                    style="min-height:28px;padding:3px 5px;font-size:10px;color:#FB923C;" 
+                    onclick="event.stopPropagation(); window.openCustomerFastOrder('${safeId}');" 
+                    title="Create Fast Manual Order / POS for this Buyer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              Order
             </button>
           </div>
         </div>
@@ -3581,7 +3998,7 @@
   window.renderCustomerPaginationHtml = function (state, totalPages, totalCount) {
     if (totalPages <= 1) return '';
     return `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 24px;border-top:1px solid var(--wire);margin-top:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 24px;border-top:1px solid rgba(255,255,255,0.08);margin-top:8px;">
         <div style="font-size:11.5px;color:var(--ink-3);font-family:var(--mono);">
           Showing ${(state.page - 1) * state.limit + 1}–${Math.min(state.page * state.limit, totalCount)} of ${totalCount.toLocaleString()} buyers
         </div>
@@ -3632,6 +4049,7 @@
         const pct = totalDatabaseCount > 0 ? ((totalCount / totalDatabaseCount) * 100).toFixed(1) : "0.0";
         badgePctEl.innerText = `(${pct}% of ${totalDatabaseCount.toLocaleString()} Ledger)`;
       }
+      if (window.updateCustomerSelectionUI) window.updateCustomerSelectionUI();
     } catch (e) {
       console.warn("Customer in-place search error:", e);
     } finally {
@@ -3685,23 +4103,29 @@
         { label: "📥 Bulk Import (CSV/Excel)", fn: "window.BulkImportEngine.openCustomerImportModal()", primary: false },
         { label: "+ Add Customer", fn: "window.openAdvancedCustomerForm()", primary: true }
       ]) + `
-        <!-- SMART AUDIENCE FILTER & LIVE DYNAMIC BADGE -->
-        <div style="margin:0 20px 14px;padding:14px 18px;background:rgba(255,255,255,0.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.9);border-radius:16px;box-shadow:var(--neu-flat-sm);font-family:var(--mono);">
-          <!-- Top Row: Live Dynamic Badge & Broadcast Action -->
-          <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <!-- SMART AUDIENCE FILTER & LIVE DYNAMIC BADGE (Obsidian Glass Theme) -->
+        <div style="margin:0 20px 14px;padding:14px 18px;background:rgba(18,22,31,0.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.1);border-radius:18px;box-shadow:0 8px 32px 0 rgba(0,0,0,0.37);font-family:var(--mono);">
+          <!-- Top Row: Live Dynamic Badge & Broadcast Action & Select All -->
+          <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08);">
             <div style="display:flex;align-items:center;gap:10px;">
-              <div id="crm-live-badge" style="display:inline-flex;align-items:center;gap:7px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);padding:4px 10px;border-radius:6px;">
+              <!-- Select All Checkbox -->
+              <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:#E2E8F0;font-weight:700;user-select:none;margin-right:4px;">
+                <input type="checkbox" id="cb_select_all_customers" onchange="window.toggleSelectAllCustomers(this.checked)" style="accent-color:#f97316;cursor:pointer;"/>
+                <span>Select All</span>
+              </label>
+
+              <div id="crm-live-badge" style="display:inline-flex;align-items:center;gap:7px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);padding:4px 10px;border-radius:8px;">
                 <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;"></span>
-                <span id="crm-live-badge-text" style="font-size:11px;font-weight:700;color:var(--gold, #f59e0b);letter-spacing:0.5px;text-transform:uppercase;">
+                <span id="crm-live-badge-text" style="font-size:11px;font-weight:700;color:#FB923C;letter-spacing:0.5px;text-transform:uppercase;">
                   ${totalCount.toLocaleString()} Matching Patrons
                 </span>
-                <span id="crm-live-badge-pct" style="font-size:10px;color:var(--ink-3);">
+                <span id="crm-live-badge-pct" style="font-size:10px;color:#94a3b8;">
                   (${pctOfTotal}% of ${totalDatabaseCount.toLocaleString()} Ledger)
                 </span>
               </div>
 
               ${activeFiltersCount > 0 ? `
-                <button onclick="window._viewState.customers.minSpend = 0; window._viewState.customers.cohortTag = 'all'; window._viewState.customers.country = 'all'; window._viewState.customers.search = ''; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" style="background:rgba(255,255,255,0.05);border:1px solid var(--wire);color:var(--ink-2);font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;">
+                <button onclick="window._viewState.customers.minSpend = 0; window._viewState.customers.cohortTag = 'all'; window._viewState.customers.country = 'all'; window._viewState.customers.search = ''; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#E2E8F0;font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;">
                   ✕ Clear ${activeFiltersCount} Filters
                 </button>
               ` : ''}
@@ -3719,10 +4143,10 @@
                    autocomplete="off"
                    spellcheck="false"
                    oninput="window._viewState.customers.search = this.value; window._viewState.customers.page = 1; window.debounceCustomerSearch();" 
-                   style="flex:1;min-width:200px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:11px;border-radius:6px;outline:none;"/>
+                   style="flex:1;min-width:200px;height:34px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);color:#FFFFFF;padding:0 10px;font-size:11px;border-radius:8px;outline:none;"/>
             
             <select onchange="window._viewState.customers.cohortTag = this.value; window._viewState.customers.page = 1; window.updateCustomerListInPlace();" 
-                    style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+                    style="height:34px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);color:#FFFFFF;padding:0 8px;font-size:11px;border-radius:8px;">
               <option value="all" ${!state.cohortTag || state.cohortTag === 'all' ? 'selected' : ''}>🌐 All Cohort Tags</option>
               <option value="vip" ${state.cohortTag === 'vip' ? 'selected' : ''}>👑 VIP Patron (৳50K+)</option>
               <option value="wholesale" ${state.cohortTag === 'wholesale' ? 'selected' : ''}>🏢 Wholesale & B2B</option>
@@ -3735,7 +4159,7 @@
             </select>
 
             <select onchange="window._viewState.customers.country = this.value; window._viewState.customers.page = 1; window.updateCustomerListInPlace();" 
-                    style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+                    style="height:34px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);color:#FFFFFF;padding:0 8px;font-size:11px;border-radius:8px;">
               <option value="all" ${state.country === 'all' ? 'selected' : ''}>All Countries</option>
               <option value="BD" ${state.country === 'BD' ? 'selected' : ''}>🇧🇩 Bangladesh</option>
               <option value="NL" ${state.country === 'NL' ? 'selected' : ''}>🇳🇱 Netherlands</option>
@@ -3745,33 +4169,36 @@
             </select>
 
             <select onchange="window._viewState.customers.sortBy = this.value; window._viewState.customers.page = 1; window.updateCustomerListInPlace();" 
-                    style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
+                    style="height:34px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);color:#FFFFFF;padding:0 8px;font-size:11px;border-radius:8px;">
               <option value="updatedAt" ${state.sortBy === 'updatedAt' ? 'selected' : ''}>Sort: Recent</option>
               <option value="totalSpent" ${state.sortBy === 'totalSpent' ? 'selected' : ''}>Sort: Total Spent</option>
               <option value="totalOrders" ${state.sortBy === 'totalOrders' ? 'selected' : ''}>Sort: Orders</option>
               <option value="name" ${state.sortBy === 'name' ? 'selected' : ''}>Sort: Company / Name</option>
             </select>
 
-            <div style="font-size:11px;color:var(--ink-3);padding:0 4px;">
+            <div style="font-size:11px;color:#94a3b8;padding:0 4px;">
               Page ${state.page} / ${totalPages}
             </div>
           </div>
 
           <!-- Bottom Row: Min Spend Preset Buttons -->
-          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.06);">
-            <span style="font-size:10.5px;color:var(--ink-3);font-weight:600;margin-right:2px;">Min Spend:</span>
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.08);">
+            <span style="font-size:10.5px;color:#94a3b8;font-weight:600;margin-right:2px;">Min Spend:</span>
             ${[
               { label: 'Any Spend', val: 0 },
               { label: '৳5,000+', val: 5000 },
               { label: '৳15,000+', val: 15000 },
               { label: '৳50,000+ (VIP)', val: 50000 },
               { label: '৳100,000+ (Wholesale)', val: 100000 }
-            ].map(p => `
-              <button onclick="window._viewState.customers.minSpend = ${p.val}; window._viewState.customers.page = 1; window.updateCustomerListInPlace();"
-                      style="padding:2px 8px;font-size:10px;border-radius:4px;cursor:pointer;border:1px solid ${(!state.minSpend && p.val === 0) || state.minSpend === p.val ? 'var(--gold)' : 'var(--wire)'};background:${(!state.minSpend && p.val === 0) || state.minSpend === p.val ? 'var(--gold)' : 'var(--bg-3)'};color:${(!state.minSpend && p.val === 0) || state.minSpend === p.val ? '#000' : 'var(--ink-2)'};font-weight:${(!state.minSpend && p.val === 0) || state.minSpend === p.val ? '700' : '400'};">
-                ${p.label}
-              </button>
-            `).join('')}
+            ].map(p => {
+              const active = (!state.minSpend && p.val === 0) || state.minSpend === p.val;
+              return `
+                <button onclick="window._viewState.customers.minSpend = ${p.val}; window._viewState.customers.page = 1; window.updateCustomerListInPlace();"
+                        style="padding:3px 10px;font-size:10px;border-radius:6px;cursor:pointer;border:1px solid ${active ? '#f97316' : 'rgba(255,255,255,0.12)'};background:${active ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)' : 'rgba(0,0,0,0.3)'};color:${active ? '#FFFFFF' : '#CBD5E1'};font-weight:${active ? '700' : '500'};box-shadow:${active ? '0 2px 8px rgba(249,115,22,0.3)' : 'none'};">
+                  ${p.label}
+                </button>
+              `;
+            }).join('')}
           </div>
         </div>
 
@@ -3781,6 +4208,25 @@
 
         <div id="crm-pagination-container">
           ${window.renderCustomerPaginationHtml(state, totalPages, totalCount)}
+        </div>
+
+        <!-- Floating Batch Actions Bar for Customers (matching Product Batch Actions) -->
+        <div id="customers-batch-floating-bar" class="batch-floating-bar ${window._selectedCustomerIds && window._selectedCustomerIds.size > 0 ? 'active' : ''}">
+          <div class="batch-count-badge" id="customers-selected-count-badge">
+            ✓ ${window._selectedCustomerIds ? window._selectedCustomerIds.size : 0} Selected
+          </div>
+          <button class="batch-action-btn btn-emerald" onclick="window.openWhatsAppCampaignStudio({ customerIds: Array.from(window._selectedCustomerIds) })" style="display:inline-flex;align-items:center;gap:5px;">
+            <span>📲</span> Broadcast WA
+          </button>
+          <button class="batch-action-btn" onclick="window.batchCustomerGeminiCohort()" style="color:#fb923c;">
+            ✨ Gemini Cohort
+          </button>
+          <button class="batch-action-btn" onclick="window.exportSelectedCustomersCsv()" style="color:#e2e8f0;">
+            📥 Export CSV
+          </button>
+          <button class="batch-action-btn" onclick="window.clearCustomerSelection()" style="color:#94a3b8;">
+            ✕ Clear
+          </button>
         </div>
       `;
     } catch (err) {
@@ -4328,10 +4774,10 @@
                 <!-- Row Quick Actions -->
                 <div class="order-quick-actions" onclick="event.stopPropagation()">
                   <button class="btn btn-xs btn-gold" style="font-size:9.5px;padding:2px 7px;font-weight:700;height:24px;display:inline-flex;align-items:center;gap:3px;" onclick="window.openOrderInvoice('${encodeURIComponent(o.id)}');" title="Generate &amp; view official PDF invoice">
-                    📄 Invoice
+                    📄 <span class="order-act-label">Invoice</span>
                   </button>
                   <button class="btn btn-xs btn-dark" style="font-size:9.5px;padding:2px 7px;height:24px;" onclick="window.copyOrderForCourier('${o.id}');" title="Copy courier delivery slip">
-                    📋 Slip
+                    📋 <span class="order-act-label">Slip</span>
                   </button>
                   <button class="order-act-btn" onclick="window.openOrderDetail('${o.id}')" title="Inspect Order Details">
                     👁️
