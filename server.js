@@ -19,13 +19,21 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Force global no-cache headers on all routes to prevent client-side ghosting/cache desync
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // Health check endpoint for Cloud Run startup and liveness probes
 app.get(['/health', '/api/health', '/_health'], (req, res) => {
   res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    port: 3000,
+    port: parseInt(process.env.PORT, 10) || 8080,
   });
 });
 
@@ -4548,40 +4556,52 @@ app.post('/api/functions/callGemini', async (req, res) => {
   }
 });
 
-app.use(express.static(__dirname));
+app.use(express.static(__dirname, {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  },
+}));
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ ok: false, error: `API route not found: ${req.path}` });
   }
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const PORT = 3000;
 const host = '0.0.0.0';
+const internalPort = 3000;
+const cloudRunPort = parseInt(process.env.PORT, 10) || 8080;
 
-// Primary listener on port 3000 (standard ingress port for AI Studio container proxy)
-const primaryServer = app.listen(PORT, host, () => {
-  console.log(`[NexOS] Server active and listening on http://${host}:${PORT}`);
+// 1. Primary listener on port 3000 (standard ingress port for AI Studio container proxy)
+const primaryServer = app.listen(internalPort, host, () => {
+  console.log(`[NexOS] Container proxy ingress active on http://${host}:${internalPort}`);
 });
 
 primaryServer.on('error', (err) => {
-  console.error('[NexOS] Primary server listener error on port 3000:', err);
+  if (err.code !== 'EADDRINUSE') {
+    console.error('[NexOS] Primary server listener error on port 3000:', err);
+  }
 });
 
-// If Cloud Run sets PORT to something other than 3000 (e.g. 8080 in standalone mode),
-// also bind to that port concurrently so Cloud Run direct health checks pass instantly.
-const envPort = process.env.PORT ? parseInt(process.env.PORT, 10) : null;
-if (envPort && envPort !== PORT) {
+// 2. Dynamic listener on process.env.PORT || 8080 (required for Cloud Run direct health checks)
+if (cloudRunPort !== internalPort) {
   try {
-    const directServer = app.listen(envPort, host, () => {
-      console.log(`[NexOS] Cloud Run direct listener active on http://${host}:${envPort}`);
+    const directServer = app.listen(cloudRunPort, host, () => {
+      console.log(`[NexOS] Cloud Run dynamic listener active on http://${host}:${cloudRunPort}`);
     });
     directServer.on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
-        console.log(`[NexOS] Port ${envPort} occupied by container reverse proxy; traffic routed to internal port ${PORT}.`);
+        console.log(`[NexOS] Port ${cloudRunPort} bound by container ingress proxy; traffic routed to internal port ${internalPort}.`);
       } else {
-        console.warn(`[NexOS] Secondary listener notice on port ${envPort}:`, err.message);
+        console.warn(`[NexOS] Secondary listener notice on port ${cloudRunPort}:`, err.message);
       }
     });
   } catch (listenErr) {

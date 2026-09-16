@@ -8,7 +8,7 @@
     "postinstall": "prisma generate || true",
     "build": "(prisma generate || true) && esbuild lib/supplierStorage.ts --outfile=lib/supplierStorage.js --format=esm --platform=node && esbuild scripts/sync-suppliers.ts --outfile=scripts/sync-suppliers.js --format=esm --platform=node --bundle --external:express --external:axios --external:cheerio --external:@prisma/client && esbuild src/main.tsx --bundle --outfile=js/react-app.bundle.js --format=iife --minify --target=chrome100,firefox100,safari15",
     "lint": "echo 'No lint errors'",
-    "start": "node server.js"
+    "start": "node server.ts"
   },
   "dependencies": {
     "@google/genai": "^2.20.0",
