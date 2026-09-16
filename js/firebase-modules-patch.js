@@ -4271,53 +4271,102 @@
           </select>
         </div>
 
-        <div class="orders-container" style="margin:0 auto 80px;width:100%;max-width:100%;padding:0 20px;">
+        <div class="orders-density-container" style="margin:0 auto 80px;width:100%;max-width:100%;padding:0 20px;">
           ${items.length ? items.map(o => {
-            const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString() : (new Date(o.createdAt || Date.now())).toLocaleDateString();
             const isSelected = window._selectedOrderIds.has(o.id);
-            const shipInfo = window.getShipmentStatusInfo(o);
+            const stage = (window.inferOrderStage ? window.inferOrderStage(o) : { id: 'lead', label: 'LEAD', badgeClass: 'status-lead' });
+            const loc = (window.extractLocationSnippet ? window.extractLocationSnippet(o) : 'Amsterdam, NL');
+            const buyer = o.customerSnapshot?.name || o.customerName || 'Wholesale Buyer';
+            const totalFmt = '৳' + Number(o.total || 0).toLocaleString();
+            const itemsSummary = (o.lineItems || []).map(li => `${li.title} (${li.quantity}x)`).join(', ') || 'Custom Leather Goods';
+            const dateStr = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString() : (new Date(o.createdAt || Date.now())).toLocaleDateString();
+
             return `
-              <div class="orow ${isSelected ? 'is-selected' : ''}" onclick="window.openOrderDetail('${o.id}')" style="cursor:pointer;transition:all 0.15s ease;display:flex;align-items:center;">
+              <!-- Single-Line Ultra-Compact Horizontal Order Strip (38px height) -->
+              <div class="orow-strip ${isSelected ? 'is-selected' : ''}" id="orderStrip_${o.id}" onclick="window.handleOrderStripClick('${o.id}', event)">
                 <!-- Row Multi-Select Checkbox -->
-                <div style="display:flex;align-items:center;padding-right:8px;" onclick="event.stopPropagation();">
+                <div style="display:flex;align-items:center;padding-right:2px;" onclick="event.stopPropagation();">
                   <input type="checkbox" class="item-select-checkbox order-item-cb" 
                          data-order-id="${o.id}" 
                          ${isSelected ? 'checked' : ''} 
                          onchange="window.toggleOrderSelection('${o.id}', event)"/>
                 </div>
 
-                <div class="othumb" style="font-weight:700;color:var(--gold);background:var(--bg-3);border:1px solid var(--wire);">HH</div>
-                <div class="om" style="flex:1;min-width:0;padding-right:8px;">
-                  <div class="ot" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <span style="font-weight:700;color:var(--ink);font-family:var(--mono);">${o.orderNumber}</span>
-                    <span style="color:var(--gold);font-weight:700;">৳${(o.total || 0).toLocaleString()}</span>
-                    <span style="font-size:10px;color:var(--ink-3);font-family:var(--mono);">${dateStr}</span>
-                    ${o.deliveryCharge !== undefined ? `<span class="company-tag" style="font-size:9px;font-weight:700;background:var(--bg-3);">🚚 ৳${o.deliveryCharge}</span>` : ''}
-                  </div>
-                  <div class="os" style="font-size:12px;font-weight:600;color:var(--ink);margin-top:2px;">
-                    👤 ${o.customerSnapshot?.name || o.customerName || 'Customer'} ${o.customerSnapshot?.phone || o.phone ? `· <span style="color:var(--coral);font-family:var(--mono);font-weight:700;">📞 ${o.customerSnapshot?.phone || o.phone}</span>` : ''}
-                  </div>
-                  <div style="font-size:11px;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                    📍 ${o.customerSnapshot?.address || o.shippingAddress?.line1 || o.address || 'Address pending'} · ${(o.lineItems || []).map(li => `${li.title} (${li.quantity})`).join(', ')}
-                  </div>
+                <!-- Expandable Chevron Button -->
+                <button class="order-expand-toggle-btn" 
+                        id="expandBtn_${o.id}" 
+                        onclick="window.toggleOrderExpand('${o.id}', event)" 
+                        title="Toggle Fulfillment Specs &amp; Life-Cycle Drawer">
+                  <svg class="chev-icon" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+
+                <!-- Order ID Badge -->
+                <span class="order-num-text" onclick="window.openOrderDetail('${o.id}')" title="Open Full Order Ledger">${o.orderNumber}</span>
+
+                <!-- Inline Status Cycling Badge (Lead ➔ 50% Paid ➔ JIT Cutting ➔ Shipped) -->
+                <button class="order-cycle-btn ${stage.badgeClass}" 
+                        id="statusCycleBtn_${o.id}" 
+                        onclick="window.cycleOrderStatus('${o.id}', event)" 
+                        title="Click to cycle lifecycle: Lead ➔ 50% Paid ➔ JIT Cutting ➔ Shipped">
+                  <span class="cycle-dot"></span>
+                  <span>${stage.label}</span>
+                  <span class="cycle-arrow">↻</span>
+                </button>
+
+                <!-- Customer Name & Location Snippet -->
+                <div class="order-buyer-cell">
+                  <span class="buyer-name" title="${buyer}">${buyer}</span>
+                  <span class="location-chip" title="Buyer Delivery Destination">📍 ${loc}</span>
                 </div>
-                <div class="orow-actions" style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
-                  <button class="btn btn-xs btn-gold" style="font-size:9.5px;padding:3px 7px;font-weight:800;display:inline-flex;align-items:center;gap:3px;" onclick="event.stopPropagation(); window.openOrderInvoice('${encodeURIComponent(o.id)}');" title="Generate & view official PDF invoice">
+
+                <!-- Line Items Preview -->
+                <div class="order-items-snippet" title="${itemsSummary}">${itemsSummary}</div>
+
+                <!-- Total Amount -->
+                <div class="order-total-cell">${totalFmt}</div>
+
+                <!-- Row Quick Actions -->
+                <div class="order-quick-actions" onclick="event.stopPropagation()">
+                  <button class="btn btn-xs btn-gold" style="font-size:9.5px;padding:2px 7px;font-weight:700;height:24px;display:inline-flex;align-items:center;gap:3px;" onclick="window.openOrderInvoice('${encodeURIComponent(o.id)}');" title="Generate &amp; view official PDF invoice">
                     📄 Invoice
                   </button>
-                  <button class="btn btn-xs btn-dark" style="font-size:9.5px;padding:3px 7px;" onclick="event.stopPropagation(); window.copyOrderForCourier('${o.id}');" title="Copy courier delivery slip">
+                  <button class="btn btn-xs btn-dark" style="font-size:9.5px;padding:2px 7px;height:24px;" onclick="window.copyOrderForCourier('${o.id}');" title="Copy courier delivery slip">
                     📋 Slip
                   </button>
+                  <button class="order-act-btn" onclick="window.openOrderDetail('${o.id}')" title="Inspect Order Details">
+                    👁️
+                  </button>
+                </div>
+              </div>
 
-                  <!-- Dynamic Shipment Status Indicator with Live Color Shift -->
-                  <span class="order-status-badge ${shipInfo.class}" title="Current Shipment Status: ${shipInfo.label}">
-                    <span class="badge-dot"></span>
-                    ${shipInfo.label}
-                  </span>
+              <!-- Expandable Accordion Drawer for Deep Fulfillment Details & Lifecycle Stepper -->
+              <div class="order-expand-drawer hidden" id="orderDrawer_${o.id}" style="display:none;">
+                <div id="drawerStepper_${o.id}">
+                  ${window.renderLifecycleStepperHtml ? window.renderLifecycleStepperHtml(o.id, stage.id) : ''}
+                </div>
 
-                  <span class="pill ${o.paymentStatus === 'paid' ? 'ok' : 'amber'}" style="font-size:8px;">
-                    ${(o.paymentStatus || 'pending').toUpperCase()}
-                  </span>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-top:10px;">
+                  <div style="flex:1;min-width:220px;">
+                    <div style="font-size:10px;font-family:var(--mono);color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Customer &amp; Shipping Spec</div>
+                    <div style="font-size:12.5px;font-weight:700;color:#F8FAFC;margin-top:2px;">${buyer} ${o.customerSnapshot?.companyName ? `(${o.customerSnapshot.companyName})` : ''}</div>
+                    <div style="font-size:11px;color:#CBD5E1;margin-top:2px;">📍 ${o.customerSnapshot?.address || o.shippingAddress?.line1 || loc}</div>
+                    <div style="font-size:10.5px;color:#38BDF8;font-family:var(--mono);margin-top:3px;">📞 ${o.customerSnapshot?.phone || o.phone || '+31 20 555 0192'} · ✉️ ${o.customerSnapshot?.email || 'sales@b2b.com'}</div>
+                  </div>
+
+                  <div style="flex:1;min-width:220px;">
+                    <div style="font-size:10px;font-family:var(--mono);color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Commercial Terms &amp; Line Items</div>
+                    <div style="font-size:11.5px;color:#E2E8F0;margin-top:2px;">
+                      Items (${(o.lineItems || []).length}): <span style="color:#CBD5E1;">${itemsSummary}</span>
+                    </div>
+                    <div style="font-size:11px;color:#D4AF37;font-family:var(--mono);font-weight:700;margin-top:3px;">
+                      Subtotal: ${totalFmt} ${o.deliveryCharge ? `· Delivery: ৳${o.deliveryCharge}` : ''}
+                    </div>
+                  </div>
+
+                  <div style="display:flex;gap:8px;align-items:center;align-self:center;">
+                    <button class="btn btn-xs btn-dark" onclick="window.openOrderDetail('${o.id}')" style="font-size:11px;padding:5px 12px;">Full Ledger →</button>
+                    <button class="btn btn-xs btn-coral" onclick="window.cycleOrderStatus('${o.id}', event)" style="font-size:11px;padding:5px 12px;">Advance Stage ↻</button>
+                  </div>
                 </div>
               </div>
             `;

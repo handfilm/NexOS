@@ -35,7 +35,8 @@ window.OrdersService = {
       {
         id: "ord-849201",
         orderNumber: "HH-849201",
-        customerSnapshot: { name: "Amsterdam Leather Atelier", companyName: "Amsterdam Leather Atelier", email: "procurement@leather-amsterdam.nl", country: "NL", currency: "BDT" },
+        customerName: "Amsterdam Leather Atelier",
+        customerSnapshot: { name: "Amsterdam Leather Atelier", companyName: "Amsterdam Leather Atelier", email: "procurement@leather-amsterdam.nl", country: "NL", city: "Amsterdam", address: "Singel 382, 1016 AK Amsterdam, Netherlands", phone: "+31 20 555 0192", currency: "BDT" },
         lineItems: [
           { title: "Full-Grain Leather Bi-Fold Wallet", sku: "HH-WLT-01", price: 2850, quantity: 10, lineTotal: 28500 },
           { title: "Executive Leather Weekender Duffel", sku: "HH-BAG-04", price: 16500, quantity: 1, lineTotal: 16500 }
@@ -45,16 +46,18 @@ window.OrdersService = {
         shippingTotal: 0,
         taxTotal: 0,
         total: 45000,
+        lifecycleStage: "50_paid",
         paymentStatus: "paid",
-        fulfillmentStatus: "unfulfilled",
+        fulfillmentStatus: "in_production",
         status: "open",
         createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-        timeline: [{ event: "Order placed & verified", at: new Date(Date.now() - 3600000 * 2).toISOString(), by: "Operator" }]
+        timeline: [{ event: "Order placed & 50% deposit secured", at: new Date(Date.now() - 3600000 * 2).toISOString(), by: "Operator" }]
       },
       {
         id: "ord-731920",
         orderNumber: "HH-731920",
-        customerSnapshot: { name: "Berlin Concept Store", companyName: "Berlin Concept Store", email: "hamburg@nordicfashion.de", country: "DE", currency: "BDT" },
+        customerName: "Berlin Concept Store",
+        customerSnapshot: { name: "Berlin Concept Store", companyName: "Berlin Concept Store", email: "hamburg@nordicfashion.de", country: "DE", city: "Berlin", address: "Friedrichstraße 140, 10117 Berlin, Germany", phone: "+49 30 2849 0122", currency: "BDT" },
         lineItems: [
           { title: "Executive Leather Briefcase", sku: "HH-BRF-02", price: 18500, quantity: 3, lineTotal: 55500 },
           { title: "Classic Full-Grain Dress Belt", sku: "HH-BLT-01", price: 2250, quantity: 12, lineTotal: 27000 }
@@ -64,16 +67,18 @@ window.OrdersService = {
         shippingTotal: 0,
         taxTotal: 0,
         total: 82500,
+        lifecycleStage: "jit_cutting",
         paymentStatus: "paid",
-        fulfillmentStatus: "unfulfilled",
+        fulfillmentStatus: "in_production",
         status: "open",
         createdAt: new Date(Date.now() - 86400000).toISOString(),
-        timeline: [{ event: "Order confirmed for EU air freight", at: new Date(Date.now() - 86400000).toISOString(), by: "Operator" }]
+        timeline: [{ event: "Issued to JIT Floor for cutting", at: new Date(Date.now() - 86400000).toISOString(), by: "Floor Mgr" }]
       },
       {
         id: "ord-592810",
         orderNumber: "HH-592810",
-        customerSnapshot: { name: "London Retail Group", companyName: "London Retail Group", email: "orders@londonretail.co.uk", country: "GB", currency: "BDT" },
+        customerName: "London Retail Group",
+        customerSnapshot: { name: "London Retail Group", companyName: "London Retail Group", email: "orders@londonretail.co.uk", country: "GB", city: "London", address: "42 Regent Street, London W1B 5AH, UK", phone: "+44 20 7946 0912", currency: "BDT" },
         lineItems: [
           { title: "Heritage Leather Backpack", sku: "HH-BPK-01", price: 14500, quantity: 6, lineTotal: 87000 },
           { title: "Minimalist Leather Card Holder", sku: "HH-CRD-03", price: 1250, quantity: 20, lineTotal: 25000 }
@@ -83,11 +88,237 @@ window.OrdersService = {
         shippingTotal: 16000,
         taxTotal: 0,
         total: 128000,
+        lifecycleStage: "shipped",
         paymentStatus: "paid",
         fulfillmentStatus: "fulfilled",
         status: "completed",
         createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-        timeline: [{ event: "Delivered via DHL Express", at: new Date(Date.now() - 86400000 * 2).toISOString(), by: "DHL Carrier" }]
+        timeline: [{ event: "Air freight dispatch via DHL Express", at: new Date(Date.now() - 86400000 * 2).toISOString(), by: "Logistics" }]
+      },
+      {
+        id: "ord-492105",
+        orderNumber: "HH-492105",
+        customerName: "Scandinavian Leather Lab",
+        customerSnapshot: { name: "Scandinavian Leather Lab", companyName: "Nordic Design AB", email: "buyer@scandileather.se", country: "SE", city: "Stockholm", address: "Drottninggatan 88, 111 36 Stockholm, Sweden", phone: "+46 8 123 4567", currency: "BDT" },
+        lineItems: [
+          { title: "Minimalist Leather Card Holder", sku: "HH-CRD-03", price: 1250, quantity: 20, lineTotal: 25000 },
+          { title: "Full-Grain Key Lanyard", sku: "HH-ACC-01", price: 550, quantity: 20, lineTotal: 11000 }
+        ],
+        subtotal: 36000,
+        discountTotal: 0,
+        shippingTotal: 0,
+        taxTotal: 0,
+        total: 36000,
+        lifecycleStage: "lead",
+        paymentStatus: "pending",
+        fulfillmentStatus: "unfulfilled",
+        status: "open",
+        createdAt: new Date(Date.now() - 86400000 * 4).toISOString(),
+        timeline: [{ event: "Inbound B2B wholesale quotation", at: new Date(Date.now() - 86400000 * 4).toISOString(), by: "Portal" }]
+      },
+      {
+        id: "ord-382910",
+        orderNumber: "HH-382910",
+        customerName: "Parisian Luxury Goods",
+        customerSnapshot: { name: "Parisian Luxury Goods", companyName: "Atelier Saint-Honoré", email: "achats@saint-honore.fr", country: "FR", city: "Paris", address: "24 Rue Saint-Honoré, 75001 Paris, France", phone: "+33 1 42 68 55 00", currency: "BDT" },
+        lineItems: [
+          { title: "Executive Leather Weekender Duffel", sku: "HH-BAG-04", price: 16500, quantity: 6, lineTotal: 99000 },
+          { title: "Passport Wallet Travel Folio", sku: "HH-TRV-02", price: 4000, quantity: 4, lineTotal: 16000 }
+        ],
+        subtotal: 115000,
+        discountTotal: 0,
+        shippingTotal: 0,
+        taxTotal: 0,
+        total: 115000,
+        lifecycleStage: "50_paid",
+        paymentStatus: "paid",
+        fulfillmentStatus: "in_production",
+        status: "open",
+        createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+        timeline: [{ event: "Escrow received. Ready for JIT cutting queue", at: new Date(Date.now() - 86400000 * 5).toISOString(), by: "Escrow" }]
+      },
+      {
+        id: "ord-291024",
+        orderNumber: "HH-291024",
+        customerName: "Milanese Craft Co.",
+        customerSnapshot: { name: "Milanese Craft Co.", companyName: "Pelletteria Milano SpA", email: "ordini@pelletteriamilano.it", country: "IT", city: "Milan", address: "Via Monte Napoleone 12, 20121 Milano, Italy", phone: "+39 02 8765 4321", currency: "BDT" },
+        lineItems: [
+          { title: "Classic Full-Grain Dress Belt", sku: "HH-BLT-01", price: 2250, quantity: 25, lineTotal: 56250 },
+          { title: "Slim Leather Card Case", sku: "HH-CRD-01", price: 775, quantity: 10, lineTotal: 7750 }
+        ],
+        subtotal: 64000,
+        discountTotal: 0,
+        shippingTotal: 0,
+        taxTotal: 0,
+        total: 64000,
+        lifecycleStage: "jit_cutting",
+        paymentStatus: "paid",
+        fulfillmentStatus: "in_production",
+        status: "open",
+        createdAt: new Date(Date.now() - 86400000 * 6).toISOString(),
+        timeline: [{ event: "Laser cutting completed", at: new Date(Date.now() - 86400000 * 6).toISOString(), by: "Floor CNC" }]
+      },
+      {
+        id: "ord-182903",
+        orderNumber: "HH-182903",
+        customerName: "Madrid Artisan Hub",
+        customerSnapshot: { name: "Madrid Artisan Hub", companyName: "Iberian Leather Goods SL", email: "compras@iberianleather.es", country: "ES", city: "Madrid", address: "Calle Gran Vía 28, 28013 Madrid, Spain", phone: "+34 91 555 4321", currency: "BDT" },
+        lineItems: [
+          { title: "Full-Grain Leather Tote Bag", sku: "HH-BAG-02", price: 3600, quantity: 15, lineTotal: 54000 }
+        ],
+        subtotal: 54000,
+        discountTotal: 0,
+        shippingTotal: 0,
+        taxTotal: 0,
+        total: 54000,
+        lifecycleStage: "shipped",
+        paymentStatus: "paid",
+        fulfillmentStatus: "fulfilled",
+        status: "completed",
+        createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
+        timeline: [{ event: "Dispatched with tracking ES-8492048", at: new Date(Date.now() - 86400000 * 7).toISOString(), by: "Courier" }]
+      },
+      {
+        id: "ord-910284",
+        orderNumber: "HH-910284",
+        customerName: "Zurich Leather Works",
+        customerSnapshot: { name: "Zurich Leather Works", companyName: "Helvetia Goods AG", email: "contact@helvetiagoods.ch", country: "CH", city: "Zurich", address: "Bahnhofstrasse 45, 8001 Zürich, Switzerland", phone: "+41 44 211 5500", currency: "BDT" },
+        lineItems: [
+          { title: "Executive Leather Briefcase", sku: "HH-BRF-02", price: 18500, quantity: 4, lineTotal: 74000 },
+          { title: "Leather Bi-Fold Wallet", sku: "HH-WLT-01", price: 2850, quantity: 6, lineTotal: 17100 }
+        ],
+        subtotal: 92000,
+        discountTotal: 0,
+        shippingTotal: 0,
+        taxTotal: 0,
+        total: 92000,
+        lifecycleStage: "50_paid",
+        paymentStatus: "paid",
+        fulfillmentStatus: "in_production",
+        status: "open",
+        createdAt: new Date(Date.now() - 86400000 * 8).toISOString(),
+        timeline: [{ event: "Advance wire transfer settled", at: new Date(Date.now() - 86400000 * 8).toISOString(), by: "Accounting" }]
+      },
+      {
+        id: "ord-801923",
+        orderNumber: "HH-801923",
+        customerName: "Tokyo Minimalist Store",
+        customerSnapshot: { name: "Tokyo Minimalist Store", companyName: "Shibuya Retail Corp", email: "procurement@shibuyaretail.jp", country: "JP", city: "Tokyo", address: "1-22-8 Shibuya, Shibuya-ku, Tokyo 150-0002, Japan", phone: "+81 3 3461 1100", currency: "BDT" },
+        lineItems: [
+          { title: "Minimalist Leather Card Holder", sku: "HH-CRD-03", price: 1250, quantity: 40, lineTotal: 50000 },
+          { title: "Full-Grain Leather Bi-Fold Wallet", sku: "HH-WLT-01", price: 2850, quantity: 30, lineTotal: 85500 }
+        ],
+        subtotal: 148000,
+        discountTotal: 0,
+        shippingTotal: 0,
+        taxTotal: 0,
+        total: 148000,
+        lifecycleStage: "jit_cutting",
+        paymentStatus: "paid",
+        fulfillmentStatus: "in_production",
+        status: "open",
+        createdAt: new Date(Date.now() - 86400000 * 9).toISOString(),
+        timeline: [{ event: "JIT assembly bench assigned", at: new Date(Date.now() - 86400000 * 9).toISOString(), by: "Production" }]
+      },
+      {
+        id: "ord-712839",
+        orderNumber: "HH-712839",
+        customerName: "BayXBengal Wholesalers",
+        customerSnapshot: { name: "BayXBengal Wholesalers", companyName: "BayXBengal Exporters Ltd", email: "export@bayxbengal.com", country: "BD", city: "Dhaka", address: "House 14, Road 7, Sector 3, Uttara, Dhaka-1230, Bangladesh", phone: "+880 1711 987654", currency: "BDT" },
+        lineItems: [
+          { title: "Raw Vegetable-Tanned Sides", sku: "HH-RAW-01", price: 4300, quantity: 50, lineTotal: 215000 }
+        ],
+        subtotal: 215000,
+        discountTotal: 0,
+        shippingTotal: 5000,
+        taxTotal: 0,
+        total: 220000,
+        lifecycleStage: "shipped",
+        paymentStatus: "paid",
+        fulfillmentStatus: "fulfilled",
+        status: "completed",
+        createdAt: new Date(Date.now() - 86400000 * 10).toISOString(),
+        timeline: [{ event: "Container manifest cleared customs", at: new Date(Date.now() - 86400000 * 10).toISOString(), by: "Customs Hub" }]
+      },
+      {
+        id: "ord-623910",
+        orderNumber: "HH-623910",
+        customerName: "Dubai Luxury Haberdashery",
+        customerSnapshot: { name: "Dubai Luxury Haberdashery", companyName: "Emirates Premier Gift FZE", email: "concierge@emiratesgift.ae", country: "AE", city: "Dubai", address: "DIFC Gate Precinct 4, Level 5, Dubai, UAE", phone: "+971 4 362 7000", currency: "BDT" },
+        lineItems: [
+          { title: "Gold-Foil Embossed Leather Folio", sku: "HH-CORP-01", price: 3120, quantity: 25, lineTotal: 78000 }
+        ],
+        subtotal: 78000,
+        discountTotal: 0,
+        shippingTotal: 0,
+        taxTotal: 0,
+        total: 78000,
+        lifecycleStage: "lead",
+        paymentStatus: "pending",
+        fulfillmentStatus: "unfulfilled",
+        status: "open",
+        createdAt: new Date(Date.now() - 86400000 * 11).toISOString(),
+        timeline: [{ event: "Bespoke monogramming quotation requested", at: new Date(Date.now() - 86400000 * 11).toISOString(), by: "Corporate RFQ" }]
+      },
+      {
+        id: "ord-534821",
+        orderNumber: "HH-534821",
+        customerName: "Manhattan Leather & Co",
+        customerSnapshot: { name: "Manhattan Leather & Co", companyName: "Gotham Mercantile LLC", email: "wholesale@gothamb2b.com", country: "US", city: "New York", address: "594 Broadway, Suite 801, New York, NY 10012, USA", phone: "+1 212 555 0184", currency: "BDT" },
+        lineItems: [
+          { title: "Full-Grain Leather Messenger Bag", sku: "HH-BAG-06", price: 16500, quantity: 10, lineTotal: 165000 }
+        ],
+        subtotal: 165000,
+        discountTotal: 0,
+        shippingTotal: 0,
+        taxTotal: 0,
+        total: 165000,
+        lifecycleStage: "50_paid",
+        paymentStatus: "paid",
+        fulfillmentStatus: "in_production",
+        status: "open",
+        createdAt: new Date(Date.now() - 86400000 * 12).toISOString(),
+        timeline: [{ event: "50% deposit received via Stripe B2B", at: new Date(Date.now() - 86400000 * 12).toISOString(), by: "Stripe" }]
+      },
+      {
+        id: "ord-445732",
+        orderNumber: "HH-445732",
+        customerName: "Melbourne Artisan Guild",
+        customerSnapshot: { name: "Melbourne Artisan Guild", companyName: "Flinders Craft Guild", email: "orders@flinderscraft.com.au", country: "AU", city: "Melbourne", address: "120 Flinders Lane, Melbourne VIC 3000, Australia", phone: "+61 3 9654 8800", currency: "BDT" },
+        lineItems: [
+          { title: "Leather Laptop Sleeve 14-inch", sku: "HH-SLV-01", price: 1933, quantity: 30, lineTotal: 58000 }
+        ],
+        subtotal: 58000,
+        discountTotal: 0,
+        shippingTotal: 0,
+        taxTotal: 0,
+        total: 58000,
+        lifecycleStage: "jit_cutting",
+        paymentStatus: "paid",
+        fulfillmentStatus: "in_production",
+        status: "open",
+        createdAt: new Date(Date.now() - 86400000 * 13).toISOString(),
+        timeline: [{ event: "JIT cutting commenced", at: new Date(Date.now() - 86400000 * 13).toISOString(), by: "Floor Ops" }]
+      },
+      {
+        id: "ord-356843",
+        orderNumber: "HH-356843",
+        customerName: "Dublin Heritage Goods",
+        customerSnapshot: { name: "Dublin Heritage Goods", companyName: "Trinity Goods Ltd", email: "import@trinitygoods.ie", country: "IE", city: "Dublin", address: "15 Grafton Street, Dublin 2, Ireland", phone: "+353 1 496 1122", currency: "BDT" },
+        lineItems: [
+          { title: "Executive Leather Weekender Duffel", sku: "HH-BAG-04", price: 14000, quantity: 3, lineTotal: 42000 }
+        ],
+        subtotal: 42000,
+        discountTotal: 0,
+        shippingTotal: 0,
+        taxTotal: 0,
+        total: 42000,
+        lifecycleStage: "shipped",
+        paymentStatus: "paid",
+        fulfillmentStatus: "fulfilled",
+        status: "completed",
+        createdAt: new Date(Date.now() - 86400000 * 14).toISOString(),
+        timeline: [{ event: "Delivered to consignee Dublin port", at: new Date(Date.now() - 86400000 * 14).toISOString(), by: "DHL Carrier" }]
       }
     ];
   },

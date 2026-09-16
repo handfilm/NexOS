@@ -240,18 +240,116 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   </div>
 
   <div class="tbar-right">
-    <button class="tbar-btn tbar-suppliers-btn" onclick="if(window.openSuppliersManagement) window.openSuppliersManagement(); else if(window.openAppModule) window.openAppModule('SuppliersManagementDashboard');" title="Garment Exporters Registry (BayXBengal Scraped)" style="display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 10px;color:#38BDF8;border:1px solid #1E222B;background:#0D0E12;border-radius:6px;cursor:pointer;transition:background 0.2s;">
-      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M3 21h18M3 7v14M21 7v14M6 21V11M10 21V11M14 21V11M18 21V11M12 3l9 4H3l9-4z"/></svg>
-      <span class="tbar-suppliers-text" style="letter-spacing:0.5px;">SUPPLIERS</span>
-    </button>
-    <button class="tbar-btn tbar-factory-btn" onclick="openAppModule('FactorySlaFloorTracker')" title="Factory Floor & SLA Monitor" style="display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 10px;color:#00E599;border:1px solid #1E222B;background:#0D0E12;border-radius:6px;cursor:pointer;transition:background 0.2s;">
-      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg>
-      <span class="tbar-factory-text" style="letter-spacing:0.5px;">FACTORY SLA</span>
-    </button>
-    <button class="tbar-btn tbar-logistics-btn" onclick="openAppModule('LogisticsSettlementHub')" title="Logistics & COD Settlement Dock" style="display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 10px;color:#FF4400;border:1px solid #1E222B;background:#0D0E12;border-radius:6px;cursor:pointer;transition:background 0.2s;">
-      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-      <span class="tbar-logistics-text" style="letter-spacing:0.5px;">LOGISTICS &amp; SETTLEMENT</span>
-    </button>
+    <!-- Consolidated Operations Dropdown Menu -->
+    <div class="operations-dropdown-wrap" id="operationsDropdownWrap">
+      <button class="tbar-btn operations-btn" id="operationsBtn" onclick="window.toggleOperationsDropdown(event)" title="Operations &amp; Logistics Hub" aria-haspopup="true" aria-expanded="false">
+        <svg viewBox="0 0 24 24" class="ops-icon-layer" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        <span class="operations-text" style="letter-spacing:0.5px;font-family:var(--mono);font-size:11px;font-weight:700;">OPERATIONS</span>
+        <svg viewBox="0 0 24 24" class="ops-icon-chev" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;margin-left:2px;"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="operations-dropdown-menu" id="operationsDropdownMenu" style="display:none;">
+        <div class="ops-menu-inner">
+          <div class="ops-section-head">
+            <span class="ops-head-title">DIRECTORY</span>
+            <span class="ops-head-badge">REGISTRY</span>
+          </div>
+          <div class="ops-item" onclick="window.handleOpsSelect('Suppliers')">
+            <div class="ops-item-icon" style="background:rgba(56,189,248,0.12);color:#38BDF8;">
+              <svg viewBox="0 0 24 24"><path d="M3 21h18M3 7v14M21 7v14M6 21V11M10 21V11M14 21V11M18 21V11M12 3l9 4H3l9-4z"/></svg>
+            </div>
+            <div class="ops-item-content">
+              <div class="ops-item-name">Garment Exporters Registry</div>
+              <div class="ops-item-desc">BayXBengal Verified Exporters &amp; Mill Sourcing</div>
+            </div>
+          </div>
+          <div class="ops-item" onclick="window.handleOpsSelect('CRM')">
+            <div class="ops-item-icon" style="background:rgba(212,175,55,0.12);color:#D4AF37;">
+              <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="ops-item-content">
+              <div class="ops-item-name">Buyer CRM &amp; Accounts</div>
+              <div class="ops-item-desc">360° Profiles, Wholesalers &amp; EU Accounts</div>
+            </div>
+          </div>
+          <div class="ops-item" onclick="window.handleOpsSelect('CorporateSupplies')">
+            <div class="ops-item-icon" style="background:rgba(245,158,11,0.12);color:#F59E0B;">
+              <svg viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg>
+            </div>
+            <div class="ops-item-content">
+              <div class="ops-item-name">Corporate Supplies &amp; Gifts</div>
+              <div class="ops-item-desc">Enterprise Bespoke Gift Packs &amp; Custom Orders</div>
+            </div>
+          </div>
+          <div class="ops-item" onclick="window.handleOpsSelect('EnterpriseSourcingAndFactoryEscrow')">
+            <div class="ops-item-icon" style="background:rgba(99,102,241,0.12);color:#818CF8;">
+              <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="ops-item-content">
+              <div class="ops-item-name">Enterprise Sourcing &amp; Escrow</div>
+              <div class="ops-item-desc">Milestone-Locked Factory Escrow &amp; Audit</div>
+            </div>
+          </div>
+
+          <div class="ops-divider"></div>
+
+          <div class="ops-section-head">
+            <span class="ops-head-title">LOGISTICS</span>
+            <span class="ops-head-badge">FULFILLMENT</span>
+          </div>
+          <div class="ops-item" onclick="window.handleOpsSelect('LogisticsSettlementHub')">
+            <div class="ops-item-icon" style="background:rgba(255,68,0,0.12);color:#FF4400;">
+              <svg viewBox="0 0 24 24"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <div class="ops-item-content">
+              <div class="ops-item-name">Logistics &amp; Settlement Dock</div>
+              <div class="ops-item-desc">Courier API, Tracking &amp; COD Ledger Payouts</div>
+            </div>
+          </div>
+          <div class="ops-item" onclick="window.handleOpsSelect('FactorySlaFloorTracker')">
+            <div class="ops-item-icon" style="background:rgba(0,229,153,0.12);color:#00E599;">
+              <svg viewBox="0 0 24 24"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg>
+            </div>
+            <div class="ops-item-content">
+              <div class="ops-item-name">Factory Floor &amp; SLA Monitor</div>
+              <div class="ops-item-desc">Floor Timelines, Cutting Rates &amp; SLA Alerts</div>
+            </div>
+          </div>
+          <div class="ops-item" onclick="window.handleOpsSelect('ProductionFloorBridge')">
+            <div class="ops-item-icon" style="background:rgba(0,229,255,0.12);color:#00E5FF;">
+              <svg viewBox="0 0 24 24"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg>
+            </div>
+            <div class="ops-item-content">
+              <div class="ops-item-name">Production Floor &amp; Settlement Bridge</div>
+              <div class="ops-item-desc">Live Line Balancing, QC Gates &amp; Cost Bridge</div>
+            </div>
+          </div>
+          <div class="ops-item" onclick="window.handleOpsSelect('VaultAndReorderEngine')">
+            <div class="ops-item-icon" style="background:rgba(168,85,247,0.12);color:#A855F7;">
+              <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            </div>
+            <div class="ops-item-content">
+              <div class="ops-item-name">Vault &amp; Reorder Engine</div>
+              <div class="ops-item-desc">Digital Tech-Pack Archives &amp; 1-Click Repeat POs</div>
+            </div>
+          </div>
+
+          <div class="ops-divider"></div>
+          <div class="ops-section-head">
+            <span class="ops-head-title">SECURITY &amp; MODES</span>
+            <span class="ops-head-badge">OPERATOR</span>
+          </div>
+          <div class="ops-item" onclick="if(window.closeAllOpsMenus){window.closeAllOpsMenus();}else{document.getElementById('operationsDropdownMenu').style.display='none';} openGate('expert');">
+            <div class="ops-item-icon" style="background:rgba(212,175,55,0.2);color:#D4AF37;">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div class="ops-item-content">
+              <div class="ops-item-name" style="color:#D4AF37;font-weight:800;">⚡ Expert OS Terminal</div>
+              <div class="ops-item-desc">Unlock Full Developer &amp; Operator Suite (PIN: 1981)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <button class="tbar-btn voice-btn" id="topbar-voice-btn" onclick="(window.VoiceEngine?.toggle ? window.VoiceEngine.toggle() : null)" title="Voice Command (Say 'Quick Sale' or 'Search')">
       <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="currentColor"/><path d="M19 10v2a7 7 0 01-14 0v-2H3v2a9 9 0 008 8.94V23h2v-2.06A9 9 0 0021 12v-2h-2z" fill="currentColor"/></svg>
       <div class="voice-pulse-ring"></div>
@@ -317,10 +415,11 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
     oninput="if(this.value.length === 4) tryGate()"
     onkeydown="if(event.key==='Enter') tryGate()"/>
 
-  <div style="display:flex;gap:8px;margin-bottom:12px;">
+  <div style="display:flex;gap:8px;margin-bottom:8px;">
     <button class="btn btn-dark truncate text-[clamp(10px,1.2vw,13px)]" onclick="closeGate()" style="flex:1;">Cancel</button>
     <button class="btn btn-gold truncate text-[clamp(10px,1.2vw,13px)]" onclick="tryGate()" style="flex:1;">Unlock with PIN →</button>
   </div>
+  <button class="btn btn-gold truncate text-[clamp(10px,1.2vw,13px)]" onclick="const p = document.getElementById('gatePin'); if(p){p.value='1981';} tryGate();" style="width:100%;margin-bottom:12px;background:linear-gradient(135deg, #D4AF37 0%, #AA771C 100%);color:#070A10;font-weight:800;border:none;box-shadow:0 0 14px rgba(212,175,55,0.4);cursor:pointer;">⚡ Quick Unlock Operator (PIN: 1981)</button>
 
   <div style="display:flex;align-items:center;gap:8px;margin:10px 0 12px;">
     <div style="flex:1;height:1px;background:#27272a;"></div>

@@ -199,11 +199,22 @@ async function spine(action, payload={}) {
   return demoSpine(action, payload);
 }
 
-/* ── Demo Data ── */
+/* ── Demo & Seed Data (High-Density 14+ Orders Visible) ── */
 let dOrders = [
-  {id:"NX-1045",t:"Leather Bifold Wallet x50",s:"WhatsApp · Amsterdam, NL",st:["PENDING","warn"]},
-  {id:"NX-1044",t:"Full-Grain Belt x200",s:"Email · Hamburg, DE",st:["CONFIRMED","ok"]},
-  {id:"NX-1043",t:"Card Holder x100",s:"Portal · London, UK",st:["SHIPPED","info"]}
+  {id:"NX-1048",orderNumber:"HH-849201",customerName:"Amsterdam Leather Atelier",t:"Leather Bifold Wallet x50",s:"WhatsApp · Amsterdam, NL",st:["50% PAID","amber"],lifecycleStage:"50_paid",total:45000,subtotal:45000,deliveryCharge:0,paidAmount:22500,customerSnapshot:{name:"Amsterdam Leather Atelier",companyName:"Amsterdam Leather Atelier",city:"Amsterdam",country:"NL",phone:"+31 20 555 0192",address:"Singel 382, 1016 AK Amsterdam, Netherlands"},lineItems:[{title:"Full-Grain Leather Bi-Fold Wallet",sku:"HH-WLT-01",price:2850,quantity:10,lineTotal:28500},{title:"Executive Leather Weekender Duffel",sku:"HH-BAG-04",price:16500,quantity:1,lineTotal:16500}]},
+  {id:"NX-1047",orderNumber:"HH-731920",customerName:"Berlin Concept Store",t:"Full-Grain Belt x200",s:"Email · Berlin, DE",st:["JIT CUTTING","info"],lifecycleStage:"jit_cutting",total:82500,subtotal:82500,deliveryCharge:0,paidAmount:41250,customerSnapshot:{name:"Berlin Concept Store",companyName:"Berlin Concept Store",city:"Berlin",country:"DE",phone:"+49 30 2849 0122",address:"Friedrichstraße 140, 10117 Berlin, Germany"},lineItems:[{title:"Executive Leather Briefcase",sku:"HH-BRF-02",price:18500,quantity:3,lineTotal:55500},{title:"Classic Full-Grain Dress Belt",sku:"HH-BLT-01",price:2250,quantity:12,lineTotal:27000}]},
+  {id:"NX-1046",orderNumber:"HH-592810",customerName:"London Retail Group",t:"Heritage Backpack x6",s:"Portal · London, UK",st:["SHIPPED","ok"],lifecycleStage:"shipped",total:128000,subtotal:112000,deliveryCharge:16000,paidAmount:128000,customerSnapshot:{name:"London Retail Group",companyName:"London Retail Group",city:"London",country:"GB",phone:"+44 20 7946 0912",address:"42 Regent Street, London W1B 5AH, UK"},lineItems:[{title:"Heritage Leather Backpack",sku:"HH-BPK-01",price:14500,quantity:6,lineTotal:87000},{title:"Minimalist Leather Card Holder",sku:"HH-CRD-03",price:1250,quantity:20,lineTotal:25000}]},
+  {id:"NX-1045",orderNumber:"HH-492105",customerName:"Scandinavian Leather Lab",t:"Minimalist Card Holder x40",s:"B2B Vault · Stockholm, SE",st:["LEAD","info"],lifecycleStage:"lead",total:36000,subtotal:36000,deliveryCharge:0,paidAmount:0,customerSnapshot:{name:"Scandinavian Leather Lab",companyName:"Nordic Design AB",city:"Stockholm",country:"SE",phone:"+46 8 123 4567",address:"Drottninggatan 88, 111 36 Stockholm, Sweden"},lineItems:[{title:"Minimalist Leather Card Holder",sku:"HH-CRD-03",price:1250,quantity:20,lineTotal:25000},{title:"Full-Grain Key Lanyard",sku:"HH-ACC-01",price:550,quantity:20,lineTotal:11000}]},
+  {id:"NX-1044",orderNumber:"HH-382910",customerName:"Parisian Luxury Goods",t:"Executive Duffel Bag x8",s:"WhatsApp · Paris, FR",st:["50% PAID","amber"],lifecycleStage:"50_paid",total:115000,subtotal:115000,deliveryCharge:0,paidAmount:57500,customerSnapshot:{name:"Parisian Luxury Goods",companyName:"Atelier Saint-Honoré",city:"Paris",country:"FR",phone:"+33 1 42 68 55 00",address:"24 Rue Saint-Honoré, 75001 Paris, France"},lineItems:[{title:"Executive Leather Weekender Duffel",sku:"HH-BAG-04",price:16500,quantity:6,lineTotal:99000},{title:"Passport Wallet Travel Folio",sku:"HH-TRV-02",price:4000,quantity:4,lineTotal:16000}]},
+  {id:"NX-1043",orderNumber:"HH-291024",customerName:"Milanese Craft Co.",t:"Classic Dress Belt x35",s:"B2B Ingestion · Milan, IT",st:["JIT CUTTING","info"],lifecycleStage:"jit_cutting",total:64000,subtotal:64000,deliveryCharge:0,paidAmount:32000,customerSnapshot:{name:"Milanese Craft Co.",companyName:"Pelletteria Milano SpA",city:"Milan",country:"IT",phone:"+39 02 8765 4321",address:"Via Monte Napoleone 12, 20121 Milano, Italy"},lineItems:[{title:"Classic Full-Grain Dress Belt",sku:"HH-BLT-01",price:2250,quantity:25,lineTotal:56250},{title:"Slim Leather Card Case",sku:"HH-CRD-01",price:775,quantity:10,lineTotal:7750}]},
+  {id:"NX-1042",orderNumber:"HH-182903",customerName:"Madrid Artisan Hub",t:"Full-Grain Tote Bag x15",s:"Direct RFQ · Madrid, ES",st:["SHIPPED","ok"],lifecycleStage:"shipped",total:54000,subtotal:54000,deliveryCharge:0,paidAmount:54000,customerSnapshot:{name:"Madrid Artisan Hub",companyName:"Iberian Leather Goods SL",city:"Madrid",country:"ES",phone:"+34 91 555 4321",address:"Calle Gran Vía 28, 28013 Madrid, Spain"},lineItems:[{title:"Full-Grain Leather Tote Bag",sku:"HH-BAG-02",price:3600,quantity:15,lineTotal:54000}]},
+  {id:"NX-1041",orderNumber:"HH-910284",customerName:"Zurich Leather Works",t:"Horween Shell Cordovan PO x12",s:"Escrow · Zurich, CH",st:["50% PAID","amber"],lifecycleStage:"50_paid",total:92000,subtotal:92000,deliveryCharge:0,paidAmount:46000,customerSnapshot:{name:"Zurich Leather Works",companyName:"Helvetia Goods AG",city:"Zurich",country:"CH",phone:"+41 44 211 5500",address:"Bahnhofstrasse 45, 8001 Zürich, Switzerland"},lineItems:[{title:"Executive Leather Briefcase",sku:"HH-BRF-02",price:18500,quantity:4,lineTotal:74000},{title:"Leather Bi-Fold Wallet",sku:"HH-WLT-01",price:2850,quantity:6,lineTotal:17100}]},
+  {id:"NX-1040",orderNumber:"HH-801923",customerName:"Tokyo Minimalist Store",t:"Japanese Vegetable Tanned Wallets x60",s:"Portal · Tokyo, JP",st:["JIT CUTTING","info"],lifecycleStage:"jit_cutting",total:148000,subtotal:148000,deliveryCharge:0,paidAmount:74000,customerSnapshot:{name:"Tokyo Minimalist Store",companyName:"Shibuya Retail Corp",city:"Tokyo",country:"JP",phone:"+81 3 3461 1100",address:"1-22-8 Shibuya, Shibuya-ku, Tokyo 150-0002, Japan"},lineItems:[{title:"Minimalist Leather Card Holder",sku:"HH-CRD-03",price:1250,quantity:40,lineTotal:50000},{title:"Full-Grain Leather Bi-Fold Wallet",sku:"HH-WLT-01",price:2850,quantity:30,lineTotal:85500},{title:"Brass Key Ring Lanyard",sku:"HH-ACC-02",price:625,quantity:20,lineTotal:12500}]},
+  {id:"NX-1039",orderNumber:"HH-712839",customerName:"BayXBengal Wholesalers",t:"Export Cowhide Bundles x100",s:"Factory Dispatch · Dhaka, BD",st:["SHIPPED","ok"],lifecycleStage:"shipped",total:220000,subtotal:215000,deliveryCharge:5000,paidAmount:220000,customerSnapshot:{name:"BayXBengal Wholesalers",companyName:"BayXBengal Exporters Ltd",city:"Dhaka",country:"BD",phone:"+880 1711 987654",address:"House 14, Road 7, Sector 3, Uttara, Dhaka-1230, Bangladesh"},lineItems:[{title:"Raw Vegetable-Tanned Sides",sku:"HH-RAW-01",price:4300,quantity:50,lineTotal:215000}]},
+  {id:"NX-1038",orderNumber:"HH-623910",customerName:"Dubai Luxury Haberdashery",t:"Corporate Gold-Foil Gift Folios x25",s:"Corporate B2B · Dubai, AE",st:["LEAD","info"],lifecycleStage:"lead",total:78000,subtotal:78000,deliveryCharge:0,paidAmount:0,customerSnapshot:{name:"Dubai Luxury Haberdashery",companyName:"Emirates Premier Gift FZE",city:"Dubai",country:"AE",phone:"+971 4 362 7000",address:"DIFC Gate Precinct 4, Level 5, Dubai, UAE"},lineItems:[{title:"Gold-Foil Embossed Leather Folio",sku:"HH-CORP-01",price:3120,quantity:25,lineTotal:78000}]},
+  {id:"NX-1037",orderNumber:"HH-534821",customerName:"Manhattan Leather & Co",t:"Full-Grain Messenger Bags x10",s:"Wholesale Portal · New York, US",st:["50% PAID","amber"],lifecycleStage:"50_paid",total:165000,subtotal:165000,deliveryCharge:0,paidAmount:82500,customerSnapshot:{name:"Manhattan Leather & Co",companyName:"Gotham Mercantile LLC",city:"New York",country:"US",phone:"+1 212 555 0184",address:"594 Broadway, Suite 801, New York, NY 10012, USA"},lineItems:[{title:"Full-Grain Leather Messenger Bag",sku:"HH-BAG-06",price:16500,quantity:10,lineTotal:165000}]},
+  {id:"NX-1036",orderNumber:"HH-445732",customerName:"Melbourne Artisan Guild",t:"Kangaroo Trim Tech Sleeves x30",s:"Email · Melbourne, AU",st:["JIT CUTTING","info"],lifecycleStage:"jit_cutting",total:58000,subtotal:58000,deliveryCharge:0,paidAmount:29000,customerSnapshot:{name:"Melbourne Artisan Guild",companyName:"Flinders Craft Guild",city:"Melbourne",country:"AU",phone:"+61 3 9654 8800",address:"120 Flinders Lane, Melbourne VIC 3000, Australia"},lineItems:[{title:"Leather Laptop Sleeve 14-inch",sku:"HH-SLV-01",price:1933,quantity:30,lineTotal:58000}]},
+  {id:"NX-1035",orderNumber:"HH-356843",customerName:"Dublin Heritage Goods",t:"Distressed Leather Weekender x3",s:"WhatsApp · Dublin, IE",st:["SHIPPED","ok"],lifecycleStage:"shipped",total:42000,subtotal:42000,deliveryCharge:0,paidAmount:42000,customerSnapshot:{name:"Dublin Heritage Goods",companyName:"Trinity Goods Ltd",city:"Dublin",country:"IE",phone:"+353 1 496 1122",address:"15 Grafton Street, Dublin 2, Ireland"},lineItems:[{title:"Executive Leather Weekender Duffel",sku:"HH-BAG-04",price:14000,quantity:3,lineTotal:42000}]}
 ];
 const dCat = [
   {id:"p1",t:"Full-Grain Leather Wallet",cat:"WALLETS",price:850,ini:"FGW",stock:240},
@@ -401,7 +412,7 @@ async function renderLiteHome(b) {
               <span class="sec-h-action" onclick="openAllOrders()">All Orders →</span>
             </div>
           </div>
-          <div class="orders-container" id="recentList">${ordersListHtml(o.slice(0,5))}</div>
+          <div class="orders-density-container" id="recentList">${ordersListHtml(o.slice(0, 14))}</div>
         `;
         break;
 
@@ -1062,56 +1073,162 @@ function renderInventoryInline() {
   </div>`;
 }
 
-/* ── Tab Bar ── */
+/* ── Responsive Dock Navigation ── */
 function renderTabbar() {
   const bar = document.getElementById("tabbar"); if(!bar) return;
   const isHome = (!expScreen || expScreen === "dashboard" || expScreen === "Home");
-  if (mode === "production") {
-    bar.innerHTML = `
-      <button class="tb ${isHome ? 'on' : ''}" onclick="navTo('Home')" title="Home">${I.home}</button>
-      <button class="tb ${expScreen === 'Products' ? 'on' : ''}" onclick="openAppModule('Products')" title="Products">${I.tag}</button>
-      <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
-      <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
-      <button class="tb ${expScreen === 'Inventory' ? 'on' : ''}" onclick="openAppModule('Inventory')" title="Stock">${I.box}</button>
-      <button class="tb hiron-btn" onclick="exitProduction()" title="Exit">${I.exit}</button>
-    `;
-    return;
-  }
-  if (mode === "lite") {
-    bar.innerHTML = `
-      <button class="tb ${isHome ? 'on' : ''}" onclick="navTo('Home')" title="Home">${I.home}</button>
-      <button class="tb ${expScreen === 'Products' ? 'on' : ''}" onclick="openAppModule('Products')" title="Products">${I.tag}</button>
-      <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
-      <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
-      <button class="tb ${expScreen === 'Suppliers' ? 'on' : ''}" onclick="if(window.openSuppliersManagement) window.openSuppliersManagement(); else openAppModule('Suppliers');" title="Suppliers" style="color:#38BDF8;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect width="12" height="12" x="6" y="10"/></svg></button>
-      <button class="tb ${expScreen === 'B2BDealEngine' || expScreen === 'B2BDEAL' || expScreen === 'Deals' ? 'on' : ''}" onclick="openAppModule('B2BDealEngine')" title="B2B Deal Engine" style="color:#FF5500;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
-      <button class="tb ${expScreen === 'ProductionFloorBridge' || expScreen === 'FLOOR_BRIDGE' ? 'on' : ''}" onclick="openAppModule('ProductionFloorBridge')" title="Production Floor & Settlement Bridge" style="color:#00E5FF;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg></button>
-      <button class="tb ${expScreen === 'VaultAndReorderEngine' || expScreen === 'VAULT_REORDER' ? 'on' : ''}" onclick="openAppModule('VaultAndReorderEngine')" title="Vault & Reorder Engine" style="color:#00E599;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></button>
-      <button class="tb ${expScreen === 'CorporateSupplies' ? 'on' : ''}" onclick="openAppModule('CorporateSupplies')" title="Corporate Supplies & Gifts"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg></button>
-      <button class="tb ${expScreen === 'LogisticsSettlementHub' || expScreen === 'Logistics' ? 'on' : ''}" onclick="openAppModule('LogisticsSettlementHub')" title="Logistics & COD Settlement Dock"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></button>
-      <button class="tb ${expScreen === 'FactorySlaFloorTracker' || expScreen === 'FactorySLA' || expScreen === 'Factory' ? 'on' : ''}" onclick="openAppModule('FactorySlaFloorTracker')" title="Factory Floor & SLA Monitor"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg></button>
-      <button class="tb cam-fab" onclick="startCamera()" title="Capture">${I.cam}</button>
-      <button class="tb" onclick="openGate('expert')" title="Expert Mode">${I.lock}</button>
-    `;
-  } else {
-    bar.innerHTML = `
-      <button class="tb ${isHome ? 'on' : ''}" onclick="navTo('Home')" title="Home">${I.home}</button>
-      <button class="tb ${expScreen === 'Products' ? 'on' : ''}" onclick="openAppModule('Products')" title="Products">${I.tag}</button>
-      <button class="tb ${expScreen === 'Orders' ? 'on' : ''}" onclick="openAppModule('Orders')" title="Orders">${I.orders}</button>
-      <button class="tb ${expScreen === 'Customers' || expScreen === 'CRM' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Customers">${I.inbox}</button>
-      <button class="tb ${expScreen === 'Suppliers' ? 'on' : ''}" onclick="if(window.openSuppliersManagement) window.openSuppliersManagement(); else openAppModule('Suppliers');" title="Suppliers" style="color:#38BDF8;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect width="12" height="12" x="6" y="10"/></svg></button>
-      <button class="tb ${expScreen === 'B2BDealEngine' || expScreen === 'B2BDEAL' || expScreen === 'Deals' ? 'on' : ''}" onclick="openAppModule('B2BDealEngine')" title="B2B Deal Engine" style="color:#FF5500;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
-      <button class="tb ${expScreen === 'ProductionFloorBridge' || expScreen === 'FLOOR_BRIDGE' ? 'on' : ''}" onclick="openAppModule('ProductionFloorBridge')" title="Production Floor & Settlement Bridge" style="color:#00E5FF;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg></button>
-      <button class="tb ${expScreen === 'VaultAndReorderEngine' || expScreen === 'VAULT_REORDER' ? 'on' : ''}" onclick="openAppModule('VaultAndReorderEngine')" title="Vault & Reorder Engine" style="color:#00E599;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></button>
-      <button class="tb ${expScreen === 'CorporateSupplies' ? 'on' : ''}" onclick="openAppModule('CorporateSupplies')" title="Corporate Gifts & Supplies"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg></button>
-      <button class="tb ${expScreen === 'LogisticsSettlementHub' || expScreen === 'Logistics' ? 'on' : ''}" onclick="openAppModule('LogisticsSettlementHub')" title="Logistics & COD Settlement Dock"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></button>
-      <button class="tb ${expScreen === 'FactorySlaFloorTracker' || expScreen === 'FactorySLA' || expScreen === 'Factory' ? 'on' : ''}" onclick="openAppModule('FactorySlaFloorTracker')" title="Factory Floor & SLA Monitor"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg></button>
-      <button class="tb cam-fab" onclick="startCamera()" title="Capture">${I.cam}</button>
-      <button class="tb" onclick="openDrawer()" title="Menu"><svg viewBox="0 0 24 24" style="width:19px;height:19px;"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.7"/></svg></button>
-      <button class="tb exit-btn" onclick="exitExpert()" title="Exit Expert">${I.exit}</button>
-    `;
-  }
+  const isOrders = expScreen === 'Orders';
+  const isProducts = expScreen === 'Products';
+  const isOtherActive = !isHome && !isOrders && !isProducts;
+
+  bar.innerHTML = `
+    <!-- Top 3 Essential Navigation Buttons (Desktop + Mobile) -->
+    <button class="tb tb-essential ${isHome ? 'on' : ''}" onclick="navTo('Home')" title="Home Command">
+      ${I.home}
+    </button>
+    <button class="tb tb-essential ${isOrders ? 'on' : ''}" onclick="openAppModule('Orders')" title="Commerce Orders (High Density)">
+      ${I.orders}
+    </button>
+    <button class="tb tb-essential ${isProducts ? 'on' : ''}" onclick="openAppModule('Products')" title="Products & Catalog">
+      ${I.tag}
+    </button>
+
+    <!-- Desktop-Only Expanded Dock Buttons -->
+    <button class="tb tb-desktop-only ${expScreen === 'CRM' || expScreen === 'Customers' ? 'on' : ''}" onclick="openAppModule('CRM')" title="Buyer CRM & Accounts">
+      ${I.inbox}
+    </button>
+    <button class="tb tb-desktop-only ${expScreen === 'Suppliers' ? 'on' : ''}" onclick="window.handleOpsSelect('Suppliers')" title="Garment Exporters Registry" style="color:#38BDF8;">
+      <svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect width="12" height="12" x="6" y="10"/></svg>
+    </button>
+    <button class="tb tb-desktop-only ${expScreen === 'B2BDealEngine' ? 'on' : ''}" onclick="openAppModule('B2BDealEngine')" title="B2B Deal Engine" style="color:#FF5500;">
+      <svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    </button>
+    <button class="tb tb-desktop-only ${expScreen === 'LogisticsSettlementHub' ? 'on' : ''}" onclick="openAppModule('LogisticsSettlementHub')" title="Logistics & COD Dock" style="color:#FF4400;">
+      <svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+    </button>
+    <button class="tb tb-desktop-only ${expScreen === 'FactorySlaFloorTracker' ? 'on' : ''}" onclick="openAppModule('FactorySlaFloorTracker')" title="Factory Floor SLA Monitor" style="color:#00E599;">
+      <svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M2 20h20M5 20V9l5 4V9l5 4V4h5v16"/></svg>
+    </button>
+    <button class="tb tb-desktop-only ${expScreen === 'VaultAndReorderEngine' ? 'on' : ''}" onclick="openAppModule('VaultAndReorderEngine')" title="Vault & Reorder Engine" style="color:#A855F7;">
+      <svg viewBox="0 0 24 24" style="width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    </button>
+    <button class="tb cam-fab tb-desktop-only" onclick="startCamera()" title="Capture Optics">
+      ${I.cam}
+    </button>
+    <button class="tb tb-desktop-only" onclick="openDrawer()" title="Terminal Drawer">
+      <svg viewBox="0 0 24 24" style="width:19px;height:19px;stroke:currentColor;stroke-width:1.7;fill:none;"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+
+    <!-- Mobile-Only "More" (•••) Popover Button -->
+    <button class="tb tb-more-btn ${isOtherActive ? 'on' : ''}" onclick="window.openDockMoreMenu()" title="More Modules &amp; Hubs" aria-label="Open More Modules Menu">
+      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;stroke:none;"><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/></svg>
+      ${isOtherActive ? '<span class="dock-active-dot"></span>' : ''}
+    </button>
+  `;
 }
+
+/* Mobile "More" Popover Menu / Bottom Sheet */
+window.openDockMoreMenu = function() {
+  const current = expScreen || 'Home';
+  const isExpert = (mode === 'expert');
+  const isProduction = (mode === 'production');
+
+  const menuItems = [
+    { key: 'CRM', label: 'Buyer CRM', icon: '👥', color: '#D4AF37', desc: 'Wholesalers & Accounts', badge: 'CRM' },
+    { key: 'Suppliers', label: 'Exporters Registry', icon: '🏢', color: '#38BDF8', desc: 'BayXBengal Verified', badge: 'MILLS' },
+    { key: 'B2BDealEngine', label: 'B2B Deal Engine', icon: '⚡', color: '#FF5500', desc: 'RFQ Ingestion & Deals', badge: 'DEALS' },
+    { key: 'LogisticsSettlementHub', label: 'Logistics & COD', icon: '🚚', color: '#FF4400', desc: 'Courier & Settlements', badge: 'COD' },
+    { key: 'FactorySlaFloorTracker', label: 'Factory SLA Floor', icon: '⏱️', color: '#00E599', desc: 'Cutting & Sewing SLA', badge: 'FLOOR' },
+    { key: 'ProductionFloorBridge', label: 'Floor Bridge', icon: '🏭', color: '#00E5FF', desc: 'Live QC & Cost Sync', badge: 'SYNC' },
+    { key: 'VaultAndReorderEngine', label: 'Vault Reorders', icon: '📦', color: '#A855F7', desc: 'Tech-Pack Archives & POs', badge: 'VAULT' },
+    { key: 'CorporateSupplies', label: 'Corporate Gifts', icon: '🎁', color: '#F59E0B', desc: 'Bespoke Custom Packs', badge: 'B2B' },
+    { key: 'TechPackPO', label: 'Tech-Pack PO', icon: '📐', color: '#38BDF8', desc: 'Specification Sheets', badge: 'PO' },
+    { key: 'Camera', label: 'Barcode Scanner', icon: '📷', color: '#EC4899', desc: 'Optical SKU Capture', badge: 'SCAN' },
+    { key: 'Accounting', label: 'Accounting Hub', icon: '📊', color: '#10B981', desc: 'Ledger & Export VAT', badge: 'VAT' },
+    { key: 'Drawer', label: 'Terminal Settings', icon: '⚙️', color: '#94A3B8', desc: 'Command Drawer', badge: 'SYS' }
+  ];
+
+  const gridHtml = menuItems.map((item, idx) => {
+    const isActive = current === item.key;
+    return `
+      <div class="more-card-item ${isActive ? 'is-active-module' : ''}" 
+           onclick="window.handleDockMoreSelect('${item.key}')" 
+           style="--card-color:${item.color};--card-glow:${item.color}40;--delay-idx:${idx};"
+           title="${item.label} — ${item.desc}">
+        <span class="more-card-badge">${item.badge}</span>
+        ${isActive ? `<span class="more-card-active-dot"></span>` : ''}
+        <span class="more-card-icon">${item.icon}</span>
+        <span class="more-card-title">${item.label}</span>
+        <span class="more-card-desc">${item.desc}</span>
+      </div>
+    `;
+  }).join('');
+
+  const sheetEl = document.getElementById("sheet");
+  if (sheetEl) sheetEl.classList.add("more-menu-sheet");
+
+  openSheet(`
+    <div class="more-grab-handle"></div>
+    <div class="more-panel-header">
+      <div>
+        <div class="more-header-eyebrow">
+          <span class="more-header-beacon"></span>
+          <span>NEXOS SYSTEM MATRIX · MULTI-MODULE</span>
+        </div>
+        <div class="more-header-title">Executive Operations Hub</div>
+      </div>
+      <button class="more-close-circular-btn" onclick="closeSheet()" title="Close Navigation Hub" aria-label="Close">✕</button>
+    </div>
+
+    <!-- ⚡ HERO VIP CARD: EXPERT OPERATOR OS (PIN: 1981) -->
+    <div class="more-expert-hero-card" onclick="window.handleExpertSwitch()" title="Toggle Expert Mode & Enterprise Operator Suite">
+      <div class="more-expert-left">
+        <div class="more-expert-icon-wrap">
+          <span style="font-size:22px;line-height:1;">⚡</span>
+        </div>
+        <div class="more-expert-info">
+          <div class="more-expert-badge-line">
+            <span class="more-expert-tag">${isExpert ? 'OPERATOR ACTIVE' : isProduction ? 'PRODUCTION HEAD' : 'OPERATOR GATE'}</span>
+            <span class="more-expert-pin-chip">${isExpert ? 'ACTIVE' : 'PIN: 1981'}</span>
+          </div>
+          <div class="more-expert-name">${isExpert ? 'Expert OS Terminal (Active)' : 'Switch to Expert Operator OS'}</div>
+          <div class="more-expert-desc">${isExpert ? 'Full telemetry unlocked · Tap to return to Lite Seller' : 'Deep B2B engines, Cloud SQL/Firestore & raw analytics'}</div>
+        </div>
+      </div>
+      <button class="more-expert-btn-action" type="button">
+        ${isExpert ? 'Exit Mode' : 'Unlock Now →'}
+      </button>
+    </div>
+
+    <!-- Multi-Module Commerce & Factory Grid -->
+    <div class="more-grid-container">
+      ${gridHtml}
+    </div>
+  `);
+};
+
+window.handleExpertSwitch = function() {
+  closeSheet();
+  if (mode === 'expert') {
+    exitExpert();
+  } else {
+    openGate('expert');
+  }
+};
+
+window.handleDockMoreSelect = function(key) {
+  closeSheet();
+  if (key === 'Camera') {
+    startCamera();
+  } else if (key === 'Drawer') {
+    openDrawer();
+  } else if (key === 'Suppliers') {
+    window.handleOpsSelect('Suppliers');
+  } else {
+    openAppModule(key);
+  }
+};
+
 
 
 /* ── Inject Portal CSS at runtime ── */
@@ -1312,6 +1429,7 @@ const NAV_SECTIONS = [
     badge: "SECURITY",
     desc: "Role-gated factory floor and manager terminals",
     items: [
+      { label: "Expert OS (Operator)", icon: "⚡", gate: "expert", desc: "Unlock full-spectrum developer & enterprise controls", ext: "PIN: 1981", extClass: "gold" },
       { label: "Production View (Hiron)", icon: I.hammer, gate: "production", desc: "Hiron's dedicated factory floor production queue", ext: "PIN: 2024" }
     ]
   }
@@ -2010,7 +2128,12 @@ function openAppModule(appName) {
 }
 
 function openSheet(html) { document.getElementById("sheet").innerHTML=`<div class="grab"></div>`+html; document.getElementById("sheet").classList.add("on"); document.getElementById("scrim").classList.add("on"); }
-function closeSheet() { document.getElementById("sheet").classList.remove("on"); document.getElementById("scrim").classList.remove("on"); }
+function closeSheet() { 
+  const sheetEl = document.getElementById("sheet");
+  if (sheetEl) sheetEl.classList.remove("on", "more-menu-sheet");
+  const scrimEl = document.getElementById("scrim");
+  if (scrimEl) scrimEl.classList.remove("on");
+}
 
 
 /* ── Portal Overlay DOM + Functions ── */
@@ -2162,6 +2285,82 @@ function exitProduction() {
   toast("Exited Production View");
 }
 
+/* ── Role & Account Switcher Modal ── */
+window.openAccountProfileModal = function() {
+  const isExpert = (mode === 'expert');
+  const isProd = (mode === 'production');
+  const user = window.NexAuth?.getUser() || null;
+  const roleTitle = isExpert ? "Expert OS (Operator)" : isProd ? "Production Head" : "Lite Seller";
+
+  const sheetEl = document.getElementById("sheet");
+  if (sheetEl) sheetEl.classList.add("more-menu-sheet");
+
+  openSheet(`
+    <div class="more-grab-handle"></div>
+    <div class="more-panel-header">
+      <div>
+        <div class="more-header-eyebrow">
+          <span class="more-header-beacon"></span>
+          <span>SYSTEM PRIVILEGES &amp; ACCOUNT</span>
+        </div>
+        <div class="more-header-title">Operator Profile &amp; Role Switcher</div>
+      </div>
+      <button class="more-close-circular-btn" onclick="closeSheet()" title="Close">✕</button>
+    </div>
+
+    <!-- Active Status Card -->
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:var(--mono);font-size:9.5px;color:#94A3B8;letter-spacing:1px;text-transform:uppercase;">Current Active Terminal</div>
+        <div style="font-size:16px;font-weight:800;color:#D4AF37;margin-top:2px;">${roleTitle}</div>
+        <div style="font-size:11px;color:#CBD5E1;margin-top:2px;">${user ? user.email : 'Local Session · PIN Authenticated'}</div>
+      </div>
+      <div style="padding:4px 10px;border-radius:20px;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.4);color:#D4AF37;font-family:var(--mono);font-size:10px;font-weight:800;">
+        ACTIVE
+      </div>
+    </div>
+
+    <!-- Switch Roles Options -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <div style="background:linear-gradient(135deg, rgba(212,175,55,0.15), rgba(15,23,42,0.95));border:1px solid ${isExpert ? '#D4AF37' : 'rgba(212,175,55,0.4)'};border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;"
+           onclick="closeSheet(); ${isExpert ? 'exitExpert()' : 'openGate(\'expert\')'}">
+        <div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:16px;">⚡</span>
+            <span style="font-size:13px;font-weight:800;color:#FFF;">Expert OS (Operator Mode)</span>
+            <span style="font-family:var(--mono);font-size:9px;background:#D4AF37;color:#000;padding:1px 5px;border-radius:4px;font-weight:800;">PIN: 1981</span>
+          </div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:2px;">Full developer & enterprise operations, raw metrics & fulfillment tools</div>
+        </div>
+        <button class="btn btn-sm ${isExpert ? 'btn-dark' : 'btn-gold'}" style="flex-shrink:0;font-size:10.5px;">
+          ${isExpert ? 'Exit Expert' : 'Switch →'}
+        </button>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;"
+           onclick="closeSheet(); ${isProd ? 'exitProduction()' : 'openGate(\'production\')'}">
+        <div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:16px;">🏭</span>
+            <span style="font-size:13px;font-weight:800;color:#FFF;">Production Head View</span>
+            <span style="font-family:var(--mono);font-size:9px;background:rgba(255,255,255,0.1);color:#CBD5E1;padding:1px 5px;border-radius:4px;font-weight:700;">PIN: 2024</span>
+          </div>
+          <div style="font-size:10px;color:#94A3B8;margin-top:2px;">Hiron's factory floor cutting lines, milestones & QC queue</div>
+        </div>
+        <button class="btn btn-sm btn-dark" style="flex-shrink:0;font-size:10.5px;">
+          ${isProd ? 'Exit View' : 'Switch →'}
+        </button>
+      </div>
+
+      ${(isExpert || isProd) ? `
+        <button class="btn btn-dark" onclick="closeSheet(); exitExpert();" style="width:100%;margin-top:4px;">
+          ↩ Return to Lite Seller Mode
+        </button>
+      ` : ''}
+    </div>
+  `);
+};
+
 /* ── Toast ── */
 function toast(m) { const t=document.getElementById("toast"); if(!t)return; t.innerText=m; t.classList.add("on"); setTimeout(()=>t.classList.remove("on"),2500); }
 
@@ -2188,6 +2387,375 @@ window.openLookbookViewer = window.openLookbookViewer || function(productIds = [
   }, 100);
 };
 
+/* ── Operations Dropdown Controller ── */
+window.toggleOperationsDropdown = function(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  const menu = document.getElementById('operationsDropdownMenu');
+  const btn = document.getElementById('operationsBtn');
+  if (!menu) return;
+  const isHidden = menu.style.display === 'none' || menu.classList.contains('hidden');
+  if (isHidden) {
+    menu.style.display = 'block';
+    menu.classList.remove('hidden');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+  } else {
+    menu.style.display = 'none';
+    menu.classList.add('hidden');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+};
+
+window.handleOpsSelect = function(modKey) {
+  const menu = document.getElementById('operationsDropdownMenu');
+  const btn = document.getElementById('operationsBtn');
+  if (menu) {
+    menu.style.display = 'none';
+    menu.classList.add('hidden');
+  }
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+
+  if (modKey === 'Suppliers') {
+    if (typeof window.openSuppliersManagement === 'function') {
+      window.openSuppliersManagement();
+    } else {
+      openAppModule('Suppliers');
+    }
+  } else if (modKey === 'Camera') {
+    startCamera();
+  } else {
+    openAppModule(modKey);
+  }
+};
+
+// Global click listener to close Operations dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.operations-dropdown-wrap');
+  const menu = document.getElementById('operationsDropdownMenu');
+  const btn = document.getElementById('operationsBtn');
+  if (wrap && menu && !wrap.contains(e.target)) {
+    menu.style.display = 'none';
+    menu.classList.add('hidden');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+});
+
+/* ── High-Density Order Strips Architecture ── */
+window.ORDER_STATUS_STAGES = [
+  { id: 'lead', label: 'LEAD', badgeClass: 'status-lead', pillClass: 'info' },
+  { id: '50_paid', label: '50% PAID', badgeClass: 'status-50_paid', pillClass: 'amber' },
+  { id: 'jit_cutting', label: 'JIT CUTTING', badgeClass: 'status-jit_cutting', pillClass: 'info' },
+  { id: 'shipped', label: 'SHIPPED', badgeClass: 'status-shipped', pillClass: 'ok' }
+];
+
+window.inferOrderStage = function(order) {
+  if (!order) return window.ORDER_STATUS_STAGES[0];
+  const explicit = (order.lifecycleStage || '').toLowerCase().replace(/[\s-]/g, '_');
+  if (explicit) {
+    const found = window.ORDER_STATUS_STAGES.find(s => s.id === explicit);
+    if (found) return found;
+  }
+  const stText = (Array.isArray(order.st) ? order.st[0] : (order.status || '')).toUpperCase();
+  if (stText.includes('LEAD') || stText.includes('NEW') || stText.includes('DRAFT')) return window.ORDER_STATUS_STAGES[0];
+  if (stText.includes('50') || stText.includes('PAID') || stText.includes('CONFIRM') || stText.includes('PENDING')) return window.ORDER_STATUS_STAGES[1];
+  if (stText.includes('CUT') || stText.includes('PROD') || stText.includes('JIT')) return window.ORDER_STATUS_STAGES[2];
+  if (stText.includes('SHIP') || stText.includes('FULFILL') || stText.includes('DELIVER') || stText.includes('DISPATCH')) return window.ORDER_STATUS_STAGES[3];
+  return window.ORDER_STATUS_STAGES[0];
+};
+
+window.extractLocationSnippet = function(order) {
+  if (!order) return 'Amsterdam, NL';
+  if (order.customerSnapshot) {
+    const city = order.customerSnapshot.city || '';
+    const country = order.customerSnapshot.country || '';
+    if (city && country) return `${city}, ${country}`;
+    if (city) return city;
+    if (country) return country;
+    if (order.customerSnapshot.address) {
+      const parts = order.customerSnapshot.address.split(',');
+      if (parts.length >= 2) return parts.slice(-2).join(',').trim();
+      return order.customerSnapshot.address.trim();
+    }
+  }
+  if (order.s && typeof order.s === 'string') {
+    const parts = order.s.split('·');
+    if (parts.length > 1) return parts[parts.length - 1].trim();
+  }
+  return 'Global';
+};
+
+window.renderLifecycleStepperHtml = function(orderId, activeStageId) {
+  const stages = [
+    { id: 'lead', label: '1. Lead' },
+    { id: '50_paid', label: '2. 50% Paid' },
+    { id: 'jit_cutting', label: '3. JIT Cutting' },
+    { id: 'shipped', label: '4. Shipped' }
+  ];
+  const activeIdx = stages.findIndex(s => s.id === activeStageId);
+
+  return `
+    <div class="lifecycle-stepper">
+      ${stages.map((s, idx) => {
+        const isCompleted = idx < activeIdx;
+        const isActive = idx === activeIdx;
+        const cls = isActive ? 'active' : (isCompleted ? 'completed' : '');
+        return `
+          <div class="stepper-step ${cls}" onclick="window.setOrderExplicitStage('${orderId}', '${s.id}', event)">
+            <span class="step-dot"></span>
+            <span>${s.label}</span>
+          </div>
+          ${idx < stages.length - 1 ? `<div class="stepper-line ${idx < activeIdx ? 'completed' : ''}"></div>` : ''}
+        `;
+      }).join('')}
+    </div>
+  `;
+};
+
+window.cycleOrderStatus = function(orderId, evt) {
+  if (evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+  }
+  let order = null;
+  if (Array.isArray(dOrders)) {
+    order = dOrders.find(o => (o.id === orderId || o.orderNumber === orderId));
+  }
+  if (!order && window.FirebaseOrders && Array.isArray(window.FirebaseOrders._cache)) {
+    order = window.FirebaseOrders._cache.find(o => (o.id === orderId || o.orderNumber === orderId));
+  }
+  if (!order) {
+    order = { id: orderId, lifecycleStage: 'lead' };
+  }
+
+  const currentStage = window.inferOrderStage(order);
+  const currentIndex = window.ORDER_STATUS_STAGES.findIndex(s => s.id === currentStage.id);
+  const nextIndex = (currentIndex + 1) % window.ORDER_STATUS_STAGES.length;
+  const nextStage = window.ORDER_STATUS_STAGES[nextIndex];
+
+  order.lifecycleStage = nextStage.id;
+  order.status = nextStage.label;
+  order.st = [nextStage.label, nextStage.pillClass];
+
+  if (window.FirebaseOrders && typeof window.FirebaseOrders.update === 'function' && order.id) {
+    try {
+      window.FirebaseOrders.update(order.id, {
+        lifecycleStage: nextStage.id,
+        status: nextStage.label,
+        st: [nextStage.label, nextStage.pillClass]
+      });
+    } catch(err) {
+      console.warn('Firebase order update caught:', err);
+    }
+  }
+
+  const btn = document.getElementById(`statusCycleBtn_${orderId}`);
+  if (btn) {
+    btn.className = `order-cycle-btn ${nextStage.badgeClass}`;
+    btn.innerHTML = `<span class="cycle-dot"></span><span>${nextStage.label}</span><span class="cycle-arrow">↻</span>`;
+    btn.style.transform = 'scale(1.15)';
+    setTimeout(() => { if (btn) btn.style.transform = 'scale(1)'; }, 180);
+  }
+
+  const stepperContainer = document.getElementById(`drawerStepper_${orderId}`);
+  if (stepperContainer) {
+    stepperContainer.innerHTML = window.renderLifecycleStepperHtml(orderId, nextStage.id);
+  }
+
+  if (typeof toast === 'function') {
+    toast(`Order ${order.orderNumber || order.id} status cycled ➔ ${nextStage.label}`);
+  }
+};
+
+window.setOrderExplicitStage = function(orderId, stageId, evt) {
+  if (evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+  }
+  const targetStage = window.ORDER_STATUS_STAGES.find(s => s.id === stageId) || window.ORDER_STATUS_STAGES[0];
+  let order = null;
+  if (Array.isArray(dOrders)) {
+    order = dOrders.find(o => (o.id === orderId || o.orderNumber === orderId));
+  }
+  if (!order && window.FirebaseOrders && Array.isArray(window.FirebaseOrders._cache)) {
+    order = window.FirebaseOrders._cache.find(o => (o.id === orderId || o.orderNumber === orderId));
+  }
+  if (order) {
+    order.lifecycleStage = targetStage.id;
+    order.status = targetStage.label;
+    order.st = [targetStage.label, targetStage.pillClass];
+    if (window.FirebaseOrders && typeof window.FirebaseOrders.update === 'function' && order.id) {
+      window.FirebaseOrders.update(order.id, {
+        lifecycleStage: targetStage.id,
+        status: targetStage.label,
+        st: [targetStage.label, targetStage.pillClass]
+      });
+    }
+  }
+
+  const btn = document.getElementById(`statusCycleBtn_${orderId}`);
+  if (btn) {
+    btn.className = `order-cycle-btn ${targetStage.badgeClass}`;
+    btn.innerHTML = `<span class="cycle-dot"></span><span>${targetStage.label}</span><span class="cycle-arrow">↻</span>`;
+  }
+
+  const stepperContainer = document.getElementById(`drawerStepper_${orderId}`);
+  if (stepperContainer) {
+    stepperContainer.innerHTML = window.renderLifecycleStepperHtml(orderId, targetStage.id);
+  }
+
+  if (typeof toast === 'function') {
+    toast(`Order status set to ${targetStage.label}`);
+  }
+};
+
+window.toggleOrderExpand = function(orderId, evt) {
+  if (evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+  }
+  const drawer = document.getElementById(`orderDrawer_${orderId}`);
+  const btn = document.getElementById(`expandBtn_${orderId}`);
+  const row = document.getElementById(`orderStrip_${orderId}`);
+
+  if (!drawer) return;
+  const isHidden = drawer.style.display === 'none' || drawer.classList.contains('hidden');
+  if (isHidden) {
+    drawer.style.display = 'block';
+    drawer.classList.remove('hidden');
+    if (btn) btn.classList.add('expanded');
+    if (row) row.classList.add('is-expanded-row');
+  } else {
+    drawer.style.display = 'none';
+    drawer.classList.add('hidden');
+    if (btn) btn.classList.remove('expanded');
+    if (row) row.classList.remove('is-expanded-row');
+  }
+};
+
+window.handleOrderStripClick = function(orderId, evt) {
+  // If clicking outside buttons, toggle drawer expand
+  if (evt && (evt.target.closest('.order-cycle-btn') || evt.target.closest('.order-act-btn') || evt.target.closest('.order-num-text'))) {
+    return;
+  }
+  window.toggleOrderExpand(orderId, evt);
+};
+
+window.renderHighDensityOrderRow = function(order, isSelected) {
+  const oid = order.id || order.orderNumber || ('NX-' + Math.random().toString(36).slice(2, 6));
+  const orderNum = order.orderNumber || order.id || 'NX-ORDER';
+  const stage = window.inferOrderStage(order);
+  const location = window.extractLocationSnippet(order);
+  const buyerName = (order.customerSnapshot && order.customerSnapshot.name) || order.customerName || 'Direct Wholesale Buyer';
+  const totalVal = order.total != null ? order.total : (order.subtotal || 45000);
+  const totalFmt = '৳' + Number(totalVal).toLocaleString();
+  const itemsText = order.lineItems && order.lineItems.length 
+    ? order.lineItems.map(i => `${i.title} (${i.quantity}x)`).join(', ')
+    : (order.t || 'Standard Export Order Items');
+
+  return `
+    <div class="orow-strip ${isSelected ? 'is-selected' : ''}" 
+         id="orderStrip_${oid}" 
+         onclick="window.handleOrderStripClick('${oid}', event)">
+      <!-- Expand chevron -->
+      <button class="order-expand-toggle-btn" 
+              id="expandBtn_${oid}" 
+              onclick="window.toggleOrderExpand('${oid}', event)" 
+              title="Toggle Fulfillment Specs &amp; Life-Cycle Drawer">
+        <svg class="chev-icon" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+
+      <!-- Order ID -->
+      <span class="order-num-text" onclick="window.selectOrderRow('${oid}', event)">${orderNum}</span>
+
+      <!-- Inline Status Cycling Badge -->
+      <button class="order-cycle-btn ${stage.badgeClass}" 
+              id="statusCycleBtn_${oid}" 
+              onclick="window.cycleOrderStatus('${oid}', event)" 
+              title="Click to cycle: Lead ➔ 50% Paid ➔ JIT Cutting ➔ Shipped">
+        <span class="cycle-dot"></span>
+        <span>${stage.label}</span>
+        <span class="cycle-arrow">↻</span>
+      </button>
+
+      <!-- Buyer & Location Snippet -->
+      <div class="order-buyer-cell">
+        <span class="buyer-name" title="${buyerName}">${buyerName}</span>
+        <span class="location-chip" title="Buyer Delivery Destination">📍 ${location}</span>
+      </div>
+
+      <!-- Line items preview (hidden on narrow screens) -->
+      <div class="order-items-snippet" title="${itemsText}">${itemsText}</div>
+
+      <!-- Total Amount -->
+      <div class="order-total-cell">${totalFmt}</div>
+
+      <!-- Quick Actions -->
+      <div class="order-quick-actions" onclick="event.stopPropagation()">
+        <button class="order-act-btn" onclick="window.selectOrderRow('${oid}', event)" title="View Order Details">👁️</button>
+        <button class="order-act-btn" onclick="window.openQuickOrderPrint('${oid}', event)" title="Print Dispatch Waybill">🖨️</button>
+      </div>
+    </div>
+
+    <!-- Expandable Deep Accordion Drawer -->
+    <div class="order-expand-drawer hidden" id="orderDrawer_${oid}" style="display:none;">
+      <div id="drawerStepper_${oid}">
+        ${window.renderLifecycleStepperHtml(oid, stage.id)}
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-top:8px;">
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:10px;font-family:var(--mono);color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Customer Fulfillment Snapshot</div>
+          <div style="font-size:12px;font-weight:700;color:#F8FAFC;margin-top:2px;">${buyerName}</div>
+          <div style="font-size:11px;color:#CBD5E1;">${(order.customerSnapshot && order.customerSnapshot.address) || location}</div>
+          <div style="font-size:10.5px;color:#38BDF8;font-family:var(--mono);margin-top:3px;">📞 ${(order.customerSnapshot && order.customerSnapshot.phone) || '+31 20 555 0192'}</div>
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:10px;font-family:var(--mono);color:#94A3B8;text-transform:uppercase;letter-spacing:0.8px;">Commercial Terms &amp; Settlement</div>
+          <div style="font-size:11.5px;color:#E2E8F0;margin-top:2px;">Subtotal: <span style="font-family:var(--mono);font-weight:700;color:#D4AF37;">${totalFmt}</span></div>
+          <div style="font-size:11px;color:#10B981;">Escrow Deposit: 50% Required for JIT Floor Issue</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="btn btn-xs btn-dark" onclick="window.selectOrderRow('${oid}', event)" style="font-size:10.5px;padding:5px 10px;">Full Ledger →</button>
+          <button class="btn btn-xs btn-coral" onclick="window.cycleOrderStatus('${oid}', event)" style="font-size:10.5px;padding:5px 10px;">Advance Stage ↻</button>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+window.openQuickOrderPrint = function(orderId, evt) {
+  if (evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+  }
+  let order = null;
+  if (Array.isArray(dOrders)) {
+    order = dOrders.find(o => (o.id === orderId || o.orderNumber === orderId));
+  }
+  if (!order && window.FirebaseOrders && Array.isArray(window.FirebaseOrders._cache)) {
+    order = window.FirebaseOrders._cache.find(o => (o.id === orderId || o.orderNumber === orderId));
+  }
+  const orderNum = (order && order.orderNumber) || orderId;
+  openSheet(`
+    <div style="padding:16px 20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;font-size:16px;color:#F8FAFC;">Print Dispatch Waybill · ${orderNum}</h3>
+        <button class="btn btn-xs btn-dark" onclick="closeSheet()">✕</button>
+      </div>
+      <div style="background:#000;border:1px solid rgba(255,255,255,0.15);padding:14px;border-radius:8px;font-family:var(--mono);font-size:11px;color:#E2E8F0;line-height:1.6;">
+        <div>BAYXBENGAL LOGISTICS · AIRWAY BILL</div>
+        <div>CONSIGNEE: ${(order && order.customerName) || 'International Buyer'}</div>
+        <div>DESTINATION: ${window.extractLocationSnippet(order)}</div>
+        <div>MANIFEST: ${(order && order.t) || 'Custom Leather Goods'}</div>
+        <div>STATUS: ${order ? window.inferOrderStage(order).label : 'PROCESSING'}</div>
+      </div>
+      <button class="btn btn-coral" style="width:100%;margin-top:14px;" onclick="window.print();">Confirm &amp; Print Waybill</button>
+    </div>
+  `);
+};
+
 /* ── Utility ── */
 function startCamera(mode = 'photo') {
   if (window.CameraEngine && typeof window.CameraEngine.open === 'function') {
@@ -2199,8 +2767,9 @@ function startCamera(mode = 'photo') {
 function openAllOrders() { openAppModule('Orders'); }
 function ordersListHtml(o) {
   if(!o||!o.length) return `<div class="empty">No orders yet</div>`;
-  return o.map(d=>`<div class="orow"><div class="othumb">NX</div><div class="om"><div class="ot">${d.t}</div><div class="os">${d.s}</div></div><div class="pill ${d.st[1]||'ok'}">${d.st[0]}</div></div>`).join("");
+  return o.map(d=>window.renderHighDensityOrderRow(d, false)).join("");
 }
+
 
 /* ── Search ── */
 function openSearch() { openSheet(`<h3>Search</h3><div style="padding:0 20px;"><div class="field" style="margin-top:8px;"><input placeholder="Orders, products, buyers…" autofocus/></div></div>`); }
