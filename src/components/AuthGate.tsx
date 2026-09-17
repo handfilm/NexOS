@@ -217,7 +217,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({
                   <button
                     type="button"
                     onClick={onCancel}
-                    className="flex-1 rounded-xl border border-slate-200 bg-slate-100 py-2.5 text-[clamp(10px,1.2vw,13px)] font-semibold text-[#64748b] hover:bg-slate-200 hover:text-[#1e293b] transition-all truncate"
+                    className="flex-1 rounded-xl border border-slate-200 bg-slate-100 py-2.5 text-xs font-semibold text-[#64748b] hover:bg-slate-200 hover:text-[#1e293b] transition-all"
                   >
                     Cancel
                   </button>
@@ -225,7 +225,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({
                 <button
                   type="submit"
                   disabled={pin.length !== 4}
-                  className="flex-1 rounded-xl bg-[#c81d11] hover:bg-[#a3160c] py-2.5 text-[clamp(10px,1.2vw,13px)] font-bold text-white active:scale-[0.99] transition-all truncate shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 rounded-xl bg-[#c81d11] hover:bg-[#a3160c] py-2.5 text-xs font-bold text-white active:scale-[0.99] transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Verify PIN →
                 </button>
@@ -245,7 +245,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({
               type="button"
               disabled={loading}
               onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2.5 text-[clamp(10px,1.2vw,13px)] font-semibold text-[#1e293b] shadow-xs hover:border-slate-400 transition-all truncate disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-semibold text-[#1e293b] shadow-xs hover:border-slate-400 transition-all disabled:opacity-50"
             >
               <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

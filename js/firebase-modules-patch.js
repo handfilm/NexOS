@@ -15,14 +15,14 @@
   };
 
   function modHeader(title, subtitle, actions = []) {
-    const btns = actions.map(a => `<button class="btn btn-sm ${a.primary ? 'btn-gold' : 'btn-dark'} truncate text-[clamp(10px,1.2vw,13px)]" onclick="${a.fn}">${a.label}</button>`).join('');
+    const btns = actions.map(a => `<button class="btn btn-sm ${a.primary ? 'btn-gold' : 'btn-dark'}" onclick="${a.fn}">${a.label}</button>`).join('');
     return `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px 10px;">
-        <div>
-          <h3 style="margin:0;font-size:18px;letter-spacing:1px;">${title}</h3>
-          ${subtitle ? `<p class="hint" style="margin:3px 0 0;font-size:11px;">${subtitle}</p>` : ""}
+      <div class="mod-header-wrap">
+        <div class="mod-header-title-box">
+          <h3 class="mod-header-heading">${title}</h3>
+          ${subtitle ? `<p class="mod-header-subtitle">${subtitle}</p>` : ""}
         </div>
-        <div style="display:flex;gap:6px;margin-top:2px;">${btns}</div>
+        ${btns ? `<div class="mod-header-actions-bar">${btns}</div>` : ""}
       </div>
     `;
   }
@@ -302,22 +302,20 @@
         { label: "+ Add Product", fn: "window.openAdvancedProductForm()", primary: true }
       ]) + `
         <!-- Products Sub-Menu Navigation (Master Folder & Sync) -->
-        <div class="products-sub-nav" style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--wire);margin-bottom:14px;">
-          <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('catalog')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+        <div class="products-sub-nav">
+          <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('catalog')">
             <span id="products-subnav-catalog-badge">🏷️ Products Catalog (${items.length})</span>
           </button>
-          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_sync')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_sync')">
             <span>⚡ Drive Sync Monitor (Master Drive)</span>
             <span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;display:inline-block;"></span>
           </button>
-          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_embed')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_embed')">
             <span>📁 Master Drive Folder (Embed)</span>
           </button>
-          <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
-            <a href="https://drive.google.com/drive/folders/1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT?usp=drive_link" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark truncate" style="min-width:auto;height:32px;padding:0 12px;font-size:11px;gap:5px;text-decoration:none;color:var(--gold-dim);">
-              <span>↗ Open in Google Drive</span>
-            </a>
-          </div>
+          <a href="https://drive.google.com/drive/folders/1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT?usp=drive_link" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark" title="Open Master Folder in Google Drive" style="margin-left:auto;">
+            <span>↗ Open in Google Drive</span>
+          </a>
         </div>
 
         <!-- Filter, Multi-Select & Search Toolbar -->
@@ -1866,24 +1864,24 @@
               <!-- Action Buttons -->
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;">
                 ${a.isCommitted ? `
-                  <button class="btn btn-sm btn-dark truncate" onclick="window.openAdvancedProductForm('${a.productId}')" style="font-size:clamp(10px,1.2vw,11px);padding:4px 8px;height:30px;">
+                  <button class="btn btn-sm btn-dark" onclick="window.openAdvancedProductForm('${a.productId}')">
                     Edit Product
                   </button>
                 ` : `
-                  <button class="btn btn-sm btn-gold truncate" onclick="window.DriveSyncMonitor.commitAsset('${a.id}')" style="font-size:clamp(10px,1.2vw,11px);padding:4px 8px;height:30px;">
+                  <button class="btn btn-sm btn-gold" onclick="window.DriveSyncMonitor.commitAsset('${a.id}')">
                     + Add to Product
                   </button>
                 `}
-                <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.openSendToCustomerModal('${a.id}')" style="font-size:clamp(10px,1.2vw,11px);padding:4px 8px;height:30px;">
+                <button class="btn btn-sm btn-dark" onclick="window.DriveSyncMonitor.openSendToCustomerModal('${a.id}')">
                   📲 Send to Customer
                 </button>
               </div>
 
               <div style="display:flex;gap:4px;margin-top:4px;">
-                <a href="${a.driveUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark truncate" style="flex:1;font-size:10px;height:26px;text-decoration:none;color:var(--gold-dim);padding:0 6px;">
+                <a href="${a.driveUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-xs btn-dark" style="flex:1;text-decoration:none;color:var(--gold-dim);">
                   ↗ Google Drive
                 </a>
-                <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.openQuickEditModal('${a.id}')" style="flex:1;font-size:10px;height:26px;padding:0 6px;">
+                <button class="btn btn-xs btn-dark" onclick="window.DriveSyncMonitor.openQuickEditModal('${a.id}')" style="flex:1;">
                   ⚙️ Edit Spec
                 </button>
               </div>
@@ -2152,10 +2150,10 @@
             </div>
             <textarea id="whatsapp_pitch_text" rows="5" style="width:100%;font-family:var(--mono);font-size:11px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:8px;border-radius:6px;">${defaultPitch}</textarea>
             <div style="display:flex;gap:8px;">
-              <button class="btn btn-sm btn-gold truncate" style="flex:1;" onclick="window.DriveSyncMonitor.launchWhatsAppWeb('${asset.id}')">
+              <button class="btn btn-sm btn-gold" style="flex:1;" onclick="window.DriveSyncMonitor.launchWhatsAppWeb('${asset.id}')">
                 📲 Open WhatsApp Web
               </button>
-              <button class="btn btn-sm btn-dark truncate" style="flex:1;" onclick="window.DriveSyncMonitor.copyPitchText()">
+              <button class="btn btn-sm btn-dark" style="flex:1;" onclick="window.DriveSyncMonitor.copyPitchText()">
                 📋 Copy Pitch Text
               </button>
             </div>
@@ -2188,7 +2186,7 @@
           </div>
 
           <!-- Channel 3: Stage to WhatsApp Campaign Studio -->
-          <button class="btn btn-dark btn-sm truncate" style="height:36px;font-size:11.5px;" onclick="closeSheet();window.openWhatsAppCampaignStudio();">
+          <button class="btn btn-dark btn-sm" style="height:36px;font-size:11.5px;" onclick="closeSheet();window.openWhatsAppCampaignStudio();">
             📢 Stage into WhatsApp Broadcast Campaign Hub →
           </button>
         </div>
@@ -2359,22 +2357,20 @@
         ])}
 
         <!-- Products Sub-Menu Navigation -->
-        <div class="products-sub-nav" style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--wire);margin-bottom:14px;">
-          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('catalog')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+        <div class="products-sub-nav">
+          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('catalog')">
             <span>🏷️ Products Catalog (${options.catalogCount || (window._lastProductsCache || []).length})</span>
           </button>
-          <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('drive_sync')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+          <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('drive_sync')">
             <span>⚡ Drive Sync Monitor (Master Drive)</span>
             <span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;display:inline-block;"></span>
           </button>
-          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_embed')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_embed')">
             <span>📁 Master Drive Folder (Embed)</span>
           </button>
-          <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
-            <a href="${this.MASTER_FOLDER_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark truncate" style="min-width:auto;height:32px;padding:0 12px;font-size:11px;gap:5px;text-decoration:none;color:var(--gold-dim);">
-              <span>↗ Open in Google Drive</span>
-            </a>
-          </div>
+          <a href="${this.MASTER_FOLDER_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark" title="Open in Google Drive" style="margin-left:auto;">
+            <span>↗ Open in Google Drive</span>
+          </a>
         </div>
 
         <!-- Master Drive KPI & Monitor Status Banner -->
@@ -2416,11 +2412,11 @@
                 </select>
               </div>
 
-              <button class="btn btn-sm btn-gold truncate" onclick="window.DriveSyncMonitor.scan(true)" style="height:34px;font-size:clamp(10px,1.2vw,12px);">
+              <button class="btn btn-sm btn-gold" onclick="window.DriveSyncMonitor.scan(true)">
                 ⚡ Scan Master Drive Now
               </button>
 
-              <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.batchCommitSelected()" style="height:34px;font-size:clamp(10px,1.2vw,12px);">
+              <button class="btn btn-sm btn-dark" onclick="window.DriveSyncMonitor.batchCommitSelected()">
                 📥 Batch Add to Products (${uncommittedCount})
               </button>
             </div>
@@ -2478,10 +2474,10 @@
         <!-- Floating Selection Action Bar -->
         <div id="drive_sync_floating_bar" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:900;background:var(--bg-neu);border:1px solid var(--wire);box-shadow:0 12px 30px rgba(0,0,0,0.6);border-radius:12px;padding:8px 16px;display:${selectedCount > 0 ? 'flex' : 'none'};gap:12px;align-items:center;">
           <span id="drive_sync_selected_count" style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink);">✓ ${selectedCount} Selected</span>
-          <button class="btn btn-sm btn-gold truncate" onclick="window.DriveSyncMonitor.batchCommitSelected()">
+          <button class="btn btn-sm btn-gold" onclick="window.DriveSyncMonitor.batchCommitSelected()">
             📥 Commit to Products Catalog
           </button>
-          <button class="btn btn-sm btn-dark truncate" onclick="window.DriveSyncMonitor.state.selectedIds.clear();window.DriveSyncMonitor.refreshCurrentView();">
+          <button class="btn btn-sm btn-dark" onclick="window.DriveSyncMonitor.state.selectedIds.clear();window.DriveSyncMonitor.refreshCurrentView();">
             ✕ Clear
           </button>
         </div>
@@ -2517,22 +2513,20 @@
         ])}
 
         <!-- Products Sub-Menu Navigation -->
-        <div class="products-sub-nav" style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--wire);margin-bottom:14px;">
-          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('catalog')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+        <div class="products-sub-nav">
+          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('catalog')">
             <span>🏷️ Products Catalog (${options.catalogCount || (window._lastProductsCache || []).length})</span>
           </button>
-          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_sync')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+          <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_sync')">
             <span>⚡ Drive Sync Monitor (Master Drive)</span>
             <span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;display:inline-block;"></span>
           </button>
-          <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('drive_embed')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+          <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('drive_embed')">
             <span>📁 Master Drive Folder (Embed)</span>
           </button>
-          <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
-            <a href="${this.MASTER_FOLDER_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark truncate" style="min-width:auto;height:32px;padding:0 12px;font-size:11px;gap:5px;text-decoration:none;color:var(--gold-dim);">
-              <span>↗ Open in Google Drive</span>
-            </a>
-          </div>
+          <a href="${this.MASTER_FOLDER_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark" title="Open in Google Drive" style="margin-left:auto;">
+            <span>↗ Open in Google Drive</span>
+          </a>
         </div>
 
         <div style="padding:0 20px 40px;display:flex;flex-direction:column;gap:12px;">
@@ -2541,10 +2535,10 @@
               Embedded Live Google Drive Folder: <b>1BNzQpgYtf-CB7GemrQVtqIWGQEkTiZIT</b>
             </div>
             <div style="display:flex;gap:8px;">
-              <button class="btn btn-sm btn-gold truncate" onclick="window.setProductsSubTab('drive_sync')">
+              <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('drive_sync')">
                 ⚡ Switch to Drive Sync Monitor
               </button>
-              <a href="${this.MASTER_FOLDER_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark truncate" style="text-decoration:none;">
+              <a href="${this.MASTER_FOLDER_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark" style="text-decoration:none;">
                 ↗ Open External
               </a>
             </div>
@@ -3863,6 +3857,36 @@
   window.setCustomerViewMode = function (mode) {
     window._viewState.customers = window._viewState.customers || {};
     window._viewState.customers.viewMode = mode;
+    ['table', 'strips', 'cards'].forEach(m => {
+      const btn = document.getElementById(`crm_view_btn_${m}`);
+      if (btn) {
+        if (m === mode) {
+          btn.style.background = '#f97316';
+          btn.style.color = '#ffffff';
+          btn.style.boxShadow = '0 2px 8px rgba(249,115,22,0.3)';
+        } else {
+          btn.style.background = 'transparent';
+          btn.style.color = '#94a3b8';
+          btn.style.boxShadow = 'none';
+        }
+      }
+    });
+    window.updateCustomerListInPlace();
+  };
+
+  window.selectCustomerCohortTab = function (tag) {
+    window._viewState.customers = window._viewState.customers || {};
+    window._viewState.customers.cohortTag = tag;
+    window._viewState.customers.page = 1;
+    
+    const cohortSelect = document.getElementById('crm-cohort-select');
+    if (cohortSelect) cohortSelect.value = tag;
+
+    document.querySelectorAll('.crm-data-nav-item').forEach(el => {
+      if (el.dataset.cohort === tag) el.classList.add('is-active');
+      else el.classList.remove('is-active');
+    });
+
     window.updateCustomerListInPlace();
   };
 
@@ -4241,6 +4265,134 @@
     }).join('');
   };
 
+  /* ═══════════════════════════════════════════════════════════
+     CRM DESKTOP DATA TABLE / SPREADSHEET LEDGER RENDERER
+     ═══════════════════════════════════════════════════════════ */
+  window.renderCustomerTableHtml = function (items) {
+    if (!items || !items.length) {
+      return `
+        <div class="empty" style="padding:48px 20px;text-align:center;background:rgba(18,22,31,0.75);backdrop-filter:blur(14px);border:1px dashed rgba(255,255,255,0.15);border-radius:18px;margin:0 20px;">
+          <div style="font-size:28px;margin-bottom:8px;color:#fb923c;">👥</div>
+          <div style="font-size:13px;font-weight:700;color:#FFFFFF;letter-spacing:0.5px;">No customers found matching your filter</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:4px;font-family:var(--mono);">Try searching another name, phone number, or select All Countries.</div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="crm-table-container">
+        <div style="overflow-x:auto;">
+          <table class="crm-data-table">
+            <thead>
+              <tr>
+                <th style="width:36px;text-align:center;">
+                  <input type="checkbox" onchange="window.toggleSelectAllCustomers(this.checked)" style="accent-color:#f97316;cursor:pointer;"/>
+                </th>
+                <th>Patron / Company</th>
+                <th>Contact Details</th>
+                <th>Location</th>
+                <th>Segment Cohort</th>
+                <th style="text-align:center;">Orders</th>
+                <th style="text-align:right;">Lifetime Spend</th>
+                <th style="text-align:right;">AOV</th>
+                <th style="text-align:center;min-width:140px;">Direct Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map(c => {
+                const displayName = c.companyName || c.name || "Unnamed Buyer";
+                const safeId = encodeURIComponent(c.id || "");
+                const safeName = displayName.replace(/"/g, '&quot;');
+                const flagIcon = c.flag || '🏢';
+                const countryCode = c.country || 'BD';
+                const totalSpentNum = Number(c.totalSpent || 0);
+                const ordersCount = Number(c.totalOrders || 0);
+                const aov = ordersCount > 0 ? Math.round(totalSpentNum / ordersCount) : totalSpentNum;
+                const isSelected = window._selectedCustomerIds && window._selectedCustomerIds.has(c.id);
+
+                const monogram = (displayName.replace(/[^a-zA-Z0-9]/g, '') || 'HH').slice(0, 2).toUpperCase();
+                let cohortClass = 'ok';
+                let cohortLabel = 'REGISTERED';
+                if (totalSpentNum >= 50000 || c.cohortTag === 'vip') {
+                  cohortClass = 'amber';
+                  cohortLabel = 'VIP PATRON';
+                } else if (c.cohortTag === 'wholesale') {
+                  cohortClass = 'coral';
+                  cohortLabel = 'WHOLESALE';
+                } else if (ordersCount >= 2 || c.cohortTag === 'repeat') {
+                  cohortClass = 'ok';
+                  cohortLabel = 'REPEAT BUYER';
+                } else if (c.cohortTag === 'atelier') {
+                  cohortClass = 'purple';
+                  cohortLabel = 'ATELIER DIRECT';
+                }
+
+                return `
+                  <tr class="${isSelected ? 'is-selected' : ''}" onclick="window.openCompanyDetail('${safeId}')">
+                    <td style="text-align:center;" onclick="event.stopPropagation();">
+                      <input type="checkbox" class="item-select-checkbox customer-item-cb" 
+                             data-customer-id="${c.id}" 
+                             ${isSelected ? 'checked' : ''} 
+                             onchange="window.toggleCustomerSelection('${c.id}', event)"/>
+                    </td>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg, #f97316 0%, #ea580c 100%);color:#FFF;font-weight:900;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                          ${monogram}
+                        </div>
+                        <div style="min-width:0;">
+                          <div style="font-weight:700;color:#F8FAFC;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;" title="${safeName}">${displayName}</div>
+                          <div style="font-size:9.5px;color:#94A3B8;">CUST-${(c.id || '').slice(0, 8).toUpperCase()}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div style="display:flex;flex-direction:column;gap:1px;">
+                        ${c.phone ? `<span style="color:#38BDF8;font-size:11px;">📞 ${c.phone}</span>` : '<span style="color:#64748B;">No phone</span>'}
+                        ${c.email ? `<span style="color:#94A3B8;font-size:10px;">✉️ ${c.email}</span>` : ''}
+                      </div>
+                    </td>
+                    <td>
+                      <span style="font-size:11px;color:#CBD5E1;">${flagIcon} ${c.city || 'Dhaka'}, ${countryCode}</span>
+                    </td>
+                    <td>
+                      <span class="pill ${cohortClass}" style="font-size:8px;padding:2px 7px;font-weight:800;">${cohortLabel}</span>
+                    </td>
+                    <td style="text-align:center;">
+                      <span style="font-weight:700;color:${ordersCount > 0 ? '#10B981' : '#64748B'};font-size:11.5px;">${ordersCount}</span>
+                    </td>
+                    <td style="text-align:right;">
+                      <span style="font-weight:800;color:#F97316;font-size:12.5px;">৳${totalSpentNum.toLocaleString()}</span>
+                    </td>
+                    <td style="text-align:right;">
+                      <span style="color:#38BDF8;font-size:11.5px;font-weight:600;">৳${aov.toLocaleString()}</span>
+                    </td>
+                    <td style="text-align:center;" onclick="event.stopPropagation();">
+                      <div style="display:inline-flex;align-items:center;gap:4px;">
+                        <button class="btn btn-xs btn-emerald" style="padding:2px 6px;height:24px;font-size:10px;font-weight:700;" onclick="window.openWhatsAppCampaignStudio({ customerIds: ['${safeId}'] });" title="WhatsApp Message">
+                          📲 WA
+                        </button>
+                        <button class="btn btn-xs btn-dark" style="padding:2px 6px;height:24px;font-size:10px;color:#F59E0B;border-color:rgba(245,158,11,0.3);" onclick="window.openCustomerGeminiModal('${safeId}');" title="Gemini AI Analysis">
+                          ✨ AI
+                        </button>
+                        <button class="btn btn-xs btn-dark" style="padding:2px 6px;height:24px;font-size:10px;color:#38BDF8;border-color:rgba(56,189,248,0.3);" onclick="window.openCompanyDetail('${safeId}');" title="Open Dossier">
+                          👁️
+                        </button>
+                        <button class="btn btn-xs btn-gold" style="padding:2px 6px;height:24px;font-size:10px;font-weight:700;" onclick="window.openCustomerFastOrder('${safeId}');" title="Fast Order">
+                          ⚡
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  };
+
   window.renderCustomerPaginationHtml = function (state, totalPages, totalCount) {
     if (totalPages <= 1) return '';
     return `
@@ -4273,6 +4425,7 @@
         country: state.country,
         cohortTag: state.cohortTag,
         minSpend: state.minSpend,
+        orderCountFilter: state.orderCountFilter,
         sortBy: state.sortBy,
         sortDir: state.sortDir,
         page: state.page,
@@ -4285,10 +4438,22 @@
       window._lastCustomersCache = items;
 
       const isCards = state.viewMode === 'cards';
-      listEl.className = isCards 
-        ? "crm-customer-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5" 
-        : "crm-customer-strips-container flex flex-col gap-1.5";
-      listEl.innerHTML = isCards ? window.renderCustomerCardsHtml(items) : window.renderCustomerStripsHtml(items);
+      const isTable = state.viewMode === 'table';
+
+      if (isTable) {
+        listEl.className = "crm-customer-table-wrap";
+        listEl.style.padding = "0";
+        listEl.innerHTML = window.renderCustomerTableHtml(items);
+      } else if (isCards) {
+        listEl.className = "crm-customer-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5";
+        listEl.style.padding = "0 20px 24px";
+        listEl.innerHTML = window.renderCustomerCardsHtml(items);
+      } else {
+        listEl.className = "crm-customer-strips-container flex flex-col gap-1.5";
+        listEl.style.padding = "0 20px 24px";
+        listEl.innerHTML = window.renderCustomerStripsHtml(items);
+      }
+
       const pagEl = document.getElementById("crm-pagination-container");
       if (pagEl) pagEl.innerHTML = window.renderCustomerPaginationHtml(state, totalPages, totalCount);
 
@@ -4322,6 +4487,10 @@
     const state = window._viewState.customers;
     state.page = state.page || 1;
     state.limit = state.limit || 50;
+    // Desktop first default to professional table view if not set
+    if (!state.viewMode) {
+      state.viewMode = (window.innerWidth >= 768) ? 'table' : 'strips';
+    }
 
     try {
       const res = await window.CustomersService.list({
@@ -4329,6 +4498,7 @@
         country: state.country,
         cohortTag: state.cohortTag,
         minSpend: state.minSpend,
+        orderCountFilter: state.orderCountFilter,
         sortBy: state.sortBy,
         sortDir: state.sortDir,
         page: state.page,
@@ -4342,10 +4512,27 @@
       window._lastCustomersCache = items;
 
       const pctOfTotal = totalDatabaseCount > 0 ? ((totalCount / totalDatabaseCount) * 100).toFixed(1) : "0.0";
+      const avgAov = totalCount > 0 ? Math.round(totalSpentAll / totalCount) : 0;
+      const vipCount = items.filter(i => (Number(i.totalSpent) || 0) >= 50000 || i.cohortTag === 'vip' || i.cohortTag === 'wholesale').length;
+      const repeatRate = totalCount > 0 ? ((items.filter(i => (Number(i.totalOrders) || 0) >= 2).length / Math.max(1, items.length)) * 100).toFixed(1) : "0.0";
+
       const activeFiltersCount = (state.country && state.country !== 'all' ? 1 : 0) + 
                                  (state.cohortTag && state.cohortTag !== 'all' ? 1 : 0) + 
+                                 (state.orderCountFilter && state.orderCountFilter !== 'all' ? 1 : 0) + 
                                  (state.minSpend && state.minSpend > 0 ? 1 : 0) + 
                                  (state.search && state.search.trim() ? 1 : 0);
+
+      const cohortPills = [
+        { id: 'all', label: '🌐 All Patrons' },
+        { id: 'vip', label: '👑 VIP Patrons (৳50K+)' },
+        { id: 'wholesale', label: '🏢 Wholesale & B2B' },
+        { id: 'repeat', label: '🔁 Repeat Buyers (2+)' },
+        { id: 'leather', label: '💼 Leather Collectors' },
+        { id: 'atelier', label: '🌿 Atelier Direct' },
+        { id: 'europe', label: '🇪🇺 EU & Export' },
+        { id: 'corporate', label: '🎁 Corporate Accounts' },
+        { id: 'dormant90', label: '⏳ Dormant (90d+)' }
+      ];
 
       target.innerHTML = modHeader("Customer Directory", `${totalCount.toLocaleString()} buyer profiles · ৳${totalSpentAll.toLocaleString()} lifetime spend · Verified Operator Database`, [
         { label: "📲 WhatsApp Broadcast", fn: `window.openWhatsAppCampaignStudio({ cohort: '${state.cohortTag || 'all'}', minSpend: ${state.minSpend || 0} })`, primary: false },
@@ -4353,7 +4540,65 @@
         { label: "📥 Bulk Import (CSV/Excel)", fn: "window.BulkImportEngine.openCustomerImportModal()", primary: false },
         { label: "+ Add Customer", fn: "window.openAdvancedCustomerForm()", primary: true }
       ]) + `
-        <!-- SMART AUDIENCE FILTER & LIVE DYNAMIC BADGE (Obsidian Glass Theme) -->
+        <!-- ── NEXT-LEVEL CRM DATA NAVIGATION MENU (Horizontal Category Hub) ── -->
+        <div class="crm-data-nav-menu">
+          ${cohortPills.map(cp => {
+            const isActive = (!state.cohortTag && cp.id === 'all') || state.cohortTag === cp.id;
+            return `
+              <div class="crm-data-nav-item ${isActive ? 'is-active' : ''}" 
+                   data-cohort="${cp.id}" 
+                   onclick="window.selectCustomerCohortTab('${cp.id}')">
+                <span>${cp.label}</span>
+                ${cp.id === 'all' ? `<span class="nav-count-badge">${totalDatabaseCount.toLocaleString()}</span>` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <!-- ── EXECUTIVE CRM KPI BENTO BAR (Desktop-First Performance Overview) ── -->
+        <div class="crm-kpi-bento-grid">
+          <div class="crm-kpi-card">
+            <div class="crm-kpi-title">
+              <span>👥</span> Verified Patrons
+            </div>
+            <div class="crm-kpi-val">${totalCount.toLocaleString()}</div>
+            <div class="crm-kpi-sub">
+              ${pctOfTotal}% of ${totalDatabaseCount.toLocaleString()} Permanent Ledger
+            </div>
+          </div>
+
+          <div class="crm-kpi-card">
+            <div class="crm-kpi-title">
+              <span>💎</span> Lifetime BDT Volume
+            </div>
+            <div class="crm-kpi-val" style="color:#F97316;">৳${totalSpentAll.toLocaleString()}</div>
+            <div class="crm-kpi-sub">
+              Average LTV: ৳${avgAov.toLocaleString()} / patron
+            </div>
+          </div>
+
+          <div class="crm-kpi-card">
+            <div class="crm-kpi-title">
+              <span>👑</span> High-Value Accounts
+            </div>
+            <div class="crm-kpi-val" style="color:#F59E0B;">${vipCount} In View</div>
+            <div class="crm-kpi-sub">
+              VIP (৳50K+) &amp; Wholesale B2B Tier
+            </div>
+          </div>
+
+          <div class="crm-kpi-card">
+            <div class="crm-kpi-title">
+              <span>🔁</span> Multi-Order Retention
+            </div>
+            <div class="crm-kpi-val" style="color:#10B981;">${repeatRate}%</div>
+            <div class="crm-kpi-sub">
+              Repeat Purchasing Velocity (2+ Orders)
+            </div>
+          </div>
+        </div>
+
+        <!-- ── ADVANCE SEARCH OPTIONS & QUERY TOOLBAR (Obsidian Glass Theme) ── -->
         <div style="margin:0 20px 14px;padding:14px 18px;background:rgba(18,22,31,0.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.1);border-radius:18px;box-shadow:0 8px 32px 0 rgba(0,0,0,0.37);font-family:var(--mono);">
           <!-- Top Row: Live Dynamic Badge & Broadcast Action & Select All -->
           <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08);">
@@ -4375,7 +4620,7 @@
               </div>
 
               ${activeFiltersCount > 0 ? `
-                <button onclick="window._viewState.customers.minSpend = 0; window._viewState.customers.cohortTag = 'all'; window._viewState.customers.country = 'all'; window._viewState.customers.search = ''; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#E2E8F0;font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;">
+                <button onclick="window._viewState.customers.minSpend = 0; window._viewState.customers.cohortTag = 'all'; window._viewState.customers.country = 'all'; window._viewState.customers.orderCountFilter = 'all'; window._viewState.customers.search = ''; window._viewState.customers.page = 1; window.render.CRM(document.getElementById('mod-CRM'));" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#E2E8F0;font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;">
                   ✕ Clear ${activeFiltersCount} Filters
                 </button>
               ` : ''}
@@ -4386,29 +4631,29 @@
             </button>
           </div>
 
-          <!-- Middle Row: Search & Cohort & Country Selectors -->
+          <!-- Middle Row: Advance Search Input & Dropdowns -->
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;">
-            <input id="crm-search-input" type="text" placeholder="Search 16K+ buyers by name, phone, company, email…" 
+            <input id="crm-search-input" type="text" placeholder="Search 16K+ buyers by name, phone, company, email, city…" 
                    value="${state.search || ''}" 
                    autocomplete="off"
                    spellcheck="false"
                    oninput="window._viewState.customers.search = this.value; window._viewState.customers.page = 1; window.debounceCustomerSearch();" 
                    style="flex:1;min-width:200px;height:34px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);color:#FFFFFF;padding:0 10px;font-size:11px;border-radius:8px;outline:none;"/>
             
-            <select onchange="window._viewState.customers.cohortTag = this.value; window._viewState.customers.page = 1; window.updateCustomerListInPlace();" 
+            <select id="crm-cohort-select" onchange="window.selectCustomerCohortTab(this.value);" 
                     style="height:34px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);color:#FFFFFF;padding:0 8px;font-size:11px;border-radius:8px;">
-              <option value="all" ${!state.cohortTag || state.cohortTag === 'all' ? 'selected' : ''}>🌐 All Cohort Tags</option>
+              <option value="all" ${!state.cohortTag || state.cohortTag === 'all' ? 'selected' : ''}>🌐 All Cohorts</option>
               <option value="vip" ${state.cohortTag === 'vip' ? 'selected' : ''}>👑 VIP Patron (৳50K+)</option>
-              <option value="wholesale" ${state.cohortTag === 'wholesale' ? 'selected' : ''}>🏢 Wholesale & B2B</option>
-              <option value="atelier" ${state.cohortTag === 'atelier' ? 'selected' : ''}>🌿 Atelier Direct</option>
-              <option value="leather" ${state.cohortTag === 'leather' ? 'selected' : ''}>💼 Leather Collectors</option>
+              <option value="wholesale" ${state.cohortTag === 'wholesale' ? 'selected' : ''}>🏢 Wholesale &amp; B2B</option>
               <option value="repeat" ${state.cohortTag === 'repeat' ? 'selected' : ''}>🔁 Repeat Buyers (2+)</option>
-              <option value="europe" ${state.cohortTag === 'europe' ? 'selected' : ''}>🇪🇺 EU & Export</option>
+              <option value="leather" ${state.cohortTag === 'leather' ? 'selected' : ''}>💼 Leather Collectors</option>
+              <option value="atelier" ${state.cohortTag === 'atelier' ? 'selected' : ''}>🌿 Atelier Direct</option>
+              <option value="europe" ${state.cohortTag === 'europe' ? 'selected' : ''}>🇪🇺 EU &amp; Export</option>
               <option value="corporate" ${state.cohortTag === 'corporate' ? 'selected' : ''}>🎁 Corporate Accounts</option>
               <option value="dormant90" ${state.cohortTag === 'dormant90' ? 'selected' : ''}>⏳ Dormant (90d+)</option>
             </select>
 
-            <select onchange="window._viewState.customers.country = this.value; window._viewState.customers.page = 1; window.updateCustomerListInPlace();" 
+            <select id="crm-country-select" onchange="window._viewState.customers.country = this.value; window._viewState.customers.page = 1; window.updateCustomerListInPlace();" 
                     style="height:34px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);color:#FFFFFF;padding:0 8px;font-size:11px;border-radius:8px;">
               <option value="all" ${state.country === 'all' ? 'selected' : ''}>All Countries</option>
               <option value="BD" ${state.country === 'BD' ? 'selected' : ''}>🇧🇩 Bangladesh</option>
@@ -4418,11 +4663,20 @@
               <option value="US" ${state.country === 'US' ? 'selected' : ''}>🇺🇸 United States</option>
             </select>
 
-            <select onchange="window._viewState.customers.sortBy = this.value; window._viewState.customers.page = 1; window.updateCustomerListInPlace();" 
+            <select id="crm-orders-select" onchange="window._viewState.customers.orderCountFilter = this.value; window._viewState.customers.page = 1; window.updateCustomerListInPlace();" 
+                    style="height:34px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);color:#FFFFFF;padding:0 8px;font-size:11px;border-radius:8px;">
+              <option value="all" ${!state.orderCountFilter || state.orderCountFilter === 'all' ? 'selected' : ''}>All Order History</option>
+              <option value="1plus" ${state.orderCountFilter === '1plus' ? 'selected' : ''}>📦 1+ Orders Placed</option>
+              <option value="2plus" ${state.orderCountFilter === '2plus' ? 'selected' : ''}>🔁 2+ Repeat Buyers</option>
+              <option value="5plus" ${state.orderCountFilter === '5plus' ? 'selected' : ''}>⚡ 5+ Power Patrons</option>
+              <option value="zero" ${state.orderCountFilter === 'zero' ? 'selected' : ''}>🌱 0 Orders (Leads)</option>
+            </select>
+
+            <select id="crm-sort-select" onchange="window._viewState.customers.sortBy = this.value; window._viewState.customers.page = 1; window.updateCustomerListInPlace();" 
                     style="height:34px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);color:#FFFFFF;padding:0 8px;font-size:11px;border-radius:8px;">
               <option value="updatedAt" ${state.sortBy === 'updatedAt' ? 'selected' : ''}>Sort: Recent</option>
               <option value="totalSpent" ${state.sortBy === 'totalSpent' ? 'selected' : ''}>Sort: Total Spent</option>
-              <option value="totalOrders" ${state.sortBy === 'totalOrders' ? 'selected' : ''}>Sort: Orders</option>
+              <option value="totalOrders" ${state.sortBy === 'totalOrders' ? 'selected' : ''}>Sort: Orders Count</option>
               <option value="name" ${state.sortBy === 'name' ? 'selected' : ''}>Sort: Company / Name</option>
             </select>
 
@@ -4430,13 +4684,17 @@
               Page ${state.page} / ${totalPages}
             </div>
 
-            <!-- View Switcher (Order View Strips vs Grid Cards) -->
+            <!-- 3-View Switcher: Table / Strips / Cards -->
             <div style="display:inline-flex;align-items:center;gap:2px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.12);padding:2px;border-radius:8px;margin-left:auto;">
-              <button type="button" onclick="window.setCustomerViewMode('strips')" style="padding:4px 10px;font-size:10.5px;border-radius:6px;cursor:pointer;border:none;background:${state.viewMode !== 'cards' ? '#f97316' : 'transparent'};color:${state.viewMode !== 'cards' ? '#ffffff' : '#94a3b8'};font-weight:700;display:inline-flex;align-items:center;gap:4px;box-shadow:${state.viewMode !== 'cards' ? '0 2px 8px rgba(249,115,22,0.3)' : 'none'};" title="High Density Order View Strips">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-                <span>Strips (Order View)</span>
+              <button type="button" id="crm_view_btn_table" onclick="window.setCustomerViewMode('table')" style="padding:4px 9px;font-size:10.5px;border-radius:6px;cursor:pointer;border:none;background:${state.viewMode === 'table' ? '#f97316' : 'transparent'};color:${state.viewMode === 'table' ? '#ffffff' : '#94a3b8'};font-weight:700;display:inline-flex;align-items:center;gap:4px;box-shadow:${state.viewMode === 'table' ? '0 2px 8px rgba(249,115,22,0.3)' : 'none'};" title="Desktop Data Table / Spreadsheet Ledger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                <span>Table</span>
               </button>
-              <button type="button" onclick="window.setCustomerViewMode('cards')" style="padding:4px 10px;font-size:10.5px;border-radius:6px;cursor:pointer;border:none;background:${state.viewMode === 'cards' ? '#f97316' : 'transparent'};color:${state.viewMode === 'cards' ? '#ffffff' : '#94a3b8'};font-weight:700;display:inline-flex;align-items:center;gap:4px;box-shadow:${state.viewMode === 'cards' ? '0 2px 8px rgba(249,115,22,0.3)' : 'none'};" title="Grid Cards View">
+              <button type="button" id="crm_view_btn_strips" onclick="window.setCustomerViewMode('strips')" style="padding:4px 9px;font-size:10.5px;border-radius:6px;cursor:pointer;border:none;background:${state.viewMode === 'strips' ? '#f97316' : 'transparent'};color:${state.viewMode === 'strips' ? '#ffffff' : '#94a3b8'};font-weight:700;display:inline-flex;align-items:center;gap:4px;box-shadow:${state.viewMode === 'strips' ? '0 2px 8px rgba(249,115,22,0.3)' : 'none'};" title="Order View Compact Strips">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <span>Strips</span>
+              </button>
+              <button type="button" id="crm_view_btn_cards" onclick="window.setCustomerViewMode('cards')" style="padding:4px 9px;font-size:10.5px;border-radius:6px;cursor:pointer;border:none;background:${state.viewMode === 'cards' ? '#f97316' : 'transparent'};color:${state.viewMode === 'cards' ? '#ffffff' : '#94a3b8'};font-weight:700;display:inline-flex;align-items:center;gap:4px;box-shadow:${state.viewMode === 'cards' ? '0 2px 8px rgba(249,115,22,0.3)' : 'none'};" title="Grid Bento Cards View">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                 <span>Cards</span>
               </button>
@@ -4464,8 +4722,8 @@
           </div>
         </div>
 
-        <div id="crm-customer-cards-list" class="${state.viewMode === 'cards' ? 'crm-customer-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5' : 'crm-customer-strips-container flex flex-col gap-1.5'}" style="padding:0 20px 24px;transition:opacity 0.15s ease;">
-          ${state.viewMode === 'cards' ? window.renderCustomerCardsHtml(items) : window.renderCustomerStripsHtml(items)}
+        <div id="crm-customer-cards-list" class="${state.viewMode === 'table' ? 'crm-customer-table-wrap' : (state.viewMode === 'cards' ? 'crm-customer-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5' : 'crm-customer-strips-container flex flex-col gap-1.5')}" style="padding:${state.viewMode === 'table' ? '0' : '0 20px 24px'};transition:opacity 0.15s ease;">
+          ${state.viewMode === 'table' ? window.renderCustomerTableHtml(items) : (state.viewMode === 'cards' ? window.renderCustomerCardsHtml(items) : window.renderCustomerStripsHtml(items))}
         </div>
 
         <div id="crm-pagination-container">
@@ -5310,9 +5568,6 @@
                   <svg class="chev-icon" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                 </button>
 
-                <!-- Order ID Badge -->
-                <span class="order-num-text" title="Click row to expand details">${o.orderNumber}</span>
-
                 <!-- Inline Status Cycling Badge (Lead ➔ 50% Paid ➔ JIT Cutting ➔ Shipped) -->
                 <button class="order-cycle-btn ${stage.badgeClass}" 
                         id="statusCycleBtn_${o.id}" 
@@ -5337,7 +5592,10 @@
 
                 <!-- Row Quick Actions -->
                 <div class="order-quick-actions" onclick="event.stopPropagation()">
-                  <button class="btn btn-xs btn-gold" style="font-size:9.5px;padding:2px 7px;font-weight:700;height:24px;display:inline-flex;align-items:center;gap:3px;" onclick="window.openOrderInvoice('${encodeURIComponent(o.id)}');" title="Generate &amp; view official PDF invoice">
+                  <button class="btn btn-xs btn-gold" style="font-size:9.5px;padding:2px 7px;font-weight:700;height:24px;display:inline-flex;align-items:center;gap:3px;" onclick="window.openOrderDetail('${encodeURIComponent(o.id)}');" title="Open Advance Order Edit &amp; Fulfillment Window">
+                    ⚡ <span class="order-act-label">Edit</span>
+                  </button>
+                  <button class="btn btn-xs btn-dark" style="font-size:9.5px;padding:2px 7px;height:24px;" onclick="window.openOrderInvoice('${encodeURIComponent(o.id)}');" title="Generate &amp; view official PDF invoice">
                     📄 <span class="order-act-label">Invoice</span>
                   </button>
                   <button class="btn btn-xs btn-dark" style="font-size:9.5px;padding:2px 7px;height:24px;" onclick="window.copyOrderForCourier('${o.id}');" title="Copy courier delivery slip">
@@ -5687,19 +5945,19 @@
             </div>
           </div>
 
-          <!-- Quick Action Buttons: Customize & Courier Dispatch & PDF Invoice -->
+          <!-- Quick Action Buttons: Dynamic Navigation -->
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-            <button class="btn btn-gold btn-sm" onclick="window.openOrderInvoice('${encodeURIComponent(o.id)}')" style="display:inline-flex;align-items:center;gap:5px;font-weight:800;background:var(--gold);color:#0f172a;">
+            <button class="btn btn-gold btn-sm" onclick="window.switchOrderModalTab('fulfillment')" style="display:inline-flex;align-items:center;gap:5px;font-weight:800;background:var(--gold);color:#0f172a;">
+              🚚 Advance Fulfillment &amp; Note
+            </button>
+            <button class="btn btn-dark btn-sm" onclick="window.switchOrderModalTab('edit')" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;">
+              ✏️ Advance Order Edit
+            </button>
+            <button class="btn btn-dark btn-sm" onclick="window.openOrderInvoice('${encodeURIComponent(o.id)}')" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;">
               📄 PDF Invoice
             </button>
-            <button class="btn btn-dark btn-sm" onclick="window.downloadOrderInvoicePdf('${encodeURIComponent(o.id)}')" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;" title="Instantly export and download high-resolution PDF invoice">
-              📥 Download PDF
-            </button>
-            <button class="btn btn-dark btn-sm" onclick="window.toggleOrderCustomizer('${o.id}')" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;">
-              ✏️ Customize Order
-            </button>
             <button class="btn btn-dark btn-sm" onclick="window.copyOrderForCourier('${o.id}')" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;">
-              📋 Copy for Delivery Guy
+              📋 Copy Slip
             </button>
             <button class="btn btn-dark btn-sm" onclick="window.shareOrderOnWhatsApp('${o.id}')" style="display:inline-flex;align-items:center;gap:5px;color:#22c55e;font-weight:700;">
               💬 WhatsApp Rider
@@ -5714,11 +5972,29 @@
 
         <div style="padding:16px 20px 24px;">
 
-          <!-- Shopify Order Status Stepper Bar -->
-          <div class="card" style="margin-bottom:16px;padding:14px 16px;background:var(--bg-neu-light);border:1px solid var(--wire);">
-            <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">
-              Shopify Order Status Tracker
-            </div>
+          <!-- Dynamic Pop Window Navigation Tabs -->
+          <div style="display:flex;gap:6px;margin-bottom:16px;background:var(--bg-3);padding:4px;border-radius:10px;border:1px solid var(--wire);overflow-x:auto;">
+            <button id="tab_btn_fulfillment" type="button" class="btn btn-xs btn-gold" onclick="window.switchOrderModalTab('fulfillment')" style="flex:1;min-width:145px;font-weight:800;font-size:11px;padding:6px 10px;justify-content:center;">
+              🚚 Advance Fulfillment &amp; Note
+            </button>
+            <button id="tab_btn_edit" type="button" class="btn btn-xs btn-dark" onclick="window.switchOrderModalTab('edit')" style="flex:1;min-width:140px;font-weight:700;font-size:11px;padding:6px 10px;justify-content:center;">
+              ✏️ Advance Order Edit
+            </button>
+            <button id="tab_btn_slip" type="button" class="btn btn-xs btn-dark" onclick="window.switchOrderModalTab('slip')" style="flex:1;min-width:125px;font-weight:700;font-size:11px;padding:6px 10px;justify-content:center;">
+              📦 Waybill Slip
+            </button>
+            <button id="tab_btn_invoice" type="button" class="btn btn-xs btn-dark" onclick="window.switchOrderModalTab('invoice')" style="flex:1;min-width:125px;font-weight:700;font-size:11px;padding:6px 10px;justify-content:center;">
+              📄 Invoice &amp; Items
+            </button>
+          </div>
+
+          <!-- TAB 1: ADVANCE FULFILLMENT & NOTE -->
+          <div id="order_tab_fulfillment" style="display:block;">
+            <!-- Shopify Order Status Stepper Bar -->
+            <div class="card" style="margin-bottom:16px;padding:14px 16px;background:var(--bg-neu-light);border:1px solid var(--wire);">
+              <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">
+                Shopify Order Status Tracker
+              </div>
             
             <div class="order-status-stepper" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
               <!-- Connecting Line -->
@@ -5759,334 +6035,385 @@
             </div>
           </div>
 
-          <!-- ⭐ THE SCREENSHOT-READY DELIVERY & COURIER DISPATCH CARD -->
-          <div id="courier_dispatch_slip" class="card" style="margin-bottom:16px;border:2px solid var(--coral);background:var(--bg-neu-light);box-shadow:var(--neu-flat);padding:16px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px dashed var(--wire);margin-bottom:12px;">
-              <div>
-                <div style="font-size:11px;font-weight:800;color:var(--coral);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:6px;">
-                  🚚 DELIVERY &amp; RECIPIENT DISPATCH SLIP
-                </div>
-                <div style="font-size:11px;color:var(--ink-3);margin-top:2px;">
-                  Screenshot &amp; send directly to courier rider or delivery partner
-                </div>
-              </div>
-              <span class="pill" style="background:var(--coral);color:#fff;font-weight:800;font-size:9px;">
-                READY TO SHIP
-              </span>
-            </div>
-
-            <!-- Customer & Phone -->
-            <div class="courier-info-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-              <div style="background:var(--bg-3);padding:10px 12px;border-radius:8px;border:1px solid var(--wire);">
-                <div style="font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">Customer Name</div>
-                <div style="font-size:16px;font-weight:800;color:var(--ink);margin-top:2px;word-break:break-word;">
-                  ${customerName}
-                </div>
-              </div>
-
-              <div style="background:var(--bg-3);padding:10px 12px;border-radius:8px;border:1px solid var(--wire);">
-                <div style="font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">Contact Phone</div>
-                <div style="font-size:15px;font-weight:800;color:var(--coral);font-family:var(--mono);margin-top:2px;">
-                  ${customerPhone}
-                </div>
-              </div>
-            </div>
-
-            <!-- Full Address Box -->
-            <div style="background:var(--bg-3);padding:12px 14px;border-radius:8px;border:1px solid var(--wire);margin-bottom:12px;">
-              <div style="font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
-                📍 Full Delivery Address
-              </div>
-              <div style="font-size:14px;font-weight:700;color:var(--ink);margin-top:4px;line-height:1.45;white-space:pre-wrap;">
-                ${fullAddress}
-              </div>
-            </div>
-
-            <!-- COD Cash to Collect Banner -->
-            <div style="background:${isPaid ? '#F0FDF4' : '#FEF2F2'};border:2px solid ${isPaid ? '#10B981' : '#EF4444'};border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-              <div>
-                <div style="font-size:11px;font-weight:800;color:${isPaid ? '#065F46' : '#991B1B'};text-transform:uppercase;letter-spacing:0.5px;">
-                  ${isPaid ? '✓ PAID ONLINE — DO NOT COLLECT CASH' : '💵 CASH TO COLLECT FROM CUSTOMER (COD)'}
-                </div>
-                <div style="font-size:24px;font-weight:900;color:${isPaid ? '#059669' : '#DC2626'};font-family:var(--mono);margin-top:2px;">
-                  ${isPaid ? '৳0 (Prepaid)' : `৳${cashToCollect.toLocaleString()}`}
-                </div>
-              </div>
-              <div style="text-align:right;">
-                <span class="pill ${isPaid ? 'ok' : 'warn'}" style="font-size:10.5px;font-weight:800;padding:5px 12px;">
-                  ${isPaid ? 'PREPAID ORDER' : 'COLLECT CASH'}
-                </span>
-                <div style="font-size:10px;font-weight:600;color:${isPaid ? '#047857' : '#B91C1C'};margin-top:4px;">
-                  ${isPaid ? 'Direct handover' : 'Collect full amount before handover'}
-                </div>
-              </div>
-            </div>
-
-            <!-- Delivery Charge & Courier Breakdown -->
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;font-size:12.5px;color:var(--ink-2);border-top:1px dashed var(--wire);border-bottom:1px dashed var(--wire);">
-              <span>Delivery Charge (${courierName}):</span>
-              <strong style="font-size:14px;color:var(--ink);font-family:var(--mono);">৳${deliveryCharge.toLocaleString()}</strong>
-            </div>
-
-            <!-- Customization & Delivery Instructions -->
-            ${customizationNotes ? `
-              <div style="background:var(--bg-2);padding:10px 12px;border-radius:6px;border-left:3.5px solid var(--gold);margin-top:12px;font-size:12px;">
-                <div style="font-size:10px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">
-                  Order Customization &amp; Special Instructions:
-                </div>
-                <div style="font-weight:600;color:var(--ink);margin-top:3px;line-height:1.4;white-space:pre-wrap;">
-                  ${customizationNotes}
-                </div>
-              </div>
-            ` : ''}
-          </div>
-
-          <!-- ⭐ ORDER CUSTOMIZATION PANEL (Collapsible / Editable) -->
-          <div id="order_customizer_panel" class="card" style="display:none;margin-bottom:16px;padding:16px;background:var(--bg-neu-dark);border:2px solid var(--gold);box-shadow:var(--neu-flat);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-              <div>
-                <h4 style="margin:0;font-size:14px;font-weight:800;color:var(--gold-dim);display:flex;align-items:center;gap:6px;">
-                  ✏️ Customize Order #${o.orderNumber}
-                </h4>
-                <div style="font-size:11px;color:var(--ink-3);margin-top:2px;">
-                  Update recipient, address, delivery charge, discount, notes, and payment terms
-                </div>
-              </div>
-              <button class="btn btn-xs btn-dark" onclick="window.toggleOrderCustomizer('${o.id}')">✕ Close</button>
-            </div>
-
-            <!-- Customer Details Editing -->
-            <div class="field"><label>Customer / Buyer Name</label>
-              <input id="edit_ord_name" value="${customerName}"/>
-            </div>
-
-            <div class="field-row">
-              <div class="field"><label>Phone Number</label>
-                <input id="edit_ord_phone" value="${customerPhone}"/>
-              </div>
-              <div class="field"><label>District / City</label>
-                <select id="edit_ord_district">
-                  <option value="Dhaka" ${district.toLowerCase().includes('dhaka') ? 'selected' : ''}>Dhaka</option>
-                  <option value="Chittagong" ${district.toLowerCase().includes('chittagong') ? 'selected' : ''}>Chittagong</option>
-                  <option value="Sylhet" ${district.toLowerCase().includes('sylhet') ? 'selected' : ''}>Sylhet</option>
-                  <option value="Rajshahi" ${district.toLowerCase().includes('rajshahi') ? 'selected' : ''}>Rajshahi</option>
-                  <option value="Khulna" ${district.toLowerCase().includes('khulna') ? 'selected' : ''}>Khulna</option>
-                  <option value="Barisal" ${district.toLowerCase().includes('barisal') ? 'selected' : ''}>Barisal</option>
-                  <option value="Rangpur" ${district.toLowerCase().includes('rangpur') ? 'selected' : ''}>Rangpur</option>
-                  <option value="Mymensingh" ${district.toLowerCase().includes('mymensingh') ? 'selected' : ''}>Mymensingh</option>
-                  <option value="Outside Bangladesh" ${district.toLowerCase().includes('outside') ? 'selected' : ''}>International / Other</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="field"><label>Full Shipping / Delivery Address</label>
-              <textarea id="edit_ord_addr" rows="2" style="width:100%;padding:8px 10px;background:var(--bg-3);border:1px solid var(--wire);border-radius:6px;color:var(--ink);font-size:12.5px;box-sizing:border-box;">${fullAddress}</textarea>
-            </div>
-
-            <!-- Order Customization / Engraving / Notes -->
-            <div class="field">
-              <label>Order Customization / Special Instructions (e.g. Initials Engraving, Gift Wrap)</label>
-              <textarea id="edit_ord_customization" rows="2" placeholder="e.g. Laser engrave initials 'S.A.' on front · Gift packaging with gold ribbon · Call before delivery" style="width:100%;padding:8px 10px;background:var(--bg-3);border:1px solid var(--wire);border-radius:6px;color:var(--ink);font-size:12.5px;box-sizing:border-box;">${customizationNotes}</textarea>
-            </div>
-
-            <!-- Delivery Charge Editing with Fast Presets -->
-            <div class="field" style="margin-top:10px;">
-              <label>Delivery Charge (৳)</label>
-              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-                <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(80)">৳80 Inside Dhaka</button>
-                <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(100)">৳100 Express</button>
-                <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(130)">৳130 Suburbs</button>
-                <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(150)">৳150 Outside Dhaka</button>
-                <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(0)">৳0 Free</button>
-              </div>
-              <input id="edit_ord_delivery" type="number" min="0" value="${deliveryCharge}" oninput="window.recalcCustomizerTotals()"/>
-            </div>
-
-            <div class="field-row">
-              <div class="field"><label>Discount Amount (৳)</label>
-                <input id="edit_ord_discount" type="number" min="0" value="${discount}" oninput="window.recalcCustomizerTotals()"/>
-              </div>
-              <div class="field"><label>Payment Terms / Method</label>
-                <select id="edit_ord_pay_method">
-                  <option value="Cash on Delivery (COD)" ${paymentMethod.includes('COD') || paymentMethod.includes('Cash') ? 'selected' : ''}>Cash on Delivery (COD)</option>
-                  <option value="bKash / Mobile Wallet" ${paymentMethod.includes('bKash') ? 'selected' : ''}>bKash / Mobile Wallet</option>
-                  <option value="Nagad" ${paymentMethod.includes('Nagad') ? 'selected' : ''}>Nagad</option>
-                  <option value="Bank Transfer / Card" ${paymentMethod.includes('Bank') || paymentMethod.includes('Card') ? 'selected' : ''}>Bank Transfer / Card</option>
-                  <option value="Net 30" ${paymentMethod.includes('Net 30') ? 'selected' : ''}>Net 30</option>
-                  <option value="50% Advance" ${paymentMethod.includes('50%') ? 'selected' : ''}>50% Advance, 50% COD</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="field-row">
-              <div class="field"><label>Courier Partner</label>
-                <select id="edit_ord_courier">
-                  <option value="Steadfast Courier" ${courierName.includes('Steadfast') ? 'selected' : ''}>Steadfast Courier</option>
-                  <option value="Pathao Courier" ${courierName.includes('Pathao') ? 'selected' : ''}>Pathao Courier</option>
-                  <option value="RedX" ${courierName.includes('RedX') ? 'selected' : ''}>RedX</option>
-                  <option value="Paperfly" ${courierName.includes('Paperfly') ? 'selected' : ''}>Paperfly</option>
-                  <option value="Direct Delivery Rider" ${courierName.includes('Direct') ? 'selected' : ''}>Direct Delivery Rider</option>
-                </select>
-              </div>
-              <div class="field"><label>Consignment / Tracking ID</label>
-                <input id="edit_ord_tracking" placeholder="e.g. STF-98430" value="${trackingNumber}"/>
-              </div>
-            </div>
-
-            <!-- Dynamic Recalculation Preview -->
-            <div style="background:var(--bg-3);padding:10px 12px;border-radius:6px;border:1px solid var(--wire);margin:10px 0;display:flex;justify-content:space-between;align-items:center;">
-              <span style="font-size:12px;font-weight:700;color:var(--ink);">Projected Grand Total:</span>
-              <span id="edit_ord_preview_total" style="font-size:16px;font-weight:900;color:var(--gold);font-family:var(--mono);">৳${grandTotal.toLocaleString()}</span>
-            </div>
-
-            <button class="btn btn-gold" style="width:100%;padding:10px;font-weight:800;" onclick="window.saveOrderCustomization('${o.id}')">
-              ✓ Save Customizations &amp; Recalculate
-            </button>
-          </div>
-
-          <!-- Purchased Line Items (Shopify Style) -->
-          <div class="card" style="margin-bottom:16px;padding:16px;background:var(--bg-neu-light);border:1px solid var(--wire);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--wire);">
-              <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;">
-                Purchased Items (${itemsCount})
-              </div>
-              <span style="font-size:11px;font-family:var(--mono);color:var(--ink-3);">SKU &amp; Pricing</span>
-            </div>
-
-            ${lineItems.map(li => `
-              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--wire);">
-                <div style="display:flex;align-items:center;gap:10px;">
-                  <div style="width:36px;height:36px;border-radius:6px;background:var(--bg-3);border:1px solid var(--wire);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--gold);">
-                    🛍️
+            <!-- Advance Fulfillment & Lifecycle Controls -->
+            <div class="card" style="margin-bottom:16px;padding:16px;background:var(--bg-neu-light);border:1px solid var(--wire);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <div>
+                  <div style="font-size:11px;font-weight:800;color:var(--coral);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;">
+                    🚚 Advance Fulfillment &amp; Dispatch Console
                   </div>
-                  <div>
-                    <div style="font-size:13px;font-weight:700;color:var(--ink);">${li.title}</div>
-                    <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-top:2px;">
-                      SKU: ${li.sku || '—'} · ৳${(li.price || 0).toLocaleString()} × ${li.quantity}
+                  <div style="font-size:11px;color:var(--ink-3);margin-top:2px;">
+                    Control fulfillment status, courier assignment, consignment tracking, and dispatch note
+                  </div>
+                </div>
+                <div class="order-status-badge ${shipInfo.class}" style="font-size:9.5px;padding:2px 8px;">
+                  <span class="badge-dot"></span>
+                  ${shipInfo.label}
+                </div>
+              </div>
+
+              <!-- Quick Shipment Status Buttons -->
+              <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-xs" style="background:#ECFDF5;border:1px solid #10B981;color:#047857;font-weight:800;border-radius:6px;padding:4px 8px;" onclick="window.quickUpdateOrderShipment('${o.id}', 'shipped')">
+                  🟢 Mark Shipped
+                </button>
+                <button type="button" class="btn btn-xs" style="background:#ECFEFF;border:1px solid #06B6D4;color:#0E7490;font-weight:800;border-radius:6px;padding:4px 8px;" onclick="window.quickUpdateOrderShipment('${o.id}', 'in_transit')">
+                  🔵 Mark In Transit
+                </button>
+                <button type="button" class="btn btn-xs" style="background:#FFFBEB;border:1px solid #F59E0B;color:#B45309;font-weight:800;border-radius:6px;padding:4px 8px;" onclick="window.quickUpdateOrderShipment('${o.id}', 'unfulfilled')">
+                  🟠 Mark Pending
+                </button>
+                <button type="button" class="btn btn-xs" style="background:#FEF2F2;border:1px solid #EF4444;color:#B91C1C;font-weight:800;border-radius:6px;padding:4px 8px;" onclick="window.cancelOrderPrompt('${o.id}')">
+                  🔴 Cancel Order
+                </button>
+              </div>
+
+              <div class="field-row">
+                <div class="field"><label>Payment Status</label>
+                  <select id="ord_pay">
+                    <option value="pending" ${o.paymentStatus === 'pending' ? 'selected' : ''}>Pending (COD)</option>
+                    <option value="paid" ${o.paymentStatus === 'paid' ? 'selected' : ''}>Paid in Full</option>
+                    <option value="partially_paid" ${o.paymentStatus === 'partially_paid' ? 'selected' : ''}>Partially Paid</option>
+                    <option value="refunded" ${o.paymentStatus === 'refunded' ? 'selected' : ''}>Refunded</option>
+                  </select>
+                </div>
+                <div class="field"><label>Fulfillment / Shipment Status</label>
+                  <select id="ord_fulfill">
+                    <option value="unfulfilled" ${o.fulfillmentStatus === 'unfulfilled' ? 'selected' : ''}>🟠 Unfulfilled (Pending)</option>
+                    <option value="fulfilled" ${o.fulfillmentStatus === 'fulfilled' ? 'selected' : ''}>🟢 Fulfilled (Packed in Atelier)</option>
+                    <option value="in_transit" ${o.fulfillmentStatus === 'in_transit' ? 'selected' : ''}>🔵 In Transit (Out for Delivery)</option>
+                    <option value="shipped" ${o.fulfillmentStatus === 'shipped' ? 'selected' : ''}>🟢 Shipped (Courier Dispatched)</option>
+                    <option value="delivered" ${o.fulfillmentStatus === 'delivered' ? 'selected' : ''}>🟢 Delivered</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="field"><label>Courier Partner</label>
+                  <select id="ord_fulfillment_courier">
+                    <option value="Steadfast Courier" ${courierName.includes('Steadfast') ? 'selected' : ''}>Steadfast Courier</option>
+                    <option value="Pathao Courier" ${courierName.includes('Pathao') ? 'selected' : ''}>Pathao Courier</option>
+                    <option value="RedX" ${courierName.includes('RedX') ? 'selected' : ''}>RedX</option>
+                    <option value="Paperfly" ${courierName.includes('Paperfly') ? 'selected' : ''}>Paperfly</option>
+                    <option value="Direct Delivery Rider" ${courierName.includes('Direct') ? 'selected' : ''}>Direct Delivery Rider</option>
+                  </select>
+                </div>
+                <div class="field"><label>Consignment / Tracking ID</label>
+                  <input id="ord_fulfillment_tracking" placeholder="e.g. STF-98430" value="${trackingNumber}"/>
+                </div>
+              </div>
+
+              <div class="field"><label>Order State</label>
+                <select id="ord_status">
+                  <option value="open" ${o.status === 'open' ? 'selected' : ''}>Open</option>
+                  <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Completed</option>
+                  <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                </select>
+              </div>
+
+              <!-- ⭐ Advance Fulfillment & Dispatch Note -->
+              <div class="field" style="margin-top:10px;">
+                <label style="font-weight:700;display:flex;justify-content:space-between;align-items:center;">
+                  <span>📝 Advance Fulfillment &amp; Dispatch Note</span>
+                  <span style="font-size:10px;color:var(--gold);font-weight:600;">Saved to Order Audit Trail</span>
+                </label>
+                <textarea id="edit_ord_fulfillment_note" rows="3" placeholder="e.g. Dispatched with Rider Kamal (017...), parcel sealed with tamper-evident seal, customer requested evening delivery." style="width:100%;padding:10px 12px;background:var(--bg-3);border:1px solid var(--wire);border-radius:8px;color:var(--ink);font-size:12.5px;box-sizing:border-box;">${o.fulfillmentNote || o.dispatchNote || ''}</textarea>
+              </div>
+
+              <button class="btn btn-gold" style="width:100%;padding:10px;font-weight:800;margin-top:8px;" onclick="window.saveOrderFulfillmentWithNote('${o.id}')">
+                ✓ Save Advance Fulfillment Status &amp; Note
+              </button>
+            </div>
+
+            <!-- Order Timeline Audit -->
+            <div class="card" style="margin-bottom:16px;padding:14px;background:var(--bg-neu-light);border:1px solid var(--wire);">
+              <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
+                Order Timeline (${timeline.length})
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;max-height:140px;overflow-y:auto;">
+                ${timeline.length ? timeline.map(t => `
+                  <div style="font-size:11px;color:var(--ink-2);border-left:2px solid var(--coral);padding-left:8px;">
+                    <div>${t.event}</div>
+                    <div style="font-size:9.5px;color:var(--ink-3);font-family:var(--mono);margin-top:1px;">
+                      ${t.by || 'Operator'} · ${new Date(t.at).toLocaleString()}
                     </div>
                   </div>
-                </div>
-                <div style="font-size:14px;font-weight:800;color:var(--ink);font-family:var(--mono);">
-                  ৳${(li.lineTotal || (li.price * li.quantity)).toLocaleString()}
-                </div>
+                `).join('') : '<div style="font-size:11px;color:var(--ink-3);">No timeline events recorded.</div>'}
               </div>
-            `).join('')}
+            </div>
+          </div>
 
-            <!-- Financial Summary Breakdown -->
-            <div style="padding-top:12px;display:flex;flex-direction:column;gap:6px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-2);">
-                <span>Items Subtotal</span>
-                <span style="font-family:var(--mono);color:var(--ink);">৳${subtotal.toLocaleString()}</span>
+          <!-- TAB 2: ADVANCE ORDER EDIT -->
+          <div id="order_tab_edit" style="display:none;">
+            <div class="card" style="margin-bottom:16px;padding:16px;background:var(--bg-neu-light);border:2px solid var(--gold);box-shadow:var(--neu-flat);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <div>
+                  <h4 style="margin:0;font-size:14px;font-weight:800;color:var(--gold-dim);display:flex;align-items:center;gap:6px;">
+                    ✏️ Advance Order Edit #${o.orderNumber}
+                  </h4>
+                  <div style="font-size:11px;color:var(--ink-3);margin-top:2px;">
+                    Update recipient, address, delivery charge, discount, notes, and payment terms
+                  </div>
+                </div>
               </div>
-              
-              ${discount ? `
-                <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--warn);">
-                  <span>Discount Applied</span>
-                  <span style="font-family:var(--mono);">-৳${discount.toLocaleString()}</span>
+
+              <!-- Customer Details Editing -->
+              <div class="field"><label>Customer / Buyer Name</label>
+                <input id="edit_ord_name" value="${customerName}"/>
+              </div>
+
+              <div class="field-row">
+                <div class="field"><label>Phone Number</label>
+                  <input id="edit_ord_phone" value="${customerPhone}"/>
+                </div>
+                <div class="field"><label>District / City</label>
+                  <select id="edit_ord_district">
+                    <option value="Dhaka" ${district.toLowerCase().includes('dhaka') ? 'selected' : ''}>Dhaka</option>
+                    <option value="Chittagong" ${district.toLowerCase().includes('chittagong') ? 'selected' : ''}>Chittagong</option>
+                    <option value="Sylhet" ${district.toLowerCase().includes('sylhet') ? 'selected' : ''}>Sylhet</option>
+                    <option value="Rajshahi" ${district.toLowerCase().includes('rajshahi') ? 'selected' : ''}>Rajshahi</option>
+                    <option value="Khulna" ${district.toLowerCase().includes('khulna') ? 'selected' : ''}>Khulna</option>
+                    <option value="Barisal" ${district.toLowerCase().includes('barisal') ? 'selected' : ''}>Barisal</option>
+                    <option value="Rangpur" ${district.toLowerCase().includes('rangpur') ? 'selected' : ''}>Rangpur</option>
+                    <option value="Mymensingh" ${district.toLowerCase().includes('mymensingh') ? 'selected' : ''}>Mymensingh</option>
+                    <option value="Outside Bangladesh" ${district.toLowerCase().includes('outside') ? 'selected' : ''}>International / Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field"><label>Full Shipping / Delivery Address</label>
+                <textarea id="edit_ord_addr" rows="2" style="width:100%;padding:8px 10px;background:var(--bg-3);border:1px solid var(--wire);border-radius:6px;color:var(--ink);font-size:12.5px;box-sizing:border-box;">${fullAddress}</textarea>
+              </div>
+
+              <!-- Order Customization / Engraving / Notes -->
+              <div class="field">
+                <label>Order Customization / Special Instructions (e.g. Initials Engraving, Gift Wrap)</label>
+                <textarea id="edit_ord_customization" rows="2" placeholder="e.g. Laser engrave initials 'S.A.' on front · Gift packaging with gold ribbon · Call before delivery" style="width:100%;padding:8px 10px;background:var(--bg-3);border:1px solid var(--wire);border-radius:6px;color:var(--ink);font-size:12.5px;box-sizing:border-box;">${customizationNotes}</textarea>
+              </div>
+
+              <!-- Delivery Charge Editing with Fast Presets -->
+              <div class="field" style="margin-top:10px;">
+                <label>Delivery Charge (৳)</label>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                  <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(80)">৳80 Inside Dhaka</button>
+                  <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(100)">৳100 Express</button>
+                  <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(130)">৳130 Suburbs</button>
+                  <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(150)">৳150 Outside Dhaka</button>
+                  <button type="button" class="btn btn-xs btn-dark" onclick="window.applyDeliveryPreset(0)">৳0 Free</button>
+                </div>
+                <input id="edit_ord_delivery" type="number" min="0" value="${deliveryCharge}" oninput="window.recalcCustomizerTotals()"/>
+              </div>
+
+              <div class="field-row">
+                <div class="field"><label>Discount Amount (৳)</label>
+                  <input id="edit_ord_discount" type="number" min="0" value="${discount}" oninput="window.recalcCustomizerTotals()"/>
+                </div>
+                <div class="field"><label>Payment Terms / Method</label>
+                  <select id="edit_ord_pay_method">
+                    <option value="Cash on Delivery (COD)" ${paymentMethod.includes('COD') || paymentMethod.includes('Cash') ? 'selected' : ''}>Cash on Delivery (COD)</option>
+                    <option value="bKash / Mobile Wallet" ${paymentMethod.includes('bKash') ? 'selected' : ''}>bKash / Mobile Wallet</option>
+                    <option value="Nagad" ${paymentMethod.includes('Nagad') ? 'selected' : ''}>Nagad</option>
+                    <option value="Bank Transfer / Card" ${paymentMethod.includes('Bank') || paymentMethod.includes('Card') ? 'selected' : ''}>Bank Transfer / Card</option>
+                    <option value="Net 30" ${paymentMethod.includes('Net 30') ? 'selected' : ''}>Net 30</option>
+                    <option value="50% Advance" ${paymentMethod.includes('50%') ? 'selected' : ''}>50% Advance, 50% COD</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="field"><label>Courier Partner</label>
+                  <select id="edit_ord_courier">
+                    <option value="Steadfast Courier" ${courierName.includes('Steadfast') ? 'selected' : ''}>Steadfast Courier</option>
+                    <option value="Pathao Courier" ${courierName.includes('Pathao') ? 'selected' : ''}>Pathao Courier</option>
+                    <option value="RedX" ${courierName.includes('RedX') ? 'selected' : ''}>RedX</option>
+                    <option value="Paperfly" ${courierName.includes('Paperfly') ? 'selected' : ''}>Paperfly</option>
+                    <option value="Direct Delivery Rider" ${courierName.includes('Direct') ? 'selected' : ''}>Direct Delivery Rider</option>
+                  </select>
+                </div>
+                <div class="field"><label>Consignment / Tracking ID</label>
+                  <input id="edit_ord_tracking" placeholder="e.g. STF-98430" value="${trackingNumber}"/>
+                </div>
+              </div>
+
+              <!-- Dynamic Recalculation Preview -->
+              <div style="background:var(--bg-3);padding:10px 12px;border-radius:6px;border:1px solid var(--wire);margin:10px 0;display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:12px;font-weight:700;color:var(--ink);">Projected Grand Total:</span>
+                <span id="edit_ord_preview_total" style="font-size:16px;font-weight:900;color:var(--gold);font-family:var(--mono);">৳${grandTotal.toLocaleString()}</span>
+              </div>
+
+              <button class="btn btn-gold" style="width:100%;padding:10px;font-weight:800;" onclick="window.saveOrderCustomization('${o.id}')">
+                ✓ Save Advance Order Changes &amp; Recalculate
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 3: WAYBILL / DELIVERY SLIP -->
+          <div id="order_tab_slip" style="display:none;">
+            <!-- ⭐ THE SCREENSHOT-READY DELIVERY & COURIER DISPATCH CARD -->
+            <div id="courier_dispatch_slip" class="card" style="margin-bottom:16px;border:2px solid var(--coral);background:var(--bg-neu-light);box-shadow:var(--neu-flat);padding:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px dashed var(--wire);margin-bottom:12px;">
+                <div>
+                  <div style="font-size:11px;font-weight:800;color:var(--coral);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:6px;">
+                    🚚 DELIVERY &amp; RECIPIENT DISPATCH SLIP
+                  </div>
+                  <div style="font-size:11px;color:var(--ink-3);margin-top:2px;">
+                    Screenshot &amp; send directly to courier rider or delivery partner
+                  </div>
+                </div>
+                <span class="pill" style="background:var(--coral);color:#fff;font-weight:800;font-size:9px;">
+                  READY TO SHIP
+                </span>
+              </div>
+
+              <!-- Customer & Phone -->
+              <div class="courier-info-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                <div style="background:var(--bg-3);padding:10px 12px;border-radius:8px;border:1px solid var(--wire);">
+                  <div style="font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">Customer Name</div>
+                  <div style="font-size:16px;font-weight:800;color:var(--ink);margin-top:2px;word-break:break-word;">
+                    ${customerName}
+                  </div>
+                </div>
+
+                <div style="background:var(--bg-3);padding:10px 12px;border-radius:8px;border:1px solid var(--wire);">
+                  <div style="font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">Contact Phone</div>
+                  <div style="font-size:15px;font-weight:800;color:var(--coral);font-family:var(--mono);margin-top:2px;">
+                    ${customerPhone}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Full Address Box -->
+              <div style="background:var(--bg-3);padding:12px 14px;border-radius:8px;border:1px solid var(--wire);margin-bottom:12px;">
+                <div style="font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
+                  📍 Full Delivery Address
+                </div>
+                <div style="font-size:14px;font-weight:700;color:var(--ink);margin-top:4px;line-height:1.45;white-space:pre-wrap;">
+                  ${fullAddress}
+                </div>
+              </div>
+
+              <!-- COD Cash to Collect Banner -->
+              <div style="background:${isPaid ? '#F0FDF4' : '#FEF2F2'};border:2px solid ${isPaid ? '#10B981' : '#EF4444'};border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <div>
+                  <div style="font-size:11px;font-weight:800;color:${isPaid ? '#065F46' : '#991B1B'};text-transform:uppercase;letter-spacing:0.5px;">
+                    ${isPaid ? '✓ PAID ONLINE — DO NOT COLLECT CASH' : '💵 CASH TO COLLECT FROM CUSTOMER (COD)'}
+                  </div>
+                  <div style="font-size:24px;font-weight:900;color:${isPaid ? '#059669' : '#DC2626'};font-family:var(--mono);margin-top:2px;">
+                    ${isPaid ? '৳0 (Prepaid)' : `৳${cashToCollect.toLocaleString()}`}
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <span class="pill ${isPaid ? 'ok' : 'warn'}" style="font-size:10.5px;font-weight:800;padding:5px 12px;">
+                    ${isPaid ? 'PREPAID ORDER' : 'COLLECT CASH'}
+                  </span>
+                  <div style="font-size:10px;font-weight:600;color:${isPaid ? '#047857' : '#B91C1C'};margin-top:4px;">
+                    ${isPaid ? 'Direct handover' : 'Collect full amount before handover'}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Delivery Charge & Courier Breakdown -->
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;font-size:12.5px;color:var(--ink-2);border-top:1px dashed var(--wire);border-bottom:1px dashed var(--wire);">
+                <span>Delivery Charge (${courierName}):</span>
+                <strong style="font-size:14px;color:var(--ink);font-family:var(--mono);">৳${deliveryCharge.toLocaleString()}</strong>
+              </div>
+
+              <!-- Customization & Delivery Instructions -->
+              ${customizationNotes ? `
+                <div style="background:var(--bg-2);padding:10px 12px;border-radius:6px;border-left:3.5px solid var(--gold);margin-top:12px;font-size:12px;">
+                  <div style="font-size:10px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.5px;">
+                    Order Customization &amp; Special Instructions:
+                  </div>
+                  <div style="font-weight:600;color:var(--ink);margin-top:3px;line-height:1.4;white-space:pre-wrap;">
+                    ${customizationNotes}
+                  </div>
                 </div>
               ` : ''}
 
-              <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-2);">
-                <span>Delivery Charge (${courierName})</span>
-                <span style="font-family:var(--mono);font-weight:700;color:var(--ink);">+৳${deliveryCharge.toLocaleString()}</span>
-              </div>
-
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:8px;border-top:2px solid var(--wire-hard);">
-                <span style="font-size:15px;font-weight:800;color:var(--ink);">Grand Total</span>
-                <span style="font-size:18px;font-weight:900;color:var(--gold);font-family:var(--mono);">৳${grandTotal.toLocaleString()}</span>
-              </div>
-
-              <!-- Quick Invoice Action Strip -->
-              <div style="display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--wire);flex-wrap:wrap;">
-                <button class="btn btn-dark btn-sm" style="flex:1;min-width:160px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="window.openOrderInvoice('${encodeURIComponent(o.id)}')">
-                  📄 Commercial PDF Invoice
+              <!-- Action Bar for Delivery Slip -->
+              <div style="display:flex;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--wire);">
+                <button class="btn btn-gold btn-sm" style="flex:1;font-weight:800;" onclick="window.copyOrderForCourier('${o.id}')">
+                  📋 Copy Slip to Clipboard
                 </button>
-                <button class="btn btn-dark btn-sm" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="window.downloadOrderInvoicePdf('${encodeURIComponent(o.id)}')" title="Download PDF directly">
-                  📥 PDF
-                </button>
-                <button class="btn btn-dark btn-sm" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="window.printOrderInvoice('${encodeURIComponent(o.id)}')" title="Print or save as PDF via system dialog">
-                  🖨️ Print
+                <button class="btn btn-emerald btn-sm" style="flex:1;font-weight:800;" onclick="window.shareOrderOnWhatsApp('${o.id}')">
+                  💬 Send to WhatsApp
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Status Controls & Order Lifecycle -->
-          <div class="card" style="margin-bottom:16px;padding:14px;background:var(--bg-neu-light);border:1px solid var(--wire);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-              <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;">
-                Shipment &amp; Order Status Controls
+          <!-- TAB 4: INVOICE & PURCHASED ITEMS -->
+          <div id="order_tab_invoice" style="display:none;">
+            <!-- Purchased Line Items (Shopify Style) -->
+            <div class="card" style="margin-bottom:16px;padding:16px;background:var(--bg-neu-light);border:1px solid var(--wire);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--wire);">
+                <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;">
+                  Purchased Items (${itemsCount})
+                </div>
+                <span style="font-size:11px;font-family:var(--mono);color:var(--ink-3);">SKU &amp; Pricing</span>
               </div>
-              <div class="order-status-badge ${shipInfo.class}" style="font-size:9.5px;padding:2px 8px;">
-                <span class="badge-dot"></span>
-                ${shipInfo.label}
-              </div>
-            </div>
 
-            <!-- Quick Shipment Status Buttons for Instant Updates & Color Testing -->
-            <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
-              <button type="button" class="btn btn-xs" style="background:#ECFDF5;border:1px solid #10B981;color:#047857;font-weight:800;border-radius:6px;padding:4px 8px;" onclick="window.quickUpdateOrderShipment('${o.id}', 'shipped')">
-                🟢 Mark Shipped
-              </button>
-              <button type="button" class="btn btn-xs" style="background:#ECFEFF;border:1px solid #06B6D4;color:#0E7490;font-weight:800;border-radius:6px;padding:4px 8px;" onclick="window.quickUpdateOrderShipment('${o.id}', 'in_transit')">
-                🔵 Mark In Transit
-              </button>
-              <button type="button" class="btn btn-xs" style="background:#FFFBEB;border:1px solid #F59E0B;color:#B45309;font-weight:800;border-radius:6px;padding:4px 8px;" onclick="window.quickUpdateOrderShipment('${o.id}', 'unfulfilled')">
-                🟠 Mark Pending
-              </button>
-              <button type="button" class="btn btn-xs" style="background:#FEF2F2;border:1px solid #EF4444;color:#B91C1C;font-weight:800;border-radius:6px;padding:4px 8px;" onclick="window.cancelOrderPrompt('${o.id}')">
-                🔴 Cancel Order
-              </button>
-            </div>
-
-            <div class="field-row">
-              <div class="field"><label>Payment Status</label>
-                <select id="ord_pay">
-                  <option value="pending" ${o.paymentStatus === 'pending' ? 'selected' : ''}>Pending (COD)</option>
-                  <option value="paid" ${o.paymentStatus === 'paid' ? 'selected' : ''}>Paid in Full</option>
-                  <option value="partially_paid" ${o.paymentStatus === 'partially_paid' ? 'selected' : ''}>Partially Paid</option>
-                  <option value="refunded" ${o.paymentStatus === 'refunded' ? 'selected' : ''}>Refunded</option>
-                </select>
-              </div>
-              <div class="field"><label>Fulfillment / Shipment Status</label>
-                <select id="ord_fulfill">
-                  <option value="unfulfilled" ${o.fulfillmentStatus === 'unfulfilled' ? 'selected' : ''}>🟠 Unfulfilled (Pending)</option>
-                  <option value="fulfilled" ${o.fulfillmentStatus === 'fulfilled' ? 'selected' : ''}>🟢 Fulfilled (Packed in Atelier)</option>
-                  <option value="in_transit" ${o.fulfillmentStatus === 'in_transit' ? 'selected' : ''}>🔵 In Transit (Out for Delivery)</option>
-                  <option value="shipped" ${o.fulfillmentStatus === 'shipped' ? 'selected' : ''}>🟢 Shipped (Courier Dispatched)</option>
-                  <option value="delivered" ${o.fulfillmentStatus === 'delivered' ? 'selected' : ''}>🟢 Delivered</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="field"><label>Order State</label>
-              <select id="ord_status">
-                <option value="open" ${o.status === 'open' ? 'selected' : ''}>Open</option>
-                <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Completed</option>
-                <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Order Timeline Audit -->
-          <div class="card" style="margin-bottom:16px;padding:14px;background:var(--bg-neu-light);border:1px solid var(--wire);">
-            <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
-              Order Timeline (${timeline.length})
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto;">
-              ${timeline.length ? timeline.map(t => `
-                <div style="font-size:11px;color:var(--ink-2);border-left:2px solid var(--coral);padding-left:8px;">
-                  <div>${t.event}</div>
-                  <div style="font-size:9.5px;color:var(--ink-3);font-family:var(--mono);margin-top:1px;">
-                    ${t.by || 'Operator'} · ${new Date(t.at).toLocaleString()}
+              ${lineItems.map(li => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--wire);">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:36px;height:36px;border-radius:6px;background:var(--bg-3);border:1px solid var(--wire);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--gold);">
+                      🛍️
+                    </div>
+                    <div>
+                      <div style="font-size:13px;font-weight:700;color:var(--ink);">${li.title}</div>
+                      <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-top:2px;">
+                        SKU: ${li.sku || '—'} · ৳${(li.price || 0).toLocaleString()} × ${li.quantity}
+                      </div>
+                    </div>
+                  </div>
+                  <div style="font-size:14px;font-weight:800;color:var(--ink);font-family:var(--mono);">
+                    ৳${(li.lineTotal || (li.price * li.quantity)).toLocaleString()}
                   </div>
                 </div>
-              `).join('') : '<div style="font-size:11px;color:var(--ink-3);">No timeline events recorded.</div>'}
+              `).join('')}
+
+              <!-- Financial Summary Breakdown -->
+              <div style="padding-top:12px;display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-2);">
+                  <span>Items Subtotal</span>
+                  <span style="font-family:var(--mono);color:var(--ink);">৳${subtotal.toLocaleString()}</span>
+                </div>
+                
+                ${discount ? `
+                  <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--warn);">
+                    <span>Discount Applied</span>
+                    <span style="font-family:var(--mono);">-৳${discount.toLocaleString()}</span>
+                  </div>
+                ` : ''}
+
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-2);">
+                  <span>Delivery Charge (${courierName})</span>
+                  <span style="font-family:var(--mono);font-weight:700;color:var(--ink);">+৳${deliveryCharge.toLocaleString()}</span>
+                </div>
+
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:8px;border-top:2px solid var(--wire-hard);">
+                  <span style="font-size:15px;font-weight:800;color:var(--ink);">Grand Total</span>
+                  <span style="font-size:18px;font-weight:900;color:var(--gold);font-family:var(--mono);">৳${grandTotal.toLocaleString()}</span>
+                </div>
+
+                <!-- Quick Invoice Action Strip -->
+                <div style="display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--wire);flex-wrap:wrap;">
+                  <button class="btn btn-dark btn-sm" style="flex:1;min-width:160px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="window.openOrderInvoice('${encodeURIComponent(o.id)}')">
+                    📄 Commercial PDF Invoice
+                  </button>
+                  <button class="btn btn-dark btn-sm" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="window.downloadOrderInvoicePdf('${encodeURIComponent(o.id)}')" title="Download PDF directly">
+                    📥 PDF
+                  </button>
+                  <button class="btn btn-dark btn-sm" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;" onclick="window.printOrderInvoice('${encodeURIComponent(o.id)}')" title="Print or save as PDF via system dialog">
+                    🖨️ Print
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- Bottom Action Buttons -->
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
             <button class="btn btn-gold" style="flex:1;min-width:160px;font-weight:700;" onclick="window.saveOrderStatus('${o.id}')">
               Save Status Updates
             </button>
@@ -6104,8 +6431,90 @@
     }
   };
 
+  /* ── Order Pop Window Tab Switcher ── */
+  window.switchOrderModalTab = function (tabName) {
+    const tabs = ['fulfillment', 'edit', 'slip', 'invoice'];
+    tabs.forEach(t => {
+      const el = document.getElementById(`order_tab_${t}`);
+      const btn = document.getElementById(`tab_btn_${t}`);
+      if (el) el.style.display = (t === tabName) ? 'block' : 'none';
+      if (btn) {
+        if (t === tabName) {
+          btn.className = 'btn btn-xs btn-gold';
+          btn.style.fontWeight = '800';
+          btn.style.background = 'var(--gold)';
+          btn.style.color = '#0f172a';
+        } else {
+          btn.className = 'btn btn-xs btn-dark';
+          btn.style.fontWeight = '700';
+          btn.style.background = '';
+          btn.style.color = '';
+        }
+      }
+    });
+  };
+
+  /* ── Save Advance Fulfillment With Note ── */
+  window.saveOrderFulfillmentWithNote = async function (orderId) {
+    const o = window._currentViewingOrder;
+    if (!o) return;
+
+    const newPayment = document.getElementById("ord_pay")?.value || o.paymentStatus || 'pending';
+    const newFulfillment = document.getElementById("ord_fulfill")?.value || o.fulfillmentStatus || 'unfulfilled';
+    const newStatus = document.getElementById("ord_status")?.value || o.status || 'open';
+    const newCourier = document.getElementById("ord_fulfillment_courier")?.value || o.courier || '';
+    const newTracking = document.getElementById("ord_fulfillment_tracking")?.value.trim() || o.trackingNumber || '';
+    const fulfillmentNote = document.getElementById("edit_ord_fulfillment_note")?.value.trim() || '';
+
+    try {
+      toast("Saving advance fulfillment status & note...", 1500);
+
+      const timeline = Array.isArray(o.timeline) ? [...o.timeline] : [];
+      let eventMsg = `Fulfillment updated: ${newFulfillment} (${newPayment})`;
+      if (fulfillmentNote) {
+        eventMsg += ` · Note: "${fulfillmentNote.slice(0, 100)}"`;
+      }
+      timeline.push({
+        event: eventMsg,
+        by: 'Operator',
+        at: new Date().toISOString()
+      });
+
+      const patchData = {
+        paymentStatus: newPayment,
+        fulfillmentStatus: newFulfillment,
+        status: newStatus,
+        courier: newCourier,
+        courierPartner: newCourier,
+        trackingNumber: newTracking,
+        consignmentId: newTracking,
+        fulfillmentNote: fulfillmentNote,
+        dispatchNote: fulfillmentNote,
+        timeline: timeline,
+        updatedAt: new Date().toISOString()
+      };
+
+      await window.OrdersService.update(orderId, patchData);
+
+      Object.assign(o, patchData);
+      toast("✓ Advance fulfillment & note saved successfully!");
+      
+      const container = document.getElementById("mod-Orders");
+      if (container && window.render && window.render.Orders) {
+        window.render.Orders(container);
+      }
+      window.openOrderDetail(orderId);
+    } catch (e) {
+      toast("Failed to update fulfillment: " + e.message);
+    }
+  };
+
   /* ── Order Customizer Handlers ── */
   window.toggleOrderCustomizer = function (orderId) {
+    if (typeof window.switchOrderModalTab === 'function') {
+      window.switchOrderModalTab('edit');
+      return;
+    }
     const p = document.getElementById("order_customizer_panel");
     if (!p) return;
     const isHidden = p.style.display === "none";

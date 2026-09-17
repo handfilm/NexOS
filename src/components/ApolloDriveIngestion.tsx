@@ -265,7 +265,7 @@ export const ApolloDriveIngestion: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('apollo')}
-            className={`rounded-xl px-3 py-1.5 text-[clamp(10px,1.2vw,13px)] font-bold transition-all truncate ${
+            className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
               activeTab === 'apollo' ? 'bg-[#c81d11] text-white shadow-xs' : 'border border-slate-200 bg-slate-100 text-[#64748b] hover:text-[#1e293b]'
             }`}
           >
@@ -273,7 +273,7 @@ export const ApolloDriveIngestion: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('drive')}
-            className={`rounded-xl px-3 py-1.5 text-[clamp(10px,1.2vw,13px)] font-bold transition-all truncate ${
+            className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
               activeTab === 'drive' ? 'bg-[#c81d11] text-white shadow-xs' : 'border border-slate-200 bg-slate-100 text-[#64748b] hover:text-[#1e293b]'
             }`}
           >
@@ -307,7 +307,7 @@ export const ApolloDriveIngestion: React.FC = () => {
           <div className="flex gap-2">
             <button
               onClick={() => parseApolloCSV(apolloText)}
-              className="rounded border border-zinc-700 bg-zinc-850 px-4 py-2 text-[clamp(10px,1.2vw,13px)] font-semibold text-zinc-100 hover:bg-zinc-800 truncate"
+              className="rounded-lg border border-zinc-700 bg-zinc-850 px-4 py-2 text-xs font-semibold text-zinc-100 hover:bg-zinc-800"
             >
               Parse &amp; Auto-Map Columns
             </button>
@@ -315,7 +315,7 @@ export const ApolloDriveIngestion: React.FC = () => {
               <button
                 disabled={loading}
                 onClick={stageLeadsToFirestore}
-                className="rounded bg-amber-500 px-4 py-2 text-[clamp(10px,1.2vw,13px)] font-bold text-black hover:bg-amber-400 disabled:opacity-50 truncate"
+                className="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold text-black hover:bg-amber-400 disabled:opacity-50"
               >
                 {loading ? 'Staging…' : `✓ Commit ${stagedLeads.length} Leads to Firestore`}
               </button>
@@ -370,7 +370,7 @@ export const ApolloDriveIngestion: React.FC = () => {
           <div className="flex gap-2">
             <button
               onClick={() => parseDriveList(driveFilesText)}
-              className="rounded border border-zinc-700 bg-zinc-850 px-4 py-2 text-[clamp(10px,1.2vw,13px)] font-semibold text-zinc-100 hover:bg-zinc-800 truncate"
+              className="rounded-lg border border-zinc-700 bg-zinc-850 px-4 py-2 text-xs font-semibold text-zinc-100 hover:bg-zinc-800"
             >
               Parse Tokenized Names
             </button>
@@ -378,7 +378,7 @@ export const ApolloDriveIngestion: React.FC = () => {
               <button
                 disabled={loading}
                 onClick={stageMediaToFirestore}
-                className="rounded bg-amber-500 px-4 py-2 text-[clamp(10px,1.2vw,13px)] font-bold text-black hover:bg-amber-400 disabled:opacity-50 truncate"
+                className="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold text-black hover:bg-amber-400 disabled:opacity-50"
               >
                 {loading ? 'Linking…' : `✓ Stage ${stagedMedia.length} Media to Firestore`}
               </button>

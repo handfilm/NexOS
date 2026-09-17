@@ -1803,12 +1803,14 @@ app.get('/api/customers/count', (req, res) => {
       items = items.filter(c => (Number(c.totalSpent) || 0) >= Number(minSpend));
     }
     if (orderCountFilter && orderCountFilter !== 'all') {
-      if (orderCountFilter === '1') {
-        items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) === 1);
+      if (orderCountFilter === '1' || orderCountFilter === '1plus') {
+        items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) >= 1);
       } else if (orderCountFilter === '2plus') {
         items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) >= 2);
       } else if (orderCountFilter === '5plus') {
         items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) >= 5);
+      } else if (orderCountFilter === 'zero') {
+        items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) === 0);
       } else if (orderCountFilter === 'dormant90') {
         const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString();
         items = items.filter(c => (c.lastOrderAt && c.lastOrderAt < ninetyDaysAgo) || (c.updatedAt && c.updatedAt < ninetyDaysAgo));
@@ -1870,12 +1872,14 @@ app.get('/api/customers', (req, res) => {
       items = items.filter(c => (Number(c.totalSpent) || 0) >= Number(minSpend));
     }
     if (orderCountFilter && orderCountFilter !== 'all') {
-      if (orderCountFilter === '1') {
-        items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) === 1);
+      if (orderCountFilter === '1' || orderCountFilter === '1plus') {
+        items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) >= 1);
       } else if (orderCountFilter === '2plus') {
         items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) >= 2);
       } else if (orderCountFilter === '5plus') {
         items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) >= 5);
+      } else if (orderCountFilter === 'zero') {
+        items = items.filter(c => Number(c.totalOrders ?? c.ordersCount ?? 0) === 0);
       } else if (orderCountFilter === 'dormant90') {
         const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString();
         items = items.filter(c => (c.lastOrderAt && c.lastOrderAt < ninetyDaysAgo) || (c.updatedAt && c.updatedAt < ninetyDaysAgo));

@@ -836,11 +836,11 @@ if (typeof window !== "undefined") {
         const target = container || document.getElementById("mod-Products") || document.getElementById("body");
         if (!target) return;
         target.innerHTML = `
-          <div class="products-sub-nav" style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--wire);margin-bottom:14px;">
-            <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('catalog')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+          <div class="products-sub-nav">
+            <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('catalog')">
               <span>🏷️ Products Catalog</span>
             </button>
-            <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('drive_sync')" style="min-width:auto;height:32px;padding:0 14px;font-size:clamp(10px,1.2vw,12px);gap:6px;">
+            <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('drive_sync')">
               <span>⚡ Drive Sync Monitor</span>
               <span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;display:inline-block;"></span>
             </button>

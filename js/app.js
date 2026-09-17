@@ -1957,13 +1957,12 @@ function openAppModule(appName) {
   // 3. Inject top navigation return bar
   const navHeader = document.createElement("div");
   navHeader.className = "module-nav-bar";
-  navHeader.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:12px 20px 8px;border-bottom:1px solid var(--wire);margin-bottom:8px;";
   navHeader.innerHTML = `
-    <button class="btn btn-sm btn-dark" onclick="navTo('Home')" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:6px 12px;cursor:pointer;">
-      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <button class="btn btn-sm btn-dark" onclick="navTo('Home')" title="Return to Dashboard">
+      <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;"><path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span>Dashboard</span>
     </button>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--gold-dim);letter-spacing:1.5px;text-transform:uppercase;">
+    <div style="font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--gold-dim);letter-spacing:1px;text-transform:uppercase;">
       ${modKey}
     </div>
   `;
@@ -2680,20 +2679,76 @@ window.toggleOrderExpand = function(orderId, evt) {
   }
 };
 
+window.toggleEditOrderNotes = function(orderId, evt) {
+  if (evt) { evt.preventDefault(); evt.stopPropagation(); }
+  const display = document.getElementById(`notesDisplay_${orderId}`);
+  const form = document.getElementById(`notesEditForm_${orderId}`);
+  if (!display || !form) return;
+  const isEditing = form.style.display !== 'none';
+  if (isEditing) {
+    form.style.display = 'none';
+    display.style.display = 'block';
+  } else {
+    form.style.display = 'block';
+    display.style.display = 'none';
+    const input = document.getElementById(`notesInput_${orderId}`);
+    if (input) input.focus();
+  }
+};
+
+window.saveOrderNotes = async function(orderId, evt) {
+  if (evt) { evt.preventDefault(); evt.stopPropagation(); }
+  const input = document.getElementById(`notesInput_${orderId}`);
+  if (!input) return;
+  const newNotes = input.value.trim();
+  const textEl = document.getElementById(`notesText_${orderId}`);
+  if (textEl) textEl.textContent = `"${newNotes}"`;
+
+  // Update in local cache
+  if (window._lastOrdersCache && Array.isArray(window._lastOrdersCache)) {
+    const o = window._lastOrdersCache.find(x => x.id === orderId || x.orderNumber === orderId);
+    if (o) {
+      o.customerNotes = newNotes;
+      o.notes = newNotes;
+    }
+  }
+
+  // Update in Firestore if OrdersService available
+  try {
+    if (window.OrdersService && typeof window.OrdersService.update === 'function') {
+      await window.OrdersService.update(orderId, { customerNotes: newNotes, notes: newNotes });
+    }
+    if (typeof toast === 'function') toast('✓ Customer directives updated');
+  } catch (err) {
+    console.warn('OrdersService.update notes error:', err);
+    if (typeof toast === 'function') toast('✓ Directives saved locally');
+  }
+
+  window.toggleEditOrderNotes(orderId, evt);
+};
+
 window.handleOrderStripClick = function(orderId, evt) {
-  // If clicking on buttons/inputs that have their own dedicated action, do not toggle drawer
+  // If clicking on buttons/inputs that have their own dedicated action, do not trigger window
   if (evt && (
     evt.target.closest('.order-cycle-btn') || 
     evt.target.closest('.order-act-btn') || 
+    evt.target.closest('.order-expand-toggle-btn') ||
     evt.target.closest('.btn') || 
     evt.target.closest('.item-select-checkbox') || 
     evt.target.closest('.order-item-cb') || 
-    evt.target.closest('input')
+    evt.target.closest('input') ||
+    evt.target.closest('select') ||
+    evt.target.closest('textarea') ||
+    evt.target.closest('.order-quick-actions')
   )) {
     return;
   }
-  // Clicking the row seamlessly expands/collapses the detailed view in-place without navigating away
-  window.toggleOrderExpand(orderId, evt);
+  // Upon clicking the bar view, open the popup window with advance order edit & fulfillment option with note
+  if (typeof window.openOrderDetail === 'function') {
+    window.openOrderDetail(orderId);
+  } else {
+    window.toggleOrderExpand(orderId, evt);
+  }
 };
 
 window.selectOrderRow = function(orderId, evt) {
@@ -2748,11 +2803,25 @@ window.renderOrderExpandDrawerHtml = function(order, oid, stage) {
           <span class="order-card-badge badge-amber">Directives</span>
         </div>
 
-        <div class="order-notes-box">
-          <div style="font-size:9.5px;font-family:var(--mono);color:#FB923C;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;display:flex;align-items:center;gap:4px;">
-            <span>★</span> Special Handling Instructions
+        <div class="order-notes-box" id="notesBox_${oid}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <div style="font-size:9.5px;font-family:var(--mono);color:#FB923C;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
+              <span>★</span> Special Handling Instructions
+            </div>
+            <button type="button" class="btn btn-xs btn-dark" onclick="window.toggleEditOrderNotes('${oid}', event)" style="font-size:9.5px;padding:2px 7px;height:20px;color:var(--gold-dim);border-color:rgba(212,175,55,0.3);">
+              ✏️ Edit
+            </button>
           </div>
-          <div style="font-style:italic;">"${customerNotes}"</div>
+          <div id="notesDisplay_${oid}">
+            <div style="font-style:italic;" id="notesText_${oid}">"${customerNotes}"</div>
+          </div>
+          <div id="notesEditForm_${oid}" style="display:none;margin-top:6px;">
+            <textarea id="notesInput_${oid}" rows="3" style="width:100%;font-size:11px;background:#0d0d0c;border:1px solid var(--wire);color:var(--ink);padding:6px;border-radius:4px;font-family:inherit;box-sizing:border-box;">${customerNotes}</textarea>
+            <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:4px;">
+              <button type="button" class="btn btn-xs btn-dark" onclick="window.toggleEditOrderNotes('${oid}', event)" style="font-size:10px;padding:2px 8px;height:22px;">Cancel</button>
+              <button type="button" class="btn btn-xs btn-gold" onclick="window.saveOrderNotes('${oid}', event)" style="font-size:10px;padding:2px 10px;height:22px;font-weight:700;">Save Directives</button>
+            </div>
+          </div>
         </div>
 
         <div class="order-notes-meta">
@@ -2886,6 +2955,9 @@ window.renderOrderExpandDrawerHtml = function(order, oid, stage) {
       </div>
 
       <div class="order-drawer-actions">
+        <button class="btn btn-xs btn-gold" onclick="window.openOrderDetail('${oid}')" style="font-size:11px;padding:5px 12px;font-weight:700;" title="Open Advance Edit &amp; Fulfillment Window">
+          ⚡ Advance Edit &amp; Fulfillment
+        </button>
         <button class="btn btn-xs btn-coral" onclick="window.cycleOrderStatus('${oid}', event)" style="font-size:11px;padding:5px 12px;font-weight:700;" title="Advance production lifecycle stage in-place">
           Advance Stage ↻
         </button>
@@ -2924,9 +2996,6 @@ window.renderHighDensityOrderRow = function(order, isSelected) {
         <svg class="chev-icon" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
       </button>
 
-      <!-- Order ID -->
-      <span class="order-num-text" title="Click row to expand details">${orderNum}</span>
-
       <!-- Inline Status Cycling Badge -->
       <button class="order-cycle-btn ${stage.badgeClass}" 
               id="statusCycleBtn_${oid}" 
@@ -2951,6 +3020,9 @@ window.renderHighDensityOrderRow = function(order, isSelected) {
 
       <!-- Quick Actions -->
       <div class="order-quick-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-xs btn-gold" style="font-size:9.5px;padding:2px 7px;font-weight:700;height:24px;display:inline-flex;align-items:center;gap:3px;" onclick="window.openOrderDetail('${oid}')" title="Open Advance Edit &amp; Fulfillment Window">
+          ⚡ <span class="order-act-label">Edit</span>
+        </button>
         <button class="order-act-btn" onclick="window.toggleOrderExpand('${oid}', event)" title="Toggle Detailed View (Customer Notes, Timeline, Logistics)">👁️</button>
         <button class="order-act-btn" onclick="window.openQuickOrderPrint('${oid}', event)" title="Print Dispatch Waybill">🖨️</button>
       </div>

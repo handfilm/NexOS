@@ -790,11 +790,11 @@
         <div style="font-family:var(--mono);color:var(--ink-2);font-size:12px;">
           <!-- Mode Tabs -->
           <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--wire);padding-bottom:12px;">
-            <button id="tabApolloLeads" class="btn btn-gold btn-sm truncate text-[clamp(10px,1.2vw,13px)]" onclick="window.BulkImportEngine.renderApolloTab()" style="flex:1;">
+            <button id="tabApolloLeads" class="btn btn-gold btn-sm" onclick="window.BulkImportEngine.renderApolloTab()" style="flex:1;">
               1. Apollo CSV Leads Ingest
             </button>
-            <button id="tabDriveMedia" class="btn btn-dark btn-sm truncate text-[clamp(10px,1.2vw,13px)]" onclick="window.BulkImportEngine.renderDriveTab()" style="flex:1;">
-              2. Drive Media Parser (RAWX-JKT-001__BLACK__01.webp)
+            <button id="tabDriveMedia" class="btn btn-dark btn-sm" onclick="window.BulkImportEngine.renderDriveTab()" style="flex:1;">
+              2. Drive Media Parser
             </button>
           </div>
 
@@ -811,8 +811,8 @@
       const t1 = document.getElementById('tabApolloLeads');
       const t2 = document.getElementById('tabDriveMedia');
       if (t1 && t2) {
-        t1.className = 'btn btn-gold btn-sm truncate text-[clamp(10px,1.2vw,13px)]';
-        t2.className = 'btn btn-dark btn-sm truncate text-[clamp(10px,1.2vw,13px)]';
+        t1.className = 'btn btn-gold btn-sm';
+        t2.className = 'btn btn-dark btn-sm';
       }
       if (!container) return;
 
@@ -823,7 +823,7 @@
           <textarea id="apolloCsvArea" rows="6" placeholder="First Name,Last Name,Company,Email,Work Direct Phone,Mobile Phone,City,Country..." 
             style="width:100%;background:#0d0d0c;border:1px solid var(--wire);color:var(--ink);font-family:var(--mono);font-size:11px;padding:8px;border-radius:6px;box-sizing:border-box;"></textarea>
           <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
-            <button class="btn btn-gold btn-sm truncate text-[clamp(10px,1.2vw,13px)]" onclick="window.BulkImportEngine.processApolloPastedText()">
+            <button class="btn btn-gold btn-sm" onclick="window.BulkImportEngine.processApolloPastedText()">
               Auto-Map &amp; Preview Leads →
             </button>
           </div>
@@ -837,8 +837,8 @@
       const t1 = document.getElementById('tabApolloLeads');
       const t2 = document.getElementById('tabDriveMedia');
       if (t1 && t2) {
-        t1.className = 'btn btn-dark btn-sm truncate text-[clamp(10px,1.2vw,13px)]';
-        t2.className = 'btn btn-gold btn-sm truncate text-[clamp(10px,1.2vw,13px)]';
+        t1.className = 'btn btn-dark btn-sm';
+        t2.className = 'btn btn-gold btn-sm';
       }
       if (!container) return;
 
@@ -851,7 +851,7 @@
           <textarea id="driveFilesArea" rows="6" placeholder="RAWX-JKT-001__BLACK__01.webp&#10;RAWX-JKT-001__BLACK__02.webp&#10;RAWX-JKT-001__TAN__01.webp" 
             style="width:100%;background:#0d0d0c;border:1px solid var(--wire);color:var(--ink);font-family:var(--mono);font-size:11px;padding:8px;border-radius:6px;box-sizing:border-box;"></textarea>
           <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
-            <button class="btn btn-gold btn-sm truncate text-[clamp(10px,1.2vw,13px)]" onclick="window.BulkImportEngine.processDriveFilenames()">
+            <button class="btn btn-gold btn-sm" onclick="window.BulkImportEngine.processDriveFilenames()">
               Parse Tokenized Assets →
             </button>
           </div>
@@ -939,7 +939,7 @@
         <div style="background:var(--bg-card);border:1px solid var(--wire);border-radius:8px;padding:12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <span style="font-weight:700;color:var(--ink);">Parsed ${parsed.length} Tokenized Assets</span>
-            <button id="btnCommitDriveMedia" class="btn btn-emerald btn-xs truncate text-[clamp(10px,1.2vw,13px)]" onclick="window.BulkImportEngine.commitDriveMedia()">
+            <button id="btnCommitDriveMedia" class="btn btn-emerald btn-xs" onclick="window.BulkImportEngine.commitDriveMedia()">
               ✓ Stage to Firestore Catalog
             </button>
           </div>

@@ -286,8 +286,16 @@
 
   /* ── Shared Helpers ── */
   function modHeader(title, tag, actions = []) {
-    const btns = actions.map(a => `<button onclick="${a.fn}" style="padding:6px 11px;font-size:9px;border:1px solid var(--wire-hard);background:transparent;color:var(--gold-dim);font-family:var(--sans);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--wire-hard)';this.style.color='var(--gold-dim)'">${a.label}</button>`).join('');
-    return `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px 8px;"><div><h3>${title}</h3>${tag?`<p class="hint" style="margin:2px 0 0;">${tag}</p>`:""}</div><div style="display:flex;gap:6px;margin-top:4px;">${btns}</div></div>`;
+    const btns = actions.map(a => `<button class="btn btn-sm ${a.primary ? 'btn-gold' : 'btn-dark'}" onclick="${a.fn}">${a.label}</button>`).join('');
+    return `
+      <div class="mod-header-wrap">
+        <div class="mod-header-title-box">
+          <h3 class="mod-header-heading">${title}</h3>
+          ${tag ? `<p class="mod-header-subtitle">${tag}</p>` : ""}
+        </div>
+        ${btns ? `<div class="mod-header-actions-bar">${btns}</div>` : ""}
+      </div>
+    `;
   }
   function loading(msg="Syncing…") { return `<div style="padding:20px;font-family:var(--mono);color:var(--ink-3);font-size:10px;letter-spacing:2px;text-transform:uppercase;">${msg}</div>`; }
   function stub(title,msg) { return c => { c.innerHTML = modHeader(title) + `<div style="margin:0 20px;padding:16px;background:var(--surface-2);border:1px solid var(--wire);border-radius:10px;font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:1px;">${msg}</div>`; }; }
