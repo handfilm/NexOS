@@ -1,0 +1,36 @@
+[
+  {
+    "id": "BD-RFQ-0D2510A5",
+    "rfqId": "BD-RFQ-0D2510A5",
+    "orderNumber": "BD-RFQ-0D2510A5",
+    "type": "B2B_RFQ",
+    "status": "Open / Lead",
+    "stage": "RFQ / Ingestion",
+    "category": "RMG",
+    "quantity": 5000,
+    "targetUnitPrice": "12.50",
+    "specs": "Heavyweight Organic Cotton Tees with bespoke neck labels",
+    "customer": {
+      "name": "B2B Prospective Buyer",
+      "email": "procurement@nordicbuyer.de",
+      "phone": "",
+      "contact": "procurement@nordicbuyer.de",
+      "company": ""
+    },
+    "techPackUrl": null,
+    "financials": {
+      "estimatedTotal": 62500,
+      "advancePaymentRequired": "50%",
+      "advanceTerms": "JIT 50% Advance / 50% Upon BL Dispatch",
+      "currency": "USD"
+    },
+    "pipeline": {
+      "status": "Open / Lead",
+      "assignedTier": "Verified Exporter Network",
+      "source": "b2b.handsandhead.com",
+      "routedToVerifiedExporters": true
+    },
+    "createdAt": "2026-09-17T14:22:06.089Z",
+    "updatedAt": "2026-09-17T14:22:06.089Z"
+  }
+]

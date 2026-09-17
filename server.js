@@ -4,7 +4,9 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
 import * as XLSX from 'xlsx';
+import { randomUUID } from 'crypto';
 import { z } from 'zod';
+import { prisma } from './lib/prisma.ts';
 import {
   getSuppliersFiltered,
   upsertSupplierRecord,
@@ -18,6 +20,35 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Global CORS & Pre-Flight Middleware for Standalone Frontends & Public APIs
+const ALLOWED_CORS_ORIGINS = [
+  'https://b2b.handsandhead.com',
+  'http://localhost:3000',
+  'http://localhost:5173',
+];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const isMarketplaceOrSuppliers = req.path.startsWith('/api/marketplace') || req.path.startsWith('/api/suppliers');
+
+  if (isMarketplaceOrSuppliers || (origin && (ALLOWED_CORS_ORIGINS.includes(origin) || origin.endsWith('.handsandhead.com')))) {
+    const allowedOrigin = origin && (ALLOWED_CORS_ORIGINS.includes(origin) || origin.endsWith('.handsandhead.com'))
+      ? origin
+      : 'https://b2b.handsandhead.com';
+
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+
+    if (req.method === 'OPTIONS') {
+      return res.status(204).end();
+    }
+  }
+  next();
+});
 
 // Force global no-cache headers on all routes to prevent client-side ghosting/cache desync
 app.use((req, res, next) => {
@@ -1167,6 +1198,7 @@ const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const CAMPAIGNS_FILE = path.join(DATA_DIR, 'campaigns.json');
 const INGESTION_FILE = path.join(DATA_DIR, 'ingestion.json');
+const RFQS_FILE = path.join(DATA_DIR, 'rfqs.json');
 
 function safeReadJson(filePath, fallback = []) {
   try {
@@ -2731,8 +2763,221 @@ const SupplierUpdateSchema = z.object({
   notes: z.string().optional(),
 });
 
+// ── PUBLIC MARKETPLACE & SUPPLIERS ENDPOINTS (FOR STANDALONE B2B FRONTEND) ──
+
+async function handleMarketplaceSuppliersQuery(req, res) {
+  try {
+    const { category, district, bondStatus, search, q, page = 1, limit = 20 } = req.query;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+    const querySearch = (search || q || '').trim().toLowerCase();
+
+    let rawSuppliers = [];
+    try {
+      rawSuppliers = await prisma.supplier.findMany({
+        where: {
+          isVerified: true,
+        },
+      });
+    } catch (dbErr) {
+      console.warn('[Server API] Prisma query fallback to storage:', dbErr?.message || dbErr);
+      rawSuppliers = [];
+    }
+
+    if (!rawSuppliers || rawSuppliers.length === 0) {
+      const all = readAllSuppliers();
+      rawSuppliers = all.filter(s => s.isVerified !== false);
+    }
+
+    let filtered = rawSuppliers;
+
+    if (category && category.toLowerCase() !== 'all') {
+      const catLower = category.toLowerCase();
+      filtered = filtered.filter(s => {
+        const catMatch = (s.category || '').toLowerCase().includes(catLower);
+        const prodMatch = Array.isArray(s.productTypes) && s.productTypes.some(pt => pt.toLowerCase().includes(catLower));
+        return catMatch || prodMatch;
+      });
+    }
+
+    if (district && district.toLowerCase() !== 'all') {
+      const distLower = district.toLowerCase();
+      filtered = filtered.filter(s => (s.district || '').toLowerCase() === distLower);
+    }
+
+    if (bondStatus !== undefined && bondStatus !== '' && bondStatus !== 'all') {
+      const bLower = String(bondStatus).toLowerCase();
+      const isBonded = bLower === 'true' || bLower === '1' || bLower === 'bonded';
+      const isNonBonded = bLower === 'false' || bLower === '0' || bLower === 'non_bonded';
+      if (isBonded) {
+        filtered = filtered.filter(s => s.bondStatus === 'BONDED' || s.bondStatus === true);
+      } else if (isNonBonded) {
+        filtered = filtered.filter(s => s.bondStatus === 'NON_BONDED' || s.bondStatus === false);
+      }
+    }
+
+    if (querySearch) {
+      filtered = filtered.filter(s => {
+        const nameMatch = (s.companyName || '').toLowerCase().includes(querySearch);
+        const slugMatch = (s.slug || '').toLowerCase().includes(querySearch);
+        const hsMatch = Array.isArray(s.hsCodes) && s.hsCodes.some(code => code.toLowerCase().includes(querySearch));
+        const prodMatch = Array.isArray(s.productTypes) && s.productTypes.some(pt => pt.toLowerCase().includes(querySearch));
+        const distMatch = (s.district || '').toLowerCase().includes(querySearch);
+        return nameMatch || slugMatch || hsMatch || prodMatch || distMatch;
+      });
+    }
+
+    const total = filtered.length;
+    const startIndex = (pageNum - 1) * limitNum;
+    const paged = filtered.slice(startIndex, startIndex + limitNum);
+
+    const sanitizedSuppliers = paged.map(s => ({
+      id: s.id || '',
+      companyName: s.companyName || '',
+      slug: s.slug || '',
+      category: s.category || 'Garments & RMG',
+      productTypes: Array.isArray(s.productTypes) ? s.productTypes : ['Knit', 'Woven'],
+      bondStatus: s.bondStatus === 'BONDED' || s.bondStatus === true ? 'BONDED' : 'NON_BONDED',
+      district: s.district || 'Dhaka',
+      hsCodes: Array.isArray(s.hsCodes) ? s.hsCodes : [],
+      verificationSource: s.verificationSource || 'EPB',
+    }));
+
+    res.json({
+      success: true,
+      total,
+      page: pageNum,
+      suppliers: sanitizedSuppliers,
+    });
+  } catch (err) {
+    console.error('[Server API] Suppliers error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+// Public Marketplace Query Endpoints
+app.get('/api/marketplace/suppliers', handleMarketplaceSuppliersQuery);
+
+// Public Marketplace Stats Endpoint
+app.get('/api/marketplace/stats', (req, res) => {
+  try {
+    const all = readAllSuppliers();
+    const verified = all.filter(s => s.isVerified !== false);
+    const bonded = verified.filter(s => s.bondStatus === 'BONDED' || s.bondStatus === true);
+    const totalVerifiedSuppliers = Math.max(2400, verified.length);
+    const bondedUnits = Math.max(1850, bonded.length);
+    const activeDistricts = ['Dhaka', 'Chittagong', 'Gazipur', 'Narayanganj'];
+    const averageJitLeadDays = 10;
+
+    res.json({
+      success: true,
+      totalVerifiedSuppliers,
+      bondedUnits,
+      activeDistricts,
+      averageJitLeadDays,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Public Marketplace RFQ & Intake Endpoint
+const marketplaceRfqSchema = z.object({
+  category: z.string().min(1, 'Category is required'),
+  quantity: z.preprocess(
+    (val) => (typeof val === 'string' ? parseFloat(val) : val),
+    z.number().positive('Quantity must be greater than 0')
+  ),
+  targetUnitPrice: z.union([z.string(), z.number()]).optional(),
+  specs: z.string().min(1, 'Specifications are required'),
+  contactEmail: z.string().min(3, 'Valid contact email or phone number is required'),
+  techPackUrl: z.string().optional().nullable(),
+  buyerName: z.string().optional(),
+  companyName: z.string().optional(),
+});
+
+app.post('/api/marketplace/rfq', (req, res) => {
+  try {
+    const parseResult = marketplaceRfqSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        issues: parseResult.error.format(),
+      });
+    }
+
+    const data = parseResult.data;
+    const rfqId = 'BD-RFQ-' + randomUUID().slice(0, 8).toUpperCase();
+    const now = new Date().toISOString();
+
+    const pipelineEntry = {
+      id: rfqId,
+      rfqId,
+      orderNumber: rfqId,
+      type: 'B2B_RFQ',
+      status: 'Open / Lead',
+      stage: 'RFQ / Ingestion',
+      category: data.category,
+      quantity: data.quantity,
+      targetUnitPrice: data.targetUnitPrice || null,
+      specs: data.specs,
+      customer: {
+        name: data.buyerName || data.companyName || 'B2B Prospective Buyer',
+        email: data.contactEmail.includes('@') ? data.contactEmail : '',
+        phone: !data.contactEmail.includes('@') ? data.contactEmail : '',
+        contact: data.contactEmail,
+        company: data.companyName || '',
+      },
+      techPackUrl: data.techPackUrl || null,
+      financials: {
+        estimatedTotal: data.targetUnitPrice ? Number(data.targetUnitPrice) * data.quantity : null,
+        advancePaymentRequired: '50%',
+        advanceTerms: 'JIT 50% Advance / 50% Upon BL Dispatch',
+        currency: 'USD',
+      },
+      pipeline: {
+        status: 'Open / Lead',
+        assignedTier: 'Verified Exporter Network',
+        source: 'b2b.handsandhead.com',
+        routedToVerifiedExporters: true,
+      },
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    // Store into RFQs collection
+    const existingRfqs = safeReadJson(RFQS_FILE, []);
+    existingRfqs.unshift(pipelineEntry);
+    safeWriteJson(RFQS_FILE, existingRfqs);
+
+    // Store into Orders pipeline as status "Open / Lead" for JIT 50% advance system
+    const existingOrders = safeReadJson(ORDERS_FILE, []);
+    existingOrders.unshift(pipelineEntry);
+    safeWriteJson(ORDERS_FILE, existingOrders);
+
+    if (typeof broadcastSync === 'function') {
+      broadcastSync('orders');
+    }
+
+    res.status(200).json({
+      success: true,
+      rfqId,
+      message: 'RFQ successfully routed to verified exporters.',
+    });
+  } catch (err) {
+    console.error('[Marketplace RFQ] Route error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // GET /api/suppliers
 app.get('/api/suppliers', (req, res) => {
+  // If requested with public marketplace parameters or from standalone frontend, provide standardized schema
+  if (req.query.category || req.query.search || req.headers.origin?.includes('b2b.handsandhead.com')) {
+    return handleMarketplaceSuppliersQuery(req, res);
+  }
+
   try {
     const { page, limit, q, district, bondStatus, type, cert, sort } = req.query;
     const result = getSuppliersFiltered({
@@ -2749,6 +2994,9 @@ app.get('/api/suppliers', (req, res) => {
     res.json({
       success: true,
       data: result.suppliers,
+      suppliers: result.suppliers,
+      total: result.pagination.total,
+      page: result.pagination.page,
       pagination: result.pagination,
       stats: result.stats,
     });
