@@ -10,7 +10,8 @@ import ProductionFloorAndSettlementBridge from './components/ProductionFloorAndS
 import VaultAndReorderEngine from './components/VaultAndReorderEngine';
 import EnterpriseSourcingAndFactoryEscrow from './components/EnterpriseSourcingAndFactoryEscrow';
 import SuppliersManagementDashboard from './components/SuppliersManagementDashboard';
-import { Warehouse, Factory, Building2, Layers, ShieldCheck, Truck, FileText, Mic, Coins, ArrowLeft, ExternalLink } from 'lucide-react';
+import { FederatedCatalogHub } from './components/FederatedCatalogHub';
+import { Warehouse, Factory, Building2, Layers, ShieldCheck, Truck, FileText, Mic, Coins, ArrowLeft, ExternalLink, Network } from 'lucide-react';
 import { ExtractedPOSpec } from './components/VoicePOIngestion';
 import {
   ensureFirestoreSeeded,
@@ -48,6 +49,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       if (hash === 'VAULT' || hash === 'VAULT_REORDER' || hash === 'REORDER_VAULT') return 'VAULT';
       if (hash === 'SOURCING_ESCROW' || hash === 'SOURCING' || hash === 'ESCROW' || hash === 'ENTERPRISESOURCING') return 'SOURCING_ESCROW';
       if (hash === 'SUPPLIERS' || hash === 'GARMENTS' || hash === 'EXPORTERS' || hash === 'SUPPLIER_MANAGEMENT') return 'SUPPLIERS';
+      if (hash === 'FEDERATED_CATALOG' || hash === 'FEDERATED' || hash === 'CATALOG' || hash === 'NEXOS' || hash === 'NEXOS_SYNC') return 'FEDERATED_CATALOG';
     }
     return 'DEFAULT';
   });
@@ -372,6 +374,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       closeVault,
       openSourcingEscrow,
       closeSourcingEscrow,
+      openFederatedCatalog: () => setCurrentRoute('FEDERATED_CATALOG'),
       saveProduct,
       saveOrder,
       saveCustomer,
@@ -436,6 +439,8 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         setCurrentRoute('SOURCING_ESCROW');
       } else if (hash === 'SUPPLIERS' || hash === 'GARMENTS' || hash === 'EXPORTERS' || hash === 'SUPPLIER_MANAGEMENT') {
         setCurrentRoute('SUPPLIERS');
+      } else if (hash === 'FEDERATED_CATALOG' || hash === 'FEDERATED' || hash === 'CATALOG' || hash === 'NEXOS' || hash === 'NEXOS_SYNC') {
+        setCurrentRoute('FEDERATED_CATALOG');
       }
     };
 
@@ -480,6 +485,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
   // Tab-based navigation helper for modular views
   const renderTabNav = (activeTab: string) => {
     const tabs = [
+      { id: 'FEDERATED_CATALOG', label: 'NEXOS Federated Catalog', icon: Layers, count: 'Multi-Node' },
       { id: 'SUPPLIERS', label: 'Suppliers Registry', icon: Warehouse, path: '/admin/suppliers', count: '400 Verified' },
       { id: 'B2B', label: 'B2B Deals', icon: Layers },
       { id: 'FLOOR_BRIDGE', label: 'Production Floor', icon: Factory },
@@ -772,6 +778,20 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
                   setCurrentRoute('DEFAULT');
                 }}
               />
+            </div>
+          </div>
+        );
+
+      case 'FEDERATED_CATALOG':
+      case 'FEDERATED':
+      case 'CATALOG':
+      case 'NEXOS':
+      case 'NEXOS_SYNC':
+        return (
+          <div className="federated-catalog-router-view w-full min-h-full bg-slate-950 text-slate-100 flex flex-col">
+            {renderTabNav('FEDERATED_CATALOG')}
+            <div className="w-full flex-1 pb-16">
+              <FederatedCatalogHub />
             </div>
           </div>
         );

@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "handsandhead-nexus",
+    "production": "handsandhead-prod",
+    "staging": "handsandhead-staging"
+  }
+}

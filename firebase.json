@@ -1,0 +1,84 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ],
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "functions/**",
+      "src/**",
+      "prisma/**"
+    ],
+    "headers": [
+      {
+        "source": "/bundles/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=300, s-maxage=600"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/octet-stream"
+          }
+        ]
+      },
+      {
+        "source": "/js/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=86400"
+          }
+        ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/api/redirect/**",
+        "function": {
+          "functionId": "catalogRedirect",
+          "region": "asia-east1"
+        }
+      },
+      {
+        "source": "/api/webhook/arutemika",
+        "function": {
+          "functionId": "arutemikaWebhook",
+          "region": "asia-east1"
+        }
+      },
+      {
+        "source": "/api/bundle",
+        "function": {
+          "functionId": "serveCatalogBundleHttp",
+          "region": "asia-east1"
+        }
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

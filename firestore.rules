@@ -154,5 +154,30 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isSignedIn();
     }
+
+    // ── 6. NEXOS Federated Catalog Ecosystem ──
+    // Master collection: federated_catalog
+    // Public read enabled for authenticated/guest B2B buyers across 15,000 users.
+    // Client SDK write/update/delete is STRICTLY PROHIBITED (Admin SDK / 2nd-gen Cloud Functions only).
+    // Invariant: The document does not expose private supplier costs or raw internal D2C URLs.
+    match /federated_catalog/{catalogId} {
+      allow read: if true;
+      allow write: if false; // Only Cloud Functions / Admin SDK can write
+    }
+
+    // Isolated Private Metadata collection: federated_catalog_private
+    // Stores raw D2C source URLs, supplier costs, and ingestion snapshots.
+    // Client SDKs have ZERO read or write permissions.
+    match /federated_catalog_private/{catalogId} {
+      allow read, write: if false;
+    }
+
+    // Internal Ingestion & Cursor Sync State: system_sync
+    // Stores Google Drive changes.list startPageToken and pipeline state.
+    // Client SDKs have ZERO read or write permissions.
+    match /system_sync/{syncDocId} {
+      allow read, write: if false;
+    }
   }
 }
+

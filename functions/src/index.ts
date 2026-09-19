@@ -724,3 +724,20 @@ export const callGemini = onCall(
     }
   }
 );
+
+/**
+ * ======================================================================
+ * 5. NEXOS Sync Pipeline — Exported 2nd-Gen Cloud Functions
+ * Automated data-normalization system across 4 nodes:
+ * - admin.handsandhead.com (Firestore Master DB)
+ * - b2b.handsandhead.com (Hydrated Frontend)
+ * - shop.handsandhead.com (Google Drive Ingestion)
+ * - arutemika.com (Webhook Ingestion)
+ * ======================================================================
+ */
+export { pollShopDriveChanges } from './nexos-sync/drive-ingestion';
+export { arutemikaWebhook } from './nexos-sync/arutemika-webhook';
+export { normalizeProductEvent } from './nexos-sync/normalizer';
+export { catalogRedirect } from './nexos-sync/redirect-service';
+export { generateCatalogBundle, serveCatalogBundleHttp } from './nexos-sync/bundle-generator';
+

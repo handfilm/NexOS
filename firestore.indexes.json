@@ -1,0 +1,48 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "federated_catalog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "featuredScore", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "federated_catalog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "featuredScore", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "federated_catalog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "origin", "order": "ASCENDING" },
+        { "fieldPath": "lastSyncedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "federated_catalog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "retailPriceUsd", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "federated_catalog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "retailPriceUsd", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

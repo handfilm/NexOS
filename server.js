@@ -4808,6 +4808,66 @@ app.post('/api/functions/callGemini', async (req, res) => {
   }
 });
 
+// GET /api/redirect/:catalogId - NEXOS internal redirection proxy service
+app.get(['/api/redirect/:catalogId', '/api/redirect'], (req, res) => {
+  const catalogId = req.params.catalogId || req.query.id || req.query.catalogId || '';
+  if (!catalogId) {
+    return res.status(400).send(`
+      <!DOCTYPE html>
+      <html>
+        <head><title>Invalid Catalog Redirect</title></head>
+        <body style="font-family: sans-serif; padding: 40px; text-align: center;">
+          <h2 style="color: #c2410c;">NEXOS B2B Redirect Service</h2>
+          <p>Missing required catalog identifier in redirect request.</p>
+        </body>
+      </html>
+    `);
+  }
+
+  let destinationUrl = '';
+  try {
+    const products = readJSON(PRODUCTS_FILE, []);
+    const product = products.find(p => p.id === catalogId || p.sku === catalogId);
+    if (product) {
+      if (product.sourceOrigin === 'arutemika.com' || (product.origin && product.origin.includes('arutemika'))) {
+        destinationUrl = `https://arutemika.com/products/${product.handle || product.sku || product.id}`;
+      } else {
+        destinationUrl = `https://shop.handsandhead.com/products/${product.handle || product.sku || product.id}`;
+      }
+    }
+  } catch (e) {
+    console.warn('Error reading products for redirect:', e.message);
+  }
+
+  if (!destinationUrl) {
+    if (catalogId.toLowerCase().includes('arutemika') || catalogId.toLowerCase().startsWith('ar-')) {
+      destinationUrl = `https://arutemika.com/products/${catalogId}`;
+    } else {
+      destinationUrl = `https://shop.handsandhead.com/products/${catalogId}`;
+    }
+  }
+
+  try {
+    const parsedUrl = new URL(destinationUrl);
+    parsedUrl.searchParams.set('ref', 'b2b');
+    parsedUrl.searchParams.set('source', 'nexos_federated');
+    parsedUrl.searchParams.set('utm_source', 'b2b.handsandhead.com');
+    parsedUrl.searchParams.set('utm_medium', 'wholesale_federated_referral');
+
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.redirect(302, parsedUrl.toString());
+  } catch (err) {
+    res.redirect(302, destinationUrl);
+  }
+});
+
+// GET /bundles/latest-catalog.bundle - Firestore Data Bundle CDN Cache endpoint
+app.get('/bundles/latest-catalog.bundle', (req, res) => {
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=600');
+  res.status(200).send(Buffer.from([]));
+});
+
 app.use(express.static(__dirname, {
   etag: false,
   lastModified: false,

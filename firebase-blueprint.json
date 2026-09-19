@@ -149,6 +149,58 @@
         "status": { "type": "string", "enum": ["RELEASED", "PENDING", "REJECTED"] }
       },
       "required": ["trancheNumber", "amount", "vendorId", "status"]
+    },
+    "FederatedCatalogProduct": {
+      "title": "FederatedCatalogProduct",
+      "description": "NEXOS multi-node normalized B2B export product in federated_catalog",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sku": { "type": "string" },
+        "title": { "type": "string" },
+        "handle": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "origin": { "type": "string", "enum": ["shop.handsandhead.com", "arutemika.com"] },
+        "originDisplayName": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "DRAFT", "ARCHIVED", "OUT_OF_STOCK"] },
+        "retailPriceUsd": { "type": "number" },
+        "currency": { "type": "string" },
+        "moq": { "type": "number" },
+        "wholesalePriceLadder": { "type": "array" },
+        "provenance": { "type": "object" },
+        "images": { "type": "array" },
+        "thumbnailUrl": { "type": "string" },
+        "materials": { "type": "array" },
+        "tags": { "type": "array" },
+        "specifications": { "type": "object" },
+        "inventoryCount": { "type": "number" },
+        "inStock": { "type": "boolean" },
+        "leadTimeDays": { "type": "number" },
+        "hsCode": { "type": "string" },
+        "syncVersion": { "type": "number" },
+        "redirectUrlPath": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "lastSyncedAt": { "type": "string" },
+        "featuredScore": { "type": "number" }
+      },
+      "required": ["id", "sku", "title", "origin", "status", "retailPriceUsd", "moq", "wholesalePriceLadder", "provenance"]
+    },
+    "PrivateCatalogMetadata": {
+      "title": "PrivateCatalogMetadata",
+      "description": "Restricted internal catalog metadata isolating raw D2C source URLs",
+      "type": "object",
+      "properties": {
+        "catalogId": { "type": "string" },
+        "origin": { "type": "string" },
+        "privateSourceUrl": { "type": "string" },
+        "supplierCostUsd": { "type": "number" },
+        "factoryContactEmail": { "type": "string" },
+        "rawPayloadSnapshot": { "type": "object" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["catalogId", "origin", "privateSourceUrl"]
     }
   },
   "firestore": {
@@ -187,6 +239,14 @@
     "/rateLimits/{callerId}": {
       "schema": "RateLimit",
       "description": "Rate-limiting tracking for security gates"
+    },
+    "/federated_catalog/{catalogId}": {
+      "schema": "FederatedCatalogProduct",
+      "description": "Public multi-node normalized B2B export catalog hydrated from Firestore & CDN bundle"
+    },
+    "/federated_catalog_private/{catalogId}": {
+      "schema": "PrivateCatalogMetadata",
+      "description": "Internal isolated metadata collection protecting raw D2C URLs and supplier cost structures"
     }
   }
 }
