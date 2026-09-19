@@ -5752,7 +5752,8 @@ body.has-active-module #react-app-root {
    ═══════════════════════════════════════════════════════════════ */
 
 .crow-strip,
-.srow-strip {
+.srow-strip,
+.prow-strip {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -5778,7 +5779,10 @@ body.has-active-module #react-app-root {
 .crow-strip:active,
 .srow-strip:hover,
 .srow-strip:focus-within,
-.srow-strip:active {
+.srow-strip:active,
+.prow-strip:hover,
+.prow-strip:focus-within,
+.prow-strip:active {
   background: linear-gradient(90deg, rgba(249, 115, 22, 0.18) 0%, rgba(22, 27, 38, 0.98) 100%) !important;
   border-color: #F97316 !important;
   transform: translateY(-1px);
@@ -5790,7 +5794,10 @@ body.has-active-module #react-app-root {
 .crow-strip:active .crow-code,
 .srow-strip:hover .srow-code,
 .srow-strip:focus-within .srow-code,
-.srow-strip:active .srow-code {
+.srow-strip:active .srow-code,
+.prow-strip:hover .prow-code,
+.prow-strip:focus-within .prow-code,
+.prow-strip:active .prow-code {
   color: #FB923C !important;
   text-shadow: 0 0 8px rgba(249, 115, 22, 0.5);
 }
@@ -5800,7 +5807,10 @@ body.has-active-module #react-app-root {
 .crow-strip:active .crow-name,
 .srow-strip:hover .srow-name,
 .srow-strip:focus-within .srow-name,
-.srow-strip:active .srow-name {
+.srow-strip:active .srow-name,
+.prow-strip:hover .prow-name,
+.prow-strip:focus-within .prow-name,
+.prow-strip:active .prow-name {
   color: #FFFFFF !important;
 }
 
@@ -5809,7 +5819,10 @@ body.has-active-module #react-app-root {
 .crow-strip:active .crow-total,
 .srow-strip:hover .srow-metric,
 .srow-strip:focus-within .srow-metric,
-.srow-strip:active .srow-metric {
+.srow-strip:active .srow-metric,
+.prow-strip:hover .prow-metric,
+.prow-strip:focus-within .prow-metric,
+.prow-strip:active .prow-metric {
   color: #FB923C !important;
   font-weight: 800;
   text-shadow: 0 0 8px rgba(249, 115, 22, 0.35);
@@ -5824,7 +5837,8 @@ body.has-active-module #react-app-root {
 }
 
 .crow-strip.is-selected,
-.srow-strip.is-selected {
+.srow-strip.is-selected,
+.prow-strip.is-selected {
   background: rgba(249, 115, 22, 0.18) !important;
   border-color: #F97316 !important;
   box-shadow: 0 0 14px rgba(249, 115, 22, 0.28);
@@ -5876,7 +5890,8 @@ body.has-active-module #react-app-root {
 }
 
 .crow-code,
-.srow-code {
+.srow-code,
+.prow-code {
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 700;
@@ -5886,7 +5901,8 @@ body.has-active-module #react-app-root {
 }
 
 .crow-name-cell,
-.srow-name-cell {
+.srow-name-cell,
+.prow-name-cell {
   flex: 1 1 120px;
   min-width: 70px;
   overflow: hidden;
@@ -5896,7 +5912,8 @@ body.has-active-module #react-app-root {
 }
 
 .crow-name,
-.srow-name {
+.srow-name,
+.prow-name {
   font-weight: 700;
   font-size: 12px;
   color: #F1F5F9;
@@ -5907,7 +5924,8 @@ body.has-active-module #react-app-root {
 }
 
 .crow-total,
-.srow-metric {
+.srow-metric,
+.prow-metric {
   font-family: var(--mono);
   font-size: 12px;
   font-weight: 700;
@@ -5917,7 +5935,8 @@ body.has-active-module #react-app-root {
 }
 
 .crow-quick-actions,
-.srow-quick-actions {
+.srow-quick-actions,
+.prow-quick-actions {
   display: flex;
   gap: 4px;
   flex-shrink: 0;
@@ -5927,7 +5946,9 @@ body.has-active-module #react-app-root {
 .crow-quick-actions .btn,
 .crow-quick-actions .crow-act-btn,
 .srow-quick-actions .btn,
-.srow-quick-actions .srow-act-btn {
+.srow-quick-actions .srow-act-btn,
+.prow-quick-actions .btn,
+.prow-quick-actions .prow-act-btn {
   padding: 2px 7px;
   height: 24px;
   font-size: 10px;

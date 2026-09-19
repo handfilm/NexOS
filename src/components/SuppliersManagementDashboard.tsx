@@ -409,7 +409,15 @@ export const SuppliersManagementDashboard: React.FC<SuppliersManagementProps> = 
       }
       const json = await res.json();
       if (json.success) {
-        setSuppliers(json.data || []);
+        const cleanedSuppliers = (json.data || []).filter(
+          (s: SupplierRecord) =>
+            s &&
+            s.companyName &&
+            s.companyName.trim() !== '' &&
+            !s.companyName.toUpperCase().includes('EXP-SUP_A_A') &&
+            s.id !== 'EXP-SUP_A_A'
+        );
+        setSuppliers(cleanedSuppliers);
         if (json.pagination) {
           setTotalPages(json.pagination.totalPages || 1);
           setTotalCount(json.pagination.total || 0);
@@ -2097,27 +2105,10 @@ admin.handsandhead.com`);
                     {monogram}
                   </div>
 
-                  {/* Supplier Code */}
-                  <span
-                    className="srow-code cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleInspectSupplier(s);
-                    }}
-                    title="Inspect Full Factory Dossier"
-                  >
-                    EXP-{(s.id || s.slug || '').slice(0, 7).toUpperCase()}
-                  </span>
-
-                  {/* District Hub Pill */}
-                  <span className="srow-hub-pill pill ok text-[8px] py-0.5 px-1.5 font-bold uppercase shrink-0">
-                    {s.district} HUB
-                  </span>
-
-                  {/* Factory Name & Location */}
-                  <div className="srow-name-cell">
+                  {/* Factory / Exporter Name (Brought First!) & Location */}
+                  <div className="srow-name-cell flex-1 min-w-0">
                     <span
-                      className="srow-name cursor-pointer"
+                      className="srow-name cursor-pointer font-bold text-slate-100 hover:text-amber-400 text-xs sm:text-[13px] tracking-tight transition"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleInspectSupplier(s);
@@ -2126,11 +2117,16 @@ admin.handsandhead.com`);
                     >
                       {s.companyName}
                     </span>
-                    <span className="srow-location-chip text-neutral-400 font-mono text-[9.5px] items-center gap-1 shrink-0">
-                      <MapPin className="w-2.5 h-2.5 text-orange-400 inline" />
+                    <span className="srow-location-chip text-neutral-400 font-mono text-[9.5px] items-center gap-1 shrink-0 hidden sm:inline-flex max-w-[260px] truncate">
+                      <MapPin className="w-2.5 h-2.5 text-orange-400 inline shrink-0" />
                       {s.factoryAddress || `${s.district}, Bangladesh`}
                     </span>
                   </div>
+
+                  {/* District Hub Pill */}
+                  <span className="srow-hub-pill pill ok text-[8px] py-0.5 px-1.5 font-bold uppercase shrink-0">
+                    {s.district} HUB
+                  </span>
 
                   {/* Capacity & MOQ (Tablet & Desktop) */}
                   <div className="hidden md:flex items-center gap-2 font-mono text-[10.5px] text-neutral-400 shrink-0 mr-1.5">

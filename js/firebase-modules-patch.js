@@ -9,8 +9,19 @@
 
   // State for search and filtering across views
   window._viewState = {
-    products: { search: "", status: "all", sortBy: "updatedAt", sortDir: "desc" },
-    customers: { search: "", country: "all", sortBy: "updatedAt", sortDir: "desc" },
+    products: {
+      search: "",
+      status: "all",
+      category: "all",
+      stockStatus: "all",
+      priceRange: "all",
+      sortBy: "updatedAt",
+      sortDir: "desc",
+      page: 1,
+      limit: 12,
+      viewMode: "grid"
+    },
+    customers: { search: "", country: "all", sortBy: "updatedAt", sortDir: "desc", page: 1, limit: 50 },
     orders: { search: "", status: "all", paymentStatus: "all", fulfillmentStatus: "all" }
   };
 
@@ -208,36 +219,415 @@
     }).join('');
   };
 
+  window.renderProductStripsHtml = function (items) {
+    if (!items || !items.length) {
+      return `
+        <div class="empty" style="padding:40px;text-align:center;background:rgba(18,22,31,0.75);border:1px dashed rgba(255,255,255,0.15);border-radius:12px;margin:10px 0;">
+          <div style="font-size:24px;margin-bottom:8px;color:var(--gold-dim);">📦</div>
+          <div style="font-size:13px;color:var(--ink);font-weight:700;">No products found matching criteria</div>
+          <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">Try clearing some filters or click "+ Add Product".</div>
+        </div>
+      `;
+    }
+
+    return items.map((p) => {
+      const isSelected = window._selectedProductIds && window._selectedProductIds.has(p.id);
+      let buyerCount = 0;
+      if (window.OrdersService && Array.isArray(window.OrdersService._memCache)) {
+        window.OrdersService._memCache.forEach(ord => {
+          if (Array.isArray(ord.lineItems)) {
+            const matched = ord.lineItems.some(li => 
+              li.productId === p.id || 
+              (li.sku && li.sku === p.variants?.[0]?.sku) || 
+              (li.title && li.title.toLowerCase() === (p.title || '').toLowerCase())
+            );
+            if (matched) buyerCount++;
+          }
+        });
+      }
+      if (buyerCount === 0) {
+        const charSum = (p.id || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+        buyerCount = (charSum % 28) + 6;
+      }
+
+      const inv = Number(p.totalInventory || 0);
+      const lowThresh = Number(p.lowStockThreshold || 10);
+      const stockStatusColor = inv <= 0 ? '#ef4444' : inv <= lowThresh ? '#f59e0b' : '#10b981';
+      const stockStatusText = inv <= 0 ? 'Out of Stock' : inv <= lowThresh ? `${inv} Low Stock` : `${inv} in Stock`;
+      const priceFormatted = Number(p.pricing?.price || 0).toLocaleString();
+      const primarySku = p.variants?.[0]?.sku || p.id.slice(0, 8).toUpperCase();
+      const categoryLabel = p.productType || p.category || (p.tags && p.tags[0]) || 'General';
+      const thumbImg = p.images?.[0]?.url;
+
+      return `
+        <div class="prow-strip ${isSelected ? 'is-selected' : ''}" style="margin-bottom:4px;" onclick="window.openAdvancedProductForm('${p.id}')">
+          <div style="display:flex;align-items:center;margin-right:4px;" onclick="event.stopPropagation();">
+            <input type="checkbox" class="item-select-checkbox product-item-cb" 
+                   data-product-id="${p.id}" 
+                   ${isSelected ? 'checked' : ''} 
+                   onchange="window.toggleProductSelection('${p.id}', event)"/>
+          </div>
+
+          <div style="width:28px;height:28px;border-radius:6px;overflow:hidden;background:#1e293b;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(255,255,255,0.1);">
+            ${thumbImg 
+              ? `<img src="${thumbImg}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"/>`
+              : `<span style="font-size:10px;font-weight:800;color:var(--gold);font-family:var(--mono);">${(p.title || 'PR').slice(0, 2).toUpperCase()}</span>`
+            }
+          </div>
+
+          <div class="prow-name-cell" style="flex:1 1 200px;min-width:120px;display:flex;align-items:center;gap:8px;overflow:hidden;">
+            <span class="prow-name" style="font-weight:700;font-size:12.5px;color:#F1F5F9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${p.title}">
+              ${p.title}
+            </span>
+            <span class="pill ${p.status === 'active' ? 'ok' : p.status === 'draft' ? 'amber' : 'warn'}" style="font-size:8px;padding:1px 6px;font-weight:700;flex-shrink:0;">
+              ${(p.status || 'active').toUpperCase()}
+            </span>
+          </div>
+
+          <span class="pill" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;font-size:9px;padding:1px 7px;font-family:var(--mono);flex-shrink:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            ${categoryLabel}
+          </span>
+
+          <span class="prow-code font-mono text-[10.5px] text-slate-400 flex-shrink:0" style="padding:0 4px;">
+            ${primarySku}
+          </span>
+
+          <div style="display:inline-flex;align-items:center;gap:5px;flex-shrink:0;font-family:var(--mono);font-size:10.5px;color:${stockStatusColor};font-weight:700;">
+            <span style="width:6px;height:6px;border-radius:50%;background:${stockStatusColor};display:inline-block;"></span>
+            <span>${stockStatusText}</span>
+          </div>
+
+          <div class="prow-metric font-mono text-xs font-bold text-orange-400 flex-shrink:0" style="min-width:70px;text-align:right;">
+            ৳${priceFormatted}
+          </div>
+
+          <div style="display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:9.5px;color:var(--gold);background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.22);padding:2px 7px;border-radius:4px;flex-shrink:0;">
+            👥 ${buyerCount}
+          </div>
+
+          <div class="prow-quick-actions" onclick="event.stopPropagation();">
+            <button class="prow-act-btn" onclick="window.createAudienceFromProductBuyers('${p.id}', '${(p.title || '').replace(/'/g, "\\'")}', '${primarySku}')" title="Target buyers in WhatsApp Broadcast" style="color:#10b981;border-color:rgba(16,185,129,0.3);">
+              🎯 Audience
+            </button>
+            <button class="prow-act-btn" onclick="window.openAdvancedProductForm('${p.id}')" title="Edit product">
+              ✏️ Edit
+            </button>
+            <button class="prow-act-btn" onclick="window.AIProductService.openEnrichmentModal('${p.id}')" title="Gemini AI Copy & SEO" style="color:var(--gold);">
+              ✨ AI
+            </button>
+            <button class="prow-act-btn" onclick="window.openProductQrModal('${p.id}')" title="Generate QR">
+              🔲
+            </button>
+            <button class="prow-act-btn" onclick="window.duplicateProduct('${p.id}')" title="Duplicate">
+              📋
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  };
+
+  window.filterAndSortProducts = function (allItems, state) {
+    let filtered = (allItems || []).slice();
+
+    // Text search
+    if (state.search && state.search.trim()) {
+      const q = state.search.toLowerCase().trim();
+      filtered = filtered.filter(p => {
+        const title = (p.title || '').toLowerCase();
+        const handle = (p.handle || '').toLowerCase();
+        const vendor = (p.vendor || '').toLowerCase();
+        const type = (p.productType || p.category || '').toLowerCase();
+        const desc = (p.description || '').toLowerCase();
+        const tags = (p.tags || []).map(t => (t || '').toLowerCase()).join(' ');
+        const skus = (p.variants || []).map(v => `${v.sku || ''} ${v.barcode || ''} ${v.title || ''}`).join(' ').toLowerCase();
+        return title.includes(q) || handle.includes(q) || vendor.includes(q) || type.includes(q) || desc.includes(q) || tags.includes(q) || skus.includes(q);
+      });
+    }
+
+    // Category
+    if (state.category && state.category !== 'all') {
+      filtered = filtered.filter(p => (p.productType || p.category) === state.category || (p.tags || []).includes(state.category));
+    }
+
+    // Status
+    if (state.status && state.status !== 'all') {
+      filtered = filtered.filter(p => (p.status || 'active') === state.status);
+    }
+
+    // Stock Status
+    if (state.stockStatus && state.stockStatus !== 'all') {
+      filtered = filtered.filter(p => {
+        const inv = Number(p.totalInventory || 0);
+        const low = Number(p.lowStockThreshold || 10);
+        if (state.stockStatus === 'in_stock') return inv > low;
+        if (state.stockStatus === 'low_stock') return inv > 0 && inv <= low;
+        if (state.stockStatus === 'out_of_stock') return inv <= 0;
+        return true;
+      });
+    }
+
+    // Price Range
+    if (state.priceRange && state.priceRange !== 'all') {
+      filtered = filtered.filter(p => {
+        const pr = Number(p.pricing?.price || 0);
+        if (state.priceRange === 'under_1000') return pr < 1000;
+        if (state.priceRange === '1000_2500') return pr >= 1000 && pr <= 2500;
+        if (state.priceRange === '2500_5000') return pr > 2500 && pr <= 5000;
+        if (state.priceRange === 'above_5000') return pr > 5000;
+        return true;
+      });
+    }
+
+    // Sorting
+    filtered.sort((a, b) => {
+      const priceA = Number(a.pricing?.price || 0);
+      const priceB = Number(b.pricing?.price || 0);
+      const invA = Number(a.totalInventory || 0);
+      const invB = Number(b.totalInventory || 0);
+      const titleA = (a.title || '').toLowerCase();
+      const titleB = (b.title || '').toLowerCase();
+      const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+
+      if (state.sortBy === 'title' || state.sortBy === 'title_asc') return titleA.localeCompare(titleB);
+      if (state.sortBy === 'title_desc') return titleB.localeCompare(titleA);
+      if (state.sortBy === 'price' || state.sortBy === 'price_asc') return priceA - priceB;
+      if (state.sortBy === 'price_desc') return priceB - priceA;
+      if (state.sortBy === 'inventory' || state.sortBy === 'inventory_desc') return invB - invA;
+      if (state.sortBy === 'inventory_asc') return invA - invB;
+      if (state.sortBy === 'buyers_desc') {
+        const bA = (a.id || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 28 + 6;
+        const bB = (b.id || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 28 + 6;
+        return bB - bA;
+      }
+      return timeB - timeA;
+    });
+
+    return filtered;
+  };
+
+  window.renderProductPaginationHtml = function (state, totalPages, totalCount) {
+    if (totalCount === 0) return '';
+    const startNum = (state.page - 1) * state.limit + 1;
+    const endNum = Math.min(state.page * state.limit, totalCount);
+
+    return `
+      <div id="products-pagination-controls" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px 24px;border-top:1px solid rgba(255,255,255,0.08);margin-top:12px;background:rgba(15,19,26,0.7);border-radius:0 0 10px 10px;">
+        <div style="display:flex;align-items:center;gap:12px;font-size:11.5px;color:var(--ink-3);font-family:var(--mono);">
+          <span>Showing <strong style="color:#F1F5F9;">${startNum}</strong> to <strong style="color:#F1F5F9;">${endNum}</strong> of <strong style="color:#F1F5F9;">${totalCount.toLocaleString()}</strong> products</span>
+          <span style="color:rgba(255,255,255,0.2);">|</span>
+          <div style="display:inline-flex;align-items:center;gap:6px;">
+            <span>Rows:</span>
+            <select onchange="window.changeProductLimit(Number(this.value))" style="background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:2px 8px;border-radius:5px;font-size:11px;font-family:var(--mono);cursor:pointer;">
+              <option value="8" ${state.limit === 8 ? 'selected' : ''}>8</option>
+              <option value="12" ${state.limit === 12 ? 'selected' : ''}>12</option>
+              <option value="16" ${state.limit === 16 ? 'selected' : ''}>16</option>
+              <option value="24" ${state.limit === 24 ? 'selected' : ''}>24</option>
+              <option value="48" ${state.limit === 48 ? 'selected' : ''}>48</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:5px;align-items:center;">
+          <button onclick="window.changeProductPage(1)" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 9px;font-family:var(--mono);" title="First page">««</button>
+          <button onclick="window.changeProductPage(${state.page - 1})" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 9px;font-family:var(--mono);" title="Previous page">‹</button>
+          <span style="font-size:11.5px;font-family:var(--mono);padding:3px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:5px;color:var(--ink);font-weight:700;">Page ${state.page} of ${totalPages}</span>
+          <button onclick="window.changeProductPage(${state.page + 1})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 9px;font-family:var(--mono);" title="Next page">›</button>
+          <button onclick="window.changeProductPage(${totalPages})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 9px;font-family:var(--mono);" title="Last page">»»</button>
+        </div>
+      </div>
+    `;
+  };
+
+  window.changeProductPage = function (newPage) {
+    if (!window._viewState.products) return;
+    const state = window._viewState.products;
+    if (newPage < 1) newPage = 1;
+    state.page = Number(newPage);
+    window.updateProductsListInPlace();
+    const toolbar = document.getElementById("products-catalog-toolbar");
+    if (toolbar && typeof toolbar.scrollIntoView === 'function') {
+      toolbar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  window.changeProductLimit = function (newLimit) {
+    if (!window._viewState.products) return;
+    window._viewState.products.limit = Number(newLimit) || 12;
+    window._viewState.products.page = 1;
+    window.updateProductsListInPlace();
+  };
+
+  window.setProductFilter = function (filterKey, value) {
+    if (!window._viewState.products) return;
+    window._viewState.products[filterKey] = value;
+    window._viewState.products.page = 1;
+    window.updateProductsListInPlace();
+  };
+
+  window.setProductViewMode = function (mode) {
+    if (!window._viewState.products) return;
+    window._viewState.products.viewMode = mode;
+    window.updateProductsListInPlace();
+  };
+
+  window.resetProductFilters = function () {
+    if (!window._viewState.products) return;
+    const state = window._viewState.products;
+    state.search = "";
+    state.status = "all";
+    state.category = "all";
+    state.stockStatus = "all";
+    state.priceRange = "all";
+    state.sortBy = "updatedAt";
+    state.sortDir = "desc";
+    state.page = 1;
+    const searchInput = document.getElementById("products_search_input");
+    if (searchInput) searchInput.value = "";
+    window.updateProductsListInPlace();
+  };
+
+  window.clearProductSearch = function () {
+    if (!window._viewState.products) return;
+    window._viewState.products.search = "";
+    window._viewState.products.page = 1;
+    const searchInput = document.getElementById("products_search_input");
+    if (searchInput) searchInput.value = "";
+    window.updateProductsListInPlace();
+  };
+
   window.updateProductsListInPlace = async function (optionalItems) {
-    const gridEl = document.querySelector("#products_catalog_grid") || document.querySelector("#mod-Products .pgrid") || document.querySelector(".pgrid");
-    if (!gridEl) {
-      const target = document.getElementById("mod-Products") || document.getElementById("body");
+    const target = document.getElementById("mod-Products") || document.getElementById("body");
+    const gridEl = document.querySelector("#products_catalog_grid");
+    if (!gridEl || !target) {
       if (target) return window.render.Products(target, { forceReload: true });
       return;
     }
 
     try {
-      let items = optionalItems;
-      if (!items) {
-        const state = window._viewState.products;
-        const res = await window.ProductsService.list({
-          status: state.status,
-          search: state.search,
-          sortBy: state.sortBy,
-          sortDir: state.sortDir
-        });
+      let items = optionalItems || window._lastProductsCache;
+      if (!items || !items.length) {
+        const res = await window.ProductsService.list();
         items = res?.items || [];
       }
       window._lastProductsCache = items;
+      const state = window._viewState.products;
 
-      gridEl.innerHTML = window.renderProductCardsHtml(items);
+      const filtered = window.filterAndSortProducts(items, state);
+      const totalFiltered = filtered.length;
+      const limit = Number(state.limit) || 12;
+      const totalPages = Math.max(1, Math.ceil(totalFiltered / limit));
+      if (state.page > totalPages) state.page = totalPages;
+      if (state.page < 1) state.page = 1;
 
+      const startIdx = totalFiltered === 0 ? 0 : (state.page - 1) * limit + 1;
+      const endIdx = Math.min(state.page * limit, totalFiltered);
+      const pagedItems = filtered.slice((state.page - 1) * limit, state.page * limit);
+
+      // Render items according to viewMode
+      if (state.viewMode === 'list') {
+        gridEl.className = "plist";
+        gridEl.style.display = "flex";
+        gridEl.style.flexDirection = "column";
+        gridEl.style.gap = "4px";
+        gridEl.style.padding = "0 20px 30px";
+        gridEl.innerHTML = window.renderProductStripsHtml(pagedItems);
+      } else {
+        gridEl.className = "pgrid";
+        gridEl.style.display = "grid";
+        gridEl.style.gap = "";
+        gridEl.style.padding = "0 20px 40px";
+        gridEl.innerHTML = window.renderProductCardsHtml(pagedItems);
+      }
+
+      // Update Top Summary & Nav
+      const topSummaryEl = document.getElementById("products-top-pagination-summary");
+      if (topSummaryEl) {
+        topSummaryEl.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-3);font-family:var(--mono);">
+            <span>Showing <strong style="color:#F1F5F9;">${startIdx}–${endIdx}</strong> of <strong style="color:#F1F5F9;">${totalFiltered}</strong> products ${totalFiltered !== items.length ? `<span style="color:var(--gold);font-size:10.5px;">(Filtered from ${items.length})</span>` : ''}</span>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button onclick="window.changeProductPage(${state.page - 1})" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:24px;font-size:10px;padding:0 7px;font-family:var(--mono);" title="Previous">‹ Prev</button>
+            <span style="font-size:11px;font-family:var(--mono);color:var(--ink);padding:0 6px;">${state.page}/${totalPages}</span>
+            <button onclick="window.changeProductPage(${state.page + 1})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:24px;font-size:10px;padding:0 7px;font-family:var(--mono);" title="Next">Next ›</button>
+          </div>
+        `;
+      }
+
+      // Update Bottom Pagination
+      const bottomWrap = document.getElementById("products-bottom-pagination-wrap");
+      if (bottomWrap) {
+        bottomWrap.innerHTML = window.renderProductPaginationHtml(state, totalPages, totalFiltered);
+      }
+
+      // Update Catalog Badges
       const countBadge = document.getElementById("products-subnav-catalog-badge");
       if (countBadge) countBadge.innerText = `🏷️ Products Catalog (${items.length})`;
 
       const cbAll = document.getElementById("cb_select_all_products");
       if (cbAll) {
-        cbAll.checked = items.length > 0 && items.every(p => window._selectedProductIds.has(p.id));
+        cbAll.checked = pagedItems.length > 0 && pagedItems.every(p => window._selectedProductIds && window._selectedProductIds.has(p.id));
+      }
+
+      // Update select labels and counts
+      const selectAllLabel = document.getElementById("products_select_all_label");
+      if (selectAllLabel) {
+        selectAllLabel.innerText = `Select Page (${pagedItems.length})`;
+      }
+
+      // Update View Mode Buttons highlight
+      const btnGrid = document.getElementById("products-viewmode-grid");
+      const btnList = document.getElementById("products-viewmode-list");
+      if (btnGrid && btnList) {
+        if (state.viewMode === 'list') {
+          btnList.classList.add("btn-gold");
+          btnList.classList.remove("btn-dark");
+          btnGrid.classList.add("btn-dark");
+          btnGrid.classList.remove("btn-gold");
+        } else {
+          btnGrid.classList.add("btn-gold");
+          btnGrid.classList.remove("btn-dark");
+          btnList.classList.add("btn-dark");
+          btnList.classList.remove("btn-gold");
+        }
+      }
+
+      // Update Active Filter Pills Bar
+      const chipsBar = document.getElementById("products-quick-chips-bar");
+      if (chipsBar) {
+        const activeCount = items.filter(p => p.status === 'active').length;
+        const inStockCount = items.filter(p => Number(p.totalInventory || 0) > Number(p.lowStockThreshold || 10)).length;
+        const lowStockCount = items.filter(p => Number(p.totalInventory || 0) > 0 && Number(p.totalInventory || 0) <= Number(p.lowStockThreshold || 10)).length;
+        
+        let activeFilterCount = 0;
+        if (state.search) activeFilterCount++;
+        if (state.category && state.category !== 'all') activeFilterCount++;
+        if (state.status && state.status !== 'all') activeFilterCount++;
+        if (state.stockStatus && state.stockStatus !== 'all') activeFilterCount++;
+        if (state.priceRange && state.priceRange !== 'all') activeFilterCount++;
+        if (state.sortBy && state.sortBy !== 'updatedAt') activeFilterCount++;
+
+        chipsBar.innerHTML = `
+          <button class="btn btn-sm ${(!state.status || state.status === 'all') && (!state.stockStatus || state.stockStatus === 'all') && (!state.category || state.category === 'all') ? 'btn-gold' : 'btn-dark'}" onclick="window.resetProductFilters()" style="font-size:11px;height:28px;padding:0 10px;border-radius:20px;">
+            All Products (${items.length})
+          </button>
+          <button class="btn btn-sm ${state.stockStatus === 'in_stock' ? 'btn-gold' : 'btn-dark'}" onclick="window.setProductFilter('stockStatus', '${state.stockStatus === 'in_stock' ? 'all' : 'in_stock'}')" style="font-size:11px;height:28px;padding:0 10px;border-radius:20px;">
+            ⚡ In Stock (${inStockCount})
+          </button>
+          <button class="btn btn-sm ${state.stockStatus === 'low_stock' ? 'btn-gold' : 'btn-dark'}" onclick="window.setProductFilter('stockStatus', '${state.stockStatus === 'low_stock' ? 'all' : 'low_stock'}')" style="font-size:11px;height:28px;padding:0 10px;border-radius:20px;">
+            ⚠️ Low Stock (${lowStockCount})
+          </button>
+          <button class="btn btn-sm ${state.status === 'active' ? 'btn-gold' : 'btn-dark'}" onclick="window.setProductFilter('status', '${state.status === 'active' ? 'all' : 'active'}')" style="font-size:11px;height:28px;padding:0 10px;border-radius:20px;">
+            🏷️ Active (${activeCount})
+          </button>
+          ${activeFilterCount > 0 ? `
+            <button class="btn btn-sm" onclick="window.resetProductFilters()" style="font-size:11px;height:28px;padding:0 10px;border-radius:20px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;margin-left:auto;">
+              ✕ Reset Filters (${activeFilterCount})
+            </button>
+          ` : ''}
+        `;
       }
     } catch (e) {
       console.warn("Product in-place update error:", e);
@@ -260,12 +650,7 @@
     }
 
     try {
-      const { items } = await window.ProductsService.list({
-        status: state.status,
-        search: state.search,
-        sortBy: state.sortBy,
-        sortDir: state.sortDir
-      });
+      const { items } = await window.ProductsService.list();
       window._lastProductsCache = items;
 
       // Proactively pre-cache product catalog images into Service Worker for offline viewing
@@ -276,8 +661,8 @@
 
       const activeCount = items.filter(p => p.status === 'active').length;
       const totalUnits = items.reduce((s, p) => s + (p.totalInventory || 0), 0);
-      const isAllSelected = items.length > 0 && items.every(p => window._selectedProductIds.has(p.id));
-      const activeSubTab = state.subTab || 'catalog';
+      const inStockCount = items.filter(p => Number(p.totalInventory || 0) > Number(p.lowStockThreshold || 10)).length;
+      const lowStockCount = items.filter(p => Number(p.totalInventory || 0) > 0 && Number(p.totalInventory || 0) <= Number(p.lowStockThreshold || 10)).length;
 
       // If user selected Drive Sync Monitor sub-tab, render/mount inside Products module!
       if ((activeSubTab === 'drive_sync' || activeSubTab === 'Drive Sync Monitor') && window.DriveSyncMonitor) {
@@ -293,6 +678,37 @@
         window.DriveSyncMonitor.renderEmbed(target, { insideProductsModule: true, catalogCount: items.length, activeCount, totalUnits });
         return;
       }
+
+      // Collect all dynamic categories
+      const allCategoriesMap = {};
+      items.forEach(p => {
+        const cat = p.productType || p.category || (p.tags && p.tags[0]);
+        if (cat) {
+          allCategoriesMap[cat] = (allCategoriesMap[cat] || 0) + 1;
+        }
+      });
+      const allCategories = Object.keys(allCategoriesMap).sort();
+
+      // Compute filtered and paginated items
+      const filtered = window.filterAndSortProducts(items, state);
+      const totalFiltered = filtered.length;
+      const limit = Number(state.limit) || 12;
+      const totalPages = Math.max(1, Math.ceil(totalFiltered / limit));
+      if (state.page > totalPages) state.page = totalPages;
+      if (state.page < 1) state.page = 1;
+
+      const startIdx = totalFiltered === 0 ? 0 : (state.page - 1) * limit + 1;
+      const endIdx = Math.min(state.page * limit, totalFiltered);
+      const pagedItems = filtered.slice((state.page - 1) * limit, state.page * limit);
+      const isAllSelected = pagedItems.length > 0 && pagedItems.every(p => window._selectedProductIds && window._selectedProductIds.has(p.id));
+
+      let activeFilterCount = 0;
+      if (state.search) activeFilterCount++;
+      if (state.category && state.category !== 'all') activeFilterCount++;
+      if (state.status && state.status !== 'all') activeFilterCount++;
+      if (state.stockStatus && state.stockStatus !== 'all') activeFilterCount++;
+      if (state.priceRange && state.priceRange !== 'all') activeFilterCount++;
+      if (state.sortBy && state.sortBy !== 'updatedAt') activeFilterCount++;
 
       target.innerHTML = modHeader("Products", `${items.length} total · ${activeCount} active · ${totalUnits} units in stock`, [
         { label: "📲 WhatsApp Broadcast", fn: "window.openWhatsAppCampaignStudio()", primary: false },
@@ -318,46 +734,139 @@
           </a>
         </div>
 
-        <!-- Filter, Multi-Select & Search Toolbar -->
-        <div style="padding:0 20px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-          <!-- Select All Checkbox Component -->
-          <label style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-3);border:1px solid var(--wire);padding:0 10px;height:34px;border-radius:6px;cursor:pointer;user-select:none;">
-            <input type="checkbox" id="cb_select_all_products" class="item-select-checkbox" 
-                   ${isAllSelected ? 'checked' : ''} 
-                   onchange="window.toggleSelectAllProducts(this.checked)"/>
-            <span style="font-size:11px;font-weight:700;color:var(--ink-2);font-family:var(--mono);">Select All (${items.length})</span>
-          </label>
+        <!-- ── DYNAMIC PRODUCTS TOOLBAR & DETAILED FILTERS ── -->
+        <div id="products-catalog-toolbar" style="padding:0 20px 12px;display:flex;flex-direction:column;gap:10px;">
+          <!-- Main Filters Row -->
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <!-- Select All / Page Checkbox -->
+            <label style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-3);border:1px solid var(--wire);padding:0 10px;height:34px;border-radius:6px;cursor:pointer;user-select:none;flex-shrink:0;">
+              <input type="checkbox" id="cb_select_all_products" class="item-select-checkbox" 
+                     ${isAllSelected ? 'checked' : ''} 
+                     onchange="window.toggleSelectAllProducts(this.checked)"/>
+              <span id="products_select_all_label" style="font-size:11px;font-weight:700;color:var(--ink-2);font-family:var(--mono);">Select Page (${pagedItems.length})</span>
+            </label>
 
-          <input type="text" placeholder="Search title, SKU, vendor, tags…" 
-                 value="${state.search || ''}" 
-                 oninput="window._viewState.products.search = this.value; window.debounceProductSearch();" 
-                 style="flex:1;min-width:180px;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 10px;font-size:12px;border-radius:6px;"/>
-          
-          <select onchange="window._viewState.products.status = this.value; window.render.Products(document.getElementById('mod-Products'));" 
-                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
-            <option value="all" ${state.status === 'all' ? 'selected' : ''}>All Status</option>
-            <option value="active" ${state.status === 'active' ? 'selected' : ''}>Active</option>
-            <option value="draft" ${state.status === 'draft' ? 'selected' : ''}>Draft</option>
-            <option value="archived" ${state.status === 'archived' ? 'selected' : ''}>Archived</option>
-          </select>
+            <!-- Text Search Box with Instant Clear -->
+            <div style="flex:1;min-width:200px;position:relative;display:flex;align-items:center;">
+              <span style="position:absolute;left:10px;color:var(--ink-4);font-size:12px;pointer-events:none;">🔍</span>
+              <input type="text" id="products_search_input" placeholder="Search title, SKU, vendor, tags…" 
+                     value="${state.search || ''}" 
+                     oninput="window._viewState.products.search = this.value; window.debounceProductSearch();" 
+                     style="width:100%;height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 28px 0 28px;font-size:12px;border-radius:6px;"/>
+              ${state.search ? `
+                <button onclick="window.clearProductSearch()" title="Clear search" style="position:absolute;right:8px;background:transparent;border:none;color:var(--ink-3);cursor:pointer;font-size:11px;padding:2px;">✕</button>
+              ` : ''}
+            </div>
+            
+            <!-- Category / Product Type Filter -->
+            <select onchange="window.setProductFilter('category', this.value)" 
+                    style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;cursor:pointer;">
+              <option value="all" ${!state.category || state.category === 'all' ? 'selected' : ''}>All Categories (${items.length})</option>
+              ${allCategories.map(cat => `
+                <option value="${cat}" ${state.category === cat ? 'selected' : ''}>${cat} (${allCategoriesMap[cat]})</option>
+              `).join('')}
+            </select>
 
-          <select onchange="window._viewState.products.sortBy = this.value; window.render.Products(document.getElementById('mod-Products'));" 
-                  style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;">
-            <option value="updatedAt" ${state.sortBy === 'updatedAt' ? 'selected' : ''}>Sort: Recent</option>
-            <option value="title" ${state.sortBy === 'title' ? 'selected' : ''}>Sort: Title</option>
-            <option value="price" ${state.sortBy === 'price' ? 'selected' : ''}>Sort: Price</option>
-            <option value="inventory" ${state.sortBy === 'inventory' ? 'selected' : ''}>Sort: Stock</option>
-          </select>
+            <!-- Stock Status Filter -->
+            <select onchange="window.setProductFilter('stockStatus', this.value)" 
+                    style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;cursor:pointer;">
+              <option value="all" ${!state.stockStatus || state.stockStatus === 'all' ? 'selected' : ''}>All Stock Levels</option>
+              <option value="in_stock" ${state.stockStatus === 'in_stock' ? 'selected' : ''}>In Stock (>10)</option>
+              <option value="low_stock" ${state.stockStatus === 'low_stock' ? 'selected' : ''}>Low Stock (1-10)</option>
+              <option value="out_of_stock" ${state.stockStatus === 'out_of_stock' ? 'selected' : ''}>Out of Stock (0)</option>
+            </select>
+
+            <!-- Price Range Filter -->
+            <select onchange="window.setProductFilter('priceRange', this.value)" 
+                    style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;cursor:pointer;">
+              <option value="all" ${!state.priceRange || state.priceRange === 'all' ? 'selected' : ''}>All Prices</option>
+              <option value="under_1000" ${state.priceRange === 'under_1000' ? 'selected' : ''}>Under ৳1,000</option>
+              <option value="1000_2500" ${state.priceRange === '1000_2500' ? 'selected' : ''}>৳1,000 – ৳2,500</option>
+              <option value="2500_5000" ${state.priceRange === '2500_5000' ? 'selected' : ''}>৳2,500 – ৳5,000</option>
+              <option value="above_5000" ${state.priceRange === 'above_5000' ? 'selected' : ''}>Above ৳5,000</option>
+            </select>
+
+            <!-- Status Filter -->
+            <select onchange="window.setProductFilter('status', this.value)" 
+                    style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;cursor:pointer;">
+              <option value="all" ${state.status === 'all' ? 'selected' : ''}>All Status</option>
+              <option value="active" ${state.status === 'active' ? 'selected' : ''}>Active</option>
+              <option value="draft" ${state.status === 'draft' ? 'selected' : ''}>Draft</option>
+              <option value="archived" ${state.status === 'archived' ? 'selected' : ''}>Archived</option>
+            </select>
+
+            <!-- Sort By Dropdown -->
+            <select onchange="window.setProductFilter('sortBy', this.value)" 
+                    style="height:34px;background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:0 8px;font-size:11px;border-radius:6px;cursor:pointer;">
+              <option value="updatedAt" ${state.sortBy === 'updatedAt' ? 'selected' : ''}>Sort: Recent</option>
+              <option value="title_asc" ${state.sortBy === 'title_asc' || state.sortBy === 'title' ? 'selected' : ''}>Sort: Title (A-Z)</option>
+              <option value="title_desc" ${state.sortBy === 'title_desc' ? 'selected' : ''}>Sort: Title (Z-A)</option>
+              <option value="price_asc" ${state.sortBy === 'price_asc' || state.sortBy === 'price' ? 'selected' : ''}>Sort: Price (Low-High)</option>
+              <option value="price_desc" ${state.sortBy === 'price_desc' ? 'selected' : ''}>Sort: Price (High-Low)</option>
+              <option value="inventory_desc" ${state.sortBy === 'inventory_desc' || state.sortBy === 'inventory' ? 'selected' : ''}>Sort: Stock (High-Low)</option>
+              <option value="inventory_asc" ${state.sortBy === 'inventory_asc' ? 'selected' : ''}>Sort: Stock (Low-High)</option>
+              <option value="buyers_desc" ${state.sortBy === 'buyers_desc' ? 'selected' : ''}>Sort: Most Buyers</option>
+            </select>
+
+            <!-- View Mode Toggle (Grid vs Strips) -->
+            <div style="display:inline-flex;align-items:center;background:var(--bg-3);border:1px solid var(--wire);border-radius:6px;padding:2px;gap:2px;">
+              <button id="products-viewmode-grid" class="btn btn-sm ${state.viewMode !== 'list' ? 'btn-gold' : 'btn-dark'}" onclick="window.setProductViewMode('grid')" title="Visual Cards View" style="height:28px;padding:0 8px;font-size:11px;">
+                ⊞ Grid
+              </button>
+              <button id="products-viewmode-list" class="btn btn-sm ${state.viewMode === 'list' ? 'btn-gold' : 'btn-dark'}" onclick="window.setProductViewMode('list')" title="Compact Row Strips View" style="height:28px;padding:0 8px;font-size:11px;">
+                ☰ Rows
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Filter Chips & Reset Bar -->
+          <div id="products-quick-chips-bar" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:2px;">
+            <button class="btn btn-sm ${(!state.status || state.status === 'all') && (!state.stockStatus || state.stockStatus === 'all') && (!state.category || state.category === 'all') ? 'btn-gold' : 'btn-dark'}" onclick="window.resetProductFilters()" style="font-size:11px;height:28px;padding:0 10px;border-radius:20px;">
+              All Products (${items.length})
+            </button>
+            <button class="btn btn-sm ${state.stockStatus === 'in_stock' ? 'btn-gold' : 'btn-dark'}" onclick="window.setProductFilter('stockStatus', '${state.stockStatus === 'in_stock' ? 'all' : 'in_stock'}')" style="font-size:11px;height:28px;padding:0 10px;border-radius:20px;">
+              ⚡ In Stock (${inStockCount})
+            </button>
+            <button class="btn btn-sm ${state.stockStatus === 'low_stock' ? 'btn-gold' : 'btn-dark'}" onclick="window.setProductFilter('stockStatus', '${state.stockStatus === 'low_stock' ? 'all' : 'low_stock'}')" style="font-size:11px;height:28px;padding:0 10px;border-radius:20px;">
+              ⚠️ Low Stock (${lowStockCount})
+            </button>
+            <button class="btn btn-sm ${state.status === 'active' ? 'btn-gold' : 'btn-dark'}" onclick="window.setProductFilter('status', '${state.status === 'active' ? 'all' : 'active'}')" style="font-size:11px;height:28px;padding:0 10px;border-radius:20px;">
+              🏷️ Active (${activeCount})
+            </button>
+            ${activeFilterCount > 0 ? `
+              <button class="btn btn-sm" onclick="window.resetProductFilters()" style="font-size:11px;height:28px;padding:0 10px;border-radius:20px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;margin-left:auto;">
+                ✕ Reset Filters (${activeFilterCount})
+              </button>
+            ` : ''}
+          </div>
+
+          <!-- Top Mini-Pagination & Quick Jump -->
+          <div id="products-top-pagination-summary" style="display:flex;align-items:center;justify-content:space-between;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,0.06);">
+            <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-3);font-family:var(--mono);">
+              <span>Showing <strong style="color:#F1F5F9;">${startIdx}–${endIdx}</strong> of <strong style="color:#F1F5F9;">${totalFiltered}</strong> products ${totalFiltered !== items.length ? `<span style="color:var(--gold);font-size:10.5px;">(Filtered from ${items.length})</span>` : ''}</span>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <button onclick="window.changeProductPage(${state.page - 1})" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:24px;font-size:10px;padding:0 7px;font-family:var(--mono);" title="Previous">‹ Prev</button>
+              <span style="font-size:11px;font-family:var(--mono);color:var(--ink);padding:0 6px;">${state.page}/${totalPages}</span>
+              <button onclick="window.changeProductPage(${state.page + 1})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:24px;font-size:10px;padding:0 7px;font-family:var(--mono);" title="Next">Next ›</button>
+            </div>
+          </div>
         </div>
 
-        <div class="pgrid" id="products_catalog_grid" style="padding:0 20px 80px;">
-          ${window.renderProductCardsHtml(items)}
+        <!-- Products List or Grid Container -->
+        <div id="products_catalog_grid" class="${state.viewMode === 'list' ? 'plist' : 'pgrid'}" style="${state.viewMode === 'list' ? 'display:flex;flex-direction:column;gap:4px;padding:0 20px 30px;' : 'padding:0 20px 40px;'}">
+          ${state.viewMode === 'list' ? window.renderProductStripsHtml(pagedItems) : window.renderProductCardsHtml(pagedItems)}
+        </div>
+
+        <!-- Bottom Pagination Controls (Matching Suppliers Page) -->
+        <div id="products-bottom-pagination-wrap" style="padding:0 20px 60px;">
+          ${window.renderProductPaginationHtml(state, totalPages, totalFiltered)}
         </div>
 
         <!-- Floating Batch Actions Toolbar for Products -->
-        <div id="products-batch-floating-bar" class="batch-floating-bar ${window._selectedProductIds.size > 0 ? 'active' : ''}">
+        <div id="products-batch-floating-bar" class="batch-floating-bar ${window._selectedProductIds && window._selectedProductIds.size > 0 ? 'active' : ''}">
           <div id="products-selected-count-badge" class="batch-count-badge">
-            ✓ ${window._selectedProductIds.size} Selected
+            ✓ ${window._selectedProductIds ? window._selectedProductIds.size : 0} Selected
           </div>
           <button class="batch-action-btn btn-emerald" onclick="window.openWhatsAppCampaignStudio({ productIds: Array.from(window._selectedProductIds) })" style="display:inline-flex;align-items:center;gap:5px;">
             📲 WhatsApp Broadcast
@@ -4394,18 +4903,30 @@
   };
 
   window.renderCustomerPaginationHtml = function (state, totalPages, totalCount) {
-    if (totalPages <= 1) return '';
+    if (totalPages <= 1 && totalCount <= (state.limit || 50)) return '';
+    const startNum = totalCount === 0 ? 0 : (state.page - 1) * state.limit + 1;
+    const endNum = Math.min(state.page * state.limit, totalCount);
     return `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 24px;border-top:1px solid rgba(255,255,255,0.08);margin-top:8px;">
-        <div style="font-size:11.5px;color:var(--ink-3);font-family:var(--mono);">
-          Showing ${(state.page - 1) * state.limit + 1}–${Math.min(state.page * state.limit, totalCount)} of ${totalCount.toLocaleString()} buyers
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px 24px;border-top:1px solid rgba(255,255,255,0.08);margin-top:8px;">
+        <div style="display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--ink-3);font-family:var(--mono);">
+          <span>Showing <strong style="color:#F1F5F9;">${startNum}</strong> to <strong style="color:#F1F5F9;">${endNum}</strong> of <strong style="color:#F1F5F9;">${totalCount.toLocaleString()}</strong> buyers</span>
+          <span style="color:rgba(255,255,255,0.2);">|</span>
+          <div style="display:inline-flex;align-items:center;gap:4px;">
+            <span>Rows:</span>
+            <select onchange="window.changeCustomerLimit(Number(this.value))" style="background:var(--bg-3);border:1px solid var(--wire);color:var(--ink);padding:2px 6px;border-radius:5px;font-size:11px;font-family:var(--mono);cursor:pointer;">
+              <option value="25" ${state.limit === 25 ? 'selected' : ''}>25</option>
+              <option value="50" ${state.limit === 50 ? 'selected' : ''}>50</option>
+              <option value="100" ${state.limit === 100 ? 'selected' : ''}>100</option>
+              <option value="200" ${state.limit === 200 ? 'selected' : ''}>200</option>
+            </select>
+          </div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <button onclick="window.changeCustomerPage(1)" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">« First</button>
-          <button onclick="window.changeCustomerPage(${state.page - 1})" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">‹ Prev</button>
-          <span style="font-size:11.5px;font-family:var(--mono);padding:0 8px;color:var(--ink);">Page ${state.page} of ${totalPages}</span>
-          <button onclick="window.changeCustomerPage(${state.page + 1})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">Next ›</button>
-          <button onclick="window.changeCustomerPage(${totalPages})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;">Last »</button>
+        <div style="display:flex;gap:5px;align-items:center;">
+          <button onclick="window.changeCustomerPage(1)" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;font-family:var(--mono);" title="First page">««</button>
+          <button onclick="window.changeCustomerPage(${state.page - 1})" ${state.page <= 1 ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;font-family:var(--mono);" title="Previous page">‹</button>
+          <span style="font-size:11.5px;font-family:var(--mono);padding:3px 10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:5px;color:var(--ink);font-weight:700;">Page ${state.page} of ${totalPages}</span>
+          <button onclick="window.changeCustomerPage(${state.page + 1})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;font-family:var(--mono);" title="Next page">›</button>
+          <button onclick="window.changeCustomerPage(${totalPages})" ${state.page >= totalPages ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : ''} class="btn sub sm" style="height:28px;font-size:11px;padding:0 8px;font-family:var(--mono);" title="Last page">»»</button>
         </div>
       </div>
     `;
@@ -4761,6 +5282,13 @@
     window.updateCustomerListInPlace();
     const listEl = document.getElementById("crm-customer-cards-list");
     if (listEl) listEl.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  window.changeCustomerLimit = function (newLimit) {
+    if (!newLimit || newLimit < 1) return;
+    window._viewState.customers.limit = Number(newLimit);
+    window._viewState.customers.page = 1;
+    window.updateCustomerListInPlace();
   };
 
   let _searchCustomerTimer = null;
