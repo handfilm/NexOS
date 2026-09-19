@@ -3,7 +3,8 @@
   "description": "H&H NEXUS Business Command Center — Unified customer, order, product, and WhatsApp campaign operations with BayXBengal Verified Garment Exporters Registry, B2B Deal & Revenue Engine, Production Floor & Settlement Bridge, Vault & Reorder Engine, and Enterprise Sourcing & Factory Escrow.",
   "requestFramePermissions": [
     "camera",
-    "microphone"
+    "microphone",
+    "geolocation"
   ],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

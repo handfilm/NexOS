@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
+  APIProvider,
+  Map as GoogleMap,
+  Marker as GoogleMarker,
+  InfoWindow as GoogleInfoWindow,
+} from '@vis.gl/react-google-maps';
+import {
   MapContainer,
   TileLayer,
   Marker,
@@ -439,7 +445,13 @@ export const SuppliersGeographicMap: React.FC<SuppliersGeographicMapProps> = ({
   const [mapLayerMode, setMapLayerMode] = useState<'hubs' | 'pins'>('hubs');
 
   // Tile Layer Themes
-  const [tileTheme, setTileTheme] = useState<'voyager' | 'positron' | 'osm'>('voyager');
+  const [tileTheme, setTileTheme] = useState<'google' | 'google_sat' | 'voyager' | 'positron' | 'osm'>('google');
+
+  // Google Maps API Key
+  const googleMapsApiKey =
+    (typeof window !== 'undefined' && (window as any).GOOGLE_MAPS_API_KEY) ||
+    (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY ||
+    'AIzaSyB3bvvN_yt2qAuTSBzpjNbBfzOxwAvLIXg';
 
   // Center & Zoom state
   const [mapCenter, setMapCenter] = useState<[number, number]>([23.8103, 90.4125]);
@@ -666,16 +678,22 @@ export const SuppliersGeographicMap: React.FC<SuppliersGeographicMapProps> = ({
 
           {/* Map Tile Switcher */}
           <div className="inline-flex rounded-lg border border-slate-700 p-0.5 bg-slate-800/90 text-[11px] font-mono">
-            {(['voyager', 'positron', 'osm'] as const).map((theme) => (
+            {[
+              { id: 'google', label: 'Google Maps' },
+              { id: 'google_sat', label: 'Satellite' },
+              { id: 'voyager', label: 'Voyager' },
+              { id: 'positron', label: 'Positron' },
+              { id: 'osm', label: 'OSM' },
+            ].map((theme) => (
               <button
-                key={theme}
+                key={theme.id}
                 type="button"
-                onClick={() => setTileTheme(theme)}
+                onClick={() => setTileTheme(theme.id as any)}
                 className={`px-2 py-1 rounded capitalize transition cursor-pointer ${
-                  tileTheme === theme ? 'bg-slate-700 text-white font-bold' : 'text-slate-400 hover:text-slate-200'
+                  tileTheme === theme.id ? 'bg-slate-700 text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                {theme}
+                {theme.label}
               </button>
             ))}
           </div>
@@ -718,22 +736,95 @@ export const SuppliersGeographicMap: React.FC<SuppliersGeographicMapProps> = ({
         </div>
       )}
 
-      {/* ── Leaflet Map Viewport Container ── */}
+      {/* ── Map Viewport Container (Google Maps Platform & Leaflet Support) ── */}
       <div className="relative w-full h-[460px] sm:h-[520px] bg-slate-950">
-        <MapContainer
-          center={mapCenter}
-          zoom={mapZoom}
-          scrollWheelZoom={true}
-          className="w-full h-full z-0"
-          attributionControl={true}
-        >
-          <TileLayer url={tileUrls[tileTheme].url} attribution={tileUrls[tileTheme].attribution} />
+        {tileTheme.startsWith('google') ? (
+          <APIProvider apiKey={googleMapsApiKey}>
+            <GoogleMap
+              center={{ lat: mapCenter[0], lng: mapCenter[1] }}
+              zoom={mapZoom}
+              mapTypeId={tileTheme === 'google_sat' ? 'hybrid' : 'roadmap'}
+              style={{ width: '100%', height: '100%' }}
+              internalUsageAttributionIds={['gmp_mcp_codeassist_v1_aistudio']}
+            >
+              {/* MODE 1: District Hub Clusters */}
+              {mapLayerMode === 'hubs' &&
+                activeDistricts.map((district) => (
+                  <GoogleMarker
+                    key={`g-hub-${district.key}`}
+                    position={{ lat: district.lat, lng: district.lng }}
+                    title={`${district.key.toUpperCase()} Hub (${district.count} Exporters)`}
+                    onClick={() => {
+                      onSelectDistrict(district.key);
+                      setHoveredDistrict(district.key);
+                    }}
+                  />
+                ))}
 
-          {/* Programmatic pan/zoom controller */}
-          <MapFlyToController targetCenter={mapCenter} targetZoom={mapZoom} />
+              {/* MODE 2: Individual Factory Pins */}
+              {mapLayerMode === 'pins' &&
+                displayedPins.map((supplier) => {
+                  const coords = resolveFactoryCoordinates(supplier);
+                  return (
+                    <GoogleMarker
+                      key={`g-pin-${supplier.id}`}
+                      position={{ lat: coords[0], lng: coords[1] }}
+                      title={`${supplier.companyName} (${supplier.district})`}
+                      onClick={() => setActivePinSupplier(supplier)}
+                    />
+                  );
+                })}
 
-          {/* Size invalidator */}
-          <MapResizeInvalidator />
+              {activePinSupplier && (
+                <GoogleInfoWindow
+                  position={{
+                    lat: resolveFactoryCoordinates(activePinSupplier)[0],
+                    lng: resolveFactoryCoordinates(activePinSupplier)[1],
+                  }}
+                  onCloseClick={() => setActivePinSupplier(null)}
+                >
+                  <div className="p-2 text-slate-900 font-sans min-w-[220px] max-w-[280px]">
+                    <div className="font-bold text-sm text-slate-900 mb-1 leading-tight">
+                      {activePinSupplier.companyName}
+                    </div>
+                    <div className="text-xs text-slate-600 mb-1.5 leading-snug">
+                      {activePinSupplier.factoryAddress || activePinSupplier.district}
+                    </div>
+                    <div className="text-[11px] font-mono font-semibold text-emerald-800 mb-2">
+                      Bond: {activePinSupplier.bondStatus === 'BONDED' ? 'CBW BONDED' : activePinSupplier.bondStatus || 'Verified'}
+                    </div>
+                    {onInspectSupplier && (
+                      <button
+                        type="button"
+                        onClick={() => onInspectSupplier(activePinSupplier)}
+                        className="w-full text-center text-xs bg-slate-900 text-white py-1 px-2 rounded font-mono hover:bg-slate-800 cursor-pointer"
+                      >
+                        Inspect Factory Dossier
+                      </button>
+                    )}
+                  </div>
+                </GoogleInfoWindow>
+              )}
+            </GoogleMap>
+          </APIProvider>
+        ) : (
+          <MapContainer
+            center={mapCenter}
+            zoom={mapZoom}
+            scrollWheelZoom={true}
+            className="w-full h-full z-0"
+            attributionControl={true}
+          >
+            <TileLayer
+              url={(tileUrls[tileTheme as keyof typeof tileUrls] || tileUrls.voyager).url}
+              attribution={(tileUrls[tileTheme as keyof typeof tileUrls] || tileUrls.voyager).attribution}
+            />
+
+            {/* Programmatic pan/zoom controller */}
+            <MapFlyToController targetCenter={mapCenter} targetZoom={mapZoom} />
+
+            {/* Size invalidator */}
+            <MapResizeInvalidator />
 
           {/* ── MODE 1: District Hub Clusters ── */}
           {mapLayerMode === 'hubs' &&
@@ -892,6 +983,7 @@ export const SuppliersGeographicMap: React.FC<SuppliersGeographicMapProps> = ({
               );
             })}
         </MapContainer>
+        )}
 
         {/* ── Floating Map Legend & Summary Overlay ── */}
         <div className="absolute bottom-3 left-3 z-[1000] bg-slate-900/90 backdrop-blur-md border border-slate-700/80 p-3 rounded-xl shadow-2xl max-w-xs text-xs font-mono text-slate-200 pointer-events-auto">

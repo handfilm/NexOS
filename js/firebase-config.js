@@ -25,16 +25,20 @@
 })();
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBBDQc5CIzjuKDVVYX87oPGry-tVQys6k4",
-  authDomain: "nexos-hh.firebaseapp.com",
-  projectId: "nexos-hh",
-  storageBucket: "nexos-hh.firebasestorage.app",
-  messagingSenderId: "382637524347",
-  appId: "1:382637524347:web:c81a6cdc4834bd79f4e9de",
-  measurementId: "G-LD289VX0FH"
+// Dynamically prefer configuration from firebase-applet-config.json or window variables
+const defaultAppletConfig = {
+  projectId: "grounded-trail-1dtd0",
+  appId: "1:170252932635:web:7ca7fec34767fcb521cabe",
+  apiKey: "AIzaSyAU9sICCVDeZB8Ht-IirF_3vXLYb6Nap8k",
+  authDomain: "grounded-trail-1dtd0.firebaseapp.com",
+  storageBucket: "grounded-trail-1dtd0.firebasestorage.app",
+  messagingSenderId: "170252932635",
+  measurementId: "",
+  oAuthClientId: "170252932635-plenuemlpkfq6svh3pmua5rov1505kk3.apps.googleusercontent.com"
 };
+
+const firebaseConfig = Object.assign({}, defaultAppletConfig, window.FIREBASE_APPLET_CONFIG || {});
+window.FIREBASE_CONFIG = firebaseConfig;
 
 /* ── ২. Firebase App চালু করা ── */
 if (typeof firebase !== "undefined") {

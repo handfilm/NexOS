@@ -4868,6 +4868,12 @@ app.get('/bundles/latest-catalog.bundle', (req, res) => {
   res.status(200).send(Buffer.from([]));
 });
 
+// GET /api/config/maps - Google Maps API Key configuration endpoint
+app.get('/api/config/maps', (req, res) => {
+  const apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "AIzaSyB3bvvN_yt2qAuTSBzpjNbBfzOxwAvLIXg";
+  res.json({ ok: true, apiKey });
+});
+
 app.use(express.static(__dirname, {
   etag: false,
   lastModified: false,
