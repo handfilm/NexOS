@@ -3,6 +3,7 @@
   "appId": "1:170252932635:web:7ca7fec34767fcb521cabe",
   "apiKey": "AIzaSyAU9sICCVDeZB8Ht-IirF_3vXLYb6Nap8k",
   "authDomain": "grounded-trail-1dtd0.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-nexos-1c2cf9c3-6e2f-4734-91f7-5d4353af2059",
   "storageBucket": "grounded-trail-1dtd0.firebasestorage.app",
   "messagingSenderId": "170252932635",
   "measurementId": "",

@@ -198,6 +198,9 @@
               </svg>
               Edit
             </button>
+            <button class="gallery-action-btn" style="flex:1.1;min-height:30px;padding:4px 6px;font-size:10.5px;color:var(--gold);" title="Ask Gemini AI about this product & supply chain" onclick="event.stopPropagation();window.AIProductService.openChat('${p.id}')">
+              💬 AI Chat
+            </button>
             <button class="gallery-action-btn" style="flex:1.1;min-height:30px;padding:4px 6px;font-size:10.5px;color:var(--gold);" title="Enrich Copy, SEO & Tags with Gemini AI" onclick="event.stopPropagation();window.AIProductService.openEnrichmentModal('${p.id}')">
               ✨ Gemini
             </button>
@@ -311,6 +314,9 @@
             </button>
             <button class="prow-act-btn" onclick="window.openAdvancedProductForm('${p.id}')" title="Edit product">
               ✏️ Edit
+            </button>
+            <button class="prow-act-btn" onclick="window.AIProductService.openChat('${p.id}')" title="Ask Gemini AI about product & supply chain" style="color:var(--gold);">
+              💬 Chat
             </button>
             <button class="prow-act-btn" onclick="window.AIProductService.openEnrichmentModal('${p.id}')" title="Gemini AI Copy & SEO" style="color:var(--gold);">
               ✨ AI
@@ -711,6 +717,7 @@
       if (state.sortBy && state.sortBy !== 'updatedAt') activeFilterCount++;
 
       target.innerHTML = modHeader("Products", `${items.length} total · ${activeCount} active · ${totalUnits} units in stock`, [
+        { label: "✨ AI Assistant", fn: "window.AIProductService.openChat()", primary: false },
         { label: "📲 WhatsApp Broadcast", fn: "window.openWhatsAppCampaignStudio()", primary: false },
         { label: "📥 Bulk Import (CSV/Excel)", fn: "window.BulkImportEngine.openProductImportModal()", primary: false },
         { label: "⚡ Fast Order", fn: "window.openFastOrderModal()", primary: false },
@@ -721,6 +728,9 @@
         <div class="products-sub-nav">
           <button class="btn btn-sm btn-gold" onclick="window.setProductsSubTab('catalog')">
             <span id="products-subnav-catalog-badge">🏷️ Products Catalog (${items.length})</span>
+          </button>
+          <button class="btn btn-sm btn-dark" onclick="window.AIProductService.openChat()" style="border-color:rgba(212,160,23,0.4);color:var(--gold);" title="Interactive Product Inquiries & Supply Chain Advice">
+            <span>✨ AI Product Assistant</span>
           </button>
           <button class="btn btn-sm btn-dark" onclick="window.setProductsSubTab('drive_sync')">
             <span>⚡ Drive Sync Monitor (Master Drive)</span>

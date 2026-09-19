@@ -53,6 +53,7 @@ export interface SupplierFilterOptions {
 
 export interface SupplierStats {
   totalCount: number;
+  verifiedCount?: number;
   bondedCount: number;
   nonBondedCount: number;
   unknownCount: number;
@@ -63,6 +64,17 @@ export interface SupplierStats {
     count: number;
     bondedCount: number;
     nonBondedCount: number;
+    percentage: number;
+  }[];
+  verifiedRegionalDistribution?: {
+    district: string;
+    count: number;
+    bondedCount: number;
+    percentage: number;
+  }[];
+  verifiedCategoryDistribution?: {
+    category: string;
+    count: number;
     percentage: number;
   }[];
   specializations: {
@@ -163,7 +175,11 @@ export function getSuppliersFiltered(options: SupplierFilterOptions = {}) {
       return false;
     }
     if (productType && productType !== 'all') {
-      const matchType = s.productTypes?.some((t) => t.toLowerCase().includes(productType));
+      const pLower = productType.toLowerCase();
+      const matchType =
+        s.productTypes?.some((t) => t.toLowerCase().includes(pLower)) ||
+        (s.category && s.category.toLowerCase().includes(pLower)) ||
+        (s.notes && s.notes.toLowerCase().includes(pLower));
       if (!matchType) return false;
     }
     if (certFilter && certFilter !== 'all') {
@@ -245,15 +261,23 @@ const HS_CODE_LABELS: Record<string, string> = {
 
 export function calculateSupplierStats(all: Supplier[]): SupplierStats {
   const totalCount = all.length;
+  let verifiedCount = 0;
   let bondedCount = 0;
   let nonBondedCount = 0;
   let unknownCount = 0;
   const districtMap: Record<string, { total: number; bonded: number; nonBonded: number }> = {};
+  const verifiedDistrictMap: Record<string, { total: number; bonded: number }> = {};
+  const verifiedCategoryMap: Record<string, number> = {};
   const productMap: Record<string, number> = {};
   const hsMap: Record<string, number> = {};
   const certMap: Record<string, number> = {};
 
   for (const s of all) {
+    const isVerified = s.isVerified !== false;
+    if (isVerified) {
+      verifiedCount++;
+    }
+
     const status = s.bondStatus?.toUpperCase();
     const isBonded = status === 'BONDED';
     if (isBonded) bondedCount++;
@@ -267,6 +291,50 @@ export function calculateSupplierStats(all: Supplier[]): SupplierStats {
     districtMap[dist].total++;
     if (isBonded) districtMap[dist].bonded++;
     else districtMap[dist].nonBonded++;
+
+    if (isVerified) {
+      if (!verifiedDistrictMap[dist]) {
+        verifiedDistrictMap[dist] = { total: 0, bonded: 0 };
+      }
+      verifiedDistrictMap[dist].total++;
+      if (isBonded) verifiedDistrictMap[dist].bonded++;
+
+      // Compute category distribution for verified suppliers
+      const types = Array.isArray(s.productTypes) ? s.productTypes : [];
+      let catMatched = false;
+      if (types.includes('Knit')) {
+        verifiedCategoryMap['Knitwear & Jersey'] = (verifiedCategoryMap['Knitwear & Jersey'] || 0) + 1;
+        catMatched = true;
+      }
+      if (types.includes('Woven')) {
+        verifiedCategoryMap['Woven & Formal Tailoring'] = (verifiedCategoryMap['Woven & Formal Tailoring'] || 0) + 1;
+        catMatched = true;
+      }
+      if (types.includes('Sweater')) {
+        verifiedCategoryMap['Sweaters & Cardigans'] = (verifiedCategoryMap['Sweaters & Cardigans'] || 0) + 1;
+        catMatched = true;
+      }
+      if (types.includes('Fabrics') || types.some(t => t.toLowerCase().includes('fabric'))) {
+        verifiedCategoryMap['Fabrics & Mill Textiles'] = (verifiedCategoryMap['Fabrics & Mill Textiles'] || 0) + 1;
+        catMatched = true;
+      }
+      if (types.includes('Garments Accessories') || types.some(t => t.toLowerCase().includes('accessories'))) {
+        verifiedCategoryMap['Garment Accessories & Trims'] = (verifiedCategoryMap['Garment Accessories & Trims'] || 0) + 1;
+        catMatched = true;
+      }
+      if (types.includes('Terry Towel') || types.includes('Home Textile')) {
+        verifiedCategoryMap['Home Textiles & Terry Linen'] = (verifiedCategoryMap['Home Textiles & Terry Linen'] || 0) + 1;
+        catMatched = true;
+      }
+      if (types.includes('Yarn Manufacturer') || types.includes('Spinning')) {
+        verifiedCategoryMap['Yarn & Spinning Mills'] = (verifiedCategoryMap['Yarn & Spinning Mills'] || 0) + 1;
+        catMatched = true;
+      }
+      if (!catMatched) {
+        const catName = s.category && s.category !== 'Garments & RMG' ? s.category : 'Specialized Garment Lines';
+        verifiedCategoryMap[catName] = (verifiedCategoryMap[catName] || 0) + 1;
+      }
+    }
 
     if (Array.isArray(s.productTypes)) {
       for (const p of s.productTypes) {
@@ -312,6 +380,25 @@ export function calculateSupplierStats(all: Supplier[]): SupplierStats {
     percentage: Math.round(d.percentage),
   }));
 
+  // Verified Regional distribution
+  const verifiedRegionalDistribution = Object.entries(verifiedDistrictMap)
+    .map(([district, stat]) => ({
+      district,
+      count: stat.total,
+      bondedCount: stat.bonded,
+      percentage: verifiedCount > 0 ? Math.round((stat.total / verifiedCount) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  // Verified Category distribution
+  const verifiedCategoryDistribution = Object.entries(verifiedCategoryMap)
+    .map(([category, count]) => ({
+      category,
+      count,
+      percentage: verifiedCount > 0 ? Math.round((count / verifiedCount) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => b.count - a.count);
+
   // Top specializations
   const specializations = Object.entries(productMap)
     .map(([name, count]) => ({
@@ -345,12 +432,15 @@ export function calculateSupplierStats(all: Supplier[]): SupplierStats {
 
   return {
     totalCount,
+    verifiedCount,
     bondedCount,
     nonBondedCount,
     unknownCount,
     bondedRatio,
     topDistricts,
     regionalDistribution: sortedDistricts.slice(0, 10),
+    verifiedRegionalDistribution,
+    verifiedCategoryDistribution,
     specializations,
     topHsCodes,
     certifications,

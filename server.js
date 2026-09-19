@@ -467,8 +467,11 @@ app.post('/api/gemini/chat', async (req, res) => {
 
     // Build context-enhanced prompt
     let contextualPrompt = userMsg;
-    if (context.catalogSummary || context.lowStockCount !== undefined || context.productsCount !== undefined) {
-      contextualPrompt = `[Live OS Context: ${context.productsCount || context.totalProducts || 6} active products, ${context.customersCount || 0} registered buyers, Store: ${context.app || 'Hands & Head'}]\n\nUser Request: ${userMsg}`;
+    if (context.activeProduct) {
+      const p = context.activeProduct;
+      contextualPrompt = `[Live OS Focus - Active Product: "${p.title || p.name}" | SKU: ${p.sku || 'N/A'} | Price: ৳${p.price || 0} | Stock: ${p.stock || p.totalInventory || 0} units | Category: ${p.category || p.productType || 'Leather Goods'} | Material: ${p.material || 'Full-Grain Leather'} | Catalog Size: ${context.productsCount || 6} products]\n\nUser Request / Product Inquiry: ${userMsg}`;
+    } else if (context.catalogSummary || context.lowStockCount !== undefined || context.productsCount !== undefined) {
+      contextualPrompt = `[Live OS Context: ${context.productsCount || context.totalProducts || 6} active products (${context.lowStockCount || 0} low stock), ${context.customersCount || 0} registered buyers, Store: ${context.app || 'Hands & Head'}]\n\nUser Request: ${userMsg}`;
     }
 
     const contents = [];

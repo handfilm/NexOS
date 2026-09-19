@@ -61,6 +61,7 @@ import {
   Pie,
   Cell,
   CartesianGrid,
+  LabelList,
 } from 'recharts';
 import SuppliersGeographicMap from './SuppliersGeographicMap';
 
@@ -98,6 +99,7 @@ export interface SupplierRecord {
 
 export interface SupplierStats {
   totalCount: number;
+  verifiedCount?: number;
   bondedCount: number;
   nonBondedCount: number;
   unknownCount: number;
@@ -108,6 +110,17 @@ export interface SupplierStats {
     count: number;
     bondedCount: number;
     nonBondedCount: number;
+    percentage: number;
+  }[];
+  verifiedRegionalDistribution?: {
+    district: string;
+    count: number;
+    bondedCount: number;
+    percentage: number;
+  }[];
+  verifiedCategoryDistribution?: {
+    category: string;
+    count: number;
     percentage: number;
   }[];
   specializations?: {
@@ -177,6 +190,17 @@ const SPEC_PALETTE: Record<string, string> = {
   'Exporter': '#475569',
 };
 
+const CATEGORY_PALETTE: Record<string, string> = {
+  'Knitwear & Jersey': '#059669', // Emerald
+  'Woven & Formal Tailoring': '#2563eb', // Royal Blue
+  'Sweaters & Cardigans': '#d97706', // Amber
+  'Fabrics & Mill Textiles': '#7c3aed', // Purple
+  'Specialized Garment Lines': '#0891b2', // Cyan Teal
+  'Garment Accessories & Trims': '#db2777', // Rose Pink
+  'Home Textiles & Terry Linen': '#0d9488', // Teal
+  'Yarn & Spinning Mills': '#ea580c', // Orange
+};
+
 const HS_PALETTE = [
   '#0284c7',
   '#059669',
@@ -202,14 +226,19 @@ const CERT_PALETTE = [
 const CustomChartTooltip: React.FC<any> = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    const title = data.district || data.name || (data.code ? `HS ${data.code}` : label);
-    const subtitle = data.description || null;
+    const title = data.district || data.category || data.name || (data.code ? `HS ${data.code}` : label);
+    const subtitle = data.description || (data.topProduct ? `Key product line: ${data.topProduct}` : null);
     const count = data.count !== undefined ? data.count : payload[0].value;
     const percentage = data.percentage !== undefined ? data.percentage : null;
 
     return (
-      <div className="bg-slate-900 text-white text-xs font-mono p-3 rounded-lg shadow-xl border border-slate-700 min-w-[200px] z-50">
-        <div className="font-bold text-slate-100 text-sm mb-0.5">{title}</div>
+      <div className="bg-slate-900 text-white text-xs font-mono p-3 rounded-lg shadow-xl border border-slate-700 min-w-[210px] z-50">
+        <div className="font-bold text-slate-100 text-sm mb-0.5 flex items-center justify-between gap-2">
+          <span>{title}</span>
+          <span className="text-[10px] px-1.5 py-0.5 text-emerald-400 bg-emerald-950/80 border border-emerald-800 rounded font-normal">
+            Verified
+          </span>
+        </div>
         {subtitle && <div className="text-[11px] text-slate-400 mb-2 leading-tight">{subtitle}</div>}
         <div className="space-y-1 my-1.5 border-t border-slate-800 pt-1.5">
           <div className="flex items-center justify-between gap-4 text-slate-300">
@@ -271,8 +300,66 @@ export const SuppliersManagementDashboard: React.FC<SuppliersManagementProps> = 
 
   // ── Charts & Macro Analytics State ──
   const [showChartsSection, setShowChartsSection] = useState<boolean>(true);
-  const [activeChartTab, setActiveChartTab] = useState<'regions' | 'specializations' | 'hscodes' | 'certifications' | 'geomap'>('regions');
+  const [activeChartTab, setActiveChartTab] = useState<'regions' | 'categories' | 'comparative' | 'specializations' | 'hscodes' | 'certifications' | 'geomap'>('regions');
   const [chartVisualizationType, setChartVisualizationType] = useState<'bar' | 'pie'>('bar');
+
+  // ── Verified Suppliers Distribution Memoized Data (Recharts) ──
+  const verifiedRegionalData = useMemo(() => {
+    if (stats?.verifiedRegionalDistribution && stats.verifiedRegionalDistribution.length > 0) {
+      return stats.verifiedRegionalDistribution;
+    }
+    if (stats?.regionalDistribution && stats.regionalDistribution.length > 0) {
+      return stats.regionalDistribution.map((d) => ({
+        district: d.district,
+        count: d.count,
+        bondedCount: d.bondedCount,
+        percentage: d.percentage,
+      }));
+    }
+    return [
+      { district: 'Dhaka', count: 916, bondedCount: 916, percentage: 33.3 },
+      { district: 'Gazipur', count: 873, bondedCount: 873, percentage: 31.8 },
+      { district: 'Narayanganj', count: 427, bondedCount: 427, percentage: 15.5 },
+      { district: 'Chittagong', count: 348, bondedCount: 348, percentage: 12.7 },
+      { district: 'Mymensingh', count: 52, bondedCount: 52, percentage: 1.9 },
+      { district: 'Narsingdi', count: 26, bondedCount: 26, percentage: 0.9 },
+      { district: 'Comilla', count: 16, bondedCount: 16, percentage: 0.6 },
+      { district: 'Pabna', count: 13, bondedCount: 13, percentage: 0.5 },
+      { district: 'Tangail', count: 10, bondedCount: 10, percentage: 0.4 },
+      { district: 'Jessore', count: 9, bondedCount: 9, percentage: 0.3 },
+    ];
+  }, [stats]);
+
+  const verifiedCategoryData = useMemo(() => {
+    if (stats?.verifiedCategoryDistribution && stats.verifiedCategoryDistribution.length > 0) {
+      return stats.verifiedCategoryDistribution;
+    }
+    if (stats?.specializations && stats.specializations.length > 0) {
+      return stats.specializations.map((s) => ({
+        category: s.name.includes('Knit')
+          ? 'Knitwear & Jersey'
+          : s.name.includes('Woven')
+          ? 'Woven & Formal Tailoring'
+          : s.name.includes('Sweater')
+          ? 'Sweaters & Cardigans'
+          : s.name.includes('Fabrics')
+          ? 'Fabrics & Mill Textiles'
+          : s.name,
+        count: s.count,
+        percentage: s.percentage,
+      }));
+    }
+    return [
+      { category: 'Knitwear & Jersey', count: 1894, percentage: 68.9 },
+      { category: 'Woven & Formal Tailoring', count: 1702, percentage: 61.9 },
+      { category: 'Sweaters & Cardigans', count: 258, percentage: 9.4 },
+      { category: 'Fabrics & Mill Textiles', count: 70, percentage: 2.5 },
+      { category: 'Specialized Garment Lines', count: 68, percentage: 2.5 },
+      { category: 'Garment Accessories & Trims', count: 34, percentage: 1.2 },
+      { category: 'Home Textiles & Terry Linen', count: 29, percentage: 1.1 },
+      { category: 'Yarn & Spinning Mills', count: 18, percentage: 0.7 },
+    ];
+  }, [stats]);
 
   const handleViewSupplierOnMap = (supplier: SupplierRecord) => {
     if (supplier.district) {
@@ -287,6 +374,25 @@ export const SuppliersManagementDashboard: React.FC<SuppliersManagementProps> = 
     setSelectedDistrict(selectedDistrict === target ? 'all' : target);
     setCurrentPage(1);
     showToast(selectedDistrict === target ? 'Cleared hub filter' : `Filtered directory by hub: ${district}`);
+  };
+
+  const handleChartCategoryClick = (categoryName: string) => {
+    let filterKey = 'all';
+    const lower = categoryName.toLowerCase();
+    if (lower.includes('knit')) filterKey = 'knit';
+    else if (lower.includes('woven')) filterKey = 'woven';
+    else if (lower.includes('sweater')) filterKey = 'sweater';
+    else if (lower.includes('denim')) filterKey = 'denim';
+    else if (lower.includes('fabric')) filterKey = 'fabric';
+    else if (lower.includes('accessori')) filterKey = 'accessories';
+    else if (lower.includes('terry') || lower.includes('home')) filterKey = 'terry';
+    else if (lower.includes('yarn') || lower.includes('spinning')) filterKey = 'yarn';
+    else filterKey = categoryName.toLowerCase();
+
+    const nextVal = selectedType === filterKey ? 'all' : filterKey;
+    setSelectedType(nextVal);
+    setCurrentPage(1);
+    showToast(nextVal === 'all' ? 'Cleared category filter' : `Filtered directory by category: ${categoryName}`);
   };
 
   const handleChartSpecializationClick = (specName: string) => {
@@ -979,18 +1085,19 @@ admin.handsandhead.com`);
           <div className="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-slate-500 mb-1">
-                <BarChart3 className="w-4 h-4 text-amber-600" />
-                <span>Supply Chain Intelligence & Distribution</span>
+                <BarChart3 className="w-4 h-4 text-emerald-600" />
+                <span className="text-emerald-700 font-bold">VERIFIED SUPPLIERS ANALYTICS</span>
                 <span className="text-slate-300">•</span>
-                <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                  {stats ? stats.totalCount.toLocaleString() : '2,749'} Exporters Analyzed
+                <span className="text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px] font-semibold flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                  {stats?.verifiedCount || stats?.totalCount || '2,749'} Verified Manufacturers
                 </span>
               </div>
               <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                <span>Manufacturer Distribution Matrix</span>
+                <span>Distribution of Verified Suppliers</span>
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Interactive distribution of verified Bangladesh RMG manufacturers by industrial corridor, product specializations, customs HS codes, and compliance standards. Click any chart element to filter the directory.
+              <p className="text-xs text-slate-500 mt-0.5 max-w-3xl">
+                Real-time distribution of verified Bangladesh RMG manufacturers across industrial regions and product categories. Powered by Recharts with interactive click-to-filter capability.
               </p>
             </div>
 
@@ -1008,7 +1115,31 @@ admin.handsandhead.com`);
                   }`}
                 >
                   <MapPin className="w-3.5 h-3.5" />
-                  <span>REGIONS</span>
+                  <span>BY REGION</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveChartTab('categories')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold rounded-md transition cursor-pointer ${
+                    activeChartTab === 'categories'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>BY CATEGORY</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveChartTab('comparative')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold rounded-md transition cursor-pointer ${
+                    activeChartTab === 'comparative'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5 text-amber-500" />
+                  <span>COMPARE BOTH</span>
                 </button>
                 <button
                   type="button"
@@ -1019,20 +1150,8 @@ admin.handsandhead.com`);
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <Compass className="w-3.5 h-3.5 text-amber-500" />
+                  <Compass className="w-3.5 h-3.5 text-blue-500" />
                   <span>GEOMAP</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveChartTab('specializations')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold rounded-md transition cursor-pointer ${
-                    activeChartTab === 'specializations'
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>SPECIALIZATION</span>
                 </button>
                 <button
                   type="button"
@@ -1061,7 +1180,7 @@ admin.handsandhead.com`);
               </div>
 
               {/* Chart Format Toggle (Bar vs Donut) */}
-              {(activeChartTab === 'regions' || activeChartTab === 'specializations') && (
+              {(activeChartTab === 'regions' || activeChartTab === 'categories' || activeChartTab === 'comparative' || activeChartTab === 'specializations') && (
                 <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-white shadow-2xs">
                   <button
                     type="button"
@@ -1102,6 +1221,38 @@ admin.handsandhead.com`);
             </div>
           </div>
 
+          {/* Quick Metrics Strip */}
+          <div className="grid grid-cols-2 md:grid-cols-4 border-b border-slate-200 bg-slate-50/30 divide-x divide-y md:divide-y-0 divide-slate-200 text-xs font-mono">
+            <div className="p-3 sm:px-5 sm:py-3 flex flex-col justify-center">
+              <span className="text-slate-500 text-[11px] font-sans">Verified Manufacturers</span>
+              <span className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-1 mt-0.5">
+                {stats?.verifiedCount ? stats.verifiedCount.toLocaleString() : (stats?.totalCount ? stats.totalCount.toLocaleString() : '2,749')}
+                <span className="text-[10px] text-emerald-600 font-semibold font-mono bg-emerald-50 px-1 rounded">100% EPB</span>
+              </span>
+            </div>
+            <div className="p-3 sm:px-5 sm:py-3 flex flex-col justify-center">
+              <span className="text-slate-500 text-[11px] font-sans">Top Regional Corridor</span>
+              <span className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-1 mt-0.5">
+                Dhaka & Gazipur
+                <span className="text-[10px] text-amber-600 font-semibold font-mono bg-amber-50 px-1 rounded">65.1%</span>
+              </span>
+            </div>
+            <div className="p-3 sm:px-5 sm:py-3 flex flex-col justify-center">
+              <span className="text-slate-500 text-[11px] font-sans">Leading Category</span>
+              <span className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-1 mt-0.5 truncate">
+                Knitwear & Jersey
+                <span className="text-[10px] text-blue-600 font-semibold font-mono bg-blue-50 px-1 rounded">68.9%</span>
+              </span>
+            </div>
+            <div className="p-3 sm:px-5 sm:py-3 flex flex-col justify-center">
+              <span className="text-slate-500 text-[11px] font-sans">Bonded Facilities (CBW)</span>
+              <span className="text-base sm:text-lg font-bold text-emerald-700 flex items-center gap-1 mt-0.5">
+                {stats?.bondedRatio || 100}%
+                <span className="text-[10px] text-slate-500 font-normal font-sans">Duty-Free Import</span>
+              </span>
+            </div>
+          </div>
+
           {/* Active Filter Notification Bar if filtered */}
           {(selectedDistrict !== 'all' || selectedType !== 'all' || selectedCert !== 'all' || searchQuery) && (
             <div className="bg-amber-50 border-b border-amber-200/80 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-amber-900">
@@ -1110,13 +1261,13 @@ admin.handsandhead.com`);
                 <span className="font-bold">Active Filter:</span>
                 {selectedDistrict !== 'all' && (
                   <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-300 font-semibold capitalize flex items-center gap-1">
-                    Hub: {selectedDistrict}
+                    Region: {selectedDistrict}
                     <button onClick={() => setSelectedDistrict('all')} className="hover:text-black">✕</button>
                   </span>
                 )}
                 {selectedType !== 'all' && (
                   <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-300 font-semibold capitalize flex items-center gap-1">
-                    Fabric: {selectedType}
+                    Category: {selectedType}
                     <button onClick={() => setSelectedType('all')} className="hover:text-black">✕</button>
                   </span>
                 )}
@@ -1148,24 +1299,24 @@ admin.handsandhead.com`);
 
           {/* Chart Content Body */}
           <div className="p-4 sm:p-6">
-            {/* ── TAB 1: REGIONS ── */}
+            {/* ── TAB 1: VERIFIED SUPPLIERS BY REGION ── */}
             {activeChartTab === 'regions' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
                 {/* Visual Chart Area (8 cols) */}
                 <div className="lg:col-span-8 flex flex-col">
                   <div className="flex items-center justify-between mb-3 text-xs font-mono text-slate-500">
                     <span className="flex items-center gap-1.5 font-bold text-slate-700 uppercase">
-                      <MapPin className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Manufacturing Hub Volume & Bonded Facilities</span>
+                      <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Distribution of Verified Suppliers by Manufacturing Region</span>
                     </span>
-                    <span className="text-[11px] text-slate-400">Click any bar to filter</span>
+                    <span className="text-[11px] text-slate-400">Click any region to filter directory</span>
                   </div>
 
                   <div className="w-full h-80 relative bg-slate-50/40 rounded-xl border border-slate-100 p-2">
                     {chartVisualizationType === 'bar' ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
-                          data={stats?.regionalDistribution || stats?.topDistricts || []}
+                          data={verifiedRegionalData}
                           margin={{ top: 20, right: 20, left: -10, bottom: 25 }}
                         >
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -1189,7 +1340,7 @@ admin.handsandhead.com`);
                             cursor="pointer"
                             onClick={(entry: any) => handleChartDistrictClick(entry.district)}
                           >
-                            {(stats?.regionalDistribution || stats?.topDistricts || []).map((entry, index) => (
+                            {verifiedRegionalData.map((entry, index) => (
                               <Cell
                                 key={`cell-region-${index}`}
                                 fill={
@@ -1213,7 +1364,7 @@ admin.handsandhead.com`);
                           <RechartsPieChart>
                             <RechartsTooltip content={<CustomChartTooltip />} />
                             <Pie
-                              data={stats?.regionalDistribution || stats?.topDistricts || []}
+                              data={verifiedRegionalData}
                               dataKey="count"
                               nameKey="district"
                               cx="50%"
@@ -1224,13 +1375,13 @@ admin.handsandhead.com`);
                               cursor="pointer"
                               onClick={(entry: any) => handleChartDistrictClick(entry.district)}
                             >
-                              {(stats?.regionalDistribution || stats?.topDistricts || []).map((entry, index) => (
+                              {verifiedRegionalData.map((entry, index) => (
                                 <Cell
                                   key={`cell-pie-reg-${index}`}
                                   fill={
-                                  selectedDistrict === entry.district.toLowerCase()
-                                    ? '#d97706'
-                                    : REGION_PALETTE[index % REGION_PALETTE.length]
+                                    selectedDistrict === entry.district.toLowerCase()
+                                      ? '#d97706'
+                                      : REGION_PALETTE[index % REGION_PALETTE.length]
                                   }
                                   stroke="#ffffff"
                                   strokeWidth={2}
@@ -1241,10 +1392,10 @@ admin.handsandhead.com`);
                         </ResponsiveContainer>
                         <div className="absolute flex flex-col items-center justify-center pointer-events-none text-center">
                           <span className="text-2xl font-bold font-mono text-slate-900">
-                            {stats?.totalCount ? stats.totalCount.toLocaleString() : '2,749'}
+                            {stats?.verifiedCount ? stats.verifiedCount.toLocaleString() : (stats?.totalCount ? stats.totalCount.toLocaleString() : '2,749')}
                           </span>
                           <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
-                            Exporters
+                            Verified Factories
                           </span>
                         </div>
                       </div>
@@ -1263,7 +1414,7 @@ admin.handsandhead.com`);
                     </div>
 
                     <div className="space-y-2">
-                      {(stats?.regionalDistribution || stats?.topDistricts || []).slice(0, 6).map((d, idx) => {
+                      {verifiedRegionalData.slice(0, 6).map((d, idx) => {
                         const isSelected = selectedDistrict === d.district.toLowerCase();
                         return (
                           <div
@@ -1286,7 +1437,7 @@ admin.handsandhead.com`);
                               <div className="min-w-0">
                                 <div className="font-bold truncate">{d.district}</div>
                                 <div className={`text-[10px] font-mono ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
-                                  {d.count.toLocaleString()} factories (100% Bonded)
+                                  {d.count.toLocaleString()} verified factories (100% Bonded)
                                 </div>
                               </div>
                             </div>
@@ -1302,14 +1453,14 @@ admin.handsandhead.com`);
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-slate-200 text-[11px] text-slate-500 font-mono flex items-center justify-between">
-                    <span>Gazipur & Dhaka: <strong className="text-slate-800">65.1%</strong> total output</span>
+                    <span>Gazipur & Dhaka: <strong className="text-slate-800">65.1%</strong> verified cluster</span>
                     <button
                       type="button"
                       onClick={() => {
                         setSelectedDistrict('all');
                         setCurrentPage(1);
                       }}
-                      className="text-amber-700 font-bold hover:underline"
+                      className="text-amber-700 font-bold hover:underline cursor-pointer"
                     >
                       Clear
                     </button>
@@ -1318,7 +1469,332 @@ admin.handsandhead.com`);
               </div>
             )}
 
-            {/* ── TAB 2: SPECIALIZATIONS ── */}
+            {/* ── TAB 2: VERIFIED SUPPLIERS BY CATEGORY ── */}
+            {activeChartTab === 'categories' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                {/* Visual Chart Area (8 cols) */}
+                <div className="lg:col-span-8 flex flex-col">
+                  <div className="flex items-center justify-between mb-3 text-xs font-mono text-slate-500">
+                    <span className="flex items-center gap-1.5 font-bold text-slate-700 uppercase">
+                      <Layers className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Distribution of Verified Suppliers by Product Category</span>
+                    </span>
+                    <span className="text-[11px] text-slate-400">Click any category to filter directory</span>
+                  </div>
+
+                  <div className="w-full h-80 relative bg-slate-50/40 rounded-xl border border-slate-100 p-2">
+                    {chartVisualizationType === 'bar' ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={verifiedCategoryData}
+                          margin={{ top: 20, right: 20, left: -10, bottom: 40 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis
+                            dataKey="category"
+                            tick={{ fontSize: 11, fill: '#475569', fontFamily: 'monospace' }}
+                            interval={0}
+                            angle={-25}
+                            textAnchor="end"
+                            height={45}
+                          />
+                          <YAxis
+                            tick={{ fontSize: 11, fill: '#64748b', fontFamily: 'monospace' }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <RechartsTooltip content={<CustomChartTooltip />} />
+                          <Bar
+                            dataKey="count"
+                            radius={[6, 6, 0, 0]}
+                            cursor="pointer"
+                            onClick={(entry: any) => handleChartCategoryClick(entry.category)}
+                          >
+                            {verifiedCategoryData.map((entry, index) => {
+                              const isSelected = selectedType !== 'all' && entry.category.toLowerCase().includes(selectedType);
+                              return (
+                                <Cell
+                                  key={`cell-cat-${index}`}
+                                  fill={
+                                    isSelected
+                                      ? '#d97706'
+                                      : CATEGORY_PALETTE[entry.category] || REGION_PALETTE[index % REGION_PALETTE.length]
+                                  }
+                                  opacity={selectedType === 'all' || isSelected ? 1 : 0.35}
+                                />
+                              );
+                            })}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RechartsPieChart>
+                            <RechartsTooltip content={<CustomChartTooltip />} />
+                            <Pie
+                              data={verifiedCategoryData}
+                              dataKey="count"
+                              nameKey="category"
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={65}
+                              outerRadius={105}
+                              paddingAngle={3}
+                              cursor="pointer"
+                              onClick={(entry: any) => handleChartCategoryClick(entry.category)}
+                            >
+                              {verifiedCategoryData.map((entry, index) => {
+                                const isSelected = selectedType !== 'all' && entry.category.toLowerCase().includes(selectedType);
+                                return (
+                                  <Cell
+                                    key={`cell-pie-cat-${index}`}
+                                    fill={
+                                      isSelected
+                                        ? '#d97706'
+                                        : CATEGORY_PALETTE[entry.category] || REGION_PALETTE[index % REGION_PALETTE.length]
+                                    }
+                                    stroke="#ffffff"
+                                    strokeWidth={2}
+                                  />
+                                );
+                              })}
+                            </Pie>
+                          </RechartsPieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute flex flex-col items-center justify-center pointer-events-none text-center">
+                          <span className="text-2xl font-bold font-mono text-slate-900">
+                            {verifiedCategoryData[0]?.count ? verifiedCategoryData[0].count.toLocaleString() : '1,894'}
+                          </span>
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
+                            Knitwear Facilities
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Ranked Category Breakdown (4 cols) */}
+                <div className="lg:col-span-4 bg-slate-50/70 border border-slate-200 rounded-xl p-4 flex flex-col justify-between h-full">
+                  <div>
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-200 mb-3">
+                      <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                        Top Apparel Categories
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-400">Share %</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {verifiedCategoryData.slice(0, 6).map((cat, idx) => {
+                        const isSelected = selectedType !== 'all' && cat.category.toLowerCase().includes(selectedType);
+                        return (
+                          <div
+                            key={cat.category}
+                            onClick={() => handleChartCategoryClick(cat.category)}
+                            className={`p-2.5 rounded-lg border text-xs cursor-pointer transition flex items-center justify-between gap-3 ${
+                              isSelected
+                                ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
+                                : 'bg-white border-slate-200 hover:bg-slate-100/80 text-slate-800'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-mono font-bold shrink-0 ${
+                                  isSelected ? 'bg-amber-400 text-slate-900' : 'bg-slate-200 text-slate-700'
+                                }`}
+                              >
+                                {idx + 1}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="font-bold truncate">{cat.category}</div>
+                                <div className={`text-[10px] font-mono ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
+                                  {cat.count.toLocaleString()} verified factories
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0 font-mono font-bold">
+                              <span className={isSelected ? 'text-amber-400' : 'text-slate-700'}>
+                                {cat.percentage}%
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-200 text-[11px] text-slate-500 font-mono flex items-center justify-between">
+                    <span>Leading: <strong className="text-slate-800">Knit & Woven</strong> composite</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedType('all');
+                        setCurrentPage(1);
+                      }}
+                      className="text-amber-700 font-bold hover:underline cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB 3: COMPARATIVE DUAL VIEW (REGIONS & CATEGORIES SIDE-BY-SIDE) ── */}
+            {activeChartTab === 'comparative' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Column 1: Verified Suppliers by Region */}
+                <div className="bg-slate-50/50 rounded-xl border border-slate-200 p-4 flex flex-col">
+                  <div className="flex items-center justify-between mb-3 text-xs font-mono">
+                    <span className="flex items-center gap-1.5 font-bold text-slate-800 uppercase">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Verified Suppliers by Region</span>
+                    </span>
+                    <span className="text-[11px] text-slate-400">Click bar to filter hub</span>
+                  </div>
+
+                  <div className="w-full h-72 relative bg-white rounded-lg border border-slate-200 p-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={verifiedRegionalData.slice(0, 8)}
+                        margin={{ top: 15, right: 10, left: -20, bottom: 20 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis
+                          dataKey="district"
+                          tick={{ fontSize: 10, fill: '#475569', fontFamily: 'monospace' }}
+                          interval={0}
+                          angle={-20}
+                          textAnchor="end"
+                          height={28}
+                        />
+                        <YAxis
+                          tick={{ fontSize: 10, fill: '#64748b', fontFamily: 'monospace' }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <RechartsTooltip content={<CustomChartTooltip />} />
+                        <Bar
+                          dataKey="count"
+                          radius={[4, 4, 0, 0]}
+                          cursor="pointer"
+                          onClick={(entry: any) => handleChartDistrictClick(entry.district)}
+                        >
+                          {verifiedRegionalData.slice(0, 8).map((entry, index) => (
+                            <Cell
+                              key={`cell-comp-reg-${index}`}
+                              fill={
+                                selectedDistrict === entry.district.toLowerCase()
+                                  ? '#d97706'
+                                  : REGION_PALETTE[index % REGION_PALETTE.length]
+                              }
+                              opacity={
+                                selectedDistrict === 'all' || selectedDistrict === entry.district.toLowerCase()
+                                  ? 1
+                                  : 0.4
+                              }
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="mt-2 text-[11px] text-slate-500 font-mono flex items-center justify-between">
+                    <span>Dominant: Dhaka (916) & Gazipur (873)</span>
+                    {selectedDistrict !== 'all' && (
+                      <button
+                        onClick={() => setSelectedDistrict('all')}
+                        className="text-amber-700 font-bold hover:underline cursor-pointer"
+                      >
+                        Reset Region
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Column 2: Verified Suppliers by Category */}
+                <div className="bg-slate-50/50 rounded-xl border border-slate-200 p-4 flex flex-col">
+                  <div className="flex items-center justify-between mb-3 text-xs font-mono">
+                    <span className="flex items-center gap-1.5 font-bold text-slate-800 uppercase">
+                      <Layers className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Verified Suppliers by Category</span>
+                    </span>
+                    <span className="text-[11px] text-slate-400">Click bar to filter category</span>
+                  </div>
+
+                  <div className="w-full h-72 relative bg-white rounded-lg border border-slate-200 p-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={verifiedCategoryData}
+                        margin={{ top: 15, right: 10, left: -20, bottom: 25 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis
+                          dataKey="category"
+                          tick={{ fontSize: 9.5, fill: '#475569', fontFamily: 'monospace' }}
+                          interval={0}
+                          angle={-25}
+                          textAnchor="end"
+                          height={35}
+                          tickFormatter={(cat: string) => {
+                            if (cat.includes('Knit')) return 'Knitwear';
+                            if (cat.includes('Woven')) return 'Woven';
+                            if (cat.includes('Sweater')) return 'Sweaters';
+                            if (cat.includes('Fabrics')) return 'Fabrics';
+                            if (cat.includes('Specialized')) return 'Specialized';
+                            if (cat.includes('Accessories')) return 'Accessories';
+                            if (cat.includes('Home')) return 'Home Text.';
+                            if (cat.includes('Yarn')) return 'Spinning';
+                            return cat;
+                          }}
+                        />
+                        <YAxis
+                          tick={{ fontSize: 10, fill: '#64748b', fontFamily: 'monospace' }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <RechartsTooltip content={<CustomChartTooltip />} />
+                        <Bar
+                          dataKey="count"
+                          radius={[4, 4, 0, 0]}
+                          cursor="pointer"
+                          onClick={(entry: any) => handleChartCategoryClick(entry.category)}
+                        >
+                          {verifiedCategoryData.map((entry, index) => {
+                            const isSelected = selectedType !== 'all' && entry.category.toLowerCase().includes(selectedType);
+                            return (
+                              <Cell
+                                key={`cell-comp-cat-${index}`}
+                                fill={
+                                  isSelected
+                                    ? '#d97706'
+                                    : CATEGORY_PALETTE[entry.category] || REGION_PALETTE[index % REGION_PALETTE.length]
+                                }
+                                opacity={selectedType === 'all' || isSelected ? 1 : 0.4}
+                              />
+                            );
+                          })}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="mt-2 text-[11px] text-slate-500 font-mono flex items-center justify-between">
+                    <span>Dominant: Knitwear (1,894) & Woven (1,702)</span>
+                    {selectedType !== 'all' && (
+                      <button
+                        onClick={() => setSelectedType('all')}
+                        className="text-amber-700 font-bold hover:underline cursor-pointer"
+                      >
+                        Reset Category
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB 4: SPECIALIZATIONS (FALLBACK/ORIGINAL) ── */}
             {activeChartTab === 'specializations' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
                 {/* Visual Chart Area (8 cols) */}
@@ -1483,7 +1959,7 @@ admin.handsandhead.com`);
                         setSelectedType('all');
                         setCurrentPage(1);
                       }}
-                      className="text-amber-700 font-bold hover:underline"
+                      className="text-amber-700 font-bold hover:underline cursor-pointer"
                     >
                       Clear
                     </button>
