@@ -621,6 +621,124 @@ function getDeterministicEnrichment(title, category, sku, price, product = {}) {
   };
 }
 
+/* ── 1.5. Dedicated AI Product Assistant (Interactive Product Inquiries & Supply Chain Advice) ── */
+app.post('/api/ai-product-assistant/chat', async (req, res) => {
+  try {
+    const { message, history = [], contextProduct, buyerContext } = req.body;
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({ error: 'A message string is required' });
+    }
+
+    const ai = getGeminiAI();
+
+    // Context formatting
+    let systemPrompt = `You are the NexOS AI Product Assistant and Senior Supply Chain Advisor for Hands & Head, an enterprise B2B platform connecting global retail brands, boutique buyers, and institutional merchandisers directly with verified ateliers and export-grade garment/leather factories across Bangladesh (Dhaka, Gazipur, Savar, Narayanganj).
+
+Your capabilities and personality:
+1. Deliver expert, actionable, realistic advice on B2B product specifications, materials (e.g. Full-Grain Cowhide, Vegetable-Tanned Buffalo, 450 GSM Organic French Terry, Raw Bengal Golden Jute, Combed Ring-Spun Cotton).
+2. Advise on factory production lead times, MOQ thresholds, wholesale pricing ladders (Tier 1/2/3 discounts), tech packs, cut-to-pack workflows, and sample proto approval.
+3. Guide international buyers on compliance standards: GOTS, OEKO-TEX Standard 100, REACH Annex XVII, LWG (Leather Working Group) Tannery certifications, and EUDR traceability.
+4. Provide realistic logistics recommendations (Air Express via DHL vs Sea Freight FCL/LCL out of Chittagong/Chattogram Port vs Dhaka Inland Depot), FOB terms, CIF, and 50/50 advance milestone settlements.
+5. Tone: Professional, authoritative, helpful, crisp, and commercial. Use clear bullet points and bold highlights where appropriate. Keep responses focused and readable.`;
+
+    if (contextProduct) {
+      systemPrompt += `\n\nCURRENTLY ACTIVE PRODUCT CONTEXT:
+- Title: ${contextProduct.title || 'Atelier Item'}
+- SKU: ${contextProduct.sku || 'N/A'}
+- Category: ${contextProduct.category || 'Apparel & Goods'}
+- Origin: ${contextProduct.origin || 'shop.handsandhead.com'} (${contextProduct.originDisplayName || 'Hands & Head'})
+- Retail Price: $${contextProduct.retailPriceUsd || contextProduct.retailPrice || 0} USD
+- Minimum Order Quantity (MOQ): ${contextProduct.moq || 50} units
+- Lead Time: ${contextProduct.leadTimeDays || 21} business days
+- Materials: ${Array.isArray(contextProduct.materials) ? contextProduct.materials.join(', ') : 'Natural fibers/leather'}
+- Wholesale Price Tiers: ${
+        Array.isArray(contextProduct.wholesalePriceLadder)
+          ? contextProduct.wholesalePriceLadder.map((t) => `${t.minQuantity}+ units: $${t.unitPriceUsd} (-${t.discountPercentage || 0}%)`).join(' | ')
+          : 'Tier 1: 50+ units, Tier 2: 200+ units, Tier 3: 1000+ units'
+      }`;
+    }
+
+    if (!ai) {
+      let fallbackText = `**[NexOS Supply Chain Advisor]**\n\n`;
+      if (contextProduct) {
+        fallbackText += `Regarding **${contextProduct.title}** (SKU: \`${contextProduct.sku}\`):\n\n`;
+        fallbackText += `• **Production & MOQ**: Factory baseline MOQ is ${contextProduct.moq || 50} units with a standard production turnaround of ${contextProduct.leadTimeDays || 21} business days.\n`;
+        fallbackText += `• **Volume Economics**: Volume pricing ladder unlocks at 50, 200, and 1,000 unit thresholds for up to 35% margin advantage.\n`;
+        fallbackText += `• **Materials & Traceability**: Produced using ${Array.isArray(contextProduct.materials) ? contextProduct.materials.join(', ') : 'premium certified atelier materials'} under BSTI & European export compliance.\n`;
+        fallbackText += `• **Shipping Logistics**: For urgent proto runs, Air Express takes 4–6 business days via DAC. For bulk commercial orders (>500 units), Sea Freight via Chattogram Port (CGP) yields optimal landed unit costs.\n\n*(To activate live interactive Gemini reasoning, ensure GEMINI_API_KEY is configured in your project settings.)*`;
+      } else {
+        fallbackText += `Thank you for your inquiry regarding Bangladesh atelier manufacturing and wholesale supply chain:\n\n`;
+        fallbackText += `• **Garment & Knitwear Hubs**: Gazipur and Narayanganj clusters specialize in organic French Terry, heavyweight jersey, and circular knitting.\n`;
+        fallbackText += `• **Leather Goods & Tannery**: Savar Tannery Estate produces LWG-certified vegetable-tanned and chrome-free full-grain leather.\n`;
+        fallbackText += `• **Standard Commercial Terms**: 50% deposit to unlock material procurement and cutting, 50% balance upon final quality inspection / Bill of Lading.\n\n*(To activate live interactive Gemini reasoning, ensure GEMINI_API_KEY is configured in your project settings.)*`;
+      }
+
+      return res.json({
+        text: fallbackText,
+        suggestedActions: [
+          'Calculate landed cost for 500 units',
+          'Request material swatch & proto sample',
+          'Review REACH & OEKO-TEX certifications',
+          'Compare air express vs ocean freight timeline'
+        ],
+        contextProduct: contextProduct || null
+      });
+    }
+
+    const contents = [];
+    if (Array.isArray(history) && history.length > 0) {
+      history.slice(-8).forEach((h) => {
+        if (h.role === 'user' || h.role === 'model') {
+          contents.push({
+            role: h.role,
+            parts: [{ text: h.text || h.content || '' }]
+          });
+        }
+      });
+    }
+
+    let contextualUserMessage = message;
+    if (contextProduct && !contents.some((c) => c.parts?.[0]?.text?.includes(contextProduct.sku))) {
+      contextualUserMessage = `[Focused Product: ${contextProduct.title} (SKU: ${contextProduct.sku})]\n\n${message}`;
+    }
+
+    contents.push({
+      role: 'user',
+      parts: [{ text: contextualUserMessage }]
+    });
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents,
+      config: {
+        systemInstruction: systemPrompt,
+        temperature: 0.7,
+        topP: 0.95,
+      }
+    });
+
+    const responseText = response.text || 'No response generated from the AI model.';
+
+    return res.json({
+      text: responseText,
+      suggestedActions: [
+        'Calculate landed cost for 500 units',
+        'Request material swatch & proto sample',
+        'Review REACH & OEKO-TEX certifications',
+        'Compare air express vs ocean freight timeline'
+      ],
+      contextProduct: contextProduct || null
+    });
+  } catch (err) {
+    console.error('[AI Product Assistant] Error generating response:', err);
+    return res.status(500).json({
+      error: 'Failed to generate product assistant response',
+      details: err.message,
+      fallbackText: 'Our supply chain advisors are currently processing high demand. Please try again or verify your connection.'
+    });
+  }
+});
+
 /* ── 2. Gemini AI Product Copy & SEO Enrichment ── */
 app.post('/api/gemini/enrich-product', async (req, res) => {
   try {

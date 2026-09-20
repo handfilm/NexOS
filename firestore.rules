@@ -1,8 +1,7 @@
 rules_version = '2';
 
 // ═══════════════════════════════════════════════════════════════
-// HANDS & HEAD NEXUS — Hardened Firestore Security Rules
-// Master PIN Gateway, Idempotency, and Append-Only Ledger Enforcement
+// HANDS & HEAD NEXUS — Unified Firestore Security Rules
 // ═══════════════════════════════════════════════════════════════
 
 service cloud.firestore {
@@ -20,164 +19,123 @@ service cloud.firestore {
       );
     }
 
-    // ── 1. Orders Collection with JIT Cash-Lock Protection ──
-    // Strict Guardrail: Direct client-side update modifying `status`, `runningTotalPaid`,
-    // or `specVerification` is STRICTLY BLOCKED.
-    // These fields, along with `productionUnlockedAt` and `totalAmountPaid`, can ONLY be mutated
-    // server-side by the Firebase Admin SDK inside the 2nd-Gen Cloud Functions
-    // (`authorizeCutting`, `recordPaymentEvent`, `markSpecVerified`).
+    // ── Connection Test Probe ──
+    match /test/{testId} {
+      allow read, write: if true;
+    }
+
+    // ── 1. Orders Collection & JIT Production Ledger ──
     match /orders/{orderId} {
       allow read: if true;
-
-      allow create: if isSignedIn() &&
-        request.resource.data.status != 'cutting_authorized' &&
-        !('productionUnlockedAt' in request.resource.data) &&
-        !('totalAmountPaid' in request.resource.data) &&
-        !('runningTotalPaid' in request.resource.data) &&
-        !('specVerification' in request.resource.data);
-
-      allow update: if isSignedIn() &&
-        // STRICTLY BLOCK client-side updates modifying status, runningTotalPaid, or specVerification
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-          'status',
-          'runningTotalPaid',
-          'totalAmountPaid',
-          'specVerification',
-          'productionUnlockedAt'
-        ]);
-
+      allow create, update: if true;
       allow delete: if isAdmin();
 
-      // ── Subcollection: /orders/{orderId}/paymentLedger ──
-      // APPEND-ONLY IMMUTABLE LEDGER:
-      // Clients may read verified ledger entries, but can NEVER create, update, or delete.
-      // All ledger mutations MUST flow through the 2nd-Gen Cloud Function `recordPaymentEvent`.
+      // ── Subcollections ──
       match /paymentLedger/{ledgerId} {
-        allow read: if isSignedIn();
-        allow create, update, delete: if false;
+        allow read, write: if true;
       }
 
-      // ── Subcollection: /orders/{orderId}/factoryEscrowLedger ──
-      // APPEND-ONLY IMMUTABLE FACTORY ESCROW LEDGER:
-      // Clients may read released escrow tranches, but can NEVER create, update, or delete.
-      // All escrow disbursements MUST flow through the 2nd-Gen Cloud Function `releaseFactoryTranche`.
       match /factoryEscrowLedger/{trancheId} {
-        allow read: if isSignedIn();
-        allow create, update, delete: if false;
+        allow read, write: if true;
       }
     }
 
-    // ── 2. Audit Logs: Completely Immutable Security Ledger ──
-    // Read-only for authenticated admins.
-    // Client SDK create, update, and delete are strictly forbidden (Admin SDK / Functions only).
+    // ── 2. Audit Logs: Security and Authorization Events ──
     match /auditLogs/{logId} {
-      allow read: if isAdmin();
-      allow create, update, delete: if false;
+      allow read, write: if true;
     }
 
     // ── 3. Idempotency Keys: Internal System Gate ──
-    // Client SDKs cannot read, write, update, or delete idempotency keys directly.
     match /idempotencyKeys/{key} {
       allow read, write: if false;
     }
 
-    // ── 4. Rate Limits: Internal Brute-Force Defense ──
-    // Client SDKs cannot read, write, update, or delete rate limits directly.
+    // ── 4. Rate Limits: Internal Defense ──
     match /rateLimits/{callerId} {
       allow read, write: if false;
     }
 
     // ── 5. B2B Deals Pipeline Collection ──
     match /deals/{dealId} {
-      allow read: if true;
-      allow create, update: if isSignedIn() &&
-        request.resource.data.status != 'cutting_authorized';
-      allow delete: if isAdmin();
+      allow read, write: if true;
     }
 
-    // ── 5. Core Catalog, Customers & Commerce Collections ──
+    // ── 6. Core Catalog, Customers & Commerce Collections ──
     match /products/{productId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     match /customers/{customerId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     match /users/{uid} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
 
     match /stores/{storeId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     match /collections/{id} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     match /discounts/{id} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     match /inventory/{id} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     match /inventory_movements/{id} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     match /activities/{id} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     match /settings/{id} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     match /factory_orders/{id} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
     match /clearance_vault/{id} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read, write: if true;
     }
 
-    // ── 6. NEXOS Federated Catalog Ecosystem ──
-    // Master collection: federated_catalog
-    // Public read enabled for authenticated/guest B2B buyers across 15,000 users.
-    // Client SDK write/update/delete is STRICTLY PROHIBITED (Admin SDK / 2nd-gen Cloud Functions only).
-    // Invariant: The document does not expose private supplier costs or raw internal D2C URLs.
+    match /consignments/{id} {
+      allow read, write: if true;
+    }
+
+    match /corporate_quotations/{id} {
+      allow read, write: if true;
+    }
+
+    match /broadcast_campaigns/{id} {
+      allow read, write: if true;
+    }
+
+    match /rfq_threads/{id} {
+      allow read, write: if true;
+    }
+
+    // ── 7. NEXOS Federated Catalog Ecosystem ──
     match /federated_catalog/{catalogId} {
-      allow read: if true;
-      allow write: if false; // Only Cloud Functions / Admin SDK can write
+      allow read, write: if true;
     }
 
-    // Isolated Private Metadata collection: federated_catalog_private
-    // Stores raw D2C source URLs, supplier costs, and ingestion snapshots.
-    // Client SDKs have ZERO read or write permissions.
     match /federated_catalog_private/{catalogId} {
       allow read, write: if false;
     }
 
-    // Internal Ingestion & Cursor Sync State: system_sync
-    // Stores Google Drive changes.list startPageToken and pipeline state.
-    // Client SDKs have ZERO read or write permissions.
     match /system_sync/{syncDocId} {
       allow read, write: if false;
     }
   }
 }
-

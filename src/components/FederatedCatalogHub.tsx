@@ -6,6 +6,7 @@ import {
   hydrateFromCdnBundle,
   searchFederatedCatalog,
 } from '../services/catalogService';
+import { fetchLiveCatalog } from '../services/nexusApi';
 import {
   Layers,
   ExternalLink,
@@ -25,226 +26,97 @@ import {
   Info,
 } from 'lucide-react';
 
-// Seed catalog for instant hydration demo when offline or before pipeline first run
-const SEED_CATALOG: FederatedProduct[] = [
-  {
-    id: 'arutemika_com_ARU-LEA-BAG-09',
-    sku: 'ARU-LEA-BAG-09',
-    title: 'Executive Full-Grain Leather Briefcase',
-    handle: 'executive-full-grain-leather-briefcase',
-    description: 'Bespoke hand-burnished vegetable-tanned buffalo leather briefcase. Reinforced saddle stitching with solid brass hardware forged in Savar.',
-    category: 'Leather Bags & Luggage',
-    origin: 'arutemika.com',
-    originDisplayName: 'Arutemika Leather Studio',
-    status: 'ACTIVE',
-    retailPriceUsd: 285.00,
-    currency: 'USD',
-    moq: 100,
-    wholesalePriceLadder: [
-      { tierNumber: 1, minQuantity: 500, discountPercentage: 12, unitPriceUsd: 250.80, totalTierCostUsd: 125400 },
-      { tierNumber: 2, minQuantity: 2000, discountPercentage: 22, unitPriceUsd: 222.30, totalTierCostUsd: 444600 },
-      { tierNumber: 3, minQuantity: 10000, discountPercentage: 35, unitPriceUsd: 185.25, totalTierCostUsd: 1852500 },
-    ],
-    provenance: {
-      badgeId: 'PROV-BD-LEATHER-SAVAR',
-      badgeLabel: 'Artisanal Tannery Certified • Hazaribagh & Savar Traceable Leather',
-      certificationAuthority: 'Dhaka Leather Goods Guild & BSTI Export Standard',
-      originRegion: 'Savar Tannery Estate, Dhaka Division, Bangladesh',
-      traceabilityGrade: 'A_PLUS_ARTISANAL',
-      materialCompliance: [
-        'LWG Audited Tannery Raw Sourcing',
-        'REACH Annex XVII Certified',
-        'Zero Chromium IV Discharge Standard',
-      ],
-      ecoScore: 94,
-    },
-    images: ['https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80'],
-    thumbnailUrl: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80',
-    materials: ['Full-Grain Cowhide Leather', 'Solid Brass Hardware', 'Cotton Twill Lining'],
-    tags: ['Luxury', 'Leather', 'Executive', 'Bespoke', 'Artisanal'],
-    specifications: { leatherType: 'Vegetable-Tanned Buffalo', weightKg: 1.4, dimensions: '40x30x9 cm' },
-    inventoryCount: 420,
-    inStock: true,
-    leadTimeDays: 28,
-    hsCode: '4202.21.00',
-    syncVersion: 3,
-    redirectUrlPath: '/api/redirect/arutemika_com_ARU-LEA-BAG-09',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    lastSyncedAt: new Date().toISOString(),
-    featuredScore: 268,
-  },
-  {
-    id: 'shop_handsandhead_com_HH-OEK-HD01',
-    sku: 'HH-OEK-HD01',
-    title: 'Heavyweight OEKO-TEX French Terry Hoodie',
-    handle: 'heavyweight-oeko-tex-french-terry-hoodie',
-    description: '450 GSM combed organic cotton French terry hoodie. Pre-shrunk, double-needle coverstitched with ribbed side gussets.',
-    category: 'Apparel & Knitwear',
-    origin: 'shop.handsandhead.com',
-    originDisplayName: 'Hands & Head Headless Atelier',
-    status: 'ACTIVE',
-    retailPriceUsd: 78.00,
-    currency: 'USD',
-    moq: 500,
-    wholesalePriceLadder: [
-      { tierNumber: 1, minQuantity: 500, discountPercentage: 12, unitPriceUsd: 68.64, totalTierCostUsd: 34320 },
-      { tierNumber: 2, minQuantity: 2000, discountPercentage: 22, unitPriceUsd: 60.84, totalTierCostUsd: 121680 },
-      { tierNumber: 3, minQuantity: 10000, discountPercentage: 35, unitPriceUsd: 50.70, totalTierCostUsd: 507000 },
-    ],
-    provenance: {
-      badgeId: 'PROV-BD-RMG-BAYXBENGAL',
-      badgeLabel: 'BayXBengal Export Standard • OEKO-TEX Cotton & Jute Certified',
-      certificationAuthority: 'BGMEA & Accord Bangladesh Safety Standard',
-      originRegion: 'Dhaka & Chittagong Industrial Export Zone, Bangladesh',
-      traceabilityGrade: 'EXPORT_GRADE_CLASS_A',
-      materialCompliance: [
-        'OEKO-TEX Standard 100 Certified',
-        'GOTS Organic Cotton Blend Standard',
-        'Fair Trade Sourced Bangladesh Jute',
-      ],
-      ecoScore: 91,
-    },
-    images: ['https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80'],
-    thumbnailUrl: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80',
-    materials: ['100% Combed Organic Cotton (450 GSM)', 'Lycra Spandex Ribbing'],
-    tags: ['Knitwear', 'French Terry', 'Organic', 'Streetwear', 'Export'],
-    specifications: { fabricGsm: 450, dyeType: 'Reactive Low-Impact Dye', shrinkTolerance: '< 2%' },
-    inventoryCount: 3800,
-    inStock: true,
-    leadTimeDays: 21,
-    hsCode: '6110.20.00',
-    syncVersion: 5,
-    redirectUrlPath: '/api/redirect/shop_handsandhead_com_HH-OEK-HD01',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    lastSyncedAt: new Date().toISOString(),
-    featuredScore: 71,
-  },
-  {
-    id: 'arutemika_com_ARU-LEA-WLT-04',
-    sku: 'ARU-LEA-WLT-04',
-    title: 'Slim Bifold RFID-Shielded Calfskin Wallet',
-    handle: 'slim-bifold-rfid-calfskin-wallet',
-    description: 'Ultra-thin bifold wallet crafted from full-grain calfskin with integrated Faraday RFID radiation blocking weave.',
-    category: 'Small Leather Goods',
-    origin: 'arutemika.com',
-    originDisplayName: 'Arutemika Leather Studio',
-    status: 'ACTIVE',
-    retailPriceUsd: 65.00,
-    currency: 'USD',
-    moq: 250,
-    wholesalePriceLadder: [
-      { tierNumber: 1, minQuantity: 500, discountPercentage: 12, unitPriceUsd: 57.20, totalTierCostUsd: 28600 },
-      { tierNumber: 2, minQuantity: 2000, discountPercentage: 22, unitPriceUsd: 50.70, totalTierCostUsd: 101400 },
-      { tierNumber: 3, minQuantity: 10000, discountPercentage: 35, unitPriceUsd: 42.25, totalTierCostUsd: 422500 },
-    ],
-    provenance: {
-      badgeId: 'PROV-BD-LEATHER-SAVAR',
-      badgeLabel: 'Artisanal Tannery Certified • Hazaribagh & Savar Traceable Leather',
-      certificationAuthority: 'Dhaka Leather Goods Guild & BSTI Export Standard',
-      originRegion: 'Savar Tannery Estate, Dhaka Division, Bangladesh',
-      traceabilityGrade: 'A_PLUS_ARTISANAL',
-      materialCompliance: ['LWG Gold Rated Raw Tannery', 'REACH Compliant', 'Chrome-Free'],
-      ecoScore: 93,
-    },
-    images: ['https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=800&q=80'],
-    thumbnailUrl: 'https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=800&q=80',
-    materials: ['Full-Grain Calfskin', 'Faraday Shielding Fabric'],
-    tags: ['Wallets', 'Leather', 'RFID', 'Accessories'],
-    specifications: { cardCapacity: 8, rfidBlockFrequency: '13.56 MHz', weightG: 48 },
-    inventoryCount: 1200,
-    inStock: true,
-    leadTimeDays: 18,
-    hsCode: '4202.31.00',
-    syncVersion: 2,
-    redirectUrlPath: '/api/redirect/arutemika_com_ARU-LEA-WLT-04',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    lastSyncedAt: new Date().toISOString(),
-    featuredScore: 60,
-  },
-  {
-    id: 'shop_handsandhead_com_HH-JUT-TOT02',
-    sku: 'HH-JUT-TOT02',
-    title: 'Raw Bengal Golden Fiber Structured Tote',
-    handle: 'raw-bengal-golden-fiber-structured-tote',
-    description: 'Heavy-density spun golden jute composite tote with vegetable-tanned leather carry handles and water-repellent plant wax lining.',
-    category: 'Jute & Sustainable Accessories',
-    origin: 'shop.handsandhead.com',
-    originDisplayName: 'Hands & Head Headless Atelier',
-    status: 'ACTIVE',
-    retailPriceUsd: 42.00,
-    currency: 'USD',
-    moq: 500,
-    wholesalePriceLadder: [
-      { tierNumber: 1, minQuantity: 500, discountPercentage: 12, unitPriceUsd: 36.96, totalTierCostUsd: 18480 },
-      { tierNumber: 2, minQuantity: 2000, discountPercentage: 22, unitPriceUsd: 32.76, totalTierCostUsd: 65520 },
-      { tierNumber: 3, minQuantity: 10000, discountPercentage: 35, unitPriceUsd: 27.30, totalTierCostUsd: 273000 },
-    ],
-    provenance: {
-      badgeId: 'PROV-BD-RMG-BAYXBENGAL',
-      badgeLabel: 'BayXBengal Export Standard • OEKO-TEX Cotton & Jute Certified',
-      certificationAuthority: 'Bangladesh Jute Research Institute & Fair Trade',
-      originRegion: 'Faridpur & Jessore Golden Fiber Cluster, Bangladesh',
-      traceabilityGrade: 'EXPORT_GRADE_CLASS_A',
-      materialCompliance: ['100% Biodegradable Bengal Jute', 'Zero Microplastics', 'Organic Plant Wax'],
-      ecoScore: 98,
-    },
-    images: ['https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80'],
-    thumbnailUrl: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
-    materials: ['Unbleached Golden Jute', 'Vegetable-Tanned Leather Trim', 'Organic Cotton Canvas'],
-    tags: ['Jute', 'Sustainable', 'Eco-Friendly', 'Bags', 'Zero-Plastic'],
-    specifications: { tensileStrength: 'High Yield Jute Weave', volumeLiters: 24, maxLoadKg: 18 },
-    inventoryCount: 6500,
-    inStock: true,
-    leadTimeDays: 14,
-    hsCode: '6305.10.00',
-    syncVersion: 4,
-    redirectUrlPath: '/api/redirect/shop_handsandhead_com_HH-JUT-TOT02',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    lastSyncedAt: new Date().toISOString(),
-    featuredScore: 41,
-  },
-];
 
 export const FederatedCatalogHub: React.FC = () => {
-  const [products, setProducts] = useState<FederatedProduct[]>(SEED_CATALOG);
+  const [products, setProducts] = useState<FederatedProduct[]>([]);
   const [selectedOrigin, setSelectedOrigin] = useState<'ALL' | 'shop.handsandhead.com' | 'arutemika.com'>('ALL');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedProduct, setSelectedProduct] = useState<FederatedProduct | null>(SEED_CATALOG[0]);
+  const [selectedProduct, setSelectedProduct] = useState<FederatedProduct | null>(null);
   const [calculatorUnits, setCalculatorUnits] = useState<number>(500);
-  const [hydrationSource, setHydrationSource] = useState<'CDN_BUNDLE' | 'SEED_PRECACHE' | 'FIRESTORE_LIVE'>('CDN_BUNDLE');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hydrationSource, setHydrationSource] = useState<'FIRESTORE_LIVE' | 'CDN_BUNDLE'>('FIRESTORE_LIVE');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'CATALOG' | 'NODES' | 'PIPELINE'>('CATALOG');
 
-  // Load bundle or initial paginated query on mount
+  // Hydrate strictly from Firestore (100% Firebase Architecture)
   useEffect(() => {
     let isMounted = true;
 
     async function initializeHydration() {
       setIsLoading(true);
       try {
-        // Attempt bundle hydration if window.firebaseDb exists
-        const db = (window as any).firebaseDb;
-        if (db) {
-          const bundleItems = await hydrateFromCdnBundle(db);
-          if (isMounted && bundleItems.length > 0) {
-            setProducts(bundleItems);
-            setHydrationSource('CDN_BUNDLE');
-            setIsLoading(false);
-            return;
+        const liveItems = await fetchLiveCatalog();
+        if (isMounted) {
+          if (Array.isArray(liveItems) && liveItems.length > 0) {
+            const mapped: FederatedProduct[] = liveItems.map((p) => ({
+              id: p.id,
+              sku: p.sku,
+              title: p.title,
+              handle: p.handle || p.id,
+              description: p.description,
+              category: p.category || 'Atelier Goods',
+              origin: (p.origin === 'arutemika.com' ? 'arutemika.com' : 'shop.handsandhead.com') as any,
+              originDisplayName: p.originDisplayName || 'Hands & Head Atelier',
+              status: (p.status || 'ACTIVE') as any,
+              retailPriceUsd: p.retailPriceUsd || p.retailPrice || 0,
+              currency: 'USD',
+              moq: p.moq || 1,
+              wholesalePriceLadder: Array.isArray(p.wholesalePriceLadder) && p.wholesalePriceLadder.length > 0
+                ? p.wholesalePriceLadder.map((tier, idx) => ({
+                    tierNumber: ((idx + 1) as 1 | 2 | 3) || 1,
+                    minQuantity: tier.minQuantity,
+                    discountPercentage: tier.discountPercentage || 15,
+                    unitPriceUsd: tier.unitPriceUsd,
+                    totalTierCostUsd: tier.unitPriceUsd * tier.minQuantity,
+                  }))
+                : [
+                    { tierNumber: 1, minQuantity: 50, discountPercentage: 10, unitPriceUsd: (p.retailPriceUsd || p.retailPrice || 100) * 0.9, totalTierCostUsd: 50 * (p.retailPriceUsd || p.retailPrice || 100) * 0.9 },
+                    { tierNumber: 2, minQuantity: 200, discountPercentage: 20, unitPriceUsd: (p.retailPriceUsd || p.retailPrice || 100) * 0.8, totalTierCostUsd: 200 * (p.retailPriceUsd || p.retailPrice || 100) * 0.8 },
+                    { tierNumber: 3, minQuantity: 1000, discountPercentage: 35, unitPriceUsd: (p.retailPriceUsd || p.retailPrice || 100) * 0.65, totalTierCostUsd: 1000 * (p.retailPriceUsd || p.retailPrice || 100) * 0.65 },
+                  ],
+              provenance: {
+                badgeId: 'PROV-BD-ATELIER',
+                badgeLabel: 'BayXBengal Verified Atelier Sourcing',
+                certificationAuthority: 'Dhaka Leather & Textile Guild',
+                originRegion: 'Dhaka Division, Bangladesh',
+                traceabilityGrade: 'A_PLUS_ARTISANAL',
+                materialCompliance: ['REACH Compliant', 'Eco-Audit Certified'],
+                ecoScore: 92,
+              },
+              images: p.images || [],
+              thumbnailUrl: p.thumbnailUrl || (p.images && p.images[0]) || '',
+              materials: p.materials || [],
+              tags: p.tags || [],
+              specifications: p.specifications || {},
+              inventoryCount: p.inventoryCount || 0,
+              inStock: Boolean(p.inStock),
+              leadTimeDays: p.leadTimeDays || 14,
+              hsCode: '6110.20.00',
+              syncVersion: 1,
+              createdAt: p.createdAt || new Date().toISOString(),
+              updatedAt: p.updatedAt || new Date().toISOString(),
+              lastSyncedAt: new Date().toISOString(),
+              featuredScore: 80,
+            }));
+            setProducts(mapped);
+            setSelectedProduct(mapped[0] || null);
+            setHydrationSource('FIRESTORE_LIVE');
+          } else {
+            console.log('[NexOS Firebase Sync]: No data found or connection issue.');
+            setProducts([]);
+            setSelectedProduct(null);
           }
         }
       } catch (err) {
-        console.warn('Initial bundle hydration failed, using pre-cached federated catalog', err);
-      }
-      if (isMounted) {
-        setProducts(SEED_CATALOG);
-        setHydrationSource('SEED_PRECACHE');
-        setIsLoading(false);
+        console.log('[NexOS Firebase Sync]: No data found or connection issue.');
+        if (isMounted) {
+          setProducts([]);
+          setSelectedProduct(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
 

@@ -33,279 +33,515 @@ window.ProductsService = {
   _getDefaultSeedProducts() {
     return [
       {
-        id: "prod-tee-01",
-        title: "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
-        handle: "heavyweight-boxy-graphic-tee-dhaka-cyber",
-        status: "active",
-        vendor: "Hands & Head",
-        productType: "Tees & Apparel",
-        description: "260 GSM combed cotton vintage acid-washed oversized streetwear tee with high-density screenprint and reinforced ribbed collar.",
-        tags: ["tee", "tshirt", "oversized", "streetwear", "acid-wash", "apparel"],
-        pricing: { price: 1850, compareAtPrice: 2400, cost: 750, currency: "BDT" },
-        images: [
-          { url: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80", alt: "Heavyweight Boxy Graphic Tee" },
-          { url: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&auto=format&fit=crop&q=80", alt: "Tee Back View" }
+        "id": "prod-mtoeo9ex-949",
+        "title": "Test Leather Belt",
+        "handle": "test-leather-belt",
+        "status": "active",
+        "vendor": "Hands & Head",
+        "productType": "Leather Goods",
+        "description": "",
+        "tags": [
+          "Leather Goods"
         ],
-        variants: [
-          { id: "v-tee-m", title: "Vintage Washed Black / M", sku: "HH-TEE-01-M", price: 1850, inventoryQty: 45, availableForSale: true },
-          { id: "v-tee-l", title: "Vintage Washed Black / L", sku: "HH-TEE-01-L", price: 1850, inventoryQty: 60, availableForSale: true },
-          { id: "v-tee-xl", title: "Vintage Washed Black / XL", sku: "HH-TEE-01-XL", price: 1850, inventoryQty: 30, availableForSale: true }
+        "pricing": {
+          "price": 1200,
+          "compareAtPrice": null,
+          "cost": null,
+          "currency": "BDT"
+        },
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80",
+            "alt": "Test Leather Belt"
+          }
         ],
-        totalInventory: 135,
-        lowStockThreshold: 15,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: "prod-tee-02",
-        title: "Artisanal Raw-Hem Oversized Drop Tee",
-        handle: "artisanal-raw-hem-oversized-drop-tee",
-        status: "active",
-        vendor: "Hands & Head",
-        productType: "Tees & Apparel",
-        description: "240 GSM organic slub cotton drop-shoulder silhouette with raw-cut distressed hems and tonal embroidered chest emblem.",
-        tags: ["tee", "tshirt", "raw-hem", "streetwear", "apparel", "minimalist"],
-        pricing: { price: 1650, compareAtPrice: 2100, cost: 680, currency: "BDT" },
-        images: [
-          { url: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800&auto=format&fit=crop&q=80", alt: "Raw-Hem Drop Tee" }
+        "variants": [
+          {
+            "id": "v-prod-mtoeo9ex-949",
+            "title": "Standard",
+            "sku": "HH-3780",
+            "price": 1200,
+            "inventoryQty": 15,
+            "availableForSale": true
+          }
         ],
-        variants: [
-          { id: "v-tee-raw-l", title: "Bone White / L", sku: "HH-TEE-02-L", price: 1650, inventoryQty: 50, availableForSale: true },
-          { id: "v-tee-raw-xl", title: "Bone White / XL", sku: "HH-TEE-02-XL", price: 1650, inventoryQty: 38, availableForSale: true }
+        "totalInventory": 15,
+        "lowStockThreshold": 10,
+        "createdAt": "2026-09-05T13:15:32.649Z",
+        "updatedAt": "2026-09-05T13:15:32.649Z"
+      },
+      {
+        "id": "prod-tee-01",
+        "title": "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+        "handle": "heavyweight-boxy-graphic-tee-dhaka-cyber",
+        "status": "active",
+        "vendor": "Hands & Head",
+        "productType": "Tees & Apparel",
+        "description": "260 GSM combed cotton vintage acid-washed oversized streetwear tee with high-density screenprint and reinforced ribbed collar.",
+        "tags": [
+          "tee",
+          "tshirt",
+          "oversized",
+          "streetwear",
+          "acid-wash",
+          "apparel"
         ],
-        totalInventory: 88,
-        lowStockThreshold: 12,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: "prod-tee-03",
-        title: "Architectural Cutout Leather-Pocket Tee",
-        handle: "architectural-cutout-leather-pocket-tee",
-        status: "active",
-        vendor: "Hands & Head",
-        productType: "Tees & Apparel",
-        description: "Heavy 280 GSM French terry tee featuring genuine vegetable-tanned leather utility patch pocket with antique brass rivet.",
-        tags: ["tee", "leather-trim", "luxury", "apparel", "streetwear"],
-        pricing: { price: 2450, compareAtPrice: 2950, cost: 950, currency: "BDT" },
-        images: [
-          { url: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&auto=format&fit=crop&q=80", alt: "Leather Pocket Tee" }
+        "pricing": {
+          "price": 1850,
+          "compareAtPrice": 2400,
+          "cost": 750,
+          "currency": "BDT"
+        },
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80",
+            "alt": "Heavyweight Boxy Graphic Tee"
+          },
+          {
+            "url": "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&auto=format&fit=crop&q=80",
+            "alt": "Tee Back View"
+          }
         ],
-        variants: [
-          { id: "v-tee-pock-m", title: "Charcoal Slate / M", sku: "HH-TEE-03-M", price: 2450, inventoryQty: 32, availableForSale: true },
-          { id: "v-tee-pock-l", title: "Charcoal Slate / L", sku: "HH-TEE-03-L", price: 2450, inventoryQty: 40, availableForSale: true }
+        "variants": [
+          {
+            "id": "v-tee-m",
+            "title": "Vintage Washed Black / M",
+            "sku": "HH-TEE-01-M",
+            "price": 1850,
+            "inventoryQty": 45,
+            "availableForSale": true
+          },
+          {
+            "id": "v-tee-l",
+            "title": "Vintage Washed Black / L",
+            "sku": "HH-TEE-01-L",
+            "price": 1850,
+            "inventoryQty": 60,
+            "availableForSale": true
+          },
+          {
+            "id": "v-tee-xl",
+            "title": "Vintage Washed Black / XL",
+            "sku": "HH-TEE-01-XL",
+            "price": 1850,
+            "inventoryQty": 30,
+            "availableForSale": true
+          }
         ],
-        totalInventory: 72,
-        lowStockThreshold: 10,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        "totalInventory": 135,
+        "lowStockThreshold": 15,
+        "createdAt": "2026-09-04T13:20:51.208Z",
+        "updatedAt": "2026-09-04T13:20:51.208Z"
       },
       {
-        id: "prod-wlt-01",
-        title: "Full-Grain Leather Bi-Fold Wallet",
-        handle: "full-grain-leather-bi-fold-wallet",
-        status: "active",
-        vendor: "Hands & Head",
-        productType: "Leather Goods",
-        description: "Handcrafted 100% full-grain vegetable-tanned cowhide wallet with 6 card slots and dual currency partitions.",
-        tags: ["wallet", "leather", "bifold", "b2b"],
-        pricing: { price: 2850, compareAtPrice: 3400, cost: 1600, currency: "BDT" },
-        images: [{ url: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80", alt: "Leather Wallet" }],
-        variants: [{ id: "v-wlt-tan", title: "Tan Brown", sku: "HH-WLT-01", price: 2850, inventoryQty: 48, availableForSale: true }],
-        totalInventory: 48,
-        lowStockThreshold: 10,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        "id": "prod-tee-02",
+        "title": "Artisanal Raw-Hem Oversized Drop Tee",
+        "handle": "artisanal-raw-hem-oversized-drop-tee",
+        "status": "active",
+        "vendor": "Hands & Head",
+        "productType": "Tees & Apparel",
+        "description": "240 GSM organic slub cotton drop-shoulder silhouette with raw-cut distressed hems and tonal embroidered chest emblem.",
+        "tags": [
+          "tee",
+          "tshirt",
+          "raw-hem",
+          "streetwear",
+          "apparel",
+          "minimalist"
+        ],
+        "pricing": {
+          "price": 1650,
+          "compareAtPrice": 2100,
+          "cost": 680,
+          "currency": "BDT"
+        },
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800&auto=format&fit=crop&q=80",
+            "alt": "Raw-Hem Drop Tee"
+          }
+        ],
+        "variants": [
+          {
+            "id": "v-tee-raw-l",
+            "title": "Bone White / L",
+            "sku": "HH-TEE-02-L",
+            "price": 1650,
+            "inventoryQty": 50,
+            "availableForSale": true
+          },
+          {
+            "id": "v-tee-raw-xl",
+            "title": "Bone White / XL",
+            "sku": "HH-TEE-02-XL",
+            "price": 1650,
+            "inventoryQty": 38,
+            "availableForSale": true
+          }
+        ],
+        "totalInventory": 88,
+        "lowStockThreshold": 12,
+        "createdAt": "2026-09-04T13:20:51.208Z",
+        "updatedAt": "2026-09-04T13:20:51.208Z"
       },
       {
-        id: "prod-brf-02",
-        title: "Executive Leather Briefcase",
-        handle: "executive-leather-briefcase",
-        status: "active",
-        vendor: "Hands & Head",
-        productType: "Bags",
-        description: "Premium oil-pull leather laptop briefcase with brass hardware and reinforced shoulder strap.",
-        tags: ["briefcase", "executive", "office", "export"],
-        pricing: { price: 18500, compareAtPrice: 22000, cost: 10500, currency: "BDT" },
-        images: [{ url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80", alt: "Briefcase" }],
-        variants: [{ id: "v-brf-blk", title: "Midnight Black", sku: "HH-BRF-02", price: 18500, inventoryQty: 14, availableForSale: true }],
-        totalInventory: 14,
-        lowStockThreshold: 5,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        "id": "prod-tee-03",
+        "title": "Architectural Cutout Leather-Pocket Tee",
+        "handle": "architectural-cutout-leather-pocket-tee",
+        "status": "active",
+        "vendor": "Hands & Head",
+        "productType": "Tees & Apparel",
+        "description": "Heavy 280 GSM French terry tee featuring genuine vegetable-tanned leather utility patch pocket with antique brass rivet.",
+        "tags": [
+          "tee",
+          "leather-trim",
+          "luxury",
+          "apparel",
+          "streetwear"
+        ],
+        "pricing": {
+          "price": 2450,
+          "compareAtPrice": 2950,
+          "cost": 950,
+          "currency": "BDT"
+        },
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&auto=format&fit=crop&q=80",
+            "alt": "Leather Pocket Tee"
+          }
+        ],
+        "variants": [
+          {
+            "id": "v-tee-pock-m",
+            "title": "Charcoal Slate / M",
+            "sku": "HH-TEE-03-M",
+            "price": 2450,
+            "inventoryQty": 32,
+            "availableForSale": true
+          },
+          {
+            "id": "v-tee-pock-l",
+            "title": "Charcoal Slate / L",
+            "sku": "HH-TEE-03-L",
+            "price": 2450,
+            "inventoryQty": 40,
+            "availableForSale": true
+          }
+        ],
+        "totalInventory": 72,
+        "lowStockThreshold": 10,
+        "createdAt": "2026-09-04T13:20:51.208Z",
+        "updatedAt": "2026-09-04T13:20:51.208Z"
       },
       {
-        id: "prod-blt-01",
-        title: "Classic Full-Grain Dress Belt",
-        handle: "classic-full-grain-dress-belt",
-        status: "active",
-        vendor: "Hands & Head",
-        productType: "Belts",
-        description: "Single-piece full grain bridle leather belt with solid brushed steel buckle.",
-        tags: ["belt", "classic", "formal"],
-        pricing: { price: 2250, compareAtPrice: 2600, cost: 1100, currency: "BDT" },
-        images: [{ url: "https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=600&auto=format&fit=crop&q=80", alt: "Leather Belt" }],
-        variants: [{ id: "v-blt-choc", title: "Chocolate Brown / 34", sku: "HH-BLT-01", price: 2250, inventoryQty: 62, availableForSale: true }],
-        totalInventory: 62,
-        lowStockThreshold: 15,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        "id": "prod-wlt-01",
+        "title": "Full-Grain Leather Bi-Fold Wallet",
+        "handle": "full-grain-leather-bi-fold-wallet",
+        "status": "active",
+        "vendor": "Hands & Head",
+        "productType": "Leather Goods",
+        "description": "Handcrafted 100% full-grain vegetable-tanned cowhide wallet with 6 card slots and dual currency partitions.",
+        "tags": [
+          "wallet",
+          "leather",
+          "bifold",
+          "b2b"
+        ],
+        "pricing": {
+          "price": 2850,
+          "compareAtPrice": 3400,
+          "cost": 1600,
+          "currency": "BDT"
+        },
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80",
+            "alt": "Leather Wallet"
+          }
+        ],
+        "variants": [
+          {
+            "id": "v-wlt-tan",
+            "title": "Tan Brown",
+            "sku": "HH-WLT-01",
+            "price": 2850,
+            "inventoryQty": 47,
+            "availableForSale": true
+          }
+        ],
+        "totalInventory": 47,
+        "lowStockThreshold": 10,
+        "createdAt": "2026-09-04T13:20:51.208Z",
+        "updatedAt": "2026-09-04T13:20:51.208Z"
       },
       {
-        id: "prod-crd-03",
-        title: "Minimalist Leather Card Holder",
-        handle: "minimalist-leather-card-holder",
-        status: "active",
-        vendor: "Hands & Head",
-        productType: "Accessories",
-        description: "Ultra-slim front pocket leather card sleeve with RFID protection.",
-        tags: ["cardholder", "minimalist", "edc"],
-        pricing: { price: 1250, compareAtPrice: 1500, cost: 600, currency: "BDT" },
-        images: [{ url: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80", alt: "Card Holder" }],
-        variants: [{ id: "v-crd-hav", title: "Havana Brown", sku: "HH-CRD-03", price: 1250, inventoryQty: 95, availableForSale: true }],
-        totalInventory: 95,
-        lowStockThreshold: 20,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        "id": "prod-brf-02",
+        "title": "Executive Leather Briefcase",
+        "handle": "executive-leather-briefcase",
+        "status": "active",
+        "vendor": "Hands & Head",
+        "productType": "Leather Goods",
+        "description": "Handmade vegetable-tanned full-grain leather briefcase with brass hardware, laptop compartment, and luggage trolley strap.",
+        "tags": [
+          "briefcase",
+          "luxury",
+          "executive",
+          "b2b"
+        ],
+        "pricing": {
+          "price": 14500,
+          "compareAtPrice": 17500,
+          "cost": 8200,
+          "currency": "BDT"
+        },
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80",
+            "alt": "Leather Briefcase"
+          }
+        ],
+        "variants": [
+          {
+            "id": "v-brf-blk",
+            "title": "Midnight Black",
+            "sku": "HH-BRF-02",
+            "price": 14500,
+            "inventoryQty": 18,
+            "availableForSale": true
+          }
+        ],
+        "totalInventory": 18,
+        "lowStockThreshold": 5,
+        "createdAt": "2026-09-04T13:20:51.208Z",
+        "updatedAt": "2026-09-04T13:20:51.208Z"
       },
       {
-        id: "prod-dfl-04",
-        title: "Voyager Handcrafted Leather Duffel",
-        handle: "voyager-handcrafted-leather-duffel",
-        status: "active",
-        vendor: "Hands & Head",
-        productType: "Bags",
-        description: "Full-grain weekend travel bag with antique brass fittings and detachable canvas-leather strap.",
-        tags: ["duffel", "travel", "leather", "weekend"],
-        pricing: { price: 21500, compareAtPrice: 24900, cost: 12500, currency: "BDT" },
-        images: [{ url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80", alt: "Leather Duffel" }],
-        variants: [{ id: "v-dfl-cognac", title: "Cognac Tan", sku: "HH-DFL-04", price: 21500, inventoryQty: 18, availableForSale: true }],
-        totalInventory: 18,
-        lowStockThreshold: 4,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        "id": "prod-crd-02",
+        "title": "Minimalist Cardholder — Aniline Tan",
+        "handle": "minimalist-cardholder-aniline-tan",
+        "status": "active",
+        "vendor": "Hands & Head",
+        "productType": "Leather Goods",
+        "description": "Slim 4-slot cardholder crafted from oil-pullup calf leather with center cash pocket.",
+        "tags": [
+          "cardholder",
+          "minimalist",
+          "accessories"
+        ],
+        "pricing": {
+          "price": 1450,
+          "compareAtPrice": 1800,
+          "cost": 650,
+          "currency": "BDT"
+        },
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop&q=80",
+            "alt": "Cardholder"
+          }
+        ],
+        "variants": [
+          {
+            "id": "v-crd-tan",
+            "title": "Aniline Tan",
+            "sku": "HH-CRD-02",
+            "price": 1450,
+            "inventoryQty": 63,
+            "availableForSale": true
+          }
+        ],
+        "totalInventory": 63,
+        "lowStockThreshold": 12,
+        "createdAt": "2026-09-04T13:20:51.208Z",
+        "updatedAt": "2026-09-04T13:20:51.208Z",
+        "unitsSold": 2,
+        "totalRevenue": 3700,
+        "lastSoldAt": "2026-09-06T09:05:17.382Z",
+        "buyerCustomerIds": [
+          "cust-mtpl6a8h"
+        ]
       },
       {
-        id: "prod-oxf-05",
-        title: "Artisanal Leather Oxford Brogues",
-        handle: "artisanal-leather-oxford-brogues",
-        status: "active",
-        vendor: "Hands & Head",
-        productType: "Footwear",
-        description: "Goodyear welted cowhide dress shoes hand-burnished to a rich patina.",
-        tags: ["shoes", "footwear", "oxford", "formal"],
-        pricing: { price: 14200, compareAtPrice: 16500, cost: 8200, currency: "BDT" },
-        images: [{ url: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=600&auto=format&fit=crop&q=80", alt: "Leather Shoes" }],
-        variants: [{ id: "v-oxf-42", title: "Burgundy / EU 42", sku: "HH-OXF-05", price: 14200, inventoryQty: 22, availableForSale: true }],
-        totalInventory: 22,
-        lowStockThreshold: 6,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        "id": "prod-blt-01",
+        "title": "Heavyweight Full-Grain Leather Belt",
+        "handle": "heavyweight-full-grain-leather-belt",
+        "status": "active",
+        "vendor": "Hands & Head",
+        "productType": "Leather Goods",
+        "description": "Solid 38mm harness leather belt with solid brushed brass roller buckle.",
+        "tags": [
+          "belt",
+          "accessories",
+          "b2b"
+        ],
+        "pricing": {
+          "price": 3200,
+          "compareAtPrice": 3800,
+          "cost": 1400,
+          "currency": "BDT"
+        },
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=600&auto=format&fit=crop&q=80",
+            "alt": "Leather Belt"
+          }
+        ],
+        "variants": [
+          {
+            "id": "v-blt-brn",
+            "title": "Cognac Brown",
+            "sku": "HH-BLT-01",
+            "price": 3200,
+            "inventoryQty": 52,
+            "availableForSale": true
+          }
+        ],
+        "totalInventory": 52,
+        "lowStockThreshold": 10,
+        "createdAt": "2026-09-04T13:20:51.208Z",
+        "updatedAt": "2026-09-04T13:20:51.208Z"
+      },
+      {
+        "id": "prod-fol-01",
+        "title": "Passport Travel Folio & Boarding Wallet",
+        "handle": "passport-travel-folio-boarding-wallet",
+        "status": "active",
+        "vendor": "Hands & Head",
+        "productType": "Leather Goods",
+        "description": "All-in-one travel organizer accommodating two passports, boarding pass, 6 cards, and pen loop.",
+        "tags": [
+          "travel",
+          "passport",
+          "folio"
+        ],
+        "pricing": {
+          "price": 4200,
+          "compareAtPrice": 4900,
+          "cost": 1900,
+          "currency": "BDT"
+        },
+        "images": [
+          {
+            "url": "https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&auto=format&fit=crop&q=80",
+            "alt": "Travel Folio"
+          }
+        ],
+        "variants": [
+          {
+            "id": "v-fol-blk",
+            "title": "Onyx Black",
+            "sku": "HH-FOL-01",
+            "price": 4200,
+            "inventoryQty": 34,
+            "availableForSale": true
+          }
+        ],
+        "totalInventory": 34,
+        "lowStockThreshold": 8,
+        "createdAt": "2026-09-04T13:20:51.208Z",
+        "updatedAt": "2026-09-04T13:20:51.208Z"
       }
     ];
   },
 
-  /* ── Query & List Products with Search, Filtering & Sorting ── */
+  addOrUpdateMemCache(product) {
+    if (!product || !product.id) return;
+    const idx = this._memCache.findIndex(p => p.id === product.id);
+    if (idx !== -1) {
+      this._memCache[idx] = { ...this._memCache[idx], ...product };
+    } else {
+      this._memCache.unshift(product);
+    }
+  },
+
+  /* ── Query & List Products with Zero Loading Time & Real Persistence ── */
   async list({ status = null, search = null, productType = null, vendor = null, sortBy = "updatedAt", sortDir = "desc" } = {}) {
-    await this._ensureInit();
-    try { await window.NexAuth.ensureAuth(); } catch (e) {}
-
-    let items = [];
-    let serverFetched = false;
-
-    // Cloud Firestore Fetch
-    const col = this._getCollection();
-    try {
-      let q = col;
-
-      if (status && status !== "all") {
-        q = q.where("status", "==", status);
-      }
-      if (productType && productType !== "all") {
-        q = q.where("productType", "==", productType);
-      }
-      if (vendor && vendor !== "all") {
-        q = q.where("vendor", "==", vendor);
-      }
-
-        try {
-          q = q.orderBy(sortBy, sortDir);
-        } catch (e) {
-          console.debug("Firestore product order fallback:", e?.message);
+    // 1. Check in-memory cache first (< 1ms)
+    if (!this._memCache || !this._memCache.length) {
+      try {
+        const res = await fetch("/api/products");
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.items) && data.items.length) {
+            this._memCache = [...data.items];
+          }
         }
+      } catch (e) {
+        console.debug("Local API products fetch notice:", e?.message);
+      }
+    }
 
-        const snap = await q.limit(this.PAGE_SIZE).get();
-        if (snap && !snap.empty) {
-          const fsItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          if (!items.length) {
-            items = fsItems;
-          } else {
-            const existingIds = new Set(items.map(p => p.id));
+    // 2. If still empty, use real seed products
+    if (!this._memCache || !this._memCache.length) {
+      this._memCache = this._getDefaultSeedProducts();
+    }
+
+    // 3. Non-blocking background sync with Firestore
+    (async () => {
+      try {
+        await this._ensureInit();
+        const col = this._getCollection();
+        if (col && typeof col.limit === "function") {
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1500));
+          const snap = await Promise.race([col.limit(this.PAGE_SIZE).get(), timeoutPromise]);
+          if (snap && !snap.empty) {
+            const fsItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const existingIds = new Set(this._memCache.map(p => p.id));
+            let changed = false;
             for (const fItem of fsItems) {
-              if (!existingIds.has(fItem.id)) items.push(fItem);
+              if (!existingIds.has(fItem.id)) {
+                this._memCache.push(fItem);
+                changed = true;
+              }
+            }
+            if (changed && window.NexEvents) {
+              window.NexEvents.emit("PRODUCTS_CHANGED", this._memCache);
             }
           }
-          this._lastDoc = snap.docs[snap.docs.length - 1] || null;
         }
-      } catch (err) {
-        console.warn("Firestore products fetch notice:", err?.message);
-      }
+      } catch (err) {}
+    })();
 
-    // 3. Memory & LocalStorage Cache Fallback
-    if (!items.length && this._memCache && this._memCache.length) {
-      items = [...this._memCache];
-    } else if (!items.length) {
-      try {
-        const cached = localStorage.getItem("hh_cached_products");
-        if (cached) items = JSON.parse(cached);
-      } catch (e) {}
+    let items = [...this._memCache];
+
+    // 4. In-memory filters
+    if (status && status !== "all") {
+      items = items.filter(p => p.status === status);
+    }
+    if (productType && productType !== "all") {
+      items = items.filter(p => p.productType === productType);
+    }
+    if (vendor && vendor !== "all") {
+      items = items.filter(p => p.vendor === vendor);
     }
 
-    // 4. Default Seed Products if completely uninitialized
-    if (!items.length && (!status || status === "all") && !search && !productType && !vendor) {
-      const seedProducts = this._getDefaultSeedProducts();
-      items = seedProducts;
-      this._memCache = [...seedProducts];
-    } else if (items.length) {
-      this._memCache = items;
-    }
-
-    // Client-side text search (title, SKU, vendor, tags, description)
+    // 5. Client-side text search (title, SKU, vendor, tags, description)
     if (search && search.trim()) {
       const s = search.toLowerCase().trim();
       items = items.filter(p =>
         (p.title || "").toLowerCase().includes(s) ||
-        (p.handle || "").toLowerCase().includes(s) ||
         (p.vendor || "").toLowerCase().includes(s) ||
-        (p.productType || "").toLowerCase().includes(s) ||
         (p.description || "").toLowerCase().includes(s) ||
-        (p.tags || []).some(t => (t || "").toLowerCase().includes(s)) ||
-        (p.variants || []).some(v =>
-          (v.sku || "").toLowerCase().includes(s) ||
-          (v.barcode || "").toLowerCase().includes(s) ||
-          (v.title || "").toLowerCase().includes(s)
-        )
+        (Array.isArray(p.tags) && p.tags.some(t => String(t).toLowerCase().includes(s))) ||
+        (Array.isArray(p.variants) && p.variants.some(v => (v.sku || "").toLowerCase().includes(s) || (v.title || "").toLowerCase().includes(s)))
       );
     }
 
-    // Sort in memory if multi-field order is required
+    // 6. Sort in memory
     if (sortBy === "price") {
       items.sort((a, b) => {
         const pa = a.pricing?.price || 0;
         const pb = b.pricing?.price || 0;
         return sortDir === "asc" ? pa - pb : pb - pa;
       });
-    } else if (sortBy === "inventory") {
-      items.sort((a, b) => {
-        const ia = a.totalInventory || 0;
-        const ib = b.totalInventory || 0;
-        return sortDir === "asc" ? ia - ib : ib - ia;
-      });
     } else if (sortBy === "title") {
+      items.sort((a, b) => sortDir === "asc" ? (a.title || "").localeCompare(b.title || "") : (b.title || "").localeCompare(a.title || ""));
+    } else {
       items.sort((a, b) => {
-        const ta = (a.title || "").toLowerCase();
-        const tb = (b.title || "").toLowerCase();
-        return sortDir === "asc" ? ta.localeCompare(tb) : tb.localeCompare(ta);
+        const ta = new Date(a.updatedAt || a.createdAt || 0).getTime();
+        const tb = new Date(b.updatedAt || b.createdAt || 0).getTime();
+        return sortDir === "asc" ? ta - tb : tb - ta;
       });
     }
 

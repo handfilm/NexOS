@@ -11,7 +11,11 @@ import VaultAndReorderEngine from './components/VaultAndReorderEngine';
 import EnterpriseSourcingAndFactoryEscrow from './components/EnterpriseSourcingAndFactoryEscrow';
 import SuppliersManagementDashboard from './components/SuppliersManagementDashboard';
 import { FederatedCatalogHub } from './components/FederatedCatalogHub';
-import { Warehouse, Factory, Building2, Layers, ShieldCheck, Truck, FileText, Mic, Coins, ArrowLeft, ExternalLink, Network } from 'lucide-react';
+import { CatalogGrid } from './components/CatalogGrid';
+import { Orders } from './components/Orders';
+import { ProductAssistantChat } from './components/ai-product-assistant';
+import { Product } from './services/nexusApi';
+import { Warehouse, Factory, Building2, Layers, ShieldCheck, Truck, FileText, Mic, Coins, ArrowLeft, ExternalLink, Network, Sparkles, MessageSquare } from 'lucide-react';
 import { ExtractedPOSpec } from './components/VoicePOIngestion';
 import {
   ensureFirestoreSeeded,
@@ -50,6 +54,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       if (hash === 'SOURCING_ESCROW' || hash === 'SOURCING' || hash === 'ESCROW' || hash === 'ENTERPRISESOURCING') return 'SOURCING_ESCROW';
       if (hash === 'SUPPLIERS' || hash === 'GARMENTS' || hash === 'EXPORTERS' || hash === 'SUPPLIER_MANAGEMENT') return 'SUPPLIERS';
       if (hash === 'FEDERATED_CATALOG' || hash === 'FEDERATED' || hash === 'CATALOG' || hash === 'NEXOS' || hash === 'NEXOS_SYNC') return 'FEDERATED_CATALOG';
+      if (hash === 'AI_ASSISTANT' || hash === 'ASSISTANT' || hash === 'CHAT' || hash === 'AI') return 'AI_ASSISTANT';
     }
     return 'DEFAULT';
   });
@@ -64,6 +69,8 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
   const [isFloorBridgeOpen, setIsFloorBridgeOpen] = useState<boolean>(false);
   const [isVaultOpen, setIsVaultOpen] = useState<boolean>(false);
   const [isSourcingEscrowOpen, setIsSourcingEscrowOpen] = useState<boolean>(false);
+  const [isAssistantOpen, setIsAssistantOpen] = useState<boolean>(false);
+  const [assistantProduct, setAssistantProduct] = useState<Product | null>(null);
 
   // Selection parameters
   const [preSelectedCustomer, setPreSelectedCustomer] = useState<any | null>(null);
@@ -110,6 +117,10 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         if (typeof window !== 'undefined') {
           (window as any).products = list;
           if ((window as any).DATA) (window as any).DATA.products = list;
+          if ((window as any).ProductsService) {
+            (window as any).ProductsService._memCache = list;
+          }
+          (window as any)._lastProductsCache = list;
         }
       },
       (err) => console.warn('[App Persistence] Product stream notice:', err)
@@ -121,6 +132,10 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         if (typeof window !== 'undefined') {
           (window as any).orders = list;
           if ((window as any).DATA) (window as any).DATA.orders = list;
+          if ((window as any).OrdersService) {
+            (window as any).OrdersService._memCache = list;
+          }
+          (window as any)._lastOrdersCache = list;
         }
       },
       (err) => console.warn('[App Persistence] Order stream notice:', err)
@@ -375,6 +390,11 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       openSourcingEscrow,
       closeSourcingEscrow,
       openFederatedCatalog: () => setCurrentRoute('FEDERATED_CATALOG'),
+      openAssistant: (prod?: Product) => {
+        if (prod) setAssistantProduct(prod);
+        setIsAssistantOpen(true);
+      },
+      closeAssistant: () => setIsAssistantOpen(false),
       saveProduct,
       saveOrder,
       saveCustomer,
@@ -388,6 +408,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         isFloorBridgeOpen,
         isVaultOpen,
         isSourcingEscrowOpen,
+        isAssistantOpen,
         currentRoute,
         lastExtractedSpec,
         customersCount: customers.length,
@@ -400,6 +421,10 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     const handleOpenVoiceEvent = () => openVoiceIngest();
     const handleOpenCorporateEvent = () => setCurrentRoute('CORPORATESUPPLIES');
     const handleOpenLogisticsEvent = (e: any) => openLogistics(e.detail?.order || e.detail);
+    const handleOpenAssistantEvent = (e: any) => {
+      if (e.detail?.product) setAssistantProduct(e.detail.product);
+      setIsAssistantOpen(true);
+    };
     const handleOpenFactorySlaEvent = (e: any) => {
       const poNum = e.detail?.poNumber || e.detail?.id || e.detail;
       openFactorySla(typeof poNum === 'string' ? poNum : undefined);
@@ -441,6 +466,8 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         setCurrentRoute('SUPPLIERS');
       } else if (hash === 'FEDERATED_CATALOG' || hash === 'FEDERATED' || hash === 'CATALOG' || hash === 'NEXOS' || hash === 'NEXOS_SYNC') {
         setCurrentRoute('FEDERATED_CATALOG');
+      } else if (hash === 'AI_ASSISTANT' || hash === 'ASSISTANT' || hash === 'AI') {
+        setCurrentRoute('AI_ASSISTANT');
       }
     };
 
@@ -455,6 +482,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     window.addEventListener('nexus:open-voice', handleOpenVoiceEvent);
     window.addEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
     window.addEventListener('nexus:open-logistics', handleOpenLogisticsEvent);
+    window.addEventListener('nexus:open-assistant', handleOpenAssistantEvent);
     window.addEventListener('nexus:open-factory-sla', handleOpenFactorySlaEvent);
     window.addEventListener('nexus:open-b2b-deal-engine', handleOpenB2BEvent);
     window.addEventListener('nexus:open-floor-bridge', handleOpenFloorBridgeEvent);
@@ -470,6 +498,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       window.removeEventListener('nexus:open-voice', handleOpenVoiceEvent);
       window.removeEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
       window.removeEventListener('nexus:open-logistics', handleOpenLogisticsEvent);
+      window.removeEventListener('nexus:open-assistant', handleOpenAssistantEvent);
       window.removeEventListener('nexus:open-factory-sla', handleOpenFactorySlaEvent);
       window.removeEventListener('nexus:open-b2b-deal-engine', handleOpenB2BEvent);
       window.removeEventListener('nexus:open-floor-bridge', handleOpenFloorBridgeEvent);
@@ -480,18 +509,19 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, openLogistics, closeLogistics, openFactorySla, closeFactorySla, openB2BDeal, closeB2BDeal, openFloorBridge, closeFloorBridge, openVault, closeVault, openSourcingEscrow, closeSourcingEscrow, isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, isFactorySlaOpen, isB2BDealOpen, isFloorBridgeOpen, isVaultOpen, isSourcingEscrowOpen, currentRoute, lastExtractedSpec, customers, products, orders]);
+  }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, openLogistics, closeLogistics, openFactorySla, closeFactorySla, openB2BDeal, closeB2BDeal, openFloorBridge, closeFloorBridge, openVault, closeVault, openSourcingEscrow, closeSourcingEscrow, isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, isFactorySlaOpen, isB2BDealOpen, isFloorBridgeOpen, isVaultOpen, isSourcingEscrowOpen, isAssistantOpen, currentRoute, lastExtractedSpec, customers, products, orders]);
 
   // Tab-based navigation helper for modular views
   const renderTabNav = (activeTab: string) => {
     const tabs = [
-      { id: 'FEDERATED_CATALOG', label: 'NEXOS Federated Catalog', icon: Layers, count: 'Multi-Node' },
+      { id: 'FEDERATED_CATALOG', label: 'Federated Catalog', icon: Layers, count: 'Live' },
+      { id: 'LOGISTICS', label: 'Buyer Orders', icon: Truck, count: 'Ledger' },
+      { id: 'AI_ASSISTANT', label: 'AI Product Advisor', icon: Sparkles, count: 'Gemini' },
       { id: 'SUPPLIERS', label: 'Suppliers Registry', icon: Warehouse, path: '/admin/suppliers', count: '400 Verified' },
       { id: 'B2B', label: 'B2B Deals', icon: Layers },
       { id: 'FLOOR_BRIDGE', label: 'Production Floor', icon: Factory },
       { id: 'VAULT', label: 'Vault & Reorder', icon: Coins },
       { id: 'FACTORYSLA', label: 'Factory SLA', icon: ShieldCheck },
-      { id: 'LOGISTICS', label: 'Logistics Hub', icon: Truck },
       { id: 'CORPORATESUPPLIES', label: 'Corporate Supplies', icon: Building2 },
       { id: 'TECHPACK', label: 'Tech-Pack PO', icon: FileText },
       { id: 'VOICEINGEST', label: 'Voice Ingest', icon: Mic }
@@ -682,13 +712,19 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       case 'LOGISTICSSETTLEMENTHUB':
       case 'LOGISTICS_SETTLEMENT':
       case 'SETTLEMENT':
+      case 'ORDERS':
         return (
-          <div className="logistics-router-view max-w-7xl mx-auto my-4">
-            <LogisticsSettlementHub
-              initialOrder={preSelectedLogisticsOrder}
-              mode="embedded"
-              onClose={() => setCurrentRoute('DEFAULT')}
-            />
+          <div className="logistics-router-view w-full min-h-full bg-slate-950 text-slate-100 flex flex-col">
+            {renderTabNav('LOGISTICS')}
+            <div className="max-w-7xl mx-auto my-4 w-full px-3 sm:px-6 flex-1 pb-16">
+              <Orders
+                buyerId={preSelectedLogisticsOrder?.buyerId}
+                onSelectOrder={(order) => {
+                  console.log('[Orders] Selected order:', order);
+                  setPreSelectedLogisticsOrder(order);
+                }}
+              />
+            </div>
           </div>
         );
 
@@ -790,8 +826,31 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         return (
           <div className="federated-catalog-router-view w-full min-h-full bg-slate-950 text-slate-100 flex flex-col">
             {renderTabNav('FEDERATED_CATALOG')}
-            <div className="w-full flex-1 pb-16">
-              <FederatedCatalogHub />
+            <div className="w-full flex-1 pb-16 px-3 sm:px-6 max-w-7xl mx-auto pt-4">
+              <CatalogGrid
+                onSelectProduct={(product) => {
+                  setAssistantProduct(product);
+                  setIsAssistantOpen(true);
+                }}
+              />
+            </div>
+          </div>
+        );
+
+      case 'AI_ASSISTANT':
+      case 'ASSISTANT':
+      case 'AI':
+      case 'CHAT':
+        return (
+          <div className="ai-assistant-router-view w-full min-h-full bg-slate-950 text-slate-100 flex flex-col">
+            {renderTabNav('AI_ASSISTANT')}
+            <div className="max-w-5xl mx-auto w-full px-3 sm:px-6 py-6 flex-1 pb-16">
+              <ProductAssistantChat
+                activeProduct={assistantProduct}
+                onClearActiveProduct={() => setAssistantProduct(null)}
+                mode="embedded"
+                className="h-[740px]"
+              />
             </div>
           </div>
         );
@@ -899,21 +958,38 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         </div>
       )}
 
-      {/* ── Logistics & COD Settlement Dock (Modal Mode) ── */}
+      {/* ── Logistics & Buyer Orders Ledger (Modal Mode) ── */}
       {isLogisticsOpen && (
         <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-md overflow-y-auto"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md overflow-y-auto"
           onClick={closeLogistics}
         >
           <div
-            className="relative w-full max-w-6xl overflow-hidden flex flex-col my-auto"
+            className="relative w-full max-w-6xl overflow-hidden flex flex-col my-auto bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <LogisticsSettlementHub
-              initialOrder={preSelectedLogisticsOrder}
-              mode="modal"
-              onClose={closeLogistics}
-            />
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Truck className="w-5 h-5 text-orange-500" />
+                <h2 className="text-lg font-bold text-white tracking-tight">Buyer Orders & Settlement Ledger</h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeLogistics}
+                className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-mono transition-colors cursor-pointer"
+              >
+                CLOSE ✕
+              </button>
+            </div>
+            <div className="max-h-[80vh] overflow-y-auto pr-1">
+              <Orders
+                buyerId={preSelectedLogisticsOrder?.buyerId}
+                onSelectOrder={(order) => {
+                  console.log('[Orders Modal] Selected order:', order);
+                  setPreSelectedLogisticsOrder(order);
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -1009,6 +1085,44 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
           </div>
         </div>
       )}
+
+      {/* ── AI Product & Supply Chain Assistant (Modal Mode) ── */}
+      {isAssistantOpen && (
+        <div
+          className="fixed inset-0 z-[10002] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto"
+          onClick={() => setIsAssistantOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-4xl overflow-hidden flex flex-col my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ProductAssistantChat
+              activeProduct={assistantProduct}
+              onClearActiveProduct={() => setAssistantProduct(null)}
+              mode="modal"
+              onClose={() => setIsAssistantOpen(false)}
+              className="h-[750px] w-full"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Floating AI Sourcing Advisor Launcher ── */}
+      <button
+        id="nexus_floating_ai_assistant_btn"
+        type="button"
+        onClick={() => setIsAssistantOpen(true)}
+        className="fixed bottom-6 right-6 z-[9999] flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-500 hover:from-orange-500 hover:to-amber-500 text-white rounded-full shadow-2xl shadow-orange-950/70 border border-orange-400/30 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer font-sans"
+        title="Open AI Product & Supply Chain Advisor (Gemini 3.8 Flash)"
+      >
+        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+          <Sparkles className="w-3.5 h-3.5 text-white" />
+        </div>
+        <span className="text-xs font-bold tracking-wide">AI Sourcing Advisor</span>
+        {assistantProduct && (
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+        )}
+      </button>
     </div>
   );
 };

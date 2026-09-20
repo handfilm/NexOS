@@ -1,3 +1,4 @@
+import { fetchBuyerOrders } from "../services/nexusApi";
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, Timestamp } from 'firebase/firestore';
 
@@ -98,94 +99,6 @@ const CARRIER_CONFIG: Record<
   }
 };
 
-// Seed baseline active atelier POs
-const SAMPLE_ORDERS: ConfirmedOrder[] = [
-  {
-    id: 'HH-PO-2026-8812',
-    poNumber: 'HH-PO-2026-8812',
-    buyerName: 'Tanvir Hossain',
-    buyerPhone: '+8801712345678',
-    companyName: 'Apex Leathercraft Studio',
-    deliveryAddress: 'House 42, Road 11, Banani, Dhaka-1213',
-    styleName: 'Voyager Handcrafted Full-Grain Duffel',
-    category: 'Leather Bags & Luggage',
-    quantity: 40,
-    unitFobPrice: 18500,
-    currency: 'BDT',
-    orderTotal: 740000,
-    weightKg: 28.5,
-    advancePct: 50,
-    advanceRequired: 370000,
-    advancePaid: 370000,
-    advanceMethod: 'BANK_TT',
-    advanceReceived: true,
-    advanceTxnRef: 'SCB-TT-9982410',
-    advancePaidAt: '2026-09-06T14:20:00Z',
-    balanceDue: 370000,
-    productionAuthorized: true,
-    codAmount: 370000,
-    dispatchStatus: 'READY_FOR_DISPATCH',
-    notes: 'Premium pull-up cowhide. Include branded cotton dust bags.'
-  },
-  {
-    id: 'HH-PO-2026-9041',
-    poNumber: 'HH-PO-2026-9041',
-    buyerName: 'Saiful Islam',
-    buyerPhone: '+8801819876543',
-    companyName: 'North Star Menswear',
-    deliveryAddress: 'Sector 3, Uttara Model Town, Dhaka',
-    styleName: 'Full-Grain Bifold Minimalist Wallet',
-    category: 'Small Leather Goods',
-    quantity: 150,
-    unitFobPrice: 2450,
-    currency: 'BDT',
-    orderTotal: 367500,
-    weightKg: 16.2,
-    advancePct: 50,
-    advanceRequired: 183750,
-    advancePaid: 0,
-    advanceMethod: 'BKASH_MERCHANT',
-    advanceReceived: false,
-    balanceDue: 367500,
-    productionAuthorized: false,
-    codAmount: 367500,
-    dispatchStatus: 'PENDING_DEPOSIT',
-    notes: 'Awaiting 50% deposit before cutting vegetable tanned leather.'
-  },
-  {
-    id: 'HH-PO-2026-4419',
-    poNumber: 'HH-PO-2026-4419',
-    buyerName: 'Klaas Van Dijk',
-    buyerPhone: '+31612345678',
-    companyName: 'Amsterdam Goods B.V.',
-    deliveryAddress: 'Keizersgracht 421, 1016 EK Amsterdam, Netherlands',
-    styleName: 'Heavy-Duty Atelier Raw Canvas Apron',
-    category: 'Atelier Apparel & Workwear',
-    quantity: 60,
-    unitFobPrice: 32,
-    currency: 'USD',
-    orderTotal: 1920,
-    weightKg: 22.0,
-    advancePct: 50,
-    advanceRequired: 960,
-    advancePaid: 960,
-    advanceMethod: 'BANK_TT',
-    advanceReceived: true,
-    advanceTxnRef: 'SWIFT-ING-NL-88219',
-    advancePaidAt: '2026-09-04T09:30:00Z',
-    balanceDue: 960,
-    productionAuthorized: true,
-    consignmentId: 'DHL-EXP-441989012',
-    carrier: 'DHL_FEDEX',
-    trackingUrl: 'https://www.dhl.com/en/express/tracking.html?AWB=DHL-EXP-441989012',
-    barcodeString: 'DHL-EXP-441989012',
-    codAmount: 0,
-    dispatchStatus: 'IN_TRANSIT',
-    dispatchedAt: '2026-09-07T11:00:00Z',
-    notes: 'Export packing with silica gel packs. Air express required.'
-  }
-];
-
 // Normalize Bangladesh & E.164 phone numbers
 export function normalizePhoneNumber(raw: string): string {
   if (!raw) return '';
@@ -203,9 +116,9 @@ export const LogisticsSettlementHub: React.FC<LogisticsSettlementHubProps> = ({
   onClose
 }) => {
   // Orders list state
-  const [orders, setOrders] = useState<ConfirmedOrder[]>(SAMPLE_ORDERS);
+  const [orders, setOrders] = useState<ConfirmedOrder[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string>(
-    initialOrder?.poNumber || initialOrder?.id || SAMPLE_ORDERS[0].id
+    initialOrder?.poNumber || initialOrder?.id || ""
   );
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeCarrier, setActiveCarrier] = useState<CarrierType>('STEADFAST');
@@ -236,6 +149,53 @@ export const LogisticsSettlementHub: React.FC<LogisticsSettlementHubProps> = ({
     dispatchedAt: string;
   } | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  // Hydrate confirmed orders directly from Firebase Firestore
+  useEffect(() => {
+    let isMounted = true;
+    async function loadLiveOrders() {
+      try {
+        const live = await fetchBuyerOrders();
+        if (isMounted && Array.isArray(live) && live.length > 0) {
+          const mapped: ConfirmedOrder[] = live.map((ord) => ({
+            id: ord.id,
+            poNumber: ord.orderNumber || ord.id,
+            buyerName: ord.customerName || 'Direct Buyer',
+            buyerPhone: '',
+            companyName: '',
+            deliveryAddress: ord.shippingAddress || '',
+            styleName: ord.items?.[0]?.title || 'B2B Atelier Order',
+            category: 'Atelier Apparel & Goods',
+            quantity: ord.items?.reduce((sum, it) => sum + (it.quantity || 1), 0) || 1,
+            unitFobPrice: ord.items?.[0]?.price || ord.total || 0,
+            currency: ord.currency === 'BDT' ? 'BDT' : 'USD',
+            orderTotal: ord.total || 0,
+            weightKg: 2.0,
+            advancePct: 50,
+            advanceRequired: (ord.total || 0) * 0.5,
+            advancePaid: ord.amountPaid || 0,
+            advanceMethod: 'BANK_TT',
+            advanceReceived: (ord.amountPaid || 0) >= (ord.total || 0) * 0.5,
+            balanceDue: Math.max(0, (ord.total || 0) - (ord.amountPaid || 0)),
+            productionAuthorized: ord.status === 'cutting_authorized' || Boolean(ord.productionUnlockedAt),
+            codAmount: Math.max(0, (ord.total || 0) - (ord.amountPaid || 0)),
+            dispatchStatus: ord.fulfillmentStatus === 'fulfilled' ? 'DELIVERED' : ord.fulfillmentStatus === 'cutting' ? 'READY_FOR_DISPATCH' : 'PENDING_DEPOSIT',
+            notes: ord.shippingAddress || '',
+          }));
+          setOrders(mapped);
+          setSelectedOrderId((prev) => prev || mapped[0].id);
+        } else {
+          console.log('[NexOS Firebase Sync]: No data found or connection issue.');
+        }
+      } catch (err) {
+        console.log('[NexOS Firebase Sync]: No data found or connection issue.');
+      }
+    }
+    loadLiveOrders();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Sync initial order if passed via prop or event
   useEffect(() => {
@@ -724,31 +684,38 @@ export const LogisticsSettlementHub: React.FC<LogisticsSettlementHubProps> = ({
           />
 
           <div className="flex-1 flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
-            {filteredOrders.map((ord) => {
-              const isSelected = ord.id === selectedOrderId;
-              return (
-                <button
-                  key={ord.id}
-                  type="button"
-                  onClick={() => setSelectedOrderId(ord.id)}
-                  className={`px-3 py-1.5 rounded text-left shrink-0 transition-all border cursor-pointer ${
-                    isSelected
-                      ? 'bg-[#1E222B] border-[#FF4400] text-white shadow-md'
-                      : 'bg-[#0D0E12] border-[#1E222B] text-[#94A3B8] hover:border-[#94A3B8] hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        ord.productionAuthorized ? 'bg-[#00E599]' : 'bg-[#FF4400]'
-                      }`}
-                    />
-                    <span className="font-bold text-xs">{ord.poNumber}</span>
-                  </div>
-                  <div className="text-[10px] truncate max-w-[150px]">{ord.buyerName}</div>
-                </button>
-              );
-            })}
+            {filteredOrders.length === 0 ? (
+              <div className="px-4 py-2 text-xs text-[#94A3B8] border border-[#1E222B] bg-[#0D0E12] rounded flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FF4400]" />
+                No active orders found in the NexOS ledger.
+              </div>
+            ) : (
+              filteredOrders.map((ord) => {
+                const isSelected = ord.id === selectedOrderId;
+                return (
+                  <button
+                    key={ord.id}
+                    type="button"
+                    onClick={() => setSelectedOrderId(ord.id)}
+                    className={`px-3 py-1.5 rounded text-left shrink-0 transition-all border cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#1E222B] border-[#FF4400] text-white shadow-md'
+                        : 'bg-[#0D0E12] border-[#1E222B] text-[#94A3B8] hover:border-[#94A3B8] hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          ord.productionAuthorized ? 'bg-[#00E599]' : 'bg-[#FF4400]'
+                        }`}
+                      />
+                      <span className="font-bold text-xs">{ord.poNumber}</span>
+                    </div>
+                    <div className="text-[10px] truncate max-w-[150px]">{ord.buyerName}</div>
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

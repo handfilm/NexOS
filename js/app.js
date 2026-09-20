@@ -199,28 +199,203 @@ async function spine(action, payload={}) {
   return demoSpine(action, payload);
 }
 
-/* ── Demo & Seed Data (High-Density 14+ Orders Visible) ── */
+/* ── Real Production Seed Data (Preserving User Data Sync) ── */
 let dOrders = [
-  {id:"NX-1048",orderNumber:"HH-849201",customerName:"Amsterdam Leather Atelier",t:"Leather Bifold Wallet x50",s:"WhatsApp · Amsterdam, NL",st:["50% PAID","amber"],lifecycleStage:"50_paid",total:45000,subtotal:45000,deliveryCharge:0,paidAmount:22500,customerSnapshot:{name:"Amsterdam Leather Atelier",companyName:"Amsterdam Leather Atelier",city:"Amsterdam",country:"NL",phone:"+31 20 555 0192",address:"Singel 382, 1016 AK Amsterdam, Netherlands"},lineItems:[{title:"Full-Grain Leather Bi-Fold Wallet",sku:"HH-WLT-01",price:2850,quantity:10,lineTotal:28500},{title:"Executive Leather Weekender Duffel",sku:"HH-BAG-04",price:16500,quantity:1,lineTotal:16500}]},
-  {id:"NX-1047",orderNumber:"HH-731920",customerName:"Berlin Concept Store",t:"Full-Grain Belt x200",s:"Email · Berlin, DE",st:["JIT CUTTING","info"],lifecycleStage:"jit_cutting",total:82500,subtotal:82500,deliveryCharge:0,paidAmount:41250,customerSnapshot:{name:"Berlin Concept Store",companyName:"Berlin Concept Store",city:"Berlin",country:"DE",phone:"+49 30 2849 0122",address:"Friedrichstraße 140, 10117 Berlin, Germany"},lineItems:[{title:"Executive Leather Briefcase",sku:"HH-BRF-02",price:18500,quantity:3,lineTotal:55500},{title:"Classic Full-Grain Dress Belt",sku:"HH-BLT-01",price:2250,quantity:12,lineTotal:27000}]},
-  {id:"NX-1046",orderNumber:"HH-592810",customerName:"London Retail Group",t:"Heritage Backpack x6",s:"Portal · London, UK",st:["SHIPPED","ok"],lifecycleStage:"shipped",total:128000,subtotal:112000,deliveryCharge:16000,paidAmount:128000,customerSnapshot:{name:"London Retail Group",companyName:"London Retail Group",city:"London",country:"GB",phone:"+44 20 7946 0912",address:"42 Regent Street, London W1B 5AH, UK"},lineItems:[{title:"Heritage Leather Backpack",sku:"HH-BPK-01",price:14500,quantity:6,lineTotal:87000},{title:"Minimalist Leather Card Holder",sku:"HH-CRD-03",price:1250,quantity:20,lineTotal:25000}]},
-  {id:"NX-1045",orderNumber:"HH-492105",customerName:"Scandinavian Leather Lab",t:"Minimalist Card Holder x40",s:"B2B Vault · Stockholm, SE",st:["LEAD","info"],lifecycleStage:"lead",total:36000,subtotal:36000,deliveryCharge:0,paidAmount:0,customerSnapshot:{name:"Scandinavian Leather Lab",companyName:"Nordic Design AB",city:"Stockholm",country:"SE",phone:"+46 8 123 4567",address:"Drottninggatan 88, 111 36 Stockholm, Sweden"},lineItems:[{title:"Minimalist Leather Card Holder",sku:"HH-CRD-03",price:1250,quantity:20,lineTotal:25000},{title:"Full-Grain Key Lanyard",sku:"HH-ACC-01",price:550,quantity:20,lineTotal:11000}]},
-  {id:"NX-1044",orderNumber:"HH-382910",customerName:"Parisian Luxury Goods",t:"Executive Duffel Bag x8",s:"WhatsApp · Paris, FR",st:["50% PAID","amber"],lifecycleStage:"50_paid",total:115000,subtotal:115000,deliveryCharge:0,paidAmount:57500,customerSnapshot:{name:"Parisian Luxury Goods",companyName:"Atelier Saint-Honoré",city:"Paris",country:"FR",phone:"+33 1 42 68 55 00",address:"24 Rue Saint-Honoré, 75001 Paris, France"},lineItems:[{title:"Executive Leather Weekender Duffel",sku:"HH-BAG-04",price:16500,quantity:6,lineTotal:99000},{title:"Passport Wallet Travel Folio",sku:"HH-TRV-02",price:4000,quantity:4,lineTotal:16000}]},
-  {id:"NX-1043",orderNumber:"HH-291024",customerName:"Milanese Craft Co.",t:"Classic Dress Belt x35",s:"B2B Ingestion · Milan, IT",st:["JIT CUTTING","info"],lifecycleStage:"jit_cutting",total:64000,subtotal:64000,deliveryCharge:0,paidAmount:32000,customerSnapshot:{name:"Milanese Craft Co.",companyName:"Pelletteria Milano SpA",city:"Milan",country:"IT",phone:"+39 02 8765 4321",address:"Via Monte Napoleone 12, 20121 Milano, Italy"},lineItems:[{title:"Classic Full-Grain Dress Belt",sku:"HH-BLT-01",price:2250,quantity:25,lineTotal:56250},{title:"Slim Leather Card Case",sku:"HH-CRD-01",price:775,quantity:10,lineTotal:7750}]},
-  {id:"NX-1042",orderNumber:"HH-182903",customerName:"Madrid Artisan Hub",t:"Full-Grain Tote Bag x15",s:"Direct RFQ · Madrid, ES",st:["SHIPPED","ok"],lifecycleStage:"shipped",total:54000,subtotal:54000,deliveryCharge:0,paidAmount:54000,customerSnapshot:{name:"Madrid Artisan Hub",companyName:"Iberian Leather Goods SL",city:"Madrid",country:"ES",phone:"+34 91 555 4321",address:"Calle Gran Vía 28, 28013 Madrid, Spain"},lineItems:[{title:"Full-Grain Leather Tote Bag",sku:"HH-BAG-02",price:3600,quantity:15,lineTotal:54000}]},
-  {id:"NX-1041",orderNumber:"HH-910284",customerName:"Zurich Leather Works",t:"Horween Shell Cordovan PO x12",s:"Escrow · Zurich, CH",st:["50% PAID","amber"],lifecycleStage:"50_paid",total:92000,subtotal:92000,deliveryCharge:0,paidAmount:46000,customerSnapshot:{name:"Zurich Leather Works",companyName:"Helvetia Goods AG",city:"Zurich",country:"CH",phone:"+41 44 211 5500",address:"Bahnhofstrasse 45, 8001 Zürich, Switzerland"},lineItems:[{title:"Executive Leather Briefcase",sku:"HH-BRF-02",price:18500,quantity:4,lineTotal:74000},{title:"Leather Bi-Fold Wallet",sku:"HH-WLT-01",price:2850,quantity:6,lineTotal:17100}]},
-  {id:"NX-1040",orderNumber:"HH-801923",customerName:"Tokyo Minimalist Store",t:"Japanese Vegetable Tanned Wallets x60",s:"Portal · Tokyo, JP",st:["JIT CUTTING","info"],lifecycleStage:"jit_cutting",total:148000,subtotal:148000,deliveryCharge:0,paidAmount:74000,customerSnapshot:{name:"Tokyo Minimalist Store",companyName:"Shibuya Retail Corp",city:"Tokyo",country:"JP",phone:"+81 3 3461 1100",address:"1-22-8 Shibuya, Shibuya-ku, Tokyo 150-0002, Japan"},lineItems:[{title:"Minimalist Leather Card Holder",sku:"HH-CRD-03",price:1250,quantity:40,lineTotal:50000},{title:"Full-Grain Leather Bi-Fold Wallet",sku:"HH-WLT-01",price:2850,quantity:30,lineTotal:85500},{title:"Brass Key Ring Lanyard",sku:"HH-ACC-02",price:625,quantity:20,lineTotal:12500}]},
-  {id:"NX-1039",orderNumber:"HH-712839",customerName:"BayXBengal Wholesalers",t:"Export Cowhide Bundles x100",s:"Factory Dispatch · Dhaka, BD",st:["SHIPPED","ok"],lifecycleStage:"shipped",total:220000,subtotal:215000,deliveryCharge:5000,paidAmount:220000,customerSnapshot:{name:"BayXBengal Wholesalers",companyName:"BayXBengal Exporters Ltd",city:"Dhaka",country:"BD",phone:"+880 1711 987654",address:"House 14, Road 7, Sector 3, Uttara, Dhaka-1230, Bangladesh"},lineItems:[{title:"Raw Vegetable-Tanned Sides",sku:"HH-RAW-01",price:4300,quantity:50,lineTotal:215000}]},
-  {id:"NX-1038",orderNumber:"HH-623910",customerName:"Dubai Luxury Haberdashery",t:"Corporate Gold-Foil Gift Folios x25",s:"Corporate B2B · Dubai, AE",st:["LEAD","info"],lifecycleStage:"lead",total:78000,subtotal:78000,deliveryCharge:0,paidAmount:0,customerSnapshot:{name:"Dubai Luxury Haberdashery",companyName:"Emirates Premier Gift FZE",city:"Dubai",country:"AE",phone:"+971 4 362 7000",address:"DIFC Gate Precinct 4, Level 5, Dubai, UAE"},lineItems:[{title:"Gold-Foil Embossed Leather Folio",sku:"HH-CORP-01",price:3120,quantity:25,lineTotal:78000}]},
-  {id:"NX-1037",orderNumber:"HH-534821",customerName:"Manhattan Leather & Co",t:"Full-Grain Messenger Bags x10",s:"Wholesale Portal · New York, US",st:["50% PAID","amber"],lifecycleStage:"50_paid",total:165000,subtotal:165000,deliveryCharge:0,paidAmount:82500,customerSnapshot:{name:"Manhattan Leather & Co",companyName:"Gotham Mercantile LLC",city:"New York",country:"US",phone:"+1 212 555 0184",address:"594 Broadway, Suite 801, New York, NY 10012, USA"},lineItems:[{title:"Full-Grain Leather Messenger Bag",sku:"HH-BAG-06",price:16500,quantity:10,lineTotal:165000}]},
-  {id:"NX-1036",orderNumber:"HH-445732",customerName:"Melbourne Artisan Guild",t:"Kangaroo Trim Tech Sleeves x30",s:"Email · Melbourne, AU",st:["JIT CUTTING","info"],lifecycleStage:"jit_cutting",total:58000,subtotal:58000,deliveryCharge:0,paidAmount:29000,customerSnapshot:{name:"Melbourne Artisan Guild",companyName:"Flinders Craft Guild",city:"Melbourne",country:"AU",phone:"+61 3 9654 8800",address:"120 Flinders Lane, Melbourne VIC 3000, Australia"},lineItems:[{title:"Leather Laptop Sleeve 14-inch",sku:"HH-SLV-01",price:1933,quantity:30,lineTotal:58000}]},
-  {id:"NX-1035",orderNumber:"HH-356843",customerName:"Dublin Heritage Goods",t:"Distressed Leather Weekender x3",s:"WhatsApp · Dublin, IE",st:["SHIPPED","ok"],lifecycleStage:"shipped",total:42000,subtotal:42000,deliveryCharge:0,paidAmount:42000,customerSnapshot:{name:"Dublin Heritage Goods",companyName:"Trinity Goods Ltd",city:"Dublin",country:"IE",phone:"+353 1 496 1122",address:"15 Grafton Street, Dublin 2, Ireland"},lineItems:[{title:"Executive Leather Weekender Duffel",sku:"HH-BAG-04",price:14000,quantity:3,lineTotal:42000}]}
+  {
+    id: "BD-RFQ-0D2510A5",
+    orderNumber: "BD-RFQ-0D2510A5",
+    poNumber: "BD-RFQ-0D2510A5",
+    customerName: "B2B Prospective Buyer",
+    t: "Custom Heavyweight Boxy Drop-Shoulder Tee x5,000",
+    s: "b2b.handsandhead.com · Dhaka, BD",
+    st: ["LEAD", "info"],
+    status: "pending_quote",
+    stage: "RFQ / Ingestion",
+    lifecycleStage: "lead",
+    category: "RMG",
+    total: 62500,
+    subtotal: 62500,
+    currency: "USD",
+    paymentStatus: "pending",
+    fulfillmentStatus: "unfulfilled",
+    customerSnapshot: {
+      name: "B2B Prospective Buyer",
+      email: "procurement@nordicbuyer.de",
+      phone: "",
+      companyName: "Prospective Garments Ltd",
+      city: "Dhaka",
+      country: "BD"
+    },
+    lineItems: [
+      {
+        id: "ITEM-RFQ-1",
+        title: "Custom Heavyweight Boxy Drop-Shoulder Tee (260 GSM)",
+        sku: "TEE-OVS-260",
+        quantity: 5000,
+        price: 12.5,
+        lineTotal: 62500
+      }
+    ],
+    createdAt: "2026-09-17T14:22:06.089Z",
+    updatedAt: "2026-09-17T14:22:06.089Z"
+  },
+  {
+    id: "ord-qs-mtpl6a86",
+    orderNumber: "QS-555554",
+    customerName: "Tariqul Islam",
+    t: "Full-Grain Leather Cardholder x2",
+    s: "POS Quick Sale · Dhaka, BD",
+    st: ["COMPLETED", "ok"],
+    status: "completed",
+    lifecycleStage: "completed",
+    total: 3700,
+    subtotal: 3700,
+    currency: "BDT",
+    paymentStatus: "paid",
+    fulfillmentStatus: "fulfilled",
+    paymentMethod: "bKash (merchant)",
+    customerSnapshot: {
+      id: "cust-mtpl6a8h",
+      name: "Tariqul Islam",
+      phone: "+8801711234567",
+      canonicalPhone: "+8801711234567",
+      email: "tariqul@example.com",
+      country: "BD",
+      currency: "BDT",
+      address: "Dhaka Counter Sale"
+    },
+    lineItems: [
+      {
+        productId: "prod-crd-02",
+        variantId: "default",
+        title: "Full-Grain Leather Cardholder",
+        sku: "HH-CRD-02",
+        quantity: 2,
+        price: 1850
+      }
+    ],
+    createdAt: "2026-09-06T09:05:17.382Z",
+    updatedAt: "2026-09-06T09:05:17.382Z"
+  },
+  {
+    id: "ord-1048",
+    orderNumber: "NX-1048",
+    customerName: "Amsterdam Goods B.V.",
+    t: "Full-Grain Leather Bi-Fold Wallet x50",
+    s: "Direct B2B · Amsterdam, NL",
+    st: ["50% PAID", "amber"],
+    status: "completed",
+    lifecycleStage: "50_paid",
+    total: 151000,
+    subtotal: 142500,
+    shipping: 8500,
+    currency: "BDT",
+    paymentStatus: "paid",
+    fulfillmentStatus: "fulfilled",
+    paymentMethod: "bank_transfer",
+    customerSnapshot: {
+      name: "Amsterdam Goods B.V.",
+      email: "procurement@leather-amsterdam.nl",
+      country: "NL",
+      currency: "EUR",
+      city: "Amsterdam"
+    },
+    lineItems: [
+      {
+        productId: "prod-wlt-01",
+        title: "Full-Grain Leather Bi-Fold Wallet",
+        sku: "HH-WLT-01",
+        quantity: 50,
+        price: 2850
+      }
+    ],
+    createdAt: "2026-09-04T10:53:07.350Z",
+    updatedAt: "2026-09-05T04:53:07.350Z"
+  },
+  {
+    id: "ord-1047",
+    orderNumber: "NX-1047",
+    customerName: "London Retail Group",
+    t: "Executive Leather Briefcase x6",
+    s: "Portal · London, UK",
+    st: ["JIT CUTTING", "info"],
+    status: "open",
+    lifecycleStage: "jit_cutting",
+    total: 92200,
+    subtotal: 87000,
+    shipping: 5200,
+    currency: "BDT",
+    paymentStatus: "paid",
+    fulfillmentStatus: "unfulfilled",
+    paymentMethod: "bank_transfer",
+    customerSnapshot: {
+      name: "London Retail Group",
+      email: "orders@londonretail.co.uk",
+      country: "GB",
+      currency: "GBP",
+      city: "London"
+    },
+    lineItems: [
+      {
+        productId: "prod-brf-02",
+        title: "Executive Leather Briefcase",
+        sku: "HH-BRF-02",
+        quantity: 6,
+        price: 14500
+      }
+    ],
+    createdAt: "2026-09-04T22:53:07.350Z",
+    updatedAt: "2026-09-04T22:53:07.350Z"
+  },
+  {
+    id: "ord-1046",
+    orderNumber: "NX-1046",
+    customerName: "Tomotaka Minoura",
+    t: "Heavyweight Boxy Graphic Tee x2, Cardholder x1",
+    s: "Direct · Dhaka, BD",
+    st: ["SHIPPED", "ok"],
+    status: "completed",
+    lifecycleStage: "shipped",
+    total: 5230,
+    subtotal: 5150,
+    shipping: 80,
+    currency: "BDT",
+    paymentStatus: "paid",
+    fulfillmentStatus: "fulfilled",
+    paymentMethod: "cod",
+    customerSnapshot: {
+      name: "Tomotaka Minoura",
+      phone: "+8801912010701",
+      country: "BD",
+      currency: "BDT"
+    },
+    lineItems: [
+      {
+        productId: "prod-tee-01",
+        title: "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+        sku: "HH-TEE-01-L",
+        quantity: 2,
+        price: 1850
+      },
+      {
+        productId: "prod-crd-02",
+        title: "Minimalist Cardholder — Aniline Tan",
+        sku: "HH-CRD-02",
+        quantity: 1,
+        price: 1450
+      }
+    ],
+    createdAt: "2026-09-05T06:53:07.350Z",
+    updatedAt: "2026-09-05T08:53:07.350Z"
+  }
 ];
 const dCat = [
-  {id:"p1",t:"Full-Grain Leather Wallet",cat:"WALLETS",price:850,ini:"FGW",stock:240},
-  {id:"p2",t:"Genuine Leather Belt",cat:"BELTS",price:620,ini:"GLB",stock:180},
-  {id:"p3",t:"Card Holder Slim",cat:"ACCESSORIES",price:420,ini:"CHS",stock:95},
-  {id:"p4",t:"Passport Holder",cat:"TRAVEL",price:980,ini:"PHT",stock:60}
+  { id: "prod-mtoeo9ex-949", t: "Test Leather Belt", cat: "ACCESSORIES", price: 1200, ini: "TLB", stock: 10 },
+  { id: "prod-tee-01", t: "Heavyweight Boxy Graphic Tee — Dhaka Cyber", cat: "TEES & APPAREL", price: 1850, ini: "HBG", stock: 135 },
+  { id: "prod-tee-02", t: "Artisanal Raw-Hem Oversized Drop Tee", cat: "TEES & APPAREL", price: 1650, ini: "ARH", stock: 88 },
+  { id: "prod-tee-03", t: "Architectural Cutout Leather-Pocket Tee", cat: "TEES & APPAREL", price: 2450, ini: "ACL", stock: 72 },
+  { id: "prod-wlt-01", t: "Full-Grain Leather Bi-Fold Wallet", cat: "LEATHER GOODS", price: 2850, ini: "FGW", stock: 105 },
+  { id: "prod-crd-02", t: "Minimalist Cardholder — Aniline Tan", cat: "LEATHER GOODS", price: 1450, ini: "MCA", stock: 80 }
 ];
 const dCompanies = [
   {id:"c1",name:"Leder & Mehr GmbH",country:"DE",flag:"🇩🇪",moq:100,terms:"Net 30",currency:"EUR",contact:"hans@leder.de",orders:12},

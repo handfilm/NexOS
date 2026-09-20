@@ -12,15 +12,16 @@ import {
   Firestore,
   Unsubscribe
 } from 'firebase/firestore';
+import { db as sharedDb } from './firebase';
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyBBDQc5CIzjuKDVVYX87oPGry-tVQys6k4",
-  authDomain: "nexos-hh.firebaseapp.com",
-  projectId: "nexos-hh",
-  storageBucket: "nexos-hh.firebasestorage.app",
-  messagingSenderId: "382637524347",
-  appId: "1:382637524347:web:c81a6cdc4834bd79f4e9de",
-  measurementId: "G-LD289VX0FH"
+  apiKey: "AIzaSyAU9sICCVDeZB8Ht-IirF_3vXLYb6Nap8k",
+  authDomain: "grounded-trail-1dtd0.firebaseapp.com",
+  projectId: "grounded-trail-1dtd0",
+  storageBucket: "grounded-trail-1dtd0.firebasestorage.app",
+  messagingSenderId: "170252932635",
+  appId: "1:170252932635:web:7ca7fec34767fcb521cabe",
+  firestoreDatabaseId: "ai-studio-nexos-1c2cf9c3-6e2f-4734-91f7-5d4353af2059"
 };
 
 export const DEFAULT_OPERATOR_IDENTITY = {
@@ -33,9 +34,7 @@ let _dbInstance: Firestore | null = null;
 
 export function getDb(): Firestore {
   if (_dbInstance) return _dbInstance;
-
-  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-  _dbInstance = getFirestore(app);
+  _dbInstance = sharedDb;
   return _dbInstance;
 }
 
@@ -138,11 +137,14 @@ export async function ensureFirestoreSeeded(bundledRecords?: any[]): Promise<boo
         const docId = String(rawId || `cust_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`).trim();
         const docRef = doc(db, "customers", docId);
 
-        const cleanItem = {
-          ...item,
-          id: docId,
-          updatedAt: item.updatedAt || new Date().toISOString()
-        };
+        const cleanItem: Record<string, any> = {};
+        for (const [k, v] of Object.entries(item || {})) {
+          if (v !== undefined) {
+            cleanItem[k] = v;
+          }
+        }
+        cleanItem.id = docId;
+        cleanItem.updatedAt = item?.updatedAt || new Date().toISOString();
 
         batch.set(docRef, cleanItem, { merge: true });
       }
@@ -156,7 +158,7 @@ export async function ensureFirestoreSeeded(bundledRecords?: any[]): Promise<boo
     _isSeeding = false;
     return true;
   } catch (err: any) {
-    console.error(`[PERSISTENCE SEED] Error during Firestore seed:`, err);
+    console.error(`[PERSISTENCE SEED] Error during Firestore seed:`, err?.message || err);
     _isSeeding = false;
     return false;
   }
@@ -355,5 +357,8 @@ if (typeof window !== 'undefined') {
   (window as any).saveOrder = saveOrder;
   (window as any).saveB2BDeal = saveB2BDeal;
   (window as any).writeDocument = writeDocument;
+  (window as any).subscribeToOrders = subscribeToOrders;
+  (window as any).subscribeToProducts = subscribeToProducts;
+  (window as any).subscribeToCustomers = subscribeToCustomers;
 }
 

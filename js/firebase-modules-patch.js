@@ -651,7 +651,7 @@
       return window.updateProductsListInPlace();
     }
 
-    if (!options.silent) {
+    if (!options.silent && (!window._lastProductsCache || !window._lastProductsCache.length)) {
       target.innerHTML = loading("Loading Product Catalog…");
     }
 
@@ -5968,7 +5968,9 @@
   window.render.Orders = async function (container) {
     const target = container || document.getElementById("mod-Orders") || document.getElementById("body");
     if (!target) return;
-    target.innerHTML = loading("Loading Commerce Orders…");
+    if (!window._lastOrdersCache || !window._lastOrdersCache.length) {
+      target.innerHTML = loading("Loading Commerce Orders…");
+    }
     const state = window._viewState.orders || {};
 
     try {
