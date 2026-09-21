@@ -2233,13 +2233,18 @@
     startAutoScan() {
       if (this.state.countdownHandle) clearInterval(this.state.countdownHandle);
 
-      // Countdown tick every second for real-time UI feel
+      // Countdown tick every second for real-time UI feel (guarded against background tab wakeups)
       this.state.countdownHandle = setInterval(() => {
+        if (document.hidden) return;
         if (this.state.scanIntervalSec <= 0) return;
         this.state.countdownSec--;
         if (this.state.countdownSec <= 0) {
           this.state.countdownSec = this.state.scanIntervalSec;
-          this.scan(false);
+          // Only scan if user is actually viewing the products/drive sync screen
+          const isDriveSyncActive = !!(document.getElementById("drive_sync_timer_display") || document.getElementById("drive_sync_assets_container"));
+          if (isDriveSyncActive) {
+            this.scan(false);
+          }
         }
         const timerEl = document.getElementById("drive_sync_timer_display");
         if (timerEl) {
@@ -4481,23 +4486,18 @@
             ${monogram}
           </div>
 
-          <!-- Customer Code Badge -->
-          <span class="crow-code" onclick="event.stopPropagation(); window.openCompanyDetail('${safeId}');" title="Open Full Dossier">
-            CUST-${(c.id || '').slice(0, 8).toUpperCase()}
-          </span>
+          <!-- Customer Name & Hub (Primary First Column) -->
+          <div class="crow-name-cell" onclick="event.stopPropagation(); window.openCompanyDetail('${safeId}');" title="Open Full Dossier" style="cursor:pointer;">
+            <span class="crow-name" style="font-size:13px;font-weight:800;color:#FFFFFF;" title="${safeName}">${displayName}</span>
+            <span class="crow-location-chip" style="font-size:9.5px;color:#94a3b8;font-family:var(--mono);">
+              ${flagIcon} ${countryCode} · <strong style="color:#10b981;">${ordersCount} ORD</strong>
+            </span>
+          </div>
 
           <!-- Inline Cohort Badge -->
           <span class="pill ${cohortClass} crow-cohort-pill" style="font-size:8px;padding:2px 6px;font-weight:700;">
             ${cohortLabel}
           </span>
-
-          <!-- Customer Name & Hub -->
-          <div class="crow-name-cell">
-            <span class="crow-name" title="${safeName}">${displayName}</span>
-            <span class="crow-location-chip" style="font-size:9.5px;color:#94a3b8;font-family:var(--mono);">
-              ${flagIcon} ${countryCode} · <strong style="color:#10b981;">${ordersCount} ORD</strong>
-            </span>
-          </div>
 
           <!-- Contact Snippet (Tablet & Desktop) -->
           <div class="hidden md:flex items-center gap-2 font-mono text-[10.5px] text-slate-400" style="flex-shrink:0;margin-right:6px;">
@@ -4692,9 +4692,9 @@
             ${displayName}
           </div>
 
-          <!-- Subtitle / SKU & Contact (matching Product's .pc) -->
+          <!-- Subtitle / Contact & Company (matching Product's .pc) -->
           <div class="pc" style="font-size:9.5px;color:#94a3b8;font-family:var(--mono);display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">CUST-${c.id.slice(0, 8).toUpperCase()}</span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e2e8f0;font-weight:600;">${c.companyName || 'Verified Account'}</span>
             <span style="font-size:9px;color:${ordersCount > 0 ? '#34d399' : '#94a3b8'};font-weight:600;flex-shrink:0;">
               ${c.contactPerson ? c.contactPerson.slice(0, 12) : 'Active Buyer'}
             </span>
@@ -4860,8 +4860,8 @@
                           ${monogram}
                         </div>
                         <div style="min-width:0;">
-                          <div style="font-weight:700;color:#F8FAFC;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;" title="${safeName}">${displayName}</div>
-                          <div style="font-size:9.5px;color:#94A3B8;">CUST-${(c.id || '').slice(0, 8).toUpperCase()}</div>
+                          <div style="font-weight:800;color:#F8FAFC;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;" title="${safeName}">${displayName}</div>
+                          <div style="font-size:10px;color:#94A3B8;">${c.companyName && c.companyName !== displayName ? c.companyName : (c.contactPerson || 'Direct Buyer')}</div>
                         </div>
                       </div>
                     </td>

@@ -11,39 +11,91 @@
   try { const ml = document.createElement("link"); ml.rel = "manifest"; ml.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"})); document.head.appendChild(ml); } catch(e){}
 })();
 
-/* ── Radar Canvas ── */
+/* ── Radar Canvas (Mobile-optimized & throttled) ── */
 (function () {
   const canvas = document.getElementById('radar-canvas');
   if (!canvas) return;
+
+  // On mobile screens, disable full-viewport canvas animation completely to protect memory & battery
+  if (window.innerWidth <= 768) {
+    canvas.style.display = 'none';
+    return;
+  }
+
   const ctx = canvas.getContext('2d');
   let W, H, cx, cy, maxR, sweep = 0, trails = [], dots = [];
+  let animId = null;
+  let lastFrameTime = 0;
+  const targetInterval = 1000 / 30; // Smooth 30fps cap to halve GPU workload
   const G = 'rgba(201,168,76,';
+
   function resize() {
+    if (window.innerWidth <= 768) {
+      canvas.style.display = 'none';
+      if (animId) { cancelAnimationFrame(animId); animId = null; }
+      return;
+    }
+    canvas.style.display = 'block';
     W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight;
     cx = W * 0.72; cy = H * 0.26; maxR = Math.max(W, H) * 0.65;
     dots = Array.from({length:14}, () => ({ angle:Math.random()*Math.PI*2, r:maxR*(0.15+Math.random()*0.72), alpha:0.4+Math.random()*0.6, size:1+Math.random()*2 }));
   }
-  function draw() {
-    ctx.clearRect(0,0,W,H);
-    for (let i=1;i<=5;i++) { ctx.beginPath(); ctx.arc(cx,cy,(maxR/5)*i,0,Math.PI*2); ctx.strokeStyle=G+(0.06-i*0.008)+')'; ctx.lineWidth=0.5; ctx.stroke(); }
-    ctx.strokeStyle=G+'0.04)'; ctx.lineWidth=0.5;
-    ctx.beginPath(); ctx.moveTo(cx-maxR,cy); ctx.lineTo(cx+maxR,cy); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx,cy-maxR); ctx.lineTo(cx,cy+maxR); ctx.stroke();
-    trails.push({angle:sweep}); if(trails.length>52) trails.shift();
-    trails.forEach((t,i) => { const a=(i/trails.length)*0.7; const sa=t.angle-0.08*(1-i/trails.length)*3; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,maxR*0.95,sa,t.angle); ctx.closePath(); ctx.fillStyle=G+(a*0.16)+')'; ctx.fill(); });
-    const ex=cx+Math.cos(sweep)*maxR*0.95, ey=cy+Math.sin(sweep)*maxR*0.95;
-    const lg=ctx.createLinearGradient(cx,cy,ex,ey); lg.addColorStop(0,G+'0.6)'); lg.addColorStop(1,G+'0)');
-    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ex,ey); ctx.strokeStyle=lg; ctx.lineWidth=1.5; ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fillStyle=G+'0.8)'; ctx.fill();
-    dots.forEach(d => {
-      const dx=cx+Math.cos(d.angle)*d.r, dy=cy+Math.sin(d.angle)*d.r;
-      const ad=((sweep-d.angle)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
-      const br=ad<0.3?1:Math.max(0,1-(ad/(Math.PI*1.5)));
-      if(br>0.05) { ctx.beginPath(); ctx.arc(dx,dy,d.size+br*1.5,0,Math.PI*2); ctx.fillStyle=G+(d.alpha*br*0.9)+')'; ctx.fill(); }
-    });
-    sweep+=0.008; requestAnimationFrame(draw);
+
+  function draw(timestamp) {
+    if (document.hidden || window.innerWidth <= 768) {
+      animId = null;
+      return;
+    }
+
+    if (!timestamp) timestamp = performance.now();
+    const elapsed = timestamp - lastFrameTime;
+
+    if (elapsed >= targetInterval) {
+      lastFrameTime = timestamp - (elapsed % targetInterval);
+
+      ctx.clearRect(0,0,W,H);
+      for (let i=1;i<=5;i++) { ctx.beginPath(); ctx.arc(cx,cy,(maxR/5)*i,0,Math.PI*2); ctx.strokeStyle=G+(0.06-i*0.008)+')'; ctx.lineWidth=0.5; ctx.stroke(); }
+      ctx.strokeStyle=G+'0.04)'; ctx.lineWidth=0.5;
+      ctx.beginPath(); ctx.moveTo(cx-maxR,cy); ctx.lineTo(cx+maxR,cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx,cy-maxR); ctx.lineTo(cx,cy+maxR); ctx.stroke();
+      trails.push({angle:sweep}); if(trails.length>36) trails.shift();
+      trails.forEach((t,i) => { const a=(i/trails.length)*0.7; const sa=t.angle-0.08*(1-i/trails.length)*3; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,maxR*0.95,sa,t.angle); ctx.closePath(); ctx.fillStyle=G+(a*0.14)+')'; ctx.fill(); });
+      const ex=cx+Math.cos(sweep)*maxR*0.95, ey=cy+Math.sin(sweep)*maxR*0.95;
+      const lg=ctx.createLinearGradient(cx,cy,ex,ey); lg.addColorStop(0,G+'0.5)'); lg.addColorStop(1,G+'0)');
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ex,ey); ctx.strokeStyle=lg; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fillStyle=G+'0.8)'; ctx.fill();
+      dots.forEach(d => {
+        const dx=cx+Math.cos(d.angle)*d.r, dy=cy+Math.sin(d.angle)*d.r;
+        const ad=((sweep-d.angle)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+        const br=ad<0.3?1:Math.max(0,1-(ad/(Math.PI*1.5)));
+        if(br>0.05) { ctx.beginPath(); ctx.arc(dx,dy,d.size+br*1.5,0,Math.PI*2); ctx.fillStyle=G+(d.alpha*br*0.9)+')'; ctx.fill(); }
+      });
+      sweep+=0.008;
+    }
+
+    animId = requestAnimationFrame(draw);
   }
-  resize(); window.addEventListener('resize',resize); draw();
+
+  function start() {
+    if (!animId && !document.hidden && window.innerWidth > 768) {
+      animId = requestAnimationFrame(draw);
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (animId) { cancelAnimationFrame(animId); animId = null; }
+    } else {
+      start();
+    }
+  });
+
+  resize();
+  window.addEventListener('resize', () => {
+    resize();
+    start();
+  });
+  start();
 })();
 
 /* ── Constants ── */
@@ -454,13 +506,130 @@ try {
 } catch (e) {}
 let mode = _initialRole, expScreen = "dashboard";
 
+/* ── Persistent Dark Mode & Global Theme Engine ── */
+window.NexTheme = {
+  getTheme: function() {
+    return document.documentElement.classList.contains('dark') || (document.body && document.body.classList.contains('dark')) ? 'dark' : 'light';
+  },
+  isDark: function() {
+    return this.getTheme() === 'dark';
+  },
+  setTheme: function(theme, isUserAction = false) {
+    const isDark = (theme === 'dark');
+    if (isUserAction) {
+      document.documentElement.classList.add('theme-transitioning');
+      if (document.body) document.body.classList.add('theme-transitioning');
+    }
+
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+      if (document.body) {
+        document.body.classList.add('dark');
+        document.body.setAttribute('data-theme', 'dark');
+      }
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+      if (document.body) {
+        document.body.classList.remove('dark');
+        document.body.setAttribute('data-theme', 'light');
+      }
+    }
+
+    try {
+      localStorage.setItem('nx_theme', isDark ? 'dark' : 'light');
+    } catch(e) {}
+
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) {
+      metaTheme.setAttribute('content', isDark ? '#0B0F17' : '#EBF1F8');
+    }
+
+    this.updateToggleUIs();
+
+    if (isUserAction) {
+      setTimeout(() => {
+        document.documentElement.classList.remove('theme-transitioning');
+        if (document.body) document.body.classList.remove('theme-transitioning');
+      }, 350);
+    }
+
+    if (window.NexEvents && typeof window.NexEvents.emit === 'function') {
+      window.NexEvents.emit('THEME_CHANGED', isDark ? 'dark' : 'light');
+    }
+  },
+  toggle: function() {
+    const nextTheme = this.isDark() ? 'light' : 'dark';
+    this.setTheme(nextTheme, true);
+    if (typeof window.toast === 'function') {
+      window.toast(nextTheme === 'dark' ? '🌙 Dark Mode Activated' : '☀️ Light Mode Activated');
+    }
+    return nextTheme;
+  },
+  updateToggleUIs: function() {
+    const isDark = this.isDark();
+    document.querySelectorAll('.theme-toggle-input').forEach(el => {
+      el.checked = isDark;
+    });
+    document.querySelectorAll('.theme-toggle-badge').forEach(el => {
+      el.innerText = isDark ? 'DARK' : 'LIGHT';
+      el.className = 'theme-toggle-badge ' + (isDark ? 'dark-active' : 'light-active');
+    });
+    document.querySelectorAll('.theme-toggle-btn').forEach(el => {
+      el.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+      el.title = isDark ? 'Switch to Light Mode (Currently Dark)' : 'Switch to Dark Mode (Currently Light)';
+    });
+
+    const headerBtn = document.getElementById('topbar-theme-btn');
+    if (headerBtn) {
+      headerBtn.setAttribute('title', isDark ? 'Switch to Light Mode (Currently Dark)' : 'Switch to Dark Mode (Currently Light)');
+      const iconWrap = headerBtn.querySelector('.theme-btn-icon');
+      if (iconWrap) {
+        iconWrap.innerHTML = isDark 
+          ? `<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`
+          : `<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+      }
+    }
+
+    const orb = document.getElementById('dropdownThemeOrb');
+    if (orb) {
+      orb.innerHTML = isDark
+        ? `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:#F59E0B;fill:none;stroke-width:2;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`
+        : `<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+      orb.style.background = isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255, 91, 53, 0.12)';
+      orb.style.color = isDark ? '#F59E0B' : 'var(--coral)';
+    }
+  },
+  init: function() {
+    const saved = localStorage.getItem('nx_theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = saved ? (saved === 'dark') : prefersDark;
+    this.setTheme(isDark ? 'dark' : 'light', false);
+  }
+};
+
 /* ── Theme ── */
 function applyTheme(m) {
-  document.body.classList.add("theme-transitioning");
-  document.body.classList.remove("dark","expert-mode","production-mode");
-  if (m === "expert")     document.body.classList.add("dark","expert-mode");
+  document.body.classList.remove("expert-mode","production-mode");
+  if (m === "expert")     document.body.classList.add("expert-mode");
   if (m === "production") document.body.classList.add("production-mode");
-  setTimeout(() => document.body.classList.remove("theme-transitioning"), 500);
+
+  const isDark = (window.NexTheme && typeof window.NexTheme.isDark === 'function')
+    ? window.NexTheme.isDark()
+    : (localStorage.getItem('nx_theme') === 'dark');
+
+  if (isDark) {
+    document.documentElement.classList.add("dark");
+    document.body.classList.add("dark");
+    document.documentElement.setAttribute("data-theme", "dark");
+    document.body.setAttribute("data-theme", "dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+    document.body.classList.remove("dark");
+    document.documentElement.setAttribute("data-theme", "light");
+    document.body.setAttribute("data-theme", "light");
+  }
 }
 
 /* ── Main Render ── */
@@ -2479,8 +2648,12 @@ function exitProduction() {
 window.openAccountProfileModal = function() {
   const isExpert = (mode === 'expert');
   const isProd = (mode === 'production');
-  const user = window.NexAuth?.getUser() || null;
+  const prof = window.NexAuth?.profile || {};
+  const user = window.NexAuth?.currentUser || window.NexAuth?.getUser() || null;
+  const userName = prof.name || user?.displayName || "Merchant Admin";
+  const userEmail = prof.email || user?.email || "admin@handsandhead.com";
   const roleTitle = isExpert ? "Expert OS (Operator)" : isProd ? "Production Head" : "Lite Seller";
+  const isDark = (window.NexTheme && typeof window.NexTheme.isDark === 'function') ? window.NexTheme.isDark() : false;
 
   const sheetEl = document.getElementById("sheet");
   if (sheetEl) sheetEl.classList.add("more-menu-sheet");
@@ -2493,24 +2666,52 @@ window.openAccountProfileModal = function() {
           <span class="more-header-beacon"></span>
           <span>SYSTEM PRIVILEGES &amp; ACCOUNT</span>
         </div>
-        <div class="more-header-title">Operator Profile &amp; Role Switcher</div>
+        <div class="more-header-title">Operator Profile &amp; Preferences</div>
       </div>
       <button class="more-close-circular-btn" onclick="closeSheet()" title="Close">✕</button>
     </div>
 
     <!-- Active Status Card -->
-    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <div style="font-family:var(--mono);font-size:9.5px;color:#94A3B8;letter-spacing:1px;text-transform:uppercase;">Current Active Terminal</div>
-        <div style="font-size:16px;font-weight:800;color:#D4AF37;margin-top:2px;">${roleTitle}</div>
-        <div style="font-size:11px;color:#CBD5E1;margin-top:2px;">${user ? user.email : 'Local Session · PIN Authenticated'}</div>
+    <div style="background:var(--bg-neu);border:1px solid var(--wire);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--neu-flat-xs);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:42px;height:42px;border-radius:50%;background:var(--coral-gradient);color:#FFF;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;font-family:var(--display);box-shadow:var(--coral-shadow);flex-shrink:0;">
+          ${(userName || 'MA').slice(0, 2).toUpperCase()}
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--ink);">${userName}</div>
+          <div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);">${userEmail}</div>
+          <div style="font-size:10px;color:var(--gold);font-family:var(--mono);margin-top:2px;">Terminal: ${roleTitle}</div>
+        </div>
       </div>
-      <div style="padding:4px 10px;border-radius:20px;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.4);color:#D4AF37;font-family:var(--mono);font-size:10px;font-weight:800;">
+      <div style="padding:4px 10px;border-radius:20px;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.4);color:#D4AF37;font-family:var(--mono);font-size:9.5px;font-weight:800;">
         ACTIVE
       </div>
     </div>
 
+    <!-- PERSISTENT DARK MODE TOGGLE (Featured Card) -->
+    <div style="background:var(--bg-neu);border-radius:14px;border:1px solid var(--wire);box-shadow:var(--neu-flat-xs);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="window.NexTheme?.toggle ? window.NexTheme.toggle() : null" title="Click to toggle Dark / Light mode">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,91,53,0.12);color:var(--coral);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </div>
+        <div>
+          <div style="font-size:13.5px;font-weight:700;color:var(--ink);">Dark Mode</div>
+          <div style="font-size:10px;color:var(--ink-3);font-family:var(--mono);">Updates CSS variables &amp; Tailwind globally</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation()">
+        <span class="theme-toggle-badge ${isDark ? 'dark-active' : 'light-active'}">${isDark ? 'DARK' : 'LIGHT'}</span>
+        <label class="theme-switch" title="Toggle Dark/Light Mode">
+          <input type="checkbox" class="theme-toggle-input" ${isDark ? 'checked' : ''} onchange="window.NexTheme?.setTheme ? window.NexTheme.setTheme(this.checked ? 'dark' : 'light') : null" />
+          <span class="theme-slider"></span>
+        </label>
+      </div>
+    </div>
+
     <!-- Switch Roles Options -->
+    <div style="font-family:var(--mono);font-size:9.5px;color:var(--ink-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;font-weight:700;">
+      Terminal Roles &amp; Mode Gates
+    </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
       <div style="background:linear-gradient(135deg, rgba(212,175,55,0.15), rgba(15,23,42,0.95));border:1px solid ${isExpert ? '#D4AF37' : 'rgba(212,175,55,0.4)'};border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;"
            onclick="closeSheet(); ${isExpert ? 'exitExpert()' : 'openGate(\'expert\')'}">
@@ -2625,6 +2826,76 @@ document.addEventListener('click', function(e) {
   const wrap = document.querySelector('.operations-dropdown-wrap');
   const menu = document.getElementById('operationsDropdownMenu');
   const btn = document.getElementById('operationsBtn');
+  if (wrap && menu && !wrap.contains(e.target)) {
+    menu.style.display = 'none';
+    menu.classList.add('hidden');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+});
+
+/* ── Topbar User Account Menu Controller ── */
+window.syncTopbarUserProfile = function() {
+  const prof = window.NexAuth?.profile || {};
+  const user = window.NexAuth?.currentUser || {};
+  const name = prof.name || user.displayName || 'Merchant Admin';
+  const email = prof.email || user.email || 'admin@handsandhead.com';
+  const initials = (name || 'MA').slice(0, 2).toUpperCase();
+
+  const avatarEl = document.getElementById('topbarUserAvatar');
+  if (avatarEl) avatarEl.innerText = initials;
+  const nameEl = document.getElementById('topbarUserName');
+  if (nameEl) nameEl.innerText = name;
+
+  const dropAvatar = document.getElementById('dropdownUserAvatar');
+  if (dropAvatar) dropAvatar.innerText = initials;
+  const dropName = document.getElementById('dropdownUserName');
+  if (dropName) dropName.innerText = name;
+  const dropEmail = document.getElementById('dropdownUserEmail');
+  if (dropEmail) dropEmail.innerText = email;
+};
+
+window.toggleUserAccountDropdown = function(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  const menu = document.getElementById('userAccountDropdown');
+  const btn = document.getElementById('userAccountBtn');
+  if (!menu) return;
+  const isHidden = menu.style.display === 'none' || menu.classList.contains('hidden');
+  if (isHidden) {
+    // Close operations dropdown if open
+    const opsMenu = document.getElementById('operationsDropdownMenu');
+    const opsBtn = document.getElementById('operationsBtn');
+    if (opsMenu) { opsMenu.style.display = 'none'; opsMenu.classList.add('hidden'); }
+    if (opsBtn) opsBtn.setAttribute('aria-expanded', 'false');
+
+    menu.style.display = 'block';
+    menu.classList.remove('hidden');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+    window.syncTopbarUserProfile?.();
+    window.NexTheme?.updateToggleUIs?.();
+  } else {
+    menu.style.display = 'none';
+    menu.classList.add('hidden');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+};
+
+window.closeAllUserMenus = function() {
+  const menu = document.getElementById('userAccountDropdown');
+  const btn = document.getElementById('userAccountBtn');
+  if (menu) {
+    menu.style.display = 'none';
+    menu.classList.add('hidden');
+  }
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+};
+
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('userAccountMenuWrap');
+  const menu = document.getElementById('userAccountDropdown');
+  const btn = document.getElementById('userAccountBtn');
   if (wrap && menu && !wrap.contains(e.target)) {
     menu.style.display = 'none';
     menu.classList.add('hidden');
@@ -3571,10 +3842,10 @@ window.SyncEngine = {
 
   async poll() {
     if (this._timer) clearTimeout(this._timer);
-    if (this._active) {
+    if (this._active && !document.hidden) {
       await this.check();
     }
-    this._timer = setTimeout(() => this.poll(), this._pollInterval);
+    this._timer = setTimeout(() => this.poll(), document.hidden ? 10000 : this._pollInterval);
   },
 
   async check() {
@@ -3693,10 +3964,23 @@ window.openQuickSale=openQuickSale; window.ordersListHtml=ordersListHtml; window
 window.SyncEngine=SyncEngine;
 
 /* ── Boot ── */
+if (window.NexTheme && typeof window.NexTheme.init === 'function') {
+  window.NexTheme.init();
+}
 if (mode === "expert" || mode === "production") {
   applyTheme(mode);
 }
 render();
+
+if (typeof window !== "undefined" && window.syncTopbarUserProfile) {
+  window.syncTopbarUserProfile();
+}
+
+if (typeof window !== "undefined" && window.NexEvents) {
+  window.NexEvents.on(window.NexEvents.EVENTS.AUTH_CHANGED, () => {
+    if (window.syncTopbarUserProfile) window.syncTopbarUserProfile();
+  });
+}
 
 // Initialize Continuous Cross-Device Sync Engine
 if (typeof window !== "undefined" && window.SyncEngine) {

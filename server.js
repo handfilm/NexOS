@@ -15,6 +15,12 @@ import {
   readAllSuppliers,
   calculateSupplierStats,
 } from './lib/supplierStorage.js';
+import {
+  initFirebaseSync,
+  syncOrderToFirestore,
+  syncProductToFirestore,
+  syncCustomerToFirestore
+} from './lib/firebaseSync.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1659,6 +1665,17 @@ if (!fs.existsSync(ORDERS_FILE) || safeReadJson(ORDERS_FILE, []).length === 0) {
   safeWriteJson(ORDERS_FILE, seedOrders);
 }
 
+// Initialize Real-time Cloud Firestore synchronization engine across all devices & browsers
+initFirebaseSync({
+  getOrders: () => safeReadJson(ORDERS_FILE, []),
+  setOrders: (list) => safeWriteJson(ORDERS_FILE, list),
+  getCustomers: () => getCustomersList(),
+  setCustomers: (list) => setCustomersList(list),
+  getProducts: () => safeReadJson(PRODUCTS_FILE, []),
+  setProducts: (list) => safeWriteJson(PRODUCTS_FILE, list),
+  broadcastSync
+});
+
 /* ── PIN & Google Authentication Verification ── */
 const OPERATOR_PIN = process.env.OPERATOR_PIN || '1981';
 const PRODUCTION_PIN = process.env.PRODUCTION_PIN || '2024';
@@ -1855,6 +1872,7 @@ app.post('/api/products', (req, res) => {
       items.unshift(newProduct);
     }
     safeWriteJson(PRODUCTS_FILE, items);
+    syncProductToFirestore(existingIdx !== -1 ? items[existingIdx] : newProduct);
 
     res.json({ ok: true, id: newId, item: existingIdx !== -1 ? items[existingIdx] : newProduct });
   } catch (err) {
@@ -1886,6 +1904,7 @@ app.put('/api/products/:id', (req, res) => {
 
     items[idx] = updated;
     safeWriteJson(PRODUCTS_FILE, items);
+    syncProductToFirestore(updated);
     res.json({ ok: true, item: updated });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -2280,6 +2299,7 @@ app.post('/api/customers', (req, res) => {
 
     items.unshift(newCustomer);
     setCustomersList(items);
+    syncCustomerToFirestore(newCustomer);
 
     res.json({ ok: true, id: newId, item: newCustomer, total: items.length });
   } catch (err) {
@@ -2301,6 +2321,7 @@ app.put('/api/customers/:id', (req, res) => {
 
     items[idx] = updated;
     setCustomersList(items);
+    syncCustomerToFirestore(updated);
     res.json({ ok: true, item: updated });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -2627,6 +2648,7 @@ app.post('/api/orders', (req, res) => {
 
     orders.unshift(newOrder);
     safeWriteJson(ORDERS_FILE, orders);
+    syncOrderToFirestore(newOrder);
 
     res.json({ ok: true, id: newId, orderId: newId, orderNumber, item: newOrder, order: newOrder });
   } catch (err) {
@@ -2689,6 +2711,7 @@ app.put('/api/orders/:id', (req, res) => {
 
     orders[idx] = updated;
     safeWriteJson(ORDERS_FILE, orders);
+    syncOrderToFirestore(updated);
     res.json({ ok: true, item: updated, order: updated });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -3859,6 +3882,7 @@ app.post('/api/orders/quick-sale', (req, res) => {
 
     orders.unshift(newOrder);
     safeWriteJson(ORDERS_FILE, orders);
+    syncOrderToFirestore(newOrder);
 
     res.json({ ok: true, id: newId, orderNumber, order: newOrder, customer: targetCustomer || customers[0] });
   } catch (err) {

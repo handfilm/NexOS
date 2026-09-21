@@ -17,6 +17,24 @@
 <title>Hands &amp; Head</title>
 <base href="/">
 
+<script>
+  /* ── Immediate Zero-Flicker Dark Mode Initialization ── */
+  (function() {
+    try {
+      var saved = localStorage.getItem('nx_theme');
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var isDark = saved ? (saved === 'dark') : prefersDark;
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    } catch(e) {}
+  })();
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Anton&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -89,17 +107,8 @@
 }
 </style>
 
-<!-- Tailwind Utility Engine (preflight:false prevents clobbering tactile theme) -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  if (typeof tailwind !== "undefined") {
-    tailwind.config = {
-      corePlugins: {
-        preflight: false
-      }
-    };
-  }
-</script>
+<!-- High-Performance Pre-Compiled Tailwind Utilities (zero runtime overhead, crash-free) -->
+<link rel="stylesheet" href="css/tailwind.min.css?v=1.1.0">
 
 <script>
 /* ── Purge Stale Service Workers to Prevent 404 Caching Loops ── */
@@ -385,7 +394,111 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
       <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" fill="currentColor"/><path d="M19 10v2a7 7 0 01-14 0v-2H3v2a9 9 0 008 8.94V23h2v-2.06A9 9 0 0021 12v-2h-2z" fill="currentColor"/></svg>
       <div class="voice-pulse-ring"></div>
     </button>
-    <div id="modeTag" class="mode-badge" onclick="window.openAccountProfileModal ? window.openAccountProfileModal() : openAuthModal()" style="cursor:pointer;" title="Click to view Account &amp; Workspace Profile">Nexus Operator</div>
+
+    <!-- Quick 1-Click Dark Mode Toggle Button in Header -->
+    <button class="tbar-btn theme-toggle-btn" id="topbar-theme-btn" onclick="window.NexTheme?.toggle ? window.NexTheme.toggle() : null" title="Toggle Dark / Light Mode" aria-pressed="false">
+      <div class="theme-btn-icon">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </div>
+    </button>
+
+    <!-- Top-Right User Account Menu -->
+    <div class="user-account-menu-wrap" id="userAccountMenuWrap">
+      <button class="user-account-menu-btn" id="userAccountBtn" onclick="window.toggleUserAccountDropdown ? window.toggleUserAccountDropdown(event) : (window.openAccountProfileModal ? window.openAccountProfileModal() : null)" title="User Account &amp; System Settings" aria-haspopup="true" aria-expanded="false">
+        <div class="user-avatar-monogram" id="topbarUserAvatar">MA</div>
+        <div class="user-account-meta">
+          <span class="user-account-name" id="topbarUserName">Merchant Admin</span>
+          <span class="user-account-role mode-badge" id="modeTag">Nexus Operator</span>
+        </div>
+        <svg viewBox="0 0 24 24" class="user-menu-chev" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+
+      <!-- Dropdown Menu -->
+      <div class="user-account-dropdown" id="userAccountDropdown" style="display:none;">
+        <div class="user-dropdown-inner">
+          <!-- User Profile Brief -->
+          <div class="user-dropdown-header">
+            <div class="user-dropdown-avatar" id="dropdownUserAvatar">MA</div>
+            <div class="user-dropdown-info">
+              <div class="user-dropdown-name" id="dropdownUserName">Merchant Admin</div>
+              <div class="user-dropdown-email" id="dropdownUserEmail">admin@handsandhead.com</div>
+              <div class="user-dropdown-status">
+                <span class="user-status-dot"></span>
+                <span id="dropdownUserStatus">Enterprise Verified</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="user-dropdown-divider"></div>
+
+          <!-- PERSISTENT DARK MODE TOGGLE (Featured) -->
+          <div class="user-dropdown-theme-card" onclick="window.NexTheme?.toggle ? window.NexTheme.toggle() : null" title="Click to toggle theme">
+            <div class="theme-card-left">
+              <div class="theme-icon-orb" id="dropdownThemeOrb">
+                <svg viewBox="0 0 24 24" class="theme-moon-icon" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              </div>
+              <div class="theme-card-text">
+                <div class="theme-card-title">Dark Mode</div>
+                <div class="theme-card-subtitle">Global Tailwind &amp; CSS variables</div>
+              </div>
+            </div>
+            <div class="theme-card-right" onclick="event.stopPropagation()">
+              <span class="theme-toggle-badge light-active" id="dropdownThemeBadge">LIGHT</span>
+              <label class="theme-switch" title="Toggle Dark/Light Mode">
+                <input type="checkbox" id="userMenuThemeToggle" class="theme-toggle-input" onchange="window.NexTheme?.setTheme ? window.NexTheme.setTheme(this.checked ? 'dark' : 'light') : null" />
+                <span class="theme-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="user-dropdown-divider"></div>
+
+          <!-- Menu Navigation Links -->
+          <div class="user-dropdown-menu-list">
+            <div class="user-dropdown-item" onclick="if(window.closeAllUserMenus){window.closeAllUserMenus();} window.openAccountProfileModal ? window.openAccountProfileModal() : null;">
+              <div class="user-dropdown-item-icon" style="background:rgba(255,91,53,0.12);color:var(--coral);">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div class="user-dropdown-item-info">
+                <div class="user-dropdown-item-title">Account &amp; Workspace</div>
+                <div class="user-dropdown-item-desc">Profile, store currency &amp; operator PIN</div>
+              </div>
+            </div>
+
+            <div class="user-dropdown-item" onclick="if(window.closeAllUserMenus){window.closeAllUserMenus();} openGate('expert');">
+              <div class="user-dropdown-item-icon" style="background:rgba(212,175,55,0.15);color:var(--gold);">
+                <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <div class="user-dropdown-item-info">
+                <div class="user-dropdown-item-title">Operator OS Terminal</div>
+                <div class="user-dropdown-item-desc">Switch terminal role (Expert / Production / Lite)</div>
+              </div>
+            </div>
+
+            <div class="user-dropdown-item" onclick="if(window.closeAllUserMenus){window.closeAllUserMenus();} if(window.openAuthModal){window.openAuthModal('login');}">
+              <div class="user-dropdown-item-icon" style="background:rgba(59,130,246,0.12);color:var(--info);">
+                <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              </div>
+              <div class="user-dropdown-item-info">
+                <div class="user-dropdown-item-title">Switch Account / Sign In</div>
+                <div class="user-dropdown-item-desc">Google OAuth or Merchant credentials</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="user-dropdown-divider"></div>
+
+          <!-- Sign Out Session -->
+          <div class="user-dropdown-footer">
+            <button class="user-dropdown-signout" onclick="if(window.closeAllUserMenus){window.closeAllUserMenus();} if(window.submitSignOut){window.submitSignOut();}">
+              <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span>Sign Out Session</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <button class="tbar-btn" onclick="openAiChat()" style="position:relative;" title="The Gemini AI">
       <svg viewBox="0 0 24 24"><path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
       <div class="notif-dot" id="aiDot" style="display:none;"></div>

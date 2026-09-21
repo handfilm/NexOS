@@ -125,6 +125,18 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    match /rfqs/{id} {
+      allow read, write: if true;
+    }
+
+    match /campaigns/{id} {
+      allow read, write: if true;
+    }
+
+    match /suppliers/{id} {
+      allow read, write: if true;
+    }
+
     // ── 7. NEXOS Federated Catalog Ecosystem ──
     match /federated_catalog/{catalogId} {
       allow read, write: if true;

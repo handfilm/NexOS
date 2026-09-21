@@ -129,7 +129,12 @@
         resolve(this.profile);
       }, 1500));
 
-      return Promise.race([authPromise, timeoutBarrier]);
+      return Promise.race([authPromise, timeoutBarrier]).then((prof) => {
+        if (typeof window.syncTopbarUserProfile === 'function') {
+          window.syncTopbarUserProfile();
+        }
+        return prof;
+      });
     },
 
     /* ── Real Email / Password Login ── */
@@ -597,6 +602,26 @@
             <div style="font-size:10px;color:var(--gold);font-family:var(--mono);margin-top:2px;">
               ${isAnonymous ? '⚡ Guest Session (Unlinked)' : '✓ Verified Cloud Account'}
             </div>
+          </div>
+        </div>
+
+        <!-- PERSISTENT DARK MODE TOGGLE (Featured Card) -->
+        <div style="background:var(--bg-neu);border-radius:var(--r-md);box-shadow:var(--neu-flat-sm);padding:14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="window.NexTheme?.toggle ? window.NexTheme.toggle() : null" title="Click to toggle Dark / Light mode">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:38px;height:38px;border-radius:10px;background:rgba(255,91,53,0.12);color:var(--coral);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </div>
+            <div>
+              <div style="font-size:13.5px;font-weight:700;color:var(--ink);">Dark Mode</div>
+              <div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);">Updates CSS variables &amp; Tailwind globally</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation()">
+            <span class="theme-toggle-badge ${(window.NexTheme && window.NexTheme.isDark()) ? 'dark-active' : 'light-active'}">${(window.NexTheme && window.NexTheme.isDark()) ? 'DARK' : 'LIGHT'}</span>
+            <label class="theme-switch" title="Toggle Dark/Light Mode">
+              <input type="checkbox" class="theme-toggle-input" ${(window.NexTheme && window.NexTheme.isDark()) ? 'checked' : ''} onchange="window.NexTheme?.setTheme ? window.NexTheme.setTheme(this.checked ? 'dark' : 'light') : null" />
+              <span class="theme-slider"></span>
+            </label>
           </div>
         </div>
 

@@ -82,6 +82,638 @@
   --r-pill:            999px;
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   GLOBAL PERSISTENT DARK THEME CSS VARIABLES & ELEVATED SURFACES
+   ══════════════════════════════════════════════════════════════════ */
+:root.dark, html.dark, body.dark, [data-theme="dark"] {
+  /* ── Deep Slate Tactile Canvas & Surfaces ── */
+  --bg-neu:            #0B0F17;
+  --bg-neu-dark:       #06080D;
+  --bg-neu-light:      #131B28;
+  --surface:           #111827;
+  --surface-card:      #151E2E;
+
+  /* ── Neumorphic Tactile Shadows (Dark Elevation) ── */
+  --neu-dark-shadow:    rgba(0, 0, 0, 0.85);
+  --neu-dark-shadow-sm: rgba(0, 0, 0, 0.65);
+  --neu-light-shadow:   rgba(255, 255, 255, 0.045);
+  --neu-flat:           6px 6px 16px rgba(0, 0, 0, 0.75), -4px -4px 12px rgba(255, 255, 255, 0.035);
+  --neu-flat-sm:        3px 3px 8px rgba(0, 0, 0, 0.65), -2px -2px 6px rgba(255, 255, 255, 0.03);
+  --neu-flat-xs:        2px 2px 5px rgba(0, 0, 0, 0.55), -1px -1px 3px rgba(255, 255, 255, 0.025);
+  --neu-hover:          8px 8px 22px rgba(0, 0, 0, 0.88), -6px -6px 16px rgba(255, 255, 255, 0.05);
+  --neu-pressed:        inset 3px 3px 7px rgba(0, 0, 0, 0.85), inset -2px -2px 5px rgba(255, 255, 255, 0.04);
+  --neu-pressed-sm:     inset 2px 2px 4px rgba(0, 0, 0, 0.75), inset -1px -1px 3px rgba(255, 255, 255, 0.03);
+  --neu-track:          inset 2.5px 2.5px 5px rgba(0, 0, 0, 0.85), inset -2px -2px 5px rgba(255, 255, 255, 0.035);
+
+  /* ── Radiant Coral & Accents ── */
+  --coral:             #FF6B4A;
+  --coral-bright:      #FF8661;
+  --coral-dark:        #F04820;
+  --coral-glow:        rgba(255, 107, 74, 0.35);
+  --coral-gradient:    linear-gradient(135deg, #FF7B54 0%, #F04820 100%);
+  --coral-shadow:      0 4px 14px rgba(240, 72, 32, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+
+  --gold:              #F59E0B;
+  --gold-dim:          #D97706;
+  --gold-glow:         rgba(245, 158, 11, 0.25);
+  --gold-gradient:     linear-gradient(135deg, #FCD34D 0%, #D97706 100%);
+  --ok:                #10B981;
+  --ok-bg:             rgba(16, 185, 129, 0.16);
+  --warn:              #EF4444;
+  --warn-bg:           rgba(239, 68, 68, 0.16);
+  --info:              #38BDF8;
+  --info-bg:           rgba(56, 189, 248, 0.16);
+  --purple:            #A78BFA;
+  --purple-bg:         rgba(167, 139, 250, 0.16);
+
+  /* ── Deep Glass Morphism & Dark Elevated Surfaces ── */
+  --bg-1:              rgba(19, 26, 38, 0.95);
+  --bg-2:              rgba(23, 32, 48, 0.85);
+  --bg-3:              rgba(27, 38, 59, 0.75);
+  --bg-card:           rgba(17, 24, 39, 0.88);
+  --bg-card-hover:     rgba(27, 38, 59, 0.95);
+  --glass-bg:          rgba(15, 23, 42, 0.85);
+  --glass-border:      rgba(255, 255, 255, 0.08);
+  --glass-shadow:      0 10px 30px -5px rgba(0, 0, 0, 0.7);
+
+  /* ── High Contrast Dark Typography & Borders ── */
+  --ink:               #F8FAFC;
+  --ink-2:             #CBD5E1;
+  --ink-3:             #94A3B8;
+  --ink-4:             #64748B;
+  --wire:              rgba(255, 255, 255, 0.08);
+  --wire-hard:         rgba(255, 255, 255, 0.16);
+}
+
+/* ── Smooth Theme Transitions (Targeted to root & major containers only, preventing DOM recursion blowout) ── */
+html.theme-transitioning,
+body.theme-transitioning,
+html.theme-transitioning .topbar,
+html.theme-transitioning .tabbar,
+html.theme-transitioning .card,
+html.theme-transitioning .p-card,
+html.theme-transitioning .pcard,
+html.theme-transitioning .dash-accounting-card,
+html.theme-transitioning .sheet,
+html.theme-transitioning .user-account-dropdown,
+html.theme-transitioning .user-account-menu-btn {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+/* ── Dark Mode Component-Level Refinements ── */
+html.dark, body.dark {
+  background-color: var(--bg-neu);
+  color: var(--ink);
+}
+
+html.dark #radar-canvas, body.dark #radar-canvas {
+  opacity: 0.08;
+}
+
+html.dark .topbar, body.dark .topbar {
+  background: rgba(11, 15, 23, 0.88);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+html.dark .tbar-btn, body.dark .tbar-btn {
+  background: rgba(21, 30, 46, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--ink-2);
+}
+html.dark .tbar-btn:hover, body.dark .tbar-btn:hover {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(255, 107, 74, 0.4);
+  color: var(--coral);
+}
+
+html.dark .mode-badge, body.dark .mode-badge {
+  background: rgba(21, 30, 46, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html.dark .sheet, body.dark .sheet {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -14px 40px rgba(0, 0, 0, 0.85);
+}
+
+html.dark .drawer, body.dark .drawer {
+  background: rgba(15, 23, 42, 0.96);
+  border-right-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 24px 0 60px rgba(0, 0, 0, 0.85);
+}
+
+html.dark .drawer-header, body.dark .drawer-header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+html.dark .drawer-search-wrap, body.dark .drawer-search-wrap {
+  background: rgba(21, 30, 46, 0.85);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark .drawer-link, body.dark .drawer-link {
+  background: rgba(21, 30, 46, 0.5);
+  border-color: rgba(255, 255, 255, 0.06);
+  color: var(--ink-2);
+}
+html.dark .drawer-link:hover, body.dark .drawer-link:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(255, 107, 74, 0.35);
+  color: var(--coral);
+}
+
+html.dark .pill-bar, body.dark .pill-bar {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.08);
+}
+
+html.dark .tb, body.dark .tb {
+  background: rgba(21, 30, 46, 0.65);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--ink-3);
+}
+html.dark .tb:hover, body.dark .tb:hover {
+  background: rgba(30, 41, 59, 0.9);
+  color: var(--coral);
+}
+
+html.dark .operations-dropdown-menu, body.dark .operations-dropdown-menu {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85);
+}
+
+html.dark .ops-item, body.dark .ops-item {
+  background: rgba(21, 30, 46, 0.45);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+html.dark .ops-item:hover, body.dark .ops-item:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html.dark .marquee-strip, body.dark .marquee-strip {
+  background: rgba(11, 15, 23, 0.9);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+html.dark input, html.dark textarea, html.dark select,
+body.dark input, body.dark textarea, body.dark select {
+  background-color: rgba(21, 30, 46, 0.8);
+  color: var(--ink);
+  border-color: var(--wire);
+}
+
+html.dark .card, body.dark .card {
+  background: var(--bg-card);
+  border-color: var(--wire);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TOPBAR USER ACCOUNT MENU & INTERACTIVE DARK MODE TOGGLE
+   ══════════════════════════════════════════════════════════════════ */
+.user-account-menu-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.user-account-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 4px 12px 4px 6px;
+  border-radius: 21px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: var(--neu-flat-sm);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+.user-account-menu-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 20px rgba(255, 91, 53, 0.18), var(--neu-hover);
+  border-color: rgba(255, 91, 53, 0.35);
+}
+.user-account-menu-btn:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: var(--neu-pressed);
+}
+
+.user-avatar-monogram {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--coral-gradient);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: var(--coral-shadow);
+  flex-shrink: 0;
+}
+
+.user-account-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  line-height: 1.15;
+}
+
+.user-account-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  max-width: 115px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-account-role {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--coral);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  margin: 0;
+}
+
+.user-menu-chev {
+  color: var(--ink-3);
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+  margin-left: 2px;
+}
+.user-account-menu-btn[aria-expanded="true"] .user-menu-chev {
+  transform: rotate(180deg);
+}
+
+/* User Account Dropdown Modal */
+.user-account-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 315px;
+  max-width: 92vw;
+  background: rgba(235, 241, 248, 0.96);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  box-shadow: 0 20px 45px rgba(140, 160, 185, 0.4), var(--neu-flat);
+  z-index: 100;
+  overflow: hidden;
+  animation: dropdownPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes dropdownPopIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.user-dropdown-inner {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-dropdown-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--coral-gradient);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 700;
+  box-shadow: var(--coral-shadow);
+  flex-shrink: 0;
+}
+
+.user-dropdown-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-dropdown-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-dropdown-email {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-dropdown-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--ok);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.user-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 6px var(--ok);
+}
+
+.user-dropdown-divider {
+  height: 1px;
+  background: var(--wire);
+  margin: 2px 0;
+}
+
+/* ── Persistent Dark Mode Card in Dropdown ── */
+.user-dropdown-theme-card {
+  background: var(--bg-neu);
+  border-radius: 14px;
+  padding: 10px 12px;
+  box-shadow: var(--neu-flat-xs);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  border: 1px solid var(--wire);
+  transition: all 0.2s ease;
+}
+.user-dropdown-theme-card:hover {
+  box-shadow: var(--neu-flat-sm);
+  border-color: var(--coral);
+}
+
+.theme-card-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-icon-orb {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 91, 53, 0.12);
+  color: var(--coral);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.theme-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.theme-card-subtitle {
+  font-size: 10px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  line-height: 1.2;
+}
+
+.theme-card-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Toggle Switch Styling */
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.theme-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(166, 180, 200, 0.5);
+  transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 24px;
+  box-shadow: var(--neu-track);
+}
+
+.theme-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #FFFFFF;
+  transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+input:checked + .theme-slider {
+  background-color: var(--coral);
+}
+
+input:checked + .theme-slider:before {
+  transform: translateX(20px);
+  background-color: #FFFFFF;
+}
+
+.theme-toggle-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+.theme-toggle-badge.light-active {
+  background: rgba(217, 119, 6, 0.14);
+  color: var(--gold);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+}
+.theme-toggle-badge.dark-active {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+/* User Menu Navigation Items */
+.user-dropdown-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+.user-dropdown-item:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--wire);
+  transform: translateX(3px);
+}
+
+.user-dropdown-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.user-dropdown-item-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+.user-dropdown-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-dropdown-item-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.user-dropdown-item-desc {
+  font-size: 10px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  line-height: 1.2;
+}
+
+.user-dropdown-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.user-dropdown-signout {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--warn);
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: var(--warn-bg);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.user-dropdown-signout:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--warn);
+}
+
+/* ── Dark Mode Specific Overrides for User Account Menu ── */
+html.dark .user-account-menu-btn,
+body.dark .user-account-menu-btn {
+  background: rgba(21, 30, 46, 0.75);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--ink);
+}
+html.dark .user-account-menu-btn:hover,
+body.dark .user-account-menu-btn:hover {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(255, 107, 74, 0.4);
+}
+
+html.dark .user-account-dropdown,
+body.dark .user-account-dropdown {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85);
+}
+
+html.dark .user-dropdown-theme-card,
+body.dark .user-dropdown-theme-card {
+  background: rgba(21, 30, 46, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+html.dark .user-dropdown-theme-card:hover,
+body.dark .user-dropdown-theme-card:hover {
+  border-color: var(--coral);
+}
+
+@media (max-width: 640px) {
+  .user-account-meta {
+    display: none;
+  }
+}
+
 /* ── Reset & Baseline ── */
 *, *::before, *::after { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
 html {
@@ -115,8 +747,8 @@ input, textarea, select { font-family:var(--sans); font-size:14.5px; }
 svg { display:block; }
 a { color:var(--coral); text-decoration:none; }
 
-/* ── Subdued Ambient Radar Canvas ── */
-#radar-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.18; mix-blend-mode:multiply; }
+/* ── Subdued Ambient Radar Canvas (GPU cached without expensive mix-blend-mode readbacks) ── */
+#radar-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.12; }
 .noise-overlay, .vignette, .body-glow { display:none; }
 
 /* ── Offline Bar ── */

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node server.js",
     "postinstall": "prisma generate || true",
-    "build": "(prisma generate || true) && esbuild lib/supplierStorage.ts --outfile=lib/supplierStorage.js --format=esm --platform=node && esbuild scripts/sync-suppliers.ts --outfile=scripts/sync-suppliers.js --format=esm --platform=node --bundle --external:express --external:axios --external:cheerio --external:@prisma/client && esbuild src/main.tsx --bundle --outfile=js/react-app.bundle.js --format=iife --minify --target=chrome100,firefox100,safari15",
+    "build": "(prisma generate || true) && tailwindcss -i ./css/tailwind-input.css -o ./css/tailwind.min.css --minify && esbuild lib/supplierStorage.ts --outfile=lib/supplierStorage.js --format=esm --platform=node && esbuild scripts/sync-suppliers.ts --outfile=scripts/sync-suppliers.js --format=esm --platform=node --bundle --external:express --external:axios --external:cheerio --external:@prisma/client && esbuild src/main.tsx --bundle --outfile=js/react-app.bundle.js --format=iife --minify --target=chrome100,firefox100,safari15",
     "lint": "echo 'No lint errors'",
     "start": "node server.ts"
   },
@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.7"
+    "@types/react-dom": "^19.2.7",
+    "tailwindcss": "3.4.17"
   }
 }

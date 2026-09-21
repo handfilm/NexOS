@@ -105,6 +105,12 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         if (typeof window !== 'undefined') {
           (window as any).customers = list;
           if ((window as any).DATA) (window as any).DATA.customers = list;
+          if ((window as any).CustomersService) {
+            (window as any).CustomersService._memCache = list;
+          }
+          if ((window as any).NexEvents) {
+            (window as any).NexEvents.emit("CUSTOMERS_CHANGED", list);
+          }
         }
         setSyncStatus('SYNCED');
       },
@@ -120,6 +126,9 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
           if ((window as any).ProductsService) {
             (window as any).ProductsService._memCache = list;
           }
+          if ((window as any).NexEvents) {
+            (window as any).NexEvents.emit("PRODUCTS_CHANGED", list);
+          }
           (window as any)._lastProductsCache = list;
         }
       },
@@ -134,6 +143,12 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
           if ((window as any).DATA) (window as any).DATA.orders = list;
           if ((window as any).OrdersService) {
             (window as any).OrdersService._memCache = list;
+          }
+          if ((window as any).NexEvents) {
+            (window as any).NexEvents.emit("ORDERS_CHANGED", list);
+          }
+          if (typeof (window as any).updateDashboardLiveElements === 'function') {
+            try { (window as any).updateDashboardLiveElements(null, list); } catch (e) {}
           }
           (window as any)._lastOrdersCache = list;
         }
