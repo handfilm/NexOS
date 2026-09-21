@@ -21,6 +21,7 @@ import {
   syncProductToFirestore,
   syncCustomerToFirestore
 } from './lib/firebaseSync.js';
+import { bangladeshD2COrders } from './scripts/populate-bangladesh-orders.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1588,81 +1589,7 @@ if (!fs.existsSync(PRODUCTS_FILE) || safeReadJson(PRODUCTS_FILE, []).length === 
 
 // Seed default orders if not already initialized
 if (!fs.existsSync(ORDERS_FILE) || safeReadJson(ORDERS_FILE, []).length === 0) {
-  const seedOrders = [
-    {
-      id: "ord-1048",
-      orderNumber: "NX-1048",
-      customerSnapshot: { name: "Amsterdam Goods B.V.", email: "procurement@leather-amsterdam.nl", country: "NL", currency: "EUR" },
-      lineItems: [
-        { productId: "prod-wlt-01", title: "Full-Grain Leather Bi-Fold Wallet", sku: "HH-WLT-01", quantity: 50, price: 2850 }
-      ],
-      subtotal: 142500,
-      shipping: 8500,
-      discount: 0,
-      total: 151000,
-      currency: "BDT",
-      paymentStatus: "paid",
-      fulfillmentStatus: "fulfilled",
-      status: "completed",
-      paymentMethod: "bank_transfer",
-      notes: "B2B Export batch to Rotterdam via air freight.",
-      timeline: [
-        { event: "Order created and confirmed", at: new Date(Date.now() - 3600000 * 24).toISOString(), by: "Operator 1981" },
-        { event: "Payment verified in EUR", at: new Date(Date.now() - 3600000 * 18).toISOString(), by: "Finance" },
-        { event: "Dispatched via DHL Global Forwarding", at: new Date(Date.now() - 3600000 * 6).toISOString(), by: "Logistics" }
-      ],
-      createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-      updatedAt: new Date(Date.now() - 3600000 * 6).toISOString()
-    },
-    {
-      id: "ord-1047",
-      orderNumber: "NX-1047",
-      customerSnapshot: { name: "London Retail Group", email: "orders@londonretail.co.uk", country: "GB", currency: "GBP" },
-      lineItems: [
-        { productId: "prod-brf-02", title: "Executive Leather Briefcase", sku: "HH-BRF-02", quantity: 6, price: 14500 }
-      ],
-      subtotal: 87000,
-      shipping: 5200,
-      discount: 0,
-      total: 92200,
-      currency: "BDT",
-      paymentStatus: "paid",
-      fulfillmentStatus: "unfulfilled",
-      status: "open",
-      paymentMethod: "bank_transfer",
-      notes: "Custom embossed monogramming requested for briefcases.",
-      timeline: [
-        { event: "Order placed (6 items, ৳92,200)", at: new Date(Date.now() - 3600000 * 12).toISOString(), by: "Operator 1981" }
-      ],
-      createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-      updatedAt: new Date(Date.now() - 3600000 * 12).toISOString()
-    },
-    {
-      id: "ord-1046",
-      orderNumber: "NX-1046",
-      customerSnapshot: { name: "Tomotaka Minoura", phone: "+8801912010701", country: "BD", currency: "BDT" },
-      lineItems: [
-        { productId: "prod-tee-01", title: "Heavyweight Boxy Graphic Tee — Dhaka Cyber", sku: "HH-TEE-01-L", quantity: 2, price: 1850 },
-        { productId: "prod-crd-02", title: "Minimalist Cardholder — Aniline Tan", sku: "HH-CRD-02", quantity: 1, price: 1450 }
-      ],
-      subtotal: 5150,
-      shipping: 80,
-      discount: 0,
-      total: 5230,
-      currency: "BDT",
-      paymentStatus: "paid",
-      fulfillmentStatus: "fulfilled",
-      status: "completed",
-      paymentMethod: "cod",
-      notes: "Inside Dhaka City delivery.",
-      timeline: [
-        { event: "Order placed and dispatched", at: new Date(Date.now() - 3600000 * 4).toISOString(), by: "Operator 1981" }
-      ],
-      createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
-      updatedAt: new Date(Date.now() - 3600000 * 2).toISOString()
-    }
-  ];
-  safeWriteJson(ORDERS_FILE, seedOrders);
+  safeWriteJson(ORDERS_FILE, bangladeshD2COrders);
 }
 
 // Initialize Real-time Cloud Firestore synchronization engine across all devices & browsers

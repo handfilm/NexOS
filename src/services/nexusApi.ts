@@ -210,6 +210,7 @@ export async function fetchBuyerOrders(buyerId?: string): Promise<Order[]> {
     const orders: Order[] = [];
     snapshot.forEach((docSnap: QueryDocumentSnapshot<DocumentData>) => {
       const data = docSnap.data();
+      if (data.archived || data.isMock) return;
       orders.push({
         id: docSnap.id,
         orderNumber: data.orderNumber || `ORD-${docSnap.id.slice(0, 6).toUpperCase()}`,

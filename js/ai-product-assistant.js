@@ -980,12 +980,12 @@
       }
       .ai-product-fab {
         position: fixed;
-        top: 70px;
+        bottom: 84px;
         right: 20px;
-        bottom: auto;
+        top: auto;
         z-index: 9990;
-        padding: 7px 14px;
-        border-radius: 20px;
+        padding: 8px 16px;
+        border-radius: 24px;
         background: rgba(22, 22, 29, 0.94);
         backdrop-filter: blur(8px);
         border: 1px solid rgba(212, 160, 23, 0.45);
@@ -1000,9 +1000,10 @@
       }
       @media (max-width: 640px) {
         .ai-product-fab {
-          top: 60px;
-          right: 12px;
-          padding: 6px 11px;
+          bottom: 76px;
+          right: 14px;
+          top: auto;
+          padding: 6px 12px;
         }
       }
     `;
