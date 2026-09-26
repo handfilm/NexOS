@@ -1,5 +1,109 @@
 [
   {
+    "id": "cust-muit0rpf",
+    "name": "Rahim Chowdhury",
+    "companyName": "Rahim Chowdhury",
+    "contactPerson": "Rahim Chowdhury",
+    "phone": "+8801719876543",
+    "canonicalPhone": "+8801719876543",
+    "rawPhone": "+8801719876543",
+    "email": "",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 3380,
+    "lifetimeValue": 3380,
+    "totalOrders": 1,
+    "ordersCount": 1,
+    "aov": 3380,
+    "firstOrderDate": "2026-09-26T19:50:16.131Z",
+    "lastOrderDate": "2026-09-26T19:50:16.131Z",
+    "tags": [
+      "retail-customer"
+    ],
+    "purchasedSkus": [
+      "HH-ITEM"
+    ],
+    "purchasedCategories": [],
+    "purchaseHistory": [
+      {
+        "orderId": "ord-muit0rp0-847",
+        "orderNumber": "TEST-BD-8899",
+        "total": 3380,
+        "date": "2026-09-26T19:50:16.131Z",
+        "itemsCount": 1
+      }
+    ],
+    "requiresReview": false,
+    "reviewReason": null,
+    "addresses": [
+      {
+        "line1": "House 12, Road 4, Dhanmondi",
+        "city": "Dhaka",
+        "country": "BD",
+        "isDefault": true
+      }
+    ],
+    "notes": [],
+    "createdAt": "2026-09-26T19:50:16.131Z",
+    "updatedAt": "2026-09-26T19:50:16.132Z"
+  },
+  {
+    "id": "cust-muiswusd",
+    "name": "Test Verification",
+    "companyName": "Test Verification",
+    "contactPerson": "Test Verification",
+    "phone": "+8801711223344",
+    "canonicalPhone": "+8801711223344",
+    "rawPhone": "01711223344",
+    "email": "",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 4830,
+    "lifetimeValue": 4830,
+    "totalOrders": 2,
+    "ordersCount": 2,
+    "aov": 2415,
+    "firstOrderDate": "2026-09-26T19:47:13.501Z",
+    "lastOrderDate": "2026-09-26T20:15:20.744Z",
+    "tags": [
+      "retail-customer"
+    ],
+    "purchasedSkus": [
+      "HH-ITEM",
+      "HH-TEE-02-L"
+    ],
+    "purchasedCategories": [],
+    "purchaseHistory": [
+      {
+        "orderId": "ord-muitx0o8-686",
+        "orderNumber": "NX-BD-LIVE-901",
+        "total": 3380,
+        "date": "2026-09-26T20:15:20.744Z",
+        "itemsCount": 1
+      },
+      {
+        "orderId": "ord-muiswumh-875",
+        "orderNumber": "NX-5943",
+        "total": 1450,
+        "date": "2026-09-26T19:47:13.501Z",
+        "itemsCount": 1
+      }
+    ],
+    "requiresReview": false,
+    "reviewReason": null,
+    "addresses": [
+      {
+        "line1": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "isDefault": true
+      }
+    ],
+    "notes": [],
+    "createdAt": "2026-09-26T19:47:13.501Z",
+    "updatedAt": "2026-09-26T20:15:20.744Z"
+  },
+  {
     "id": "cust-mtpl6a8h",
     "name": "Tariqul Islam",
     "phone": "+8801711234567",

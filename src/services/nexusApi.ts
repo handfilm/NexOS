@@ -81,6 +81,8 @@ export interface Order {
   buyerId?: string;
   customerName?: string;
   customerEmail?: string;
+  customerPhone?: string;
+  phone?: string;
   total: number;
   subtotal?: number;
   amountPaid: number;
@@ -218,26 +220,96 @@ export async function fetchBuyerOrders(buyerId?: string): Promise<Order[]> {
         buyerId: data.buyerId || data.customerId || '',
         customerName: data.customerName || data.contactName || 'Corporate Buyer',
         customerEmail: data.customerEmail || data.contactEmail || '',
+        customerPhone: data.customerPhone || data.phone || data.customerSnapshot?.phone || '',
+        phone: data.phone || data.customerPhone || data.customerSnapshot?.phone || '',
         total: typeof data.total === 'number' ? data.total : (data.totalAmount || 0),
         subtotal: typeof data.subtotal === 'number' ? data.subtotal : (data.total || 0),
         amountPaid: typeof data.amountPaid === 'number' ? data.amountPaid : (data.totalAmountPaid || 0),
-        currency: data.currency || 'USD',
+        currency: data.currency || 'BDT',
         paymentStatus: data.paymentStatus || 'pending',
         fulfillmentStatus: data.fulfillmentStatus || 'unfulfilled',
         status: data.status || 'open',
         productionUnlockedAt: data.productionUnlockedAt,
         paymentMethod: data.paymentMethod || 'Bank Wire / Escrow',
-        items: Array.isArray(data.items) ? data.items : [],
-        shippingAddress: data.shippingAddress || '',
+        items: Array.isArray(data.items) ? data.items : (Array.isArray(data.lineItems) ? data.lineItems : []),
+        shippingAddress: typeof data.shippingAddress === 'string' ? data.shippingAddress : (data.shippingAddress?.address1 || ''),
         createdAt: data.createdAt || new Date().toISOString(),
         updatedAt: data.updatedAt || new Date().toISOString(),
       });
     });
 
-    return orders;
+    if (orders.length > 0) {
+      return orders;
+    }
+
+    // Secondary fallback to server API if Firestore collection snapshot was empty
+    const res = await fetch('/api/orders?limit=100');
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.items)) {
+        return data.items
+          .filter((d: any) => !d.archived && !d.isMock && d.id !== 'ord-1048' && d.id !== 'ord-1047' && d.id !== 'BD-RFQ-0D2510A5')
+          .map((d: any) => ({
+            id: d.id || d.rawId,
+            orderNumber: d.orderNumber || `ORD-${String(d.id || '').slice(0, 6).toUpperCase()}`,
+            customerId: d.customerId || '',
+            buyerId: d.buyerId || d.customerId || '',
+            customerName: d.customerName || d.contactName || d.customerSnapshot?.name || 'Corporate Buyer',
+            customerEmail: d.customerEmail || d.contactEmail || d.customerSnapshot?.email || '',
+            customerPhone: d.customerPhone || d.phone || d.customerSnapshot?.phone || '',
+            phone: d.phone || d.customerPhone || d.customerSnapshot?.phone || '',
+            total: typeof d.total === 'number' ? d.total : (d.totalAmount || 0),
+            subtotal: typeof d.subtotal === 'number' ? d.subtotal : (d.total || 0),
+            amountPaid: typeof d.amountPaid === 'number' ? d.amountPaid : (d.totalAmountPaid || 0),
+            currency: d.currency || 'BDT',
+            paymentStatus: d.paymentStatus || 'pending',
+            fulfillmentStatus: d.fulfillmentStatus || 'unfulfilled',
+            status: d.status || 'open',
+            productionUnlockedAt: d.productionUnlockedAt,
+            paymentMethod: d.paymentMethod || 'bKash / COD / Escrow',
+            items: Array.isArray(d.items) ? d.items : (Array.isArray(d.lineItems) ? d.lineItems : []),
+            shippingAddress: typeof d.shippingAddress === 'string' ? d.shippingAddress : (d.shippingAddress?.address1 || ''),
+            createdAt: d.createdAt || new Date().toISOString(),
+            updatedAt: d.updatedAt || new Date().toISOString(),
+          }));
+      }
+    }
+    return [];
   } catch (error) {
-    console.log('[NexOS Firebase Sync]: No data found or connection issue.');
-    handleFirestoreError(error, OperationType.LIST, 'orders');
+    console.warn('[NexOS Firebase Sync]: Firestore read notice or quota limit, falling back to server orders.');
+    try {
+      const res = await fetch('/api/orders?limit=100');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.items)) {
+          return data.items
+            .filter((d: any) => !d.archived && !d.isMock && d.id !== 'ord-1048' && d.id !== 'ord-1047' && d.id !== 'BD-RFQ-0D2510A5')
+            .map((d: any) => ({
+              id: d.id || d.rawId,
+              orderNumber: d.orderNumber || `ORD-${String(d.id || '').slice(0, 6).toUpperCase()}`,
+              customerId: d.customerId || '',
+              buyerId: d.buyerId || d.customerId || '',
+              customerName: d.customerName || d.contactName || d.customerSnapshot?.name || 'Corporate Buyer',
+              customerEmail: d.customerEmail || d.contactEmail || d.customerSnapshot?.email || '',
+              customerPhone: d.customerPhone || d.phone || d.customerSnapshot?.phone || '',
+              phone: d.phone || d.customerPhone || d.customerSnapshot?.phone || '',
+              total: typeof d.total === 'number' ? d.total : (d.totalAmount || 0),
+              subtotal: typeof d.subtotal === 'number' ? d.subtotal : (d.total || 0),
+              amountPaid: typeof d.amountPaid === 'number' ? d.amountPaid : (d.totalAmountPaid || 0),
+              currency: d.currency || 'BDT',
+              paymentStatus: d.paymentStatus || 'pending',
+              fulfillmentStatus: d.fulfillmentStatus || 'unfulfilled',
+              status: d.status || 'open',
+              productionUnlockedAt: d.productionUnlockedAt,
+              paymentMethod: d.paymentMethod || 'bKash / COD / Escrow',
+              items: Array.isArray(d.items) ? d.items : (Array.isArray(d.lineItems) ? d.lineItems : []),
+              shippingAddress: typeof d.shippingAddress === 'string' ? d.shippingAddress : (d.shippingAddress?.address1 || ''),
+              createdAt: d.createdAt || new Date().toISOString(),
+              updatedAt: d.updatedAt || new Date().toISOString(),
+            }));
+        }
+      }
+    } catch(fetchErr) {}
     return [];
   }
 }

@@ -1,3 +1,4 @@
+import { db } from '../lib/firebase';
 import React, { useState, useEffect } from 'react';
 import {
   getFirestore,
@@ -75,7 +76,7 @@ export const CustomerDirectory: React.FC<CustomerDirectoryProps> = ({
   ) => {
     setLoading(true);
     try {
-      const db = getFirestore();
+      // db imported from lib/firebase
       let q: any = collection(db, 'customers');
 
       // Server-side filtering in Firestore

@@ -27,7 +27,8 @@ import {
   saveCustomer,
   ProductRecord,
   OrderRecord,
-  CustomerRecord
+  CustomerRecord,
+  isMockOrder
 } from './lib/persistence';
 
 export interface AppProps {
@@ -80,14 +81,140 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
   const [lastExtractedSpec, setLastExtractedSpec] = useState<ExtractedPOSpec | null>(null);
   const [toastNotification, setToastNotification] = useState<string | null>(null);
 
+  // ── Helper to reconcile incoming orders with current state to prevent race conditions ──
+  // - Preserves locally added orders before onSnapshot echoes back
+  // - Strictly purges mock or archived orders
+  // - Never wipes live data if an empty or transient snapshot arrives during connection
+  const reconcileOrders = useCallback((current: OrderRecord[], incoming: OrderRecord[]): OrderRecord[] => {
+    const cleanIncoming = (incoming || []).filter(o => !isMockOrder(o));
+
+    // If incoming is empty but current already has valid live orders, preserve current to prevent race conditions
+    if (cleanIncoming.length === 0 && current.length > 0) {
+      return current;
+    }
+
+    const orderMap = new Map<string, OrderRecord>();
+
+    // 1. Keep existing clean orders in map so recent optimistic writes are not lost
+    for (const ord of current) {
+      if (!isMockOrder(ord)) {
+        const key = String(ord.id || ord.orderNumber || '');
+        if (key) orderMap.set(key, ord);
+      }
+    }
+
+    // 2. Overlay incoming live orders (authoritative updates from Firestore / API)
+    for (const inc of cleanIncoming) {
+      const key = String(inc.id || inc.orderNumber || '');
+      if (key) {
+        const existing = orderMap.get(key);
+        orderMap.set(key, existing ? { ...existing, ...inc } : inc);
+      }
+    }
+
+    const merged = Array.from(orderMap.values());
+    merged.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    return merged;
+  }, []);
+
+  // Broadcasts and caches sanitized orders across the browser environment
+  const syncOrdersToGlobals = useCallback((list: OrderRecord[]) => {
+    if (typeof window === 'undefined') return;
+    const clean = list.filter(o => !isMockOrder(o));
+
+    (window as any).orders = clean;
+    if ((window as any).DATA) (window as any).DATA.orders = clean;
+    if ((window as any).OrdersService) {
+      (window as any).OrdersService._memCache = clean;
+    }
+    if ((window as any).NexEvents) {
+      (window as any).NexEvents.emit("ORDERS_CHANGED", clean);
+    }
+    if (typeof (window as any).updateDashboardLiveElements === 'function') {
+      try { (window as any).updateDashboardLiveElements(null, clean); } catch (e) {}
+    }
+    (window as any)._lastOrdersCache = clean;
+
+    try {
+      if (window.localStorage) {
+        window.localStorage.setItem("orders", JSON.stringify(clean));
+        window.localStorage.setItem("nx_orders", JSON.stringify(clean));
+      }
+    } catch (e) {}
+
+    const modOrdersEl = document.getElementById("mod-Orders");
+    if (modOrdersEl && typeof (window as any).render?.Orders === 'function') {
+      try { (window as any).render.Orders(modOrdersEl); } catch (e) {}
+    }
+  }, []);
+
   // ── Firestore Real-Time Persistence State ──
   const [customers, setCustomers] = useState<CustomerRecord[]>([]);
   const [products, setProducts] = useState<ProductRecord[]>([]);
-  const [orders, setOrders] = useState<OrderRecord[]>([]);
+
+  // Safe initial orders resolver: prevents blank UI flash and blocks mock data from taking over on load
+  const [orders, setOrders] = useState<OrderRecord[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      if (Array.isArray((window as any).orders) && (window as any).orders.length > 0) {
+        const clean = (window as any).orders.filter((o: any) => !isMockOrder(o));
+        if (clean.length > 0) return clean;
+      }
+      if (Array.isArray((window as any).DATA?.orders) && (window as any).DATA.orders.length > 0) {
+        const clean = (window as any).DATA.orders.filter((o: any) => !isMockOrder(o));
+        if (clean.length > 0) return clean;
+      }
+      if (Array.isArray((window as any).OrdersService?._memCache) && (window as any).OrdersService._memCache.length > 0) {
+        const clean = (window as any).OrdersService._memCache.filter((o: any) => !isMockOrder(o));
+        if (clean.length > 0) return clean;
+      }
+      const cached = window.localStorage.getItem("orders") || window.localStorage.getItem("nx_orders");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const clean = parsed.filter((o: any) => !isMockOrder(o));
+          if (clean.length > 0) return clean;
+        }
+      }
+    } catch (e) {}
+    return [];
+  });
   const [syncStatus, setSyncStatus] = useState<'INITIALIZING' | 'CONNECTED' | 'SYNCED'>('INITIALIZING');
 
-  // Mount real-time Firestore synchronization
+  // Mount real-time Firestore synchronization with race-condition guards
   useEffect(() => {
+    let isSubActive = true;
+
+    // 0. Purge any stale mock orders from localStorage on startup immediately
+    try {
+      const rawCached = localStorage.getItem("orders");
+      if (rawCached) {
+        const parsed = JSON.parse(rawCached);
+        if (Array.isArray(parsed)) {
+          const purged = parsed.filter(o => !isMockOrder(o));
+          localStorage.setItem("orders", JSON.stringify(purged));
+          localStorage.setItem("nx_orders", JSON.stringify(purged));
+        }
+      }
+    } catch (e) {}
+
+    // Fast initial pre-hydration from server API (resolves in <50ms) to beat network latency and race conditions
+    fetch('/api/orders?limit=100')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (isSubActive && data && Array.isArray(data.items) && data.items.length > 0) {
+          const apiOrders = data.items.filter((o: any) => !isMockOrder(o));
+          if (apiOrders.length > 0) {
+            setOrders(prev => {
+              const reconciled = reconcileOrders(prev, apiOrders);
+              syncOrdersToGlobals(reconciled);
+              return reconciled;
+            });
+          }
+        }
+      })
+      .catch(err => console.debug('[App Persistence] API pre-hydration notice:', err?.message));
+
     // 1. Check and seed initial customer records if database is fresh
     const inMemoryCustomers =
       (window as any).PERMANENT_SEEDED_CUSTOMERS ||
@@ -101,6 +228,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     // 2. Real-time onSnapshot Streams
     const unsubCustomers = subscribeToCustomers(
       (list) => {
+        if (!isSubActive) return;
         setCustomers(list);
         if (typeof window !== 'undefined') {
           (window as any).customers = list;
@@ -119,6 +247,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
 
     const unsubProducts = subscribeToProducts(
       (list) => {
+        if (!isSubActive) return;
         setProducts(list);
         if (typeof window !== 'undefined') {
           (window as any).products = list;
@@ -135,28 +264,23 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       (err) => console.warn('[App Persistence] Product stream notice:', err)
     );
 
+    // Resilient Firestore Orders Subscription with Race Condition Guards:
+    // - Filters all mock data
+    // - Reconciles and merges with existing state
+    // - Guarantees live orders are never wiped by transient empty responses
     const unsubOrders = subscribeToOrders(
       (list) => {
-        setOrders(list);
-        if (typeof window !== 'undefined') {
-          (window as any).orders = list;
-          if ((window as any).DATA) (window as any).DATA.orders = list;
-          if ((window as any).OrdersService) {
-            (window as any).OrdersService._memCache = list;
-          }
-          if ((window as any).NexEvents) {
-            (window as any).NexEvents.emit("ORDERS_CHANGED", list);
-          }
-          if (typeof (window as any).updateDashboardLiveElements === 'function') {
-            try { (window as any).updateDashboardLiveElements(null, list); } catch (e) {}
-          }
-          (window as any)._lastOrdersCache = list;
-        }
+        if (!isSubActive) return;
+        setOrders(prev => {
+          const reconciled = reconcileOrders(prev, list);
+          syncOrdersToGlobals(reconciled);
+          return reconciled;
+        });
       },
       (err) => console.warn('[App Persistence] Order stream notice:', err)
     );
 
-    // 3. Custom event hooks for global persistence calls
+    // 3. Custom event hooks for global persistence and real-time syncing
     const handleSaveProduct = async (e: any) => {
       if (e.detail?.product) {
         try {
@@ -169,10 +293,44 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
 
     const handleSaveOrder = async (e: any) => {
       if (e.detail?.order) {
+        const newOrder = e.detail.order;
+        if (!isMockOrder(newOrder)) {
+          // Optimistically reflect newly created order immediately to eliminate save/refresh race condition
+          setOrders(prev => {
+            const reconciled = reconcileOrders(prev, [newOrder]);
+            syncOrdersToGlobals(reconciled);
+            return reconciled;
+          });
+        }
         try {
-          await saveOrder(e.detail.order);
+          await saveOrder(newOrder);
         } catch (err) {
           console.warn('[App] saveOrder error:', err);
+        }
+      }
+    };
+
+    const handleOrderSaved = (e: any) => {
+      const saved = e.detail;
+      if (saved && !isMockOrder(saved)) {
+        setOrders(prev => {
+          const reconciled = reconcileOrders(prev, [saved]);
+          syncOrdersToGlobals(reconciled);
+          return reconciled;
+        });
+      }
+    };
+
+    const handleExternalOrdersChanged = (e: any) => {
+      const externalList = e.detail?.orders || e.detail;
+      if (Array.isArray(externalList) && externalList.length > 0) {
+        const hasMock = externalList.some(o => isMockOrder(o));
+        if (!hasMock) {
+          setOrders(prev => {
+            const reconciled = reconcileOrders(prev, externalList);
+            syncOrdersToGlobals(reconciled);
+            return reconciled;
+          });
         }
       }
     };
@@ -189,17 +347,22 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
 
     window.addEventListener('nexus:save-product', handleSaveProduct);
     window.addEventListener('nexus:save-order', handleSaveOrder);
+    window.addEventListener('nexus:order-saved', handleOrderSaved);
+    window.addEventListener('ORDERS_CHANGED', handleExternalOrdersChanged);
     window.addEventListener('nexus:save-customer', handleSaveCustomer);
 
     return () => {
+      isSubActive = false;
       unsubCustomers();
       unsubProducts();
       unsubOrders();
       window.removeEventListener('nexus:save-product', handleSaveProduct);
       window.removeEventListener('nexus:save-order', handleSaveOrder);
+      window.removeEventListener('nexus:order-saved', handleOrderSaved);
+      window.removeEventListener('ORDERS_CHANGED', handleExternalOrdersChanged);
       window.removeEventListener('nexus:save-customer', handleSaveCustomer);
     };
-  }, []);
+  }, [reconcileOrders, syncOrdersToGlobals]);
 
   // Synchronize active module state with body and containers for smooth scrolling
   useEffect(() => {

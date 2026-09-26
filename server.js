@@ -2273,7 +2273,11 @@ app.delete('/api/customers/:id', (req, res) => {
 /* ── 3. ORDERS REST API ── */
 app.get('/api/orders', (req, res) => {
   try {
-    let items = safeReadJson(ORDERS_FILE, []);
+    let items = safeReadJson(ORDERS_FILE, []).filter(o =>
+      o && !o.archived && !o.isMock &&
+      o.id !== 'ord-1048' && o.id !== 'ord-1047' && o.id !== 'BD-RFQ-0D2510A5' &&
+      o.customerName !== 'Amsterdam Goods B.V.' && o.customerName !== 'London Retail Group'
+    );
     const { search, status, paymentStatus, fulfillmentStatus, sortBy, sortDir } = req.query;
 
     if (status && status !== 'all') {
@@ -2373,6 +2377,12 @@ app.post('/api/orders', (req, res) => {
         price: Number(data.total || data.Total || 0)
       }];
     }
+
+    const subtotal = Number(data.subtotal !== undefined ? data.subtotal : lineItems.reduce((sum, li) => sum + (Number(li.price || 0) * Number(li.quantity || 1)), 0));
+    const shipping = Number(data.shippingTotal !== undefined ? data.shippingTotal : (data.shipping !== undefined ? data.shipping : (data.deliveryCharge || 0)));
+    const discount = Number(data.discountTotal !== undefined ? data.discountTotal : (data.discount || 0));
+    const tax = Number(data.taxTotal !== undefined ? data.taxTotal : (data.tax || 0));
+    const total = Number(data.total !== undefined ? data.total : Math.max(0, subtotal + shipping + tax - discount));
 
     const custSnap = data.customerSnapshot || data.customer || {};
     const buyerName = custSnap.name || custSnap.companyName || data.Customer || data.buyer || 'Walk-in Buyer';
@@ -2573,7 +2583,12 @@ app.post('/api/orders', (req, res) => {
       updatedAt: new Date().toISOString()
     };
 
-    orders.unshift(newOrder);
+    const existingIdx = orders.findIndex(o => o.id === newId || o.orderNumber === orderNumber);
+    if (existingIdx !== -1) {
+      orders[existingIdx] = { ...orders[existingIdx], ...newOrder };
+    } else {
+      orders.unshift(newOrder);
+    }
     safeWriteJson(ORDERS_FILE, orders);
     syncOrderToFirestore(newOrder);
 
@@ -2649,11 +2664,15 @@ app.delete('/api/orders/:id', (req, res) => {
   try {
     let orders = safeReadJson(ORDERS_FILE, []);
     const initialLen = orders.length;
+    const target = orders.find(o => o.id === req.params.id || o.orderNumber === req.params.id);
     orders = orders.filter(o => o.id !== req.params.id && o.orderNumber !== req.params.id);
     if (orders.length === initialLen) {
       return res.status(404).json({ ok: false, error: 'Order not found' });
     }
     safeWriteJson(ORDERS_FILE, orders);
+    if (target) {
+      syncOrderToFirestore({ ...target, archived: true, isMock: false, status: 'cancelled' });
+    }
     res.json({ ok: true, message: 'Order deleted' });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });

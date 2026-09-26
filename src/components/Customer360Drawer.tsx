@@ -1,3 +1,4 @@
+import { db } from '../lib/firebase';
 import React, { useState, useEffect } from 'react';
 import {
   getFirestore,
@@ -271,7 +272,7 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
 
       // 2. Secondary fallback: Direct Firestore query
       try {
-        const db = getFirestore();
+        // db imported from lib/firebase
         const docRef = doc(db, 'customers', customerId);
         const docSnap = await getDoc(docRef);
 
@@ -362,7 +363,7 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
   ) => {
     setLoadingOrders(true);
     try {
-      const db = getFirestore();
+      // db imported from lib/firebase
       let q = query(
         collection(db, 'orders'),
         where('customerId', '==', cId),
@@ -472,7 +473,7 @@ export const Customer360Drawer: React.FC<Customer360DrawerProps> = ({
       }).catch(err => console.warn('[Customer360] Note REST update warning:', err));
 
       // 2. Secondary: Firestore update
-      const db = getFirestore();
+      // db imported from lib/firebase
       const docRef = doc(db, 'customers', customerId);
       await updateDoc(docRef, {
         notes: arrayUnion(noteEntry),

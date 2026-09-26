@@ -1751,19 +1751,25 @@ window.OrdersService = {
 
   /* ── Query & List Orders with Zero Loading Time & Real Persistence ── */
   async list({ status = null, paymentStatus = null, fulfillmentStatus = null, search = null, sortBy = "createdAt", sortDir = "desc" } = {}) {
-    // 1. If in-memory cache is empty, load from /api/orders (< 5ms response)
-    if (!this._memCache || !this._memCache.length) {
-      try {
-        const res = await fetch("/api/orders?limit=100");
-        if (res.ok) {
-          const data = await res.json();
-          if (data && Array.isArray(data.items) && data.items.length) {
-            this._memCache = [...data.items];
-          }
+    try {
+      const res = await fetch("/api/orders?limit=100");
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.items) && data.items.length) {
+          const apiOrders = data.items.filter(o => o && !o.archived && !o.isMock && o.id !== 'ord-1048' && o.id !== 'ord-1047' && o.id !== 'BD-RFQ-0D2510A5' && o.customerName !== 'Amsterdam Goods B.V.' && o.customerName !== 'London Retail Group');
+          const orderMap = new Map();
+          apiOrders.forEach(o => orderMap.set(String(o.id || o.orderNumber), o));
+          (this._memCache || []).forEach(o => {
+            const k = String(o.id || o.orderNumber);
+            if (!orderMap.has(k) && o && !o.archived && !o.isMock && o.id !== 'ord-1048' && o.id !== 'ord-1047' && o.id !== 'BD-RFQ-0D2510A5' && o.customerName !== 'Amsterdam Goods B.V.' && o.customerName !== 'London Retail Group') {
+              orderMap.set(k, o);
+            }
+          });
+          this._memCache = Array.from(orderMap.values());
         }
-      } catch (apiErr) {
-        console.debug("Local API orders fetch notice:", apiErr?.message);
       }
+    } catch (apiErr) {
+      console.debug("Local API orders fetch notice:", apiErr?.message);
     }
 
     // 2. If still empty, populate with real production seed orders
@@ -1780,7 +1786,7 @@ window.OrdersService = {
           const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1500));
           const snap = await Promise.race([col.limit(this.PAGE_SIZE).get(), timeoutPromise]);
           if (snap && !snap.empty) {
-            const fsOrders = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(o => !o.archived && !o.isMock);
+            const fsOrders = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(o => o && !o.archived && !o.isMock && o.id !== 'ord-1048' && o.id !== 'ord-1047' && o.id !== 'BD-RFQ-0D2510A5' && o.customerName !== 'Amsterdam Goods B.V.' && o.customerName !== 'London Retail Group');
             const existingIds = new Set(this._memCache.map(o => o.id || o.orderNumber));
             let changed = false;
             for (const fso of fsOrders) {
@@ -1988,8 +1994,17 @@ window.OrdersService = {
       updatedAt: nowIso
     };
 
-    // 1. Strictly persist to global Cloud Firestore collection with resilient timeout
-    await this._safeDocWrite(orderRef, orderData, true);
+    // 1. Strictly persist to global Cloud Firestore collection
+    if (typeof window !== "undefined" && typeof window.saveOrderToFirestore === "function") {
+      try {
+        await window.saveOrderToFirestore(orderData);
+      } catch (fsErr) {
+        console.warn("Direct Firestore save fallback:", fsErr?.message);
+        await this._safeDocWrite(orderRef, orderData, true);
+      }
+    } else {
+      await this._safeDocWrite(orderRef, orderData, true);
+    }
 
     // 2. Decrement inventory in Firestore for line items
     for (const item of resolvedLineItems) {
@@ -2009,25 +2024,49 @@ window.OrdersService = {
 
     // 4. Server persistence backup for cross-system consistency
     try {
-      await fetch("/api/orders", {
+      const apiRes = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData)
-      }).catch(() => {});
-    } catch (apiErr) {}
+      });
+      if (apiRes.ok) {
+        const apiJson = await apiRes.json();
+        if (apiJson && (apiJson.item || apiJson.order)) {
+          orderData = { ...orderData, ...(apiJson.item || apiJson.order) };
+        }
+      }
+    } catch (apiErr) {
+      console.warn("API orders sync notice:", apiErr?.message);
+    }
 
     // Update in-memory cache
-    const existingIdx = this._memCache.findIndex(o => o.id === newId);
+    const existingIdx = this._memCache.findIndex(o => o.id === newId || o.orderNumber === orderNumber);
     if (existingIdx !== -1) {
       this._memCache[existingIdx] = orderData;
     } else {
       this._memCache.unshift(orderData);
     }
 
+    if (typeof window !== "undefined") {
+      window.orders = this._memCache;
+      if (window.DATA) window.DATA.orders = this._memCache;
+      try {
+        if (window.localStorage) {
+          window.localStorage.setItem("orders", JSON.stringify(this._memCache));
+        }
+      } catch(e) {}
+    }
+
     // Emit live cross-device & client events
     if (window.NexEvents) {
       window.NexEvents.emit("ORDERS_CHANGED", orderData);
+      window.NexEvents.emit("ORDER_CREATED", orderData);
       window.NexEvents.emit("DATA_SYNC", { type: "order_created", order: orderData });
+    }
+
+    const modEl = typeof document !== 'undefined' ? document.getElementById("mod-Orders") : null;
+    if (modEl && window.render?.Orders) {
+      try { window.render.Orders(modEl); } catch(e) {}
     }
 
     return { id: orderData.id, orderId: orderData.id, orderNumber: orderData.orderNumber, total, resolvedLineItems, item: orderData, order: orderData };

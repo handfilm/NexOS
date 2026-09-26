@@ -108,9 +108,25 @@ const PINS = {
 
 /* ── Local Storage ── */
 const LS = {
-  get(k)    { try { return JSON.parse(localStorage.getItem("nx_"+k)); } catch(e) { return null; } },
-  set(k,v)  { try { localStorage.setItem("nx_"+k, JSON.stringify(v)); } catch(e) {} },
-  del(k)    { try { localStorage.removeItem("nx_"+k); } catch(e) {} }
+  get(k) {
+    try {
+      const v = JSON.parse(localStorage.getItem("nx_"+k));
+      if (k === "orders" && Array.isArray(v)) {
+        return v.filter(o => !o.archived && !o.isMock && o.id !== "ord-1048" && o.id !== "ord-1047" && o.id !== "BD-RFQ-0D2510A5" && o.customerName !== "Amsterdam Goods B.V." && o.customerName !== "London Retail Group");
+      }
+      return v;
+    } catch(e) { return null; }
+  },
+  set(k,v) {
+    try {
+      if (k === "orders" && Array.isArray(v)) {
+        v = v.filter(o => !o.archived && !o.isMock && o.id !== "ord-1048" && o.id !== "ord-1047" && o.id !== "BD-RFQ-0D2510A5" && o.customerName !== "Amsterdam Goods B.V." && o.customerName !== "London Retail Group");
+      }
+      localStorage.setItem("nx_"+k, JSON.stringify(v));
+    } catch(e) {}
+  },
+  del(k) { try { localStorage.removeItem("nx_"+k); } catch(e) {}
+  }
 };
 
 /* ── Offline & Service Worker Status ── */
@@ -254,193 +270,888 @@ async function spine(action, payload={}) {
 /* ── Real Production Seed Data (Preserving User Data Sync) ── */
 let dOrders = [
   {
-    id: "BD-RFQ-0D2510A5",
-    orderNumber: "BD-RFQ-0D2510A5",
-    poNumber: "BD-RFQ-0D2510A5",
-    customerName: "B2B Prospective Buyer",
-    t: "Custom Heavyweight Boxy Drop-Shoulder Tee x5,000",
-    s: "b2b.handsandhead.com · Dhaka, BD",
-    st: ["LEAD", "info"],
-    status: "pending_quote",
-    stage: "RFQ / Ingestion",
-    lifecycleStage: "lead",
-    category: "RMG",
-    total: 62500,
-    subtotal: 62500,
-    currency: "USD",
-    paymentStatus: "pending",
-    fulfillmentStatus: "unfulfilled",
-    customerSnapshot: {
-      name: "B2B Prospective Buyer",
-      email: "procurement@nordicbuyer.de",
-      phone: "",
-      companyName: "Prospective Garments Ltd",
-      city: "Dhaka",
-      country: "BD"
-    },
-    lineItems: [
-      {
-        id: "ITEM-RFQ-1",
-        title: "Custom Heavyweight Boxy Drop-Shoulder Tee (260 GSM)",
-        sku: "TEE-OVS-260",
-        quantity: 5000,
-        price: 12.5,
-        lineTotal: 62500
-      }
+    "id": "NX-1049",
+    "rawId": "ord-1049",
+    "orderNumber": "NX-1049",
+    "customerName": "Lailatul Mehnaz",
+    "t": "Artisanal Raw-Hem Oversized Drop Tee, Minimalist Cardholder — Aniline Tan",
+    "s": "Lailatul Mehnaz · Dhaka - North",
+    "st": [
+      "COMPLETED",
+      "ok"
     ],
-    createdAt: "2026-09-17T14:22:06.089Z",
-    updatedAt: "2026-09-17T14:22:06.089Z"
-  },
-  {
-    id: "ord-qs-mtpl6a86",
-    orderNumber: "QS-555554",
-    customerName: "Tariqul Islam",
-    t: "Full-Grain Leather Cardholder x2",
-    s: "POS Quick Sale · Dhaka, BD",
-    st: ["COMPLETED", "ok"],
-    status: "completed",
-    lifecycleStage: "completed",
-    total: 3700,
-    subtotal: 3700,
-    currency: "BDT",
-    paymentStatus: "paid",
-    fulfillmentStatus: "fulfilled",
-    paymentMethod: "bKash (merchant)",
-    customerSnapshot: {
-      id: "cust-mtpl6a8h",
-      name: "Tariqul Islam",
-      phone: "+8801711234567",
-      canonicalPhone: "+8801711234567",
-      email: "tariqul@example.com",
-      country: "BD",
-      currency: "BDT",
-      address: "Dhaka Counter Sale"
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 3180,
+    "subtotal": 3100,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "bKash (merchant)",
+    "customerSnapshot": {
+      "city": "Dhaka - North",
+      "id": "8613774622945",
+      "rawPhone": "+8801844051980",
+      "email": "lailatul.mehnaz@citybank.com.bd",
+      "currency": "BDT",
+      "name": "Lailatul Mehnaz",
+      "country": "BD",
+      "canonicalPhone": "+8801844051980",
+      "phone": "+8801844051980",
+      "address": "The City Bank Limited, Nitol Niloy Centre, Level 4, House 7, Road 113/A, Gulshan - 2, Dhaka"
     },
-    lineItems: [
+    "lineItems": [
       {
-        productId: "prod-crd-02",
-        variantId: "default",
-        title: "Full-Grain Leather Cardholder",
-        sku: "HH-CRD-02",
-        quantity: 2,
-        price: 1850
-      }
-    ],
-    createdAt: "2026-09-06T09:05:17.382Z",
-    updatedAt: "2026-09-06T09:05:17.382Z"
-  },
-  {
-    id: "ord-1048",
-    orderNumber: "NX-1048",
-    customerName: "Amsterdam Goods B.V.",
-    t: "Full-Grain Leather Bi-Fold Wallet x50",
-    s: "Direct B2B · Amsterdam, NL",
-    st: ["50% PAID", "amber"],
-    status: "completed",
-    lifecycleStage: "50_paid",
-    total: 151000,
-    subtotal: 142500,
-    shipping: 8500,
-    currency: "BDT",
-    paymentStatus: "paid",
-    fulfillmentStatus: "fulfilled",
-    paymentMethod: "bank_transfer",
-    customerSnapshot: {
-      name: "Amsterdam Goods B.V.",
-      email: "procurement@leather-amsterdam.nl",
-      country: "NL",
-      currency: "EUR",
-      city: "Amsterdam"
-    },
-    lineItems: [
-      {
-        productId: "prod-wlt-01",
-        title: "Full-Grain Leather Bi-Fold Wallet",
-        sku: "HH-WLT-01",
-        quantity: 50,
-        price: 2850
-      }
-    ],
-    createdAt: "2026-09-04T10:53:07.350Z",
-    updatedAt: "2026-09-05T04:53:07.350Z"
-  },
-  {
-    id: "ord-1047",
-    orderNumber: "NX-1047",
-    customerName: "London Retail Group",
-    t: "Executive Leather Briefcase x6",
-    s: "Portal · London, UK",
-    st: ["JIT CUTTING", "info"],
-    status: "open",
-    lifecycleStage: "jit_cutting",
-    total: 92200,
-    subtotal: 87000,
-    shipping: 5200,
-    currency: "BDT",
-    paymentStatus: "paid",
-    fulfillmentStatus: "unfulfilled",
-    paymentMethod: "bank_transfer",
-    customerSnapshot: {
-      name: "London Retail Group",
-      email: "orders@londonretail.co.uk",
-      country: "GB",
-      currency: "GBP",
-      city: "London"
-    },
-    lineItems: [
-      {
-        productId: "prod-brf-02",
-        title: "Executive Leather Briefcase",
-        sku: "HH-BRF-02",
-        quantity: 6,
-        price: 14500
-      }
-    ],
-    createdAt: "2026-09-04T22:53:07.350Z",
-    updatedAt: "2026-09-04T22:53:07.350Z"
-  },
-  {
-    id: "ord-1046",
-    orderNumber: "NX-1046",
-    customerName: "Tomotaka Minoura",
-    t: "Heavyweight Boxy Graphic Tee x2, Cardholder x1",
-    s: "Direct · Dhaka, BD",
-    st: ["SHIPPED", "ok"],
-    status: "completed",
-    lifecycleStage: "shipped",
-    total: 5230,
-    subtotal: 5150,
-    shipping: 80,
-    currency: "BDT",
-    paymentStatus: "paid",
-    fulfillmentStatus: "fulfilled",
-    paymentMethod: "cod",
-    customerSnapshot: {
-      name: "Tomotaka Minoura",
-      phone: "+8801912010701",
-      country: "BD",
-      currency: "BDT"
-    },
-    lineItems: [
-      {
-        productId: "prod-tee-01",
-        title: "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
-        sku: "HH-TEE-01-L",
-        quantity: 2,
-        price: 1850
+        "sku": "HH-TEE-02-L",
+        "total": 1650,
+        "productId": "prod-tee-02",
+        "title": "Artisanal Raw-Hem Oversized Drop Tee",
+        "variantTitle": "Bone White / L",
+        "quantity": 1,
+        "price": 1650
       },
       {
-        productId: "prod-crd-02",
-        title: "Minimalist Cardholder — Aniline Tan",
-        sku: "HH-CRD-02",
-        quantity: 1,
-        price: 1450
+        "price": 1450,
+        "productId": "prod-crd-02",
+        "title": "Minimalist Cardholder — Aniline Tan",
+        "variantTitle": "Aniline Tan",
+        "sku": "HH-CRD-02",
+        "total": 1450,
+        "quantity": 1
       }
     ],
-    createdAt: "2026-09-05T06:53:07.350Z",
-    updatedAt: "2026-09-05T08:53:07.350Z"
+    "createdAt": "2026-09-12T11:20:00.000Z",
+    "updatedAt": "2026-09-13T14:10:00.000Z"
+  },
+  {
+    "id": "NX-1050",
+    "rawId": "ord-1050",
+    "orderNumber": "NX-1050",
+    "customerName": "Shabbir",
+    "t": "Full-Grain Leather Bi-Fold Wallet",
+    "s": "Shabbir · DHAKA",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 2930,
+    "subtotal": 2850,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "cod",
+    "customerSnapshot": {
+      "id": "8548307730657",
+      "canonicalPhone": "+8801745395313",
+      "email": "shabbir.dhk@gmail.com",
+      "address": "Mohammadia housing society rd 2 house no 150 mohammadpur",
+      "name": "Shabbir",
+      "country": "BD",
+      "currency": "BDT",
+      "phone": "+8801745395313",
+      "city": "DHAKA",
+      "rawPhone": "+8801745395313"
+    },
+    "lineItems": [
+      {
+        "title": "Full-Grain Leather Bi-Fold Wallet",
+        "sku": "HH-WLT-01",
+        "productId": "prod-wlt-01",
+        "price": 2850,
+        "variantTitle": "Tan Brown",
+        "quantity": 1,
+        "total": 2850
+      }
+    ],
+    "createdAt": "2026-09-12T14:45:00.000Z",
+    "updatedAt": "2026-09-13T17:45:00.000Z"
+  },
+  {
+    "id": "NX-1051",
+    "rawId": "ord-1051",
+    "orderNumber": "NX-1051",
+    "customerName": "Bappa Chowdhury",
+    "t": "Heavyweight Boxy Graphic Tee — Dhaka Cyber x2, Full-Grain Leather Bi-Fold Wallet",
+    "s": "Bappa Chowdhury · Dhaka",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 6490,
+    "subtotal": 6550,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "bKash (merchant)",
+    "customerSnapshot": {
+      "city": "Dhaka",
+      "email": "bappa.chowdhury@yahoo.com",
+      "currency": "BDT",
+      "name": "Bappa Chowdhury",
+      "canonicalPhone": "+8801338789272",
+      "country": "BD",
+      "rawPhone": "+8801338789272",
+      "phone": "+8801338789272",
+      "address": "Chowdhury House 11/1A Kobi jashimuddin rd North Komlapur motijheel Dhaka",
+      "id": "8423562477793"
+    },
+    "lineItems": [
+      {
+        "quantity": 2,
+        "total": 3700,
+        "sku": "HH-TEE-01-L",
+        "title": "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+        "productId": "prod-tee-01",
+        "price": 1850,
+        "variantTitle": "Vintage Washed Black / L"
+      },
+      {
+        "price": 2850,
+        "sku": "HH-WLT-01",
+        "quantity": 1,
+        "title": "Full-Grain Leather Bi-Fold Wallet",
+        "total": 2850,
+        "productId": "prod-wlt-01",
+        "variantTitle": "Tan Brown"
+      }
+    ],
+    "createdAt": "2026-09-13T10:15:00.000Z",
+    "updatedAt": "2026-09-14T11:20:00.000Z"
+  },
+  {
+    "id": "NX-1052",
+    "rawId": "ord-1052",
+    "orderNumber": "NX-1052",
+    "customerName": "Adeeb",
+    "t": "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+    "s": "Adeeb · Dhaka",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 1930,
+    "subtotal": 1850,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "cod",
+    "customerSnapshot": {
+      "city": "Dhaka",
+      "email": "adeeb.dhn@gmail.com",
+      "rawPhone": "+8801745411340",
+      "id": "8340944879841",
+      "name": "Adeeb",
+      "country": "BD",
+      "currency": "BDT",
+      "canonicalPhone": "+8801745411340",
+      "phone": "+8801745411340",
+      "address": "House - 18, Road - 6, Dhanmondi, Dhaka - 1205."
+    },
+    "lineItems": [
+      {
+        "variantTitle": "Vintage Washed Black / M",
+        "price": 1850,
+        "title": "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+        "quantity": 1,
+        "sku": "HH-TEE-01-M",
+        "total": 1850,
+        "productId": "prod-tee-01"
+      }
+    ],
+    "createdAt": "2026-09-13T16:30:00.000Z",
+    "updatedAt": "2026-09-14T15:20:00.000Z"
+  },
+  {
+    "id": "NX-1053",
+    "rawId": "ord-1053",
+    "orderNumber": "NX-1053",
+    "customerName": "Nasif Nahian",
+    "t": "Architectural Cutout Leather-Pocket Tee, Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+    "s": "Nasif Nahian · Dhaka",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 4380,
+    "subtotal": 4300,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "bKash (merchant)",
+    "customerSnapshot": {
+      "city": "Dhaka",
+      "currency": "BDT",
+      "email": "nasif.nahian@gmail.com",
+      "name": "Nasif Nahian",
+      "address": "House 132, Road 3, Block A, Niketon, Gulshan, Dhaka",
+      "canonicalPhone": "+8801717155699",
+      "id": "8191632539873",
+      "phone": "+8801717155699",
+      "rawPhone": "+8801717155699",
+      "country": "BD"
+    },
+    "lineItems": [
+      {
+        "total": 2450,
+        "sku": "HH-TEE-03-L",
+        "variantTitle": "Charcoal Slate / L",
+        "title": "Architectural Cutout Leather-Pocket Tee",
+        "quantity": 1,
+        "price": 2450,
+        "productId": "prod-tee-03"
+      },
+      {
+        "title": "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+        "price": 1850,
+        "sku": "HH-TEE-01-L",
+        "variantTitle": "Vintage Washed Black / L",
+        "total": 1850,
+        "productId": "prod-tee-01",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2026-09-14T09:20:00.000Z",
+    "updatedAt": "2026-09-15T18:30:00.000Z"
+  },
+  {
+    "id": "NX-1054",
+    "rawId": "ord-1054",
+    "orderNumber": "NX-1054",
+    "customerName": "Shahed Chowdhury Robin",
+    "t": "Full-Grain Leather Bi-Fold Wallet x2, Heavyweight Boxy Graphic Tee — Dhaka Cyber, Test Leather Belt",
+    "s": "Shahed Chowdhury Robin · Chittagong",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 8880,
+    "subtotal": 8750,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "bKash (merchant)",
+    "customerSnapshot": {
+      "phone": "+8801814152500",
+      "id": "8063450382561",
+      "address": "EPZ Chittagong",
+      "rawPhone": "+8801814152500",
+      "name": "Shahed Chowdhury Robin",
+      "country": "BD",
+      "currency": "BDT",
+      "email": "shahed.robin.epz@gmail.com",
+      "city": "Chittagong",
+      "canonicalPhone": "+8801814152500"
+    },
+    "lineItems": [
+      {
+        "variantTitle": "Tan Brown",
+        "total": 5700,
+        "quantity": 2,
+        "sku": "HH-WLT-01",
+        "title": "Full-Grain Leather Bi-Fold Wallet",
+        "productId": "prod-wlt-01",
+        "price": 2850
+      },
+      {
+        "quantity": 1,
+        "variantTitle": "Vintage Washed Black / XL",
+        "total": 1850,
+        "productId": "prod-tee-01",
+        "title": "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+        "sku": "HH-TEE-01-XL",
+        "price": 1850
+      },
+      {
+        "price": 1200,
+        "sku": "HH-3780",
+        "title": "Test Leather Belt",
+        "quantity": 1,
+        "productId": "prod-mtoeo9ex-949",
+        "total": 1200,
+        "variantTitle": "Standard"
+      }
+    ],
+    "createdAt": "2026-09-14T12:40:00.000Z",
+    "updatedAt": "2026-09-16T12:00:00.000Z"
+  },
+  {
+    "id": "NX-1055",
+    "rawId": "ord-1055",
+    "orderNumber": "NX-1055",
+    "customerName": "Anne Drong",
+    "t": "Architectural Cutout Leather-Pocket Tee, Full-Grain Leather Bi-Fold Wallet",
+    "s": "Anne Drong · DHAKA",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 5380,
+    "subtotal": 5300,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "cod",
+    "customerSnapshot": {
+      "email": "anne.drong@gmail.com",
+      "currency": "BDT",
+      "name": "Anne Drong",
+      "address": "Grace Legacy, flat 2A, House 247/7&8 South Pirerbagh, Amtola, 60 feet road, Mirpur, Dhaka",
+      "canonicalPhone": "+8801726793834",
+      "country": "BD",
+      "city": "DHAKA",
+      "phone": "+8801726793834",
+      "id": "8054275080417",
+      "rawPhone": "+8801726793834"
+    },
+    "lineItems": [
+      {
+        "price": 2450,
+        "productId": "prod-tee-03",
+        "title": "Architectural Cutout Leather-Pocket Tee",
+        "sku": "HH-TEE-03-M",
+        "variantTitle": "Charcoal Slate / M",
+        "total": 2450,
+        "quantity": 1
+      },
+      {
+        "sku": "HH-WLT-01",
+        "productId": "prod-wlt-01",
+        "variantTitle": "Tan Brown",
+        "total": 2850,
+        "quantity": 1,
+        "title": "Full-Grain Leather Bi-Fold Wallet",
+        "price": 2850
+      }
+    ],
+    "createdAt": "2026-09-14T17:15:00.000Z",
+    "updatedAt": "2026-09-15T16:40:00.000Z"
+  },
+  {
+    "id": "NX-1056",
+    "rawId": "ord-1056",
+    "orderNumber": "NX-1056",
+    "customerName": "Md Shihab Hussain",
+    "t": "Heavyweight Boxy Graphic Tee — Dhaka Cyber x2, Full-Grain Leather Bi-Fold Wallet",
+    "s": "Md Shihab Hussain · Dhaka",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 6630,
+    "subtotal": 6550,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "bKash (merchant)",
+    "customerSnapshot": {
+      "country": "BD",
+      "currency": "BDT",
+      "id": "8019856425185",
+      "address": "House 20,Road 3,Block D,Banasree, Rampura, Dhaka",
+      "phone": "+8801855521805",
+      "city": "Dhaka",
+      "rawPhone": "+8801855521805",
+      "canonicalPhone": "+8801855521805",
+      "name": "Md Shihab Hussain",
+      "email": "shihab.hussain@gmail.com"
+    },
+    "lineItems": [
+      {
+        "title": "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+        "variantTitle": "Vintage Washed Black / L",
+        "price": 1850,
+        "productId": "prod-tee-01",
+        "sku": "HH-TEE-01-L",
+        "total": 3700,
+        "quantity": 2
+      },
+      {
+        "productId": "prod-wlt-01",
+        "quantity": 1,
+        "total": 2850,
+        "title": "Full-Grain Leather Bi-Fold Wallet",
+        "variantTitle": "Tan Brown",
+        "price": 2850,
+        "sku": "HH-WLT-01"
+      }
+    ],
+    "createdAt": "2026-09-15T11:00:00.000Z",
+    "updatedAt": "2026-09-16T14:30:00.000Z"
+  },
+  {
+    "id": "NX-1057",
+    "rawId": "ord-1057",
+    "orderNumber": "NX-1057",
+    "customerName": "Nur Rahman",
+    "t": "Architectural Cutout Leather-Pocket Tee, Full-Grain Leather Bi-Fold Wallet",
+    "s": "Nur Rahman · Dhaka",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 5380,
+    "subtotal": 5300,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "cod",
+    "customerSnapshot": {
+      "city": "Dhaka",
+      "email": "nur.rahman@dhkcantt.com",
+      "canonicalPhone": "+8801711535595",
+      "currency": "BDT",
+      "id": "8019831849185",
+      "address": "House 424/ East kafrul",
+      "rawPhone": "+8801711535595",
+      "name": "Nur Rahman",
+      "phone": "+8801711535595",
+      "country": "BD"
+    },
+    "lineItems": [
+      {
+        "title": "Architectural Cutout Leather-Pocket Tee",
+        "productId": "prod-tee-03",
+        "quantity": 1,
+        "price": 2450,
+        "variantTitle": "Charcoal Slate / L",
+        "total": 2450,
+        "sku": "HH-TEE-03-L"
+      },
+      {
+        "quantity": 1,
+        "total": 2850,
+        "variantTitle": "Tan Brown",
+        "productId": "prod-wlt-01",
+        "title": "Full-Grain Leather Bi-Fold Wallet",
+        "sku": "HH-WLT-01",
+        "price": 2850
+      }
+    ],
+    "createdAt": "2026-09-15T15:30:00.000Z",
+    "updatedAt": "2026-09-16T17:15:00.000Z"
+  },
+  {
+    "id": "NX-1058",
+    "rawId": "ord-1058",
+    "orderNumber": "NX-1058",
+    "customerName": "Vladislav",
+    "t": "Artisanal Raw-Hem Oversized Drop Tee, Test Leather Belt",
+    "s": "Vladislav · Pabna",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 3000,
+    "subtotal": 2850,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "cod",
+    "customerSnapshot": {
+      "id": "8162539634913",
+      "phone": "+8801328056287",
+      "city": "Pabna",
+      "currency": "BDT",
+      "country": "BD",
+      "address": "Green city",
+      "rawPhone": "+8801328056287",
+      "canonicalPhone": "+8801328056287",
+      "email": "vladislav.pabna@mail.ru",
+      "name": "Vladislav"
+    },
+    "lineItems": [
+      {
+        "price": 1650,
+        "quantity": 1,
+        "title": "Artisanal Raw-Hem Oversized Drop Tee",
+        "productId": "prod-tee-02",
+        "sku": "HH-TEE-02-XL",
+        "total": 1650,
+        "variantTitle": "Bone White / XL"
+      },
+      {
+        "variantTitle": "Standard",
+        "total": 1200,
+        "sku": "HH-3780",
+        "quantity": 1,
+        "title": "Test Leather Belt",
+        "productId": "prod-mtoeo9ex-949",
+        "price": 1200
+      }
+    ],
+    "createdAt": "2026-09-15T18:10:00.000Z",
+    "updatedAt": "2026-09-17T15:40:00.000Z"
+  },
+  {
+    "id": "NX-1059",
+    "rawId": "ord-1059",
+    "orderNumber": "NX-1059",
+    "customerName": "Tatiana",
+    "t": "Architectural Cutout Leather-Pocket Tee, Minimalist Cardholder — Aniline Tan",
+    "s": "Tatiana · Pabna",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 4050,
+    "subtotal": 3900,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "bKash (merchant)",
+    "customerSnapshot": {
+      "id": "8045721157857",
+      "country": "BD",
+      "rawPhone": "+8801958598547",
+      "address": "Green city",
+      "canonicalPhone": "+8801958598547",
+      "city": "Pabna",
+      "phone": "+8801958598547",
+      "currency": "BDT",
+      "name": "Tatiana",
+      "email": "tatiana.ishwardi@yandex.ru"
+    },
+    "lineItems": [
+      {
+        "price": 2450,
+        "sku": "HH-TEE-03-M",
+        "productId": "prod-tee-03",
+        "title": "Architectural Cutout Leather-Pocket Tee",
+        "quantity": 1,
+        "total": 2450,
+        "variantTitle": "Charcoal Slate / M"
+      },
+      {
+        "productId": "prod-crd-02",
+        "total": 1450,
+        "variantTitle": "Aniline Tan",
+        "sku": "HH-CRD-02",
+        "quantity": 1,
+        "price": 1450,
+        "title": "Minimalist Cardholder — Aniline Tan"
+      }
+    ],
+    "createdAt": "2026-09-16T10:05:00.000Z",
+    "updatedAt": "2026-09-17T17:20:00.000Z"
+  },
+  {
+    "id": "NX-1060",
+    "rawId": "ord-1060",
+    "orderNumber": "NX-1060",
+    "customerName": "Hridoy Shaikh",
+    "t": "Artisanal Raw-Hem Oversized Drop Tee, Test Leather Belt",
+    "s": "Hridoy Shaikh · narail",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 2980,
+    "subtotal": 2850,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "cod",
+    "customerSnapshot": {
+      "canonicalPhone": "+8801610490729",
+      "phone": "+8801610490729",
+      "id": "8154034340065",
+      "name": "Hridoy Shaikh",
+      "currency": "BDT",
+      "country": "BD",
+      "email": "hridoy.narail@gmail.com",
+      "rawPhone": "+8801610490729",
+      "address": "narail sodor.narail",
+      "city": "narail"
+    },
+    "lineItems": [
+      {
+        "price": 1650,
+        "variantTitle": "Bone White / L",
+        "title": "Artisanal Raw-Hem Oversized Drop Tee",
+        "productId": "prod-tee-02",
+        "total": 1650,
+        "quantity": 1,
+        "sku": "HH-TEE-02-L"
+      },
+      {
+        "price": 1200,
+        "title": "Test Leather Belt",
+        "sku": "HH-3780",
+        "variantTitle": "Standard",
+        "total": 1200,
+        "quantity": 1,
+        "productId": "prod-mtoeo9ex-949"
+      }
+    ],
+    "createdAt": "2026-09-16T13:40:00.000Z",
+    "updatedAt": "2026-09-18T11:45:00.000Z"
+  },
+  {
+    "id": "NX-1061",
+    "rawId": "ord-1061",
+    "orderNumber": "NX-1061",
+    "customerName": "Mohammed Raihan",
+    "t": "Full-Grain Leather Bi-Fold Wallet",
+    "s": "Mohammed Raihan · Kadamtali",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 2980,
+    "subtotal": 2850,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "cod",
+    "customerSnapshot": {
+      "name": "Mohammed Raihan",
+      "canonicalPhone": "+8801762953916",
+      "phone": "+8801762953916",
+      "address": ": বি- বাড়িয়া ,,,,বাঞ্ছারাপমুর ,,, কদমতলী",
+      "country": "BD",
+      "currency": "BDT",
+      "email": "raihan.kadamtali@gmail.com",
+      "city": "Kadamtali",
+      "id": "8104068088033",
+      "rawPhone": "+8801762953916"
+    },
+    "lineItems": [
+      {
+        "title": "Full-Grain Leather Bi-Fold Wallet",
+        "quantity": 1,
+        "price": 2850,
+        "productId": "prod-wlt-01",
+        "sku": "HH-WLT-01",
+        "variantTitle": "Tan Brown",
+        "total": 2850
+      }
+    ],
+    "createdAt": "2026-09-16T16:20:00.000Z",
+    "updatedAt": "2026-09-18T16:20:00.000Z"
+  },
+  {
+    "id": "NX-1062",
+    "rawId": "ord-1062",
+    "orderNumber": "NX-1062",
+    "customerName": "Sayeed Ahmed",
+    "t": "Artisanal Raw-Hem Oversized Drop Tee",
+    "s": "Sayeed Ahmed · Mouluvibazar",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 1780,
+    "subtotal": 1650,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "Nagad",
+    "customerSnapshot": {
+      "id": "8070759842017",
+      "currency": "BDT",
+      "country": "BD",
+      "address": "Cloth House, chndgram, Borolekha, Moulivibazar,",
+      "phone": "+8801786934199",
+      "city": "Mouluvibazar",
+      "canonicalPhone": "+8801786934199",
+      "rawPhone": "+8801786934199",
+      "name": "Sayeed Ahmed",
+      "email": "sayeed.clothhouse@gmail.com"
+    },
+    "lineItems": [
+      {
+        "price": 1650,
+        "quantity": 1,
+        "title": "Artisanal Raw-Hem Oversized Drop Tee",
+        "productId": "prod-tee-02",
+        "total": 1650,
+        "variantTitle": "Bone White / L",
+        "sku": "HH-TEE-02-L"
+      }
+    ],
+    "createdAt": "2026-09-17T09:30:00.000Z",
+    "updatedAt": "2026-09-18T17:10:00.000Z"
+  },
+  {
+    "id": "NX-1063",
+    "rawId": "ord-1063",
+    "orderNumber": "NX-1063",
+    "customerName": "Kobir",
+    "t": "Heavyweight Boxy Graphic Tee — Dhaka Cyber, Test Leather Belt",
+    "s": "Kobir · Noakhali",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 3180,
+    "subtotal": 3050,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "cod",
+    "customerSnapshot": {
+      "name": "Kobir",
+      "phone": "+8801622265291",
+      "canonicalPhone": "+8801622265291",
+      "rawPhone": "+8801622265291",
+      "email": "kobir.noakhali@gmail.com",
+      "country": "BD",
+      "city": "Noakhali",
+      "id": "cust-kobir-nk",
+      "address": "santi nagar",
+      "currency": "BDT"
+    },
+    "lineItems": [
+      {
+        "title": "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+        "price": 1850,
+        "productId": "prod-tee-01",
+        "sku": "HH-TEE-01-XL",
+        "variantTitle": "Vintage Washed Black / XL",
+        "total": 1850,
+        "quantity": 1
+      },
+      {
+        "price": 1200,
+        "title": "Test Leather Belt",
+        "sku": "HH-3780",
+        "productId": "prod-mtoeo9ex-949",
+        "total": 1200,
+        "variantTitle": "Standard",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2026-09-17T11:50:00.000Z",
+    "updatedAt": "2026-09-19T14:15:00.000Z"
+  },
+  {
+    "id": "NX-1046",
+    "rawId": "ord-1046",
+    "orderNumber": "NX-1046",
+    "customerName": "Tomotaka Minoura",
+    "t": "Heavyweight Boxy Graphic Tee — Dhaka Cyber x2, Minimalist Cardholder — Aniline Tan",
+    "s": "Tomotaka Minoura · Dhaka - North",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "delivered",
+    "total": 5230,
+    "subtotal": 5150,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "cod",
+    "customerSnapshot": {
+      "rawPhone": "+8801912010701",
+      "email": "tomotaka.minoura@gmail.com",
+      "country": "BD",
+      "name": "Tomotaka Minoura",
+      "id": "8779761975521",
+      "canonicalPhone": "+8801912010701",
+      "address": "House no.9, Road no.2, Park road",
+      "phone": "+8801912010701",
+      "currency": "BDT",
+      "city": "Dhaka - North"
+    },
+    "lineItems": [
+      {
+        "price": 1850,
+        "variantTitle": "Vintage Washed Black / L",
+        "title": "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
+        "sku": "HH-TEE-01-L",
+        "total": 3700,
+        "productId": "prod-tee-01",
+        "quantity": 2
+      },
+      {
+        "quantity": 1,
+        "total": 1450,
+        "sku": "HH-CRD-02",
+        "title": "Minimalist Cardholder — Aniline Tan",
+        "productId": "prod-crd-02",
+        "variantTitle": "Aniline Tan",
+        "price": 1450
+      }
+    ],
+    "createdAt": "2026-09-05T06:53:07.350Z",
+    "updatedAt": "2026-09-06T12:30:00.000Z"
+  },
+  {
+    "id": "QS-555554",
+    "rawId": "ord-qs-mtpl6a86",
+    "orderNumber": "QS-555554",
+    "customerName": "Tariqul Islam",
+    "t": "Full-Grain Leather Cardholder x2",
+    "s": "Tariqul Islam · Dhaka, BD",
+    "st": [
+      "COMPLETED",
+      "ok"
+    ],
+    "status": "completed",
+    "lifecycleStage": "completed",
+    "total": 3700,
+    "subtotal": 3700,
+    "currency": "BDT",
+    "paymentStatus": "paid",
+    "fulfillmentStatus": "fulfilled",
+    "paymentMethod": "bKash (merchant)",
+    "customerSnapshot": {
+      "rawPhone": "+8801711234567",
+      "email": "tariqul@example.com",
+      "name": "Tariqul Islam",
+      "country": "BD",
+      "canonicalPhone": "+8801711234567",
+      "address": "Dhaka Counter Sale",
+      "phone": "+8801711234567",
+      "currency": "BDT",
+      "id": "cust-mtpl6a8h"
+    },
+    "lineItems": [
+      {
+        "quantity": 2,
+        "productId": "prod-crd-02",
+        "price": 1850,
+        "variantTitle": "Default",
+        "title": "Full-Grain Leather Cardholder",
+        "total": 3700,
+        "sku": "HH-CRD-02"
+      }
+    ],
+    "createdAt": "2026-09-06T09:05:17.382Z",
+    "updatedAt": "2026-09-06T09:05:17.382Z"
   }
 ];
+
 const dCat = [
   { id: "prod-mtoeo9ex-949", t: "Test Leather Belt", cat: "ACCESSORIES", price: 1200, ini: "TLB", stock: 10 },
   { id: "prod-tee-01", t: "Heavyweight Boxy Graphic Tee — Dhaka Cyber", cat: "TEES & APPAREL", price: 1850, ini: "HBG", stock: 135 },
@@ -458,7 +1169,7 @@ const dCompanies = [
 function demoSpine(a,p) {
   if(a==="getStats")   return Promise.resolve({salesToday:84600,ordersToday:3,pending:1,catalog:4});
   if(a==="getFeed")    return Promise.resolve({items:dCat});
-  if(a==="listOrders") return Promise.resolve({items:dOrders});
+  if(a==="listOrders") return Promise.resolve({items: (window.OrdersService && typeof window.OrdersService.getAll === "function" ? window.OrdersService.getAll() : dOrders).filter(o => o && !o.archived && !o.isMock && o.id !== "ord-1048" && o.id !== "ord-1047" && o.id !== "BD-RFQ-0D2510A5" && o.customerName !== "Amsterdam Goods B.V." && o.customerName !== "London Retail Group")});
   if(a==="placeOrder") { const o={id:"NX-"+Date.now().toString().slice(-4),t:p.item,s:p.method,st:["NEW","amber"]}; dOrders.unshift(o); if(window.PushEngine) PushEngine.notifyNewOrder(o); return Promise.resolve({ok:true,status:"NEW"}); }
   return Promise.resolve({items:[]});
 }

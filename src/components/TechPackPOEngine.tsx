@@ -1,3 +1,4 @@
+import { db } from '../lib/firebase';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   getFirestore,
@@ -340,7 +341,7 @@ export const TechPackPOEngine: React.FC<TechPackPOEngineProps> = ({
     async function loadCustomers() {
       setLoadingCustomers(true);
       try {
-        const db = getFirestore();
+        // db imported from lib/firebase
         const snap = await getDocs(query(collection(db, 'customers'), orderBy('updatedAt', 'desc'), limit(50)));
         if (isMounted && snap && !snap.empty) {
           const list: CustomerOption[] = snap.docs.map(d => {
@@ -805,7 +806,7 @@ export const TechPackPOEngine: React.FC<TechPackPOEngineProps> = ({
 
     // 1. Write to Firestore collection `factory_orders`
     try {
-      const db = getFirestore();
+      // db imported from lib/firebase
       const poDocRef = doc(db, 'factory_orders', poNumber);
       await setDoc(poDocRef, specRecord);
       firestoreSaved = true;

@@ -1,50 +1,54 @@
 [
   {
     "id": "prod-mtoeo9ex-949",
-    "title": "Test Leather Belt",
-    "handle": "test-leather-belt",
-    "status": "active",
+    "updatedAt": "2026-09-05T13:15:32.649Z",
     "vendor": "Hands & Head",
-    "productType": "Leather Goods",
-    "description": "",
-    "tags": [
-      "Leather Goods"
-    ],
     "pricing": {
       "price": 1200,
+      "currency": "BDT",
       "compareAtPrice": null,
-      "cost": null,
-      "currency": "BDT"
+      "cost": null
     },
-    "images": [
-      {
-        "url": "https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80",
-        "alt": "Test Leather Belt"
-      }
-    ],
     "variants": [
       {
-        "id": "v-prod-mtoeo9ex-949",
-        "title": "Standard",
         "sku": "HH-3780",
-        "price": 1200,
+        "title": "Standard",
         "inventoryQty": 15,
+        "id": "v-prod-mtoeo9ex-949",
+        "price": 1200,
         "availableForSale": true
       }
     ],
-    "totalInventory": 15,
+    "status": "active",
+    "images": [
+      {
+        "alt": "Test Leather Belt",
+        "url": "https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80"
+      }
+    ],
+    "handle": "test-leather-belt",
+    "title": "Test Leather Belt",
+    "tags": [
+      "Leather Goods"
+    ],
     "lowStockThreshold": 10,
+    "totalInventory": 15,
     "createdAt": "2026-09-05T13:15:32.649Z",
-    "updatedAt": "2026-09-05T13:15:32.649Z"
+    "description": "",
+    "productType": "Leather Goods"
   },
   {
     "id": "prod-tee-01",
+    "totalInventory": 135,
+    "createdAt": "2026-09-04T13:20:51.208Z",
     "title": "Heavyweight Boxy Graphic Tee — Dhaka Cyber",
     "handle": "heavyweight-boxy-graphic-tee-dhaka-cyber",
-    "status": "active",
-    "vendor": "Hands & Head",
-    "productType": "Tees & Apparel",
-    "description": "260 GSM combed cotton vintage acid-washed oversized streetwear tee with high-density screenprint and reinforced ribbed collar.",
+    "pricing": {
+      "compareAtPrice": 2400,
+      "currency": "BDT",
+      "price": 1850,
+      "cost": 750
+    },
     "tags": [
       "tee",
       "tshirt",
@@ -53,61 +57,54 @@
       "acid-wash",
       "apparel"
     ],
-    "pricing": {
-      "price": 1850,
-      "compareAtPrice": 2400,
-      "cost": 750,
-      "currency": "BDT"
-    },
+    "lowStockThreshold": 15,
+    "status": "active",
+    "description": "260 GSM combed cotton vintage acid-washed oversized streetwear tee with high-density screenprint and reinforced ribbed collar.",
     "images": [
       {
-        "url": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80",
-        "alt": "Heavyweight Boxy Graphic Tee"
+        "alt": "Heavyweight Boxy Graphic Tee",
+        "url": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80"
       },
       {
         "url": "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&auto=format&fit=crop&q=80",
         "alt": "Tee Back View"
       }
     ],
+    "productType": "Tees & Apparel",
     "variants": [
       {
         "id": "v-tee-m",
-        "title": "Vintage Washed Black / M",
-        "sku": "HH-TEE-01-M",
-        "price": 1850,
         "inventoryQty": 45,
-        "availableForSale": true
+        "price": 1850,
+        "availableForSale": true,
+        "title": "Vintage Washed Black / M",
+        "sku": "HH-TEE-01-M"
       },
       {
-        "id": "v-tee-l",
-        "title": "Vintage Washed Black / L",
-        "sku": "HH-TEE-01-L",
+        "availableForSale": true,
         "price": 1850,
-        "inventoryQty": 60,
-        "availableForSale": true
+        "id": "v-tee-l",
+        "sku": "HH-TEE-01-L",
+        "title": "Vintage Washed Black / L",
+        "inventoryQty": 60
       },
       {
         "id": "v-tee-xl",
-        "title": "Vintage Washed Black / XL",
-        "sku": "HH-TEE-01-XL",
         "price": 1850,
         "inventoryQty": 30,
-        "availableForSale": true
+        "availableForSale": true,
+        "title": "Vintage Washed Black / XL",
+        "sku": "HH-TEE-01-XL"
       }
     ],
-    "totalInventory": 135,
-    "lowStockThreshold": 15,
-    "createdAt": "2026-09-04T13:20:51.208Z",
+    "vendor": "Hands & Head",
     "updatedAt": "2026-09-04T13:20:51.208Z"
   },
   {
     "id": "prod-tee-02",
-    "title": "Artisanal Raw-Hem Oversized Drop Tee",
     "handle": "artisanal-raw-hem-oversized-drop-tee",
-    "status": "active",
-    "vendor": "Hands & Head",
     "productType": "Tees & Apparel",
-    "description": "240 GSM organic slub cotton drop-shoulder silhouette with raw-cut distressed hems and tonal embroidered chest emblem.",
+    "createdAt": "2026-09-04T13:20:51.208Z",
     "tags": [
       "tee",
       "tshirt",
@@ -116,297 +113,306 @@
       "apparel",
       "minimalist"
     ],
-    "pricing": {
-      "price": 1650,
-      "compareAtPrice": 2100,
-      "cost": 680,
-      "currency": "BDT"
-    },
+    "description": "240 GSM organic slub cotton drop-shoulder silhouette with raw-cut distressed hems and tonal embroidered chest emblem.",
+    "variants": [
+      {
+        "price": 1650,
+        "id": "v-tee-raw-l",
+        "inventoryQty": 48,
+        "sku": "HH-TEE-02-L",
+        "availableForSale": true,
+        "title": "Bone White / L"
+      },
+      {
+        "availableForSale": true,
+        "sku": "HH-TEE-02-XL",
+        "price": 1650,
+        "title": "Bone White / XL",
+        "inventoryQty": 38,
+        "id": "v-tee-raw-xl"
+      }
+    ],
+    "updatedAt": "2026-09-04T13:20:51.208Z",
+    "vendor": "Hands & Head",
+    "lowStockThreshold": 12,
+    "status": "active",
     "images": [
       {
         "url": "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800&auto=format&fit=crop&q=80",
         "alt": "Raw-Hem Drop Tee"
       }
     ],
-    "variants": [
-      {
-        "id": "v-tee-raw-l",
-        "title": "Bone White / L",
-        "sku": "HH-TEE-02-L",
-        "price": 1650,
-        "inventoryQty": 50,
-        "availableForSale": true
-      },
-      {
-        "id": "v-tee-raw-xl",
-        "title": "Bone White / XL",
-        "sku": "HH-TEE-02-XL",
-        "price": 1650,
-        "inventoryQty": 38,
-        "availableForSale": true
-      }
-    ],
-    "totalInventory": 88,
-    "lowStockThreshold": 12,
-    "createdAt": "2026-09-04T13:20:51.208Z",
-    "updatedAt": "2026-09-04T13:20:51.208Z"
+    "totalInventory": 86,
+    "pricing": {
+      "currency": "BDT",
+      "cost": 680,
+      "compareAtPrice": 2100,
+      "price": 1650
+    },
+    "title": "Artisanal Raw-Hem Oversized Drop Tee",
+    "unitsSold": 2,
+    "totalRevenue": 3300,
+    "lastSoldAt": "2026-09-26T20:15:20.744Z",
+    "buyerCustomerIds": [
+      "cust-muiswusd"
+    ]
   },
   {
     "id": "prod-tee-03",
-    "title": "Architectural Cutout Leather-Pocket Tee",
+    "lowStockThreshold": 10,
     "handle": "architectural-cutout-leather-pocket-tee",
-    "status": "active",
-    "vendor": "Hands & Head",
-    "productType": "Tees & Apparel",
-    "description": "Heavy 280 GSM French terry tee featuring genuine vegetable-tanned leather utility patch pocket with antique brass rivet.",
-    "tags": [
-      "tee",
-      "leather-trim",
-      "luxury",
-      "apparel",
-      "streetwear"
+    "variants": [
+      {
+        "id": "v-tee-pock-m",
+        "availableForSale": true,
+        "title": "Charcoal Slate / M",
+        "inventoryQty": 32,
+        "price": 2450,
+        "sku": "HH-TEE-03-M"
+      },
+      {
+        "price": 2450,
+        "sku": "HH-TEE-03-L",
+        "id": "v-tee-pock-l",
+        "title": "Charcoal Slate / L",
+        "inventoryQty": 40,
+        "availableForSale": true
+      }
     ],
+    "updatedAt": "2026-09-04T13:20:51.208Z",
     "pricing": {
+      "cost": 950,
       "price": 2450,
       "compareAtPrice": 2950,
-      "cost": 950,
       "currency": "BDT"
     },
+    "createdAt": "2026-09-04T13:20:51.208Z",
+    "vendor": "Hands & Head",
+    "description": "Heavy 280 GSM French terry tee featuring genuine vegetable-tanned leather utility patch pocket with antique brass rivet.",
+    "status": "active",
     "images": [
       {
         "url": "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&auto=format&fit=crop&q=80",
         "alt": "Leather Pocket Tee"
       }
     ],
-    "variants": [
-      {
-        "id": "v-tee-pock-m",
-        "title": "Charcoal Slate / M",
-        "sku": "HH-TEE-03-M",
-        "price": 2450,
-        "inventoryQty": 32,
-        "availableForSale": true
-      },
-      {
-        "id": "v-tee-pock-l",
-        "title": "Charcoal Slate / L",
-        "sku": "HH-TEE-03-L",
-        "price": 2450,
-        "inventoryQty": 40,
-        "availableForSale": true
-      }
-    ],
     "totalInventory": 72,
-    "lowStockThreshold": 10,
-    "createdAt": "2026-09-04T13:20:51.208Z",
-    "updatedAt": "2026-09-04T13:20:51.208Z"
+    "productType": "Tees & Apparel",
+    "title": "Architectural Cutout Leather-Pocket Tee",
+    "tags": [
+      "tee",
+      "leather-trim",
+      "luxury",
+      "apparel",
+      "streetwear"
+    ]
   },
   {
     "id": "prod-wlt-01",
-    "title": "Full-Grain Leather Bi-Fold Wallet",
-    "handle": "full-grain-leather-bi-fold-wallet",
+    "totalInventory": 47,
     "status": "active",
-    "vendor": "Hands & Head",
-    "productType": "Leather Goods",
-    "description": "Handcrafted 100% full-grain vegetable-tanned cowhide wallet with 6 card slots and dual currency partitions.",
-    "tags": [
-      "wallet",
-      "leather",
-      "bifold",
-      "b2b"
-    ],
-    "pricing": {
-      "price": 2850,
-      "compareAtPrice": 3400,
-      "cost": 1600,
-      "currency": "BDT"
-    },
     "images": [
       {
         "url": "https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80",
         "alt": "Leather Wallet"
       }
     ],
+    "createdAt": "2026-09-04T13:20:51.208Z",
+    "vendor": "Hands & Head",
+    "productType": "Leather Goods",
+    "lowStockThreshold": 10,
+    "description": "Handcrafted 100% full-grain vegetable-tanned cowhide wallet with 6 card slots and dual currency partitions.",
     "variants": [
       {
-        "id": "v-wlt-tan",
-        "title": "Tan Brown",
-        "sku": "HH-WLT-01",
+        "availableForSale": true,
         "price": 2850,
+        "id": "v-wlt-tan",
         "inventoryQty": 47,
-        "availableForSale": true
+        "sku": "HH-WLT-01",
+        "title": "Tan Brown"
       }
     ],
-    "totalInventory": 47,
-    "lowStockThreshold": 10,
-    "createdAt": "2026-09-04T13:20:51.208Z",
-    "updatedAt": "2026-09-04T13:20:51.208Z"
+    "pricing": {
+      "compareAtPrice": 3400,
+      "cost": 1600,
+      "currency": "BDT",
+      "price": 2850
+    },
+    "updatedAt": "2026-09-04T13:20:51.208Z",
+    "title": "Full-Grain Leather Bi-Fold Wallet",
+    "tags": [
+      "wallet",
+      "leather",
+      "bifold",
+      "b2b"
+    ],
+    "handle": "full-grain-leather-bi-fold-wallet"
   },
   {
     "id": "prod-brf-02",
-    "title": "Executive Leather Briefcase",
     "handle": "executive-leather-briefcase",
-    "status": "active",
+    "title": "Executive Leather Briefcase",
+    "createdAt": "2026-09-04T13:20:51.208Z",
+    "totalInventory": 18,
     "vendor": "Hands & Head",
-    "productType": "Leather Goods",
-    "description": "Handmade vegetable-tanned full-grain leather briefcase with brass hardware, laptop compartment, and luggage trolley strap.",
+    "updatedAt": "2026-09-04T13:20:51.208Z",
+    "lowStockThreshold": 5,
+    "pricing": {
+      "currency": "BDT",
+      "price": 14500,
+      "compareAtPrice": 17500,
+      "cost": 8200
+    },
+    "variants": [
+      {
+        "availableForSale": true,
+        "inventoryQty": 18,
+        "title": "Midnight Black",
+        "id": "v-brf-blk",
+        "price": 14500,
+        "sku": "HH-BRF-02"
+      }
+    ],
     "tags": [
       "briefcase",
       "luxury",
       "executive",
       "b2b"
     ],
-    "pricing": {
-      "price": 14500,
-      "compareAtPrice": 17500,
-      "cost": 8200,
-      "currency": "BDT"
-    },
     "images": [
       {
-        "url": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80",
-        "alt": "Leather Briefcase"
+        "alt": "Leather Briefcase",
+        "url": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80"
       }
     ],
-    "variants": [
-      {
-        "id": "v-brf-blk",
-        "title": "Midnight Black",
-        "sku": "HH-BRF-02",
-        "price": 14500,
-        "inventoryQty": 18,
-        "availableForSale": true
-      }
-    ],
-    "totalInventory": 18,
-    "lowStockThreshold": 5,
-    "createdAt": "2026-09-04T13:20:51.208Z",
-    "updatedAt": "2026-09-04T13:20:51.208Z"
+    "status": "active",
+    "productType": "Leather Goods",
+    "description": "Handmade vegetable-tanned full-grain leather briefcase with brass hardware, laptop compartment, and luggage trolley strap."
   },
   {
     "id": "prod-crd-02",
-    "title": "Minimalist Cardholder — Aniline Tan",
-    "handle": "minimalist-cardholder-aniline-tan",
-    "status": "active",
-    "vendor": "Hands & Head",
-    "productType": "Leather Goods",
-    "description": "Slim 4-slot cardholder crafted from oil-pullup calf leather with center cash pocket.",
     "tags": [
       "cardholder",
       "minimalist",
       "accessories"
     ],
-    "pricing": {
-      "price": 1450,
-      "compareAtPrice": 1800,
-      "cost": 650,
-      "currency": "BDT"
-    },
     "images": [
       {
         "url": "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop&q=80",
         "alt": "Cardholder"
       }
     ],
+    "status": "active",
+    "lowStockThreshold": 12,
+    "buyerCustomerIds": [
+      "cust-mtpl6a8h"
+    ],
+    "totalInventory": 63,
+    "vendor": "Hands & Head",
+    "createdAt": "2026-09-04T13:20:51.208Z",
+    "unitsSold": 2,
+    "title": "Minimalist Cardholder — Aniline Tan",
+    "productType": "Leather Goods",
+    "updatedAt": "2026-09-04T13:20:51.208Z",
+    "totalRevenue": 3700,
+    "description": "Slim 4-slot cardholder crafted from oil-pullup calf leather with center cash pocket.",
     "variants": [
       {
         "id": "v-crd-tan",
-        "title": "Aniline Tan",
-        "sku": "HH-CRD-02",
         "price": 1450,
+        "sku": "HH-CRD-02",
+        "title": "Aniline Tan",
         "inventoryQty": 63,
         "availableForSale": true
       }
     ],
-    "totalInventory": 63,
-    "lowStockThreshold": 12,
-    "createdAt": "2026-09-04T13:20:51.208Z",
-    "updatedAt": "2026-09-04T13:20:51.208Z",
-    "unitsSold": 2,
-    "totalRevenue": 3700,
+    "pricing": {
+      "currency": "BDT",
+      "compareAtPrice": 1800,
+      "price": 1450,
+      "cost": 650
+    },
     "lastSoldAt": "2026-09-06T09:05:17.382Z",
-    "buyerCustomerIds": [
-      "cust-mtpl6a8h"
-    ]
+    "handle": "minimalist-cardholder-aniline-tan"
   },
   {
     "id": "prod-blt-01",
-    "title": "Heavyweight Full-Grain Leather Belt",
+    "createdAt": "2026-09-04T13:20:51.208Z",
+    "lowStockThreshold": 10,
     "handle": "heavyweight-full-grain-leather-belt",
-    "status": "active",
-    "vendor": "Hands & Head",
-    "productType": "Leather Goods",
-    "description": "Solid 38mm harness leather belt with solid brushed brass roller buckle.",
+    "totalInventory": 52,
+    "title": "Heavyweight Full-Grain Leather Belt",
     "tags": [
       "belt",
       "accessories",
       "b2b"
     ],
     "pricing": {
-      "price": 3200,
-      "compareAtPrice": 3800,
       "cost": 1400,
-      "currency": "BDT"
+      "compareAtPrice": 3800,
+      "currency": "BDT",
+      "price": 3200
     },
     "images": [
       {
-        "url": "https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=600&auto=format&fit=crop&q=80",
-        "alt": "Leather Belt"
+        "alt": "Leather Belt",
+        "url": "https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=600&auto=format&fit=crop&q=80"
       }
     ],
+    "status": "active",
+    "productType": "Leather Goods",
+    "description": "Solid 38mm harness leather belt with solid brushed brass roller buckle.",
+    "vendor": "Hands & Head",
+    "updatedAt": "2026-09-04T13:20:51.208Z",
     "variants": [
       {
-        "id": "v-blt-brn",
-        "title": "Cognac Brown",
         "sku": "HH-BLT-01",
-        "price": 3200,
+        "title": "Cognac Brown",
         "inventoryQty": 52,
-        "availableForSale": true
+        "price": 3200,
+        "availableForSale": true,
+        "id": "v-blt-brn"
       }
-    ],
-    "totalInventory": 52,
-    "lowStockThreshold": 10,
-    "createdAt": "2026-09-04T13:20:51.208Z",
-    "updatedAt": "2026-09-04T13:20:51.208Z"
+    ]
   },
   {
     "id": "prod-fol-01",
+    "createdAt": "2026-09-04T13:20:51.208Z",
     "title": "Passport Travel Folio & Boarding Wallet",
+    "variants": [
+      {
+        "inventoryQty": 34,
+        "sku": "HH-FOL-01",
+        "price": 4200,
+        "availableForSale": true,
+        "title": "Onyx Black",
+        "id": "v-fol-blk"
+      }
+    ],
     "handle": "passport-travel-folio-boarding-wallet",
-    "status": "active",
-    "vendor": "Hands & Head",
-    "productType": "Leather Goods",
-    "description": "All-in-one travel organizer accommodating two passports, boarding pass, 6 cards, and pen loop.",
+    "pricing": {
+      "price": 4200,
+      "currency": "BDT",
+      "compareAtPrice": 4900,
+      "cost": 1900
+    },
     "tags": [
       "travel",
       "passport",
       "folio"
     ],
-    "pricing": {
-      "price": 4200,
-      "compareAtPrice": 4900,
-      "cost": 1900,
-      "currency": "BDT"
-    },
+    "totalInventory": 34,
     "images": [
       {
         "url": "https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&auto=format&fit=crop&q=80",
         "alt": "Travel Folio"
       }
     ],
-    "variants": [
-      {
-        "id": "v-fol-blk",
-        "title": "Onyx Black",
-        "sku": "HH-FOL-01",
-        "price": 4200,
-        "inventoryQty": 34,
-        "availableForSale": true
-      }
-    ],
-    "totalInventory": 34,
-    "lowStockThreshold": 8,
-    "createdAt": "2026-09-04T13:20:51.208Z",
-    "updatedAt": "2026-09-04T13:20:51.208Z"
+    "status": "active",
+    "description": "All-in-one travel organizer accommodating two passports, boarding pass, 6 cards, and pen loop.",
+    "vendor": "Hands & Head",
+    "productType": "Leather Goods",
+    "updatedAt": "2026-09-04T13:20:51.208Z",
+    "lowStockThreshold": 8
   }
 ]

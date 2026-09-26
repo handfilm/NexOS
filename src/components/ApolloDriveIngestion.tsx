@@ -1,3 +1,4 @@
+import { db } from '../lib/firebase';
 import React, { useState } from 'react';
 import { getFirestore, writeBatch, doc, collection, getDocs, query, where } from 'firebase/firestore';
 import { normalizeBangladeshPhone } from '../utils/phoneNormalizer';
@@ -145,7 +146,7 @@ export const ApolloDriveIngestion: React.FC = () => {
     setStatus('Staging Apollo leads to Firestore…');
 
     try {
-      const db = getFirestore();
+      // db imported from lib/firebase
       let batch = writeBatch(db);
       let count = 0;
 
@@ -192,7 +193,7 @@ export const ApolloDriveIngestion: React.FC = () => {
     setStatus('Linking media tokens to products in Firestore…');
 
     try {
-      const db = getFirestore();
+      // db imported from lib/firebase
       const batch = writeBatch(db);
 
       // Group by SKU

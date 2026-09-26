@@ -1,3 +1,4 @@
+import { db } from '../lib/firebase';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { getFirestore, collection, getDocs, doc, setDoc, Timestamp } from 'firebase/firestore';
 
@@ -301,7 +302,7 @@ export const FactorySlaFloorTracker: React.FC<FactorySlaFloorTrackerProps> = ({
     let isMounted = true;
     const loadFirestoreOrders = async () => {
       try {
-        const db = getFirestore();
+        // db imported from lib/firebase
         const snap = await getDocs(collection(db, 'factory_orders'));
         if (!snap.empty && isMounted) {
           const loaded: FactoryJobOrder[] = [];
@@ -548,7 +549,7 @@ export const FactorySlaFloorTracker: React.FC<FactorySlaFloorTrackerProps> = ({
 
     // Persist to Firestore clearance_vault collection (offline safe)
     try {
-      const db = getFirestore();
+      // db imported from lib/firebase
       setDoc(doc(db, 'clearance_vault', newClearanceItem.id), {
         ...newClearanceItem,
         createdAt: Timestamp.now()

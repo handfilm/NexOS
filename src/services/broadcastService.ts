@@ -1,3 +1,4 @@
+import { db } from '../lib/firebase';
 /**
  * Hands & Head Nexus — WhatsApp Broadcast Hub & Controlled Queue Runner
  * Implements throttled client-side queue dispatch with operator-configurable delay (2-4s).
@@ -218,7 +219,7 @@ export class BroadcastQueueRunner {
   // Commits state to broadcast_campaigns collection and server REST
   public async commitCampaignRecord(): Promise<void> {
     try {
-      const db = getFirestore();
+      // db imported from lib/firebase
       if (db) {
         const campRef = doc(db, 'broadcast_campaigns', this.campaignRecord.id);
         await setDoc(campRef, {

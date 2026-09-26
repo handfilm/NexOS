@@ -1,3 +1,4 @@
+import { db } from '../lib/firebase';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   getFirestore,
@@ -142,7 +143,7 @@ export const SmartAudienceFilter: React.FC<SmartAudienceFilterProps> = ({
 
         // Firestore Fallback if offline or direct Firestore connection
         try {
-          const db = getFirestore();
+          // db imported from lib/firebase
           let q = collection(db, 'customers');
           let firestoreQuery: any = q;
 

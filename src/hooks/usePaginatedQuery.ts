@@ -1,3 +1,4 @@
+import { db } from '../lib/firebase';
 /**
  * Hands & Head Nexus — Server-Side Firestore Cursor Pagination Hook
  * Enforces strict limit(50), startAfter cursor pagination, and deterministic composite ordering.
@@ -132,7 +133,7 @@ export function usePaginatedQuery<T = any>({
 
         // Try Firestore SDK first
         try {
-          const db = getFirestore();
+          // db imported from lib/firebase
           if (db) {
             const collectionRef = collection(db, collectionName);
 

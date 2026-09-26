@@ -1,3 +1,4 @@
+import { db } from '../lib/firebase';
 import { fetchBuyerOrders } from "../services/nexusApi";
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, Timestamp } from 'firebase/firestore';
@@ -417,7 +418,7 @@ export const LogisticsSettlementHub: React.FC<LogisticsSettlementHubProps> = ({
 
     // Optional Firestore sync
     try {
-      const db = getFirestore();
+      // db imported from lib/firebase
       const consignmentRef = doc(db, 'consignments', generatedCid);
       await setDoc(consignmentRef, {
         consignmentId: generatedCid,

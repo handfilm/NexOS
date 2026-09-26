@@ -39,13 +39,20 @@ export const Orders: React.FC<OrdersProps> = ({
     setIsLoading(true);
     setSyncNotice(null);
     try {
-      const liveOrders = await fetchBuyerOrders(buyerId);
+      let liveOrders = await fetchBuyerOrders(buyerId);
+      if ((!liveOrders || liveOrders.length === 0) && typeof window !== 'undefined' && Array.isArray((window as any).orders) && (window as any).orders.length > 0) {
+        liveOrders = (window as any).orders.filter((o: any) => !o.isMock && !o.archived);
+      }
       // Ensure array type safety
       setOrders(Array.isArray(liveOrders) ? liveOrders : []);
     } catch (err) {
       console.error('[Orders] Exception while querying Firestore orders collection:', err);
-      setSyncNotice('Unable to reach Firestore live sync. Displaying zero-state ledger.');
-      setOrders([]);
+      if (typeof window !== 'undefined' && Array.isArray((window as any).orders) && (window as any).orders.length > 0) {
+        setOrders((window as any).orders.filter((o: any) => !o.isMock && !o.archived));
+      } else {
+        setSyncNotice('Unable to reach Firestore live sync. Displaying zero-state ledger.');
+        setOrders([]);
+      }
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -54,6 +61,24 @@ export const Orders: React.FC<OrdersProps> = ({
 
   useEffect(() => {
     loadOrders();
+
+    const handleSync = (e: any) => {
+      const list = e.detail?.orders || e.detail;
+      if (Array.isArray(list) && list.length > 0) {
+        const clean = list.filter((o: any) => o && !o.isMock && !o.archived);
+        if (clean.length > 0) {
+          setOrders(clean);
+        }
+      }
+    };
+
+    window.addEventListener('ORDERS_CHANGED', handleSync);
+    window.addEventListener('nexus:order-saved', handleSync);
+
+    return () => {
+      window.removeEventListener('ORDERS_CHANGED', handleSync);
+      window.removeEventListener('nexus:order-saved', handleSync);
+    };
   }, [loadOrders]);
 
   const handleRefresh = () => {

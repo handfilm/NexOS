@@ -1,3 +1,4 @@
+import { db } from '../lib/firebase';
 import React, { useState, useMemo, useEffect } from 'react';
 import { getFirestore, collection, addDoc, Timestamp } from 'firebase/firestore';
 
@@ -882,7 +883,7 @@ Hands & Head Bangladesh · corporate@handsandhead.com`;
     try {
       localStorage.setItem('hh_last_b2b_rfq', JSON.stringify(quoteRecord));
 
-      const db = getFirestore();
+      // db imported from lib/firebase
       await addDoc(collection(db, 'corporate_quotations'), {
         ...quoteRecord,
         createdAt: Timestamp.now()

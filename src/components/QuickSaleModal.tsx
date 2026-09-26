@@ -1,3 +1,4 @@
+import { db } from '../lib/firebase';
 import React, { useState, useEffect } from 'react';
 import {
   getFirestore,
@@ -101,7 +102,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
       setLoadingProducts(true);
 
       try {
-        const db = getFirestore();
+        // db imported from lib/firebase
 
         // 1. Fetch Customers (Limit 50)
         const custSnap = await getDocs(
@@ -243,7 +244,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({
     setStatusMessage('Executing atomic POS transaction…');
 
     try {
-      const db = getFirestore();
+      // db imported from lib/firebase
       const batch = writeBatch(db);
 
       const timestamp = new Date().toISOString();

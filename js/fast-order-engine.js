@@ -178,20 +178,51 @@
         updatedAt: new Date().toISOString()
       };
 
-      // 3. Save into Orders Service & Firestore
+      // 3. Save into Orders Service & Firestore & Server REST API
+      let finalOrder = orderRecord;
+      if (typeof window.saveOrderToFirestore === 'function') {
+        try {
+          await window.saveOrderToFirestore(orderRecord);
+        } catch(e) {
+          console.warn('[FastOrder] direct saveOrderToFirestore fallback:', e);
+        }
+      }
+
       if (window.OrdersService && typeof window.OrdersService.createOrder === 'function') {
-        await window.OrdersService.createOrder(orderRecord);
-      } else if (window.Collections && window.Collections.orders) {
-        await window.Collections.orders.doc(orderRecord.id).set(orderRecord);
+        try {
+          const res = await window.OrdersService.createOrder(orderRecord);
+          if (res && res.order) finalOrder = res.order;
+        } catch(e) {
+          console.warn('[FastOrder] OrdersService.createOrder notice:', e);
+        }
       }
 
-      // 4. Emit global event
+      try {
+        const apiRes = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(finalOrder)
+        });
+        if (apiRes.ok) {
+          const apiJson = await apiRes.json();
+          if (apiJson && apiJson.order) finalOrder = apiJson.order;
+        }
+      } catch(e) {}
+
+      // 4. Update memory caches and emit global events
+      if (window.OrdersService && typeof window.OrdersService.addOrUpdateMemCache === 'function') {
+        window.OrdersService.addOrUpdateMemCache(finalOrder);
+      }
       if (window.NexEvents) {
-        window.NexEvents.emit('ORDER_CREATED', orderRecord);
-        window.NexEvents.emit('ORDERS_CHANGED', {});
+        window.NexEvents.emit('ORDER_CREATED', finalOrder);
+        window.NexEvents.emit('ORDERS_CHANGED', finalOrder);
+      }
+      const modEl = document.getElementById('mod-Orders');
+      if (modEl && window.render?.Orders) {
+        try { window.render.Orders(modEl); } catch(e) {}
       }
 
-      return orderRecord;
+      return finalOrder;
     },
 
     /**

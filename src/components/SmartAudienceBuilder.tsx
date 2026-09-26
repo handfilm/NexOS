@@ -1,3 +1,4 @@
+import { db } from '../lib/firebase';
 import React, { useState, useEffect } from 'react';
 import {
   getFirestore,
@@ -98,7 +99,7 @@ export const SmartAudienceBuilder: React.FC<SmartAudienceBuilderProps> = ({
     async function evaluateAudience() {
       setCalculatingCount(true);
       try {
-        const db = getFirestore();
+        // db imported from lib/firebase
         let q = query(
           collection(db, 'customers'),
           orderBy('updatedAt', 'desc'),
@@ -200,7 +201,7 @@ export const SmartAudienceBuilder: React.FC<SmartAudienceBuilderProps> = ({
     async function loadCampaignHistory() {
       setLoadingHistory(true);
       try {
-        const db = getFirestore();
+        // db imported from lib/firebase
         const q = query(
           collection(db, 'broadcast_campaigns'),
           orderBy('timestamp', 'desc'),
@@ -250,7 +251,7 @@ export const SmartAudienceBuilder: React.FC<SmartAudienceBuilderProps> = ({
     };
 
     try {
-      const db = getFirestore();
+      // db imported from lib/firebase
       // Atomic auto-commit to broadcast_campaigns collection
       await setDoc(doc(db, 'broadcast_campaigns', campaignRecord.id), {
         ...campaignRecord,

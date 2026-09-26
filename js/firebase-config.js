@@ -31,6 +31,7 @@ const defaultAppletConfig = {
   appId: "1:170252932635:web:7ca7fec34767fcb521cabe",
   apiKey: "AIzaSyAU9sICCVDeZB8Ht-IirF_3vXLYb6Nap8k",
   authDomain: "grounded-trail-1dtd0.firebaseapp.com",
+  firestoreDatabaseId: "ai-studio-nexos-1c2cf9c3-6e2f-4734-91f7-5d4353af2059",
   storageBucket: "grounded-trail-1dtd0.firebasestorage.app",
   messagingSenderId: "170252932635",
   measurementId: "",
@@ -55,7 +56,19 @@ if (typeof firebase !== "undefined") {
 }
 
 /* ── ৩. গ্লোবাল রেফারেন্স (পুরো অ্যাপে window.db / window.auth / window.storage দিয়ে ব্যবহার হবে) ── */
-window.db      = firebase.firestore();
+try {
+  if (firebaseConfig.firestoreDatabaseId && typeof firebase.app === "function") {
+    try {
+      window.db = firebase.app().firestore(firebaseConfig.firestoreDatabaseId);
+    } catch(e) {
+      window.db = firebase.firestore();
+    }
+  } else {
+    window.db = firebase.firestore();
+  }
+} catch(e) {
+  window.db = firebase.firestore();
+}
 window.auth    = firebase.auth();
 window.storage = firebase.storage();
 

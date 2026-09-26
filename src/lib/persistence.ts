@@ -158,7 +158,14 @@ export async function ensureFirestoreSeeded(bundledRecords?: any[]): Promise<boo
     _isSeeding = false;
     return true;
   } catch (err: any) {
-    console.error(`[PERSISTENCE SEED] Error during Firestore seed:`, err?.message || err);
+    const msg = String(err?.message || err);
+    if (msg.includes('Quota') || msg.includes('quota') || msg.includes('resource-exhausted')) {
+      console.warn(`[PERSISTENCE SEED] Firestore daily quota reached. Seamlessly utilizing in-memory & server persistent customer records.`);
+      _seedingComplete = true; // Mark complete to avoid quota-burning retry loops
+      _isSeeding = false;
+      return true;
+    }
+    console.warn(`[PERSISTENCE SEED] Firestore seed check notice:`, msg);
     _isSeeding = false;
     return false;
   }
@@ -195,7 +202,7 @@ export async function saveProduct(productData: any): Promise<any> {
  */
 export async function saveOrder(orderData: any): Promise<any> {
   const db = getDb();
-  const id = String(orderData.id || orderData.orderId || orderData.poNumber || `ord_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`);
+  const id = String(orderData.id || orderData.orderId || orderData.orderNumber || orderData.poNumber || `ord_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`);
   const payload = {
     ...orderData,
     id,
@@ -211,6 +218,15 @@ export async function saveOrder(orderData: any): Promise<any> {
     }
     window.dispatchEvent(new CustomEvent('nexus:order-saved', { detail: payload }));
   }
+
+  // Backup sync to server endpoint for atomic file persistence
+  try {
+    fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+  } catch (e) {}
 
   return payload;
 }
@@ -254,7 +270,13 @@ export function subscribeToCustomers(callback: (customers: any[]) => void): Unsu
     }));
     callback(items);
   }, (err) => {
-    console.warn('[PERSISTENCE] customers onSnapshot notice:', err?.message);
+    console.warn('[PERSISTENCE] customers onSnapshot notice (falling back to in-memory records):', err?.message);
+    if (typeof window !== 'undefined') {
+      const fallback = (window as any).PERMANENT_SEEDED_CUSTOMERS || (window as any).DATA?.customers || (window as any).customers || [];
+      if (Array.isArray(fallback) && fallback.length > 0) {
+        callback(fallback);
+      }
+    }
   });
 }
 
@@ -272,8 +294,29 @@ export function subscribeToProducts(callback: (products: any[]) => void): Unsubs
     }));
     callback(items);
   }, (err) => {
-    console.warn('[PERSISTENCE] products onSnapshot notice:', err?.message);
+    console.warn('[PERSISTENCE] products onSnapshot notice (falling back to in-memory records):', err?.message);
+    if (typeof window !== 'undefined') {
+      const fallback = (window as any).products || (window as any).DATA?.products || [];
+      if (Array.isArray(fallback) && fallback.length > 0) {
+        callback(fallback);
+      }
+    }
   });
+}
+
+/**
+ * Strict validator to detect and block mock/test orders from polluting live Firestore data.
+ */
+export function isMockOrder(o: any): boolean {
+  if (!o) return true;
+  if (o.archived || o.isMock || o.mock) return true;
+  const id = String(o.id || o.rawId || '');
+  const num = String(o.orderNumber || '');
+  const name = String(o.customerName || o.customerSnapshot?.name || o.contactName || '');
+  if (id === 'ord-1048' || id === 'ord-1047' || id === 'BD-RFQ-0D2510A5') return true;
+  if (num === 'ord-1048' || num === 'ord-1047' || num === 'BD-RFQ-0D2510A5') return true;
+  if (name === 'Amsterdam Goods B.V.' || name === 'London Retail Group') return true;
+  return false;
 }
 
 /**
@@ -284,13 +327,27 @@ export function subscribeToOrders(callback: (orders: any[]) => void): Unsubscrib
   const colRef = collection(db, "orders");
 
   return onSnapshot(colRef, (snapshot) => {
-    const items = snapshot.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...docSnap.data()
-    }));
+    const items = snapshot.docs
+      .map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data()
+      }))
+      .filter((o: any) => !isMockOrder(o));
+
+    items.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
     callback(items);
-  }, (err) => {
-    console.warn('[PERSISTENCE] orders onSnapshot notice:', err?.message);
+  }, async (err) => {
+    console.warn('[PERSISTENCE] orders onSnapshot notice (falling back to server persistence):', err?.message);
+    try {
+      const res = await fetch('/api/orders?limit=100');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.items) && data.items.length > 0) {
+          const clean = data.items.filter((o: any) => !isMockOrder(o));
+          callback(clean);
+        }
+      }
+    } catch (e) {}
   });
 }
 
@@ -355,6 +412,7 @@ if (typeof window !== 'undefined') {
   (window as any).saveProduct = saveProduct;
   (window as any).saveCustomer = saveCustomer;
   (window as any).saveOrder = saveOrder;
+  (window as any).saveOrderToFirestore = saveOrder;
   (window as any).saveB2BDeal = saveB2BDeal;
   (window as any).writeDocument = writeDocument;
   (window as any).subscribeToOrders = subscribeToOrders;
