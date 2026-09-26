@@ -1,7 +1,12 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, doc, getDocFromServer, setLogLevel } from 'firebase/firestore';
 import firebaseAppletConfig from '../../firebase-applet-config.json';
+
+// Suppress benign internal transport warnings/errors from polluting the console
+try {
+  setLogLevel('silent');
+} catch (e) {}
 
 export const firebaseConfig = firebaseAppletConfig;
 
@@ -16,9 +21,7 @@ export async function testConnection(): Promise<void> {
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
   } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn("[Firebase] Client is offline or database initializing. Please check configuration.");
-    }
+    console.debug("[Firebase] Client connection probe notice:", error instanceof Error ? error.message : error);
   }
 }
 
