@@ -222,7 +222,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       (window as any).customers ||
       [];
     ensureFirestoreSeeded(inMemoryCustomers).catch(err => {
-      console.warn('[App Persistence] Auto-seed check notice:', err);
+      console.debug('[App Persistence] Auto-seed check notice:', err?.message || err);
     });
 
     // 2. Real-time onSnapshot Streams
@@ -351,11 +351,61 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     window.addEventListener('ORDERS_CHANGED', handleExternalOrdersChanged);
     window.addEventListener('nexus:save-customer', handleSaveCustomer);
 
+    // Real-time Multi-Device SSE synchronization
+    let sseClient: EventSource | null = null;
+    try {
+      sseClient = new EventSource('/api/sync/stream');
+      sseClient.onmessage = (evt) => {
+        try {
+          const payload = JSON.parse(evt.data);
+          if (payload?.type === 'orders') {
+            fetch('/api/orders?limit=100')
+              .then(r => r.ok ? r.json() : null)
+              .then(data => {
+                if (isSubActive && data && Array.isArray(data.items)) {
+                  const apiOrders = data.items.filter((o: any) => !isMockOrder(o));
+                  if (apiOrders.length > 0) {
+                    setOrders(prev => {
+                      const reconciled = reconcileOrders(prev, apiOrders);
+                      syncOrdersToGlobals(reconciled);
+                      return reconciled;
+                    });
+                  }
+                }
+              })
+              .catch(() => {});
+          }
+        } catch (e) {}
+      };
+    } catch (e) {}
+
+    // Resilient periodic sync interval (every 15s) to guarantee zero desync
+    const reconcileInterval = setInterval(() => {
+      if (!isSubActive) return;
+      fetch('/api/orders?limit=100')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (isSubActive && data && Array.isArray(data.items)) {
+            const apiOrders = data.items.filter((o: any) => !isMockOrder(o));
+            if (apiOrders.length > 0) {
+              setOrders(prev => {
+                const reconciled = reconcileOrders(prev, apiOrders);
+                syncOrdersToGlobals(reconciled);
+                return reconciled;
+              });
+            }
+          }
+        })
+        .catch(() => {});
+    }, 15000);
+
     return () => {
       isSubActive = false;
       unsubCustomers();
       unsubProducts();
       unsubOrders();
+      if (sseClient) sseClient.close();
+      clearInterval(reconcileInterval);
       window.removeEventListener('nexus:save-product', handleSaveProduct);
       window.removeEventListener('nexus:save-order', handleSaveOrder);
       window.removeEventListener('nexus:order-saved', handleOrderSaved);

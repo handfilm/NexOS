@@ -47,9 +47,24 @@ export const Orders: React.FC<OrdersProps> = ({
   onSelectOrder,
   className = '',
 }) => {
-  // CRITICAL: Initialize strictly to empty array [] so it never maps over undefined
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  // CRITICAL: Initialize from memory / localStorage cache so orders are visible immediately
+  const [orders, setOrders] = useState<Order[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      if (Array.isArray((window as any).orders) && (window as any).orders.length > 0) {
+        return (window as any).orders.filter((o: any) => !o.isMock && !o.archived);
+      }
+      const cached = window.localStorage.getItem('orders') || window.localStorage.getItem('nx_orders');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter((o: any) => !o.isMock && !o.archived);
+        }
+      }
+    } catch (e) {}
+    return [];
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [syncNotice, setSyncNotice] = useState<string | null>(null);
   const [filterQuery, setFilterQuery] = useState<string>('');
@@ -60,23 +75,44 @@ export const Orders: React.FC<OrdersProps> = ({
   const [isTrendExpanded, setIsTrendExpanded] = useState<boolean>(true);
 
   const loadOrders = useCallback(async () => {
-    setIsLoading(true);
     setSyncNotice(null);
     try {
       let liveOrders = await fetchBuyerOrders(buyerId);
-      if ((!liveOrders || liveOrders.length === 0) && typeof window !== 'undefined' && Array.isArray((window as any).orders) && (window as any).orders.length > 0) {
-        liveOrders = (window as any).orders.filter((o: any) => !o.isMock && !o.archived);
+      if (!liveOrders || liveOrders.length === 0) {
+        // Direct server API fallback
+        try {
+          const res = await fetch('/api/orders?limit=100');
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.items?.length) {
+              let items = data.items.filter((o: any) => !o.isMock && !o.archived);
+              if (buyerId && buyerId.trim() !== '') {
+                items = items.filter((o: any) => o.customerId === buyerId || o.buyerId === buyerId);
+              }
+              liveOrders = items;
+            }
+          }
+        } catch (e) {}
       }
-      // Ensure array type safety
-      setOrders(Array.isArray(liveOrders) ? liveOrders : []);
-    } catch (err) {
-      console.error('[Orders] Exception while querying Firestore orders collection:', err);
-      if (typeof window !== 'undefined' && Array.isArray((window as any).orders) && (window as any).orders.length > 0) {
-        setOrders((window as any).orders.filter((o: any) => !o.isMock && !o.archived));
-      } else {
-        setSyncNotice('Unable to reach Firestore live sync. Displaying zero-state ledger.');
-        setOrders([]);
+      if ((!liveOrders || liveOrders.length === 0) && typeof window !== 'undefined') {
+        const fallback = (window as any).orders || (window as any).DATA?.orders;
+        if (Array.isArray(fallback) && fallback.length > 0) {
+          liveOrders = fallback.filter((o: any) => !o.isMock && !o.archived);
+        }
       }
+
+      if (Array.isArray(liveOrders) && liveOrders.length > 0) {
+        setOrders(prev => {
+          const map = new Map<string, Order>();
+          prev.forEach(o => map.set(String(o.id || o.orderNumber), o));
+          liveOrders.forEach(o => map.set(String(o.id || o.orderNumber), o));
+          const merged = Array.from(map.values());
+          merged.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+          return merged;
+        });
+      }
+    } catch (err: any) {
+      console.debug('[Orders] Notice while querying orders:', err?.message || err);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -87,11 +123,18 @@ export const Orders: React.FC<OrdersProps> = ({
     loadOrders();
 
     const handleSync = (e: any) => {
-      const list = e.detail?.orders || e.detail;
-      if (Array.isArray(list) && list.length > 0) {
-        const clean = list.filter((o: any) => o && !o.isMock && !o.archived);
+      const incoming = e.detail?.orders || (e.detail?.order ? [e.detail.order] : (Array.isArray(e.detail) ? e.detail : (e.detail ? [e.detail] : [])));
+      if (Array.isArray(incoming) && incoming.length > 0) {
+        const clean = incoming.filter((o: any) => o && !o.isMock && !o.archived);
         if (clean.length > 0) {
-          setOrders(clean);
+          setOrders(prev => {
+            const map = new Map<string, Order>();
+            prev.forEach(o => map.set(String(o.id || o.orderNumber), o));
+            clean.forEach(o => map.set(String(o.id || o.orderNumber), o));
+            const merged = Array.from(map.values());
+            merged.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+            return merged;
+          });
         }
       }
     };
@@ -99,9 +142,30 @@ export const Orders: React.FC<OrdersProps> = ({
     window.addEventListener('ORDERS_CHANGED', handleSync);
     window.addEventListener('nexus:order-saved', handleSync);
 
+    // Multi-device & multi-tab SSE live sync
+    let es: EventSource | null = null;
+    try {
+      es = new EventSource('/api/sync/stream');
+      es.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload?.type === 'orders') {
+            loadOrders();
+          }
+        } catch (e) {}
+      };
+    } catch (e) {}
+
+    // 15-second background sync interval
+    const interval = setInterval(() => {
+      loadOrders();
+    }, 15000);
+
     return () => {
       window.removeEventListener('ORDERS_CHANGED', handleSync);
       window.removeEventListener('nexus:order-saved', handleSync);
+      if (es) es.close();
+      clearInterval(interval);
     };
   }, [loadOrders]);
 

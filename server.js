@@ -1327,6 +1327,32 @@ const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const CAMPAIGNS_FILE = path.join(DATA_DIR, 'campaigns.json');
 const INGESTION_FILE = path.join(DATA_DIR, 'ingestion.json');
 const RFQS_FILE = path.join(DATA_DIR, 'rfqs.json');
+const AUDIT_LOGS_FILE = path.join(DATA_DIR, 'audit_logs.json');
+
+function recordAuditLog({ action, type = 'orders', orderId = null, orderNumber = null, details = '', user = 'Operator', meta = {} }) {
+  try {
+    const logs = safeReadJson(AUDIT_LOGS_FILE, []);
+    const entry = {
+      id: `log_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      action, // 'ORDER_CREATED' | 'ORDER_MODIFIED' | 'ORDER_DELETED' | 'SYNC_EVENT' | 'ORDER_RESTORED'
+      type,
+      orderId,
+      orderNumber,
+      details,
+      user,
+      timestamp: new Date().toISOString(),
+      meta
+    };
+    logs.unshift(entry);
+    if (logs.length > 500) logs.length = 500;
+    safeWriteJson(AUDIT_LOGS_FILE, logs);
+    broadcastSync('audit_logs');
+    return entry;
+  } catch (err) {
+    console.debug('[Audit] Error recording log:', err?.message);
+    return null;
+  }
+}
 
 function safeReadJson(filePath, fallback = []) {
   try {
@@ -1341,10 +1367,33 @@ function safeReadJson(filePath, fallback = []) {
 }
 
 const syncClients = new Set();
+let _lastBroadcastLogTime = 0;
 function broadcastSync(type) {
   const msg = `data: ${JSON.stringify({ type, timestamp: Date.now() })}\n\n`;
   for (const client of syncClients) {
     try { client.write(msg); } catch (e) { syncClients.delete(client); }
+  }
+  // Record rate-limited sync telemetry in audit trail (at most once every 15s to keep log clean)
+  if (type !== 'audit_logs' && Date.now() - _lastBroadcastLogTime > 15000) {
+    _lastBroadcastLogTime = Date.now();
+    try {
+      const logs = safeReadJson(AUDIT_LOGS_FILE, []);
+      logs.unshift({
+        id: `log_sync_${Date.now()}`,
+        action: 'SYNC_EVENT',
+        type: 'sync',
+        orderId: null,
+        orderNumber: type === 'orders' ? 'SYNC_BROADCAST' : type.toUpperCase(),
+        details: `Real-time synchronization broadcast dispatched for ${type} across ${syncClients.size} connected client(s).`,
+        user: 'Multi-Device SSE Bus',
+        timestamp: new Date().toISOString(),
+        meta: { channel: '/api/sync/stream', clientCount: syncClients.size, payloadType: type }
+      });
+      if (logs.length > 500) logs.length = 500;
+      const tmp = `${AUDIT_LOGS_FILE}.${Date.now()}.tmp`;
+      fs.writeFileSync(tmp, JSON.stringify(logs, null, 2), 'utf8');
+      fs.renameSync(tmp, AUDIT_LOGS_FILE);
+    } catch (e) {}
   }
 }
 
@@ -1587,15 +1636,36 @@ if (!fs.existsSync(PRODUCTS_FILE) || safeReadJson(PRODUCTS_FILE, []).length === 
   safeWriteJson(PRODUCTS_FILE, seedProducts);
 }
 
-// Seed default orders if not already initialized
-if (!fs.existsSync(ORDERS_FILE) || safeReadJson(ORDERS_FILE, []).length === 0) {
+// Seed default orders if not already initialized, strictly merging to preserve all user-created orders
+const existingDiskOrders = safeReadJson(ORDERS_FILE, []);
+if (!fs.existsSync(ORDERS_FILE) || existingDiskOrders.length === 0) {
   safeWriteJson(ORDERS_FILE, bangladeshD2COrders);
+} else {
+  // Ensure seed orders don't displace user-created orders
+  const diskOrderIds = new Set(existingDiskOrders.map(o => String(o.id || o.orderNumber)));
+  let merged = false;
+  for (const seedOrd of bangladeshD2COrders) {
+    const key = String(seedOrd.id || seedOrd.orderNumber);
+    if (!diskOrderIds.has(key)) {
+      existingDiskOrders.push(seedOrd);
+      diskOrderIds.add(key);
+      merged = true;
+    }
+  }
+  if (merged) {
+    safeWriteJson(ORDERS_FILE, existingDiskOrders);
+  }
 }
 
 // Initialize Real-time Cloud Firestore synchronization engine across all devices & browsers
 initFirebaseSync({
   getOrders: () => safeReadJson(ORDERS_FILE, []),
-  setOrders: (list) => safeWriteJson(ORDERS_FILE, list),
+  setOrders: (list) => {
+    // Safety invariant: never allow an empty list or corruption to wipe orders!
+    if (Array.isArray(list) && list.length > 0) {
+      safeWriteJson(ORDERS_FILE, list);
+    }
+  },
   getCustomers: () => getCustomersList(),
   setCustomers: (list) => setCustomersList(list),
   getProducts: () => safeReadJson(PRODUCTS_FILE, []),
@@ -2592,6 +2662,16 @@ app.post('/api/orders', (req, res) => {
     safeWriteJson(ORDERS_FILE, orders);
     syncOrderToFirestore(newOrder);
 
+    recordAuditLog({
+      action: 'ORDER_CREATED',
+      type: 'orders',
+      orderId: newId,
+      orderNumber,
+      details: `Created order ${orderNumber} for ${buyerName} (৳${total.toLocaleString()} via ${newOrder.paymentMethod || 'cash'}).`,
+      user: 'Operator POS',
+      meta: { customer: buyerName, total, itemsCount: lineItems.length, paymentMethod: newOrder.paymentMethod }
+    });
+
     res.json({ ok: true, id: newId, orderId: newId, orderNumber, item: newOrder, order: newOrder });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -2654,6 +2734,17 @@ app.put('/api/orders/:id', (req, res) => {
     orders[idx] = updated;
     safeWriteJson(ORDERS_FILE, orders);
     syncOrderToFirestore(updated);
+
+    recordAuditLog({
+      action: 'ORDER_MODIFIED',
+      type: 'orders',
+      orderId: existing.id,
+      orderNumber: existing.orderNumber,
+      details: `Order ${existing.orderNumber || existing.id} modified (Status: ${updated.status}, Payment: ${updated.paymentStatus}, Fulfillment: ${updated.fulfillmentStatus}).`,
+      user: 'Operator',
+      meta: { patch, previousStatus: existing.status, newStatus: updated.status }
+    });
+
     res.json({ ok: true, item: updated, order: updated });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -2673,7 +2764,56 @@ app.delete('/api/orders/:id', (req, res) => {
     if (target) {
       syncOrderToFirestore({ ...target, archived: true, isMock: false, status: 'cancelled' });
     }
+
+    recordAuditLog({
+      action: 'ORDER_DELETED',
+      type: 'orders',
+      orderId: req.params.id,
+      orderNumber: target?.orderNumber || req.params.id,
+      details: `Order ${target?.orderNumber || req.params.id} permanently deleted (Customer: ${target?.customerSnapshot?.name || target?.customerName || 'N/A'}, Total: ৳${target?.total || 0}).`,
+      user: 'Admin Operator',
+      meta: { deletedOrder: target ? { id: target.id, orderNumber: target.orderNumber, total: target.total } : null }
+    });
+
     res.json({ ok: true, message: 'Order deleted' });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/* ── 3B. AUDIT TRAIL & RECENT ACTIVITY API ── */
+app.get('/api/audit-logs', (req, res) => {
+  try {
+    let logs = safeReadJson(AUDIT_LOGS_FILE, []);
+    const { action, type, search, limit = 100 } = req.query;
+    if (action && action !== 'ALL') {
+      logs = logs.filter(l => l.action === action);
+    }
+    if (type && type !== 'ALL') {
+      logs = logs.filter(l => l.type === type);
+    }
+    if (search && String(search).trim()) {
+      const q = String(search).toLowerCase().trim();
+      logs = logs.filter(l =>
+        (l.orderNumber || '').toLowerCase().includes(q) ||
+        (l.details || '').toLowerCase().includes(q) ||
+        (l.user || '').toLowerCase().includes(q) ||
+        (l.action || '').toLowerCase().includes(q)
+      );
+    }
+    const max = Math.min(300, Math.max(1, Number(limit) || 100));
+    const items = logs.slice(0, max);
+    res.json({ ok: true, items, count: items.length, total: logs.length });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/audit-logs', (req, res) => {
+  try {
+    const { action = 'SYNC_EVENT', type = 'orders', orderId, orderNumber, details, user = 'Operator', meta = {} } = req.body || {};
+    const entry = recordAuditLog({ action, type, orderId, orderNumber, details, user, meta });
+    res.json({ ok: true, item: entry });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -3829,6 +3969,16 @@ app.post('/api/orders/quick-sale', (req, res) => {
     orders.unshift(newOrder);
     safeWriteJson(ORDERS_FILE, orders);
     syncOrderToFirestore(newOrder);
+
+    recordAuditLog({
+      action: 'ORDER_CREATED',
+      type: 'orders',
+      orderId: newId,
+      orderNumber,
+      details: `Quick Sale 2.0 POS order ${orderNumber} created for ${buyerName} (৳${total.toLocaleString()} via ${data.paymentMethod || 'Cash'}).`,
+      user: 'Quick Sale 2.0 POS',
+      meta: { customer: buyerName, total, itemsCount: lineItems.length, paymentMethod: data.paymentMethod || 'Cash' }
+    });
 
     res.json({ ok: true, id: newId, orderNumber, order: newOrder, customer: targetCustomer || customers[0] });
   } catch (err) {

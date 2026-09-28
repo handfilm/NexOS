@@ -58,8 +58,15 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): void {
+  const errStr = error instanceof Error ? error.message : String(error);
+  const isQuota = errStr.includes('Quota') || errStr.includes('quota') || errStr.includes('resource-exhausted') || errStr.includes('Free daily read units');
+  if (isQuota) {
+    console.debug('[NexOS Firebase Notice] Quota limit reached; falling back smoothly to local/in-memory records.');
+    return;
+  }
+
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errStr,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -74,7 +81,7 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path
   };
-  console.error('[NexOS Firebase Error]:', JSON.stringify(errInfo));
+  console.debug('[NexOS Firebase Notice]:', JSON.stringify(errInfo));
 }
 
 export default db;

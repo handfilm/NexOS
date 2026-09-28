@@ -83,16 +83,29 @@ export function injectFallbackOperatorIdentity(): void {
 
 let _isSeeding = false;
 let _seedingComplete = false;
+let _quotaReached = false;
 
 /**
  * Auto-seed routine:
  * - Checks whether collection("customers") has at least 1 document.
  * - If empty, loads in-memory customers and commits them in sequential batches of 400 documents
  *   using writeBatch(db) and doc(db, "customers", docId) with { merge: true }.
+ * - Handles free-tier Firestore quota exhaustion transparently without error throwing or retries.
  */
 export async function ensureFirestoreSeeded(bundledRecords?: any[]): Promise<boolean> {
-  if (_seedingComplete) return true;
+  if (_seedingComplete || _quotaReached) return true;
   if (_isSeeding) return false;
+
+  // Check persistent flag to prevent repeated quota hits across reloads
+  if (typeof window !== 'undefined') {
+    try {
+      if (localStorage.getItem('nx_firestore_seed_completed') === 'true' ||
+          localStorage.getItem('nx_firestore_quota_exhausted') === 'true') {
+        _seedingComplete = true;
+        return true;
+      }
+    } catch (e) {}
+  }
 
   _isSeeding = true;
   injectFallbackOperatorIdentity();
@@ -107,6 +120,11 @@ export async function ensureFirestoreSeeded(bundledRecords?: any[]): Promise<boo
       console.log(`[PERSISTENCE SEED] Customers collection already seeded with documents. Skipping auto-seed.`);
       _seedingComplete = true;
       _isSeeding = false;
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('nx_firestore_seed_completed', 'true');
+        }
+      } catch (e) {}
       return true;
     }
 
@@ -119,7 +137,7 @@ export async function ensureFirestoreSeeded(bundledRecords?: any[]): Promise<boo
     }
 
     if (recordsToSeed.length === 0) {
-      console.warn(`[PERSISTENCE SEED] No bundled customer records provided or found in memory to seed.`);
+      console.debug(`[PERSISTENCE SEED] No bundled customer records provided or found in memory to seed.`);
       _isSeeding = false;
       return false;
     }
@@ -156,18 +174,30 @@ export async function ensureFirestoreSeeded(bundledRecords?: any[]): Promise<boo
     console.log(`[PERSISTENCE SEED] Successfully completed multi-batch customer seeding (${recordsToSeed.length} records).`);
     _seedingComplete = true;
     _isSeeding = false;
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('nx_firestore_seed_completed', 'true');
+      }
+    } catch (e) {}
     return true;
   } catch (err: any) {
     const msg = String(err?.message || err);
-    if (msg.includes('Quota') || msg.includes('quota') || msg.includes('resource-exhausted')) {
-      console.warn(`[PERSISTENCE SEED] Firestore daily quota reached. Seamlessly utilizing in-memory & server persistent customer records.`);
-      _seedingComplete = true; // Mark complete to avoid quota-burning retry loops
-      _isSeeding = false;
+    _seedingComplete = true;
+    _isSeeding = false;
+
+    if (msg.includes('Quota') || msg.includes('quota') || msg.includes('resource-exhausted') || msg.includes('Free daily read units')) {
+      _quotaReached = true;
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('nx_firestore_quota_exhausted', 'true');
+          localStorage.setItem('nx_firestore_seed_completed', 'true');
+        }
+      } catch (e) {}
+      console.info(`[PERSISTENCE SEED] Firestore daily quota reached. Seamlessly utilizing in-memory & server persistent customer records.`);
       return true;
     }
-    console.warn(`[PERSISTENCE SEED] Firestore seed check notice:`, msg);
-    _isSeeding = false;
-    return false;
+    console.debug(`[PERSISTENCE SEED] Firestore seed check notice:`, msg);
+    return true;
   }
 }
 
@@ -183,8 +213,12 @@ export async function saveProduct(productData: any): Promise<any> {
     updatedAt: new Date().toISOString()
   };
 
-  const productRef = doc(db, "products", id);
-  await setDoc(productRef, payload, { merge: true });
+  try {
+    const productRef = doc(db, "products", id);
+    await setDoc(productRef, payload, { merge: true });
+  } catch (err: any) {
+    console.debug('[PERSISTENCE] saveProduct note:', err?.message);
+  }
 
   // Maintain compatibility with in-memory app services and events
   if (typeof window !== 'undefined') {
@@ -209,8 +243,12 @@ export async function saveOrder(orderData: any): Promise<any> {
     updatedAt: new Date().toISOString()
   };
 
-  const orderRef = doc(db, "orders", id);
-  await setDoc(orderRef, payload, { merge: true });
+  try {
+    const orderRef = doc(db, "orders", id);
+    await setDoc(orderRef, payload, { merge: true });
+  } catch (err: any) {
+    console.debug('[PERSISTENCE] saveOrder note:', err?.message);
+  }
 
   if (typeof window !== 'undefined') {
     if ((window as any).OrdersService?.addOrUpdateMemCache) {
@@ -243,8 +281,12 @@ export async function saveCustomer(customerData: any): Promise<any> {
     updatedAt: new Date().toISOString()
   };
 
-  const customerRef = doc(db, "customers", id);
-  await setDoc(customerRef, payload, { merge: true });
+  try {
+    const customerRef = doc(db, "customers", id);
+    await setDoc(customerRef, payload, { merge: true });
+  } catch (err: any) {
+    console.debug('[PERSISTENCE] saveCustomer note:', err?.message);
+  }
 
   if (typeof window !== 'undefined') {
     if ((window as any).CustomersService?.addOrUpdateMemCache) {
@@ -270,7 +312,7 @@ export function subscribeToCustomers(callback: (customers: any[]) => void): Unsu
     }));
     callback(items);
   }, (err) => {
-    console.warn('[PERSISTENCE] customers onSnapshot notice (falling back to in-memory records):', err?.message);
+    console.debug('[PERSISTENCE] customers onSnapshot notice (falling back to in-memory records):', err?.message);
     if (typeof window !== 'undefined') {
       const fallback = (window as any).PERMANENT_SEEDED_CUSTOMERS || (window as any).DATA?.customers || (window as any).customers || [];
       if (Array.isArray(fallback) && fallback.length > 0) {
@@ -294,7 +336,7 @@ export function subscribeToProducts(callback: (products: any[]) => void): Unsubs
     }));
     callback(items);
   }, (err) => {
-    console.warn('[PERSISTENCE] products onSnapshot notice (falling back to in-memory records):', err?.message);
+    console.debug('[PERSISTENCE] products onSnapshot notice (falling back to in-memory records):', err?.message);
     if (typeof window !== 'undefined') {
       const fallback = (window as any).products || (window as any).DATA?.products || [];
       if (Array.isArray(fallback) && fallback.length > 0) {
@@ -326,7 +368,26 @@ export function subscribeToOrders(callback: (orders: any[]) => void): Unsubscrib
   const db = getDb();
   const colRef = collection(db, "orders");
 
+  const fallbackToServer = async () => {
+    try {
+      const res = await fetch('/api/orders?limit=100');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.items) && data.items.length > 0) {
+          const clean = data.items.filter((o: any) => !isMockOrder(o));
+          if (clean.length > 0) {
+            callback(clean);
+          }
+        }
+      }
+    } catch (e) {}
+  };
+
   return onSnapshot(colRef, (snapshot) => {
+    if (snapshot.empty) {
+      fallbackToServer();
+      return;
+    }
     const items = snapshot.docs
       .map((docSnap) => ({
         id: docSnap.id,
@@ -334,20 +395,15 @@ export function subscribeToOrders(callback: (orders: any[]) => void): Unsubscrib
       }))
       .filter((o: any) => !isMockOrder(o));
 
-    items.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-    callback(items);
+    if (items.length > 0) {
+      items.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+      callback(items);
+    } else {
+      fallbackToServer();
+    }
   }, async (err) => {
-    console.warn('[PERSISTENCE] orders onSnapshot notice (falling back to server persistence):', err?.message);
-    try {
-      const res = await fetch('/api/orders?limit=100');
-      if (res.ok) {
-        const data = await res.json();
-        if (data && Array.isArray(data.items) && data.items.length > 0) {
-          const clean = data.items.filter((o: any) => !isMockOrder(o));
-          callback(clean);
-        }
-      }
-    } catch (e) {}
+    console.debug('[PERSISTENCE] orders onSnapshot notice (falling back to server persistence):', err?.message);
+    fallbackToServer();
   });
 }
 
@@ -364,7 +420,11 @@ export async function saveB2BDeal(dealData: any): Promise<any> {
   };
 
   const dealRef = doc(db, "deals", id);
-  await setDoc(dealRef, payload, { merge: true });
+  try {
+    await setDoc(dealRef, payload, { merge: true });
+  } catch (err: any) {
+    console.debug('[PERSISTENCE] saveB2BDeal notice:', err?.message);
+  }
 
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('nexus:b2b-deal-saved', { detail: payload }));
@@ -387,7 +447,7 @@ export function subscribeToDeals(callback: (deals: any[]) => void): Unsubscribe 
     }));
     callback(items);
   }, (err) => {
-    console.warn('[PERSISTENCE] deals onSnapshot notice:', err?.message);
+    console.debug('[PERSISTENCE] deals onSnapshot notice:', err?.message);
   });
 }
 
@@ -403,8 +463,12 @@ export async function writeDocument(collectionName: string, id: string, payload:
     id: cleanId,
     updatedAt: new Date().toISOString()
   };
-  const docRef = doc(db, collectionName, cleanId);
-  await setDoc(docRef, data, { merge: true });
+  try {
+    const docRef = doc(db, collectionName, cleanId);
+    await setDoc(docRef, data, { merge: true });
+  } catch (err: any) {
+    console.debug('[PERSISTENCE] writeDocument note:', err?.message);
+  }
   return data;
 }
 

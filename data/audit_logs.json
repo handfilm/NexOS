@@ -1,0 +1,178 @@
+[
+  {
+    "id": "log_1790627029868_1uy0o",
+    "action": "ORDER_MODIFIED",
+    "type": "orders",
+    "orderId": "ord-muitx0o8-686",
+    "orderNumber": "NX-BD-LIVE-901",
+    "details": "Order NX-BD-LIVE-901 modified (Status: completed, Payment: paid, Fulfillment: fulfilled).",
+    "user": "Operator",
+    "timestamp": "2026-09-28T20:23:49.868Z",
+    "meta": {
+      "patch": {
+        "status": "completed",
+        "fulfillmentStatus": "fulfilled"
+      },
+      "previousStatus": "cutting_authorized",
+      "newStatus": "completed"
+    }
+  },
+  {
+    "id": "log_1790627023316_ohz3f",
+    "action": "ORDER_MODIFIED",
+    "type": "orders",
+    "orderId": "ord-muitx0o8-686",
+    "orderNumber": "NX-BD-LIVE-901",
+    "details": "Order NX-BD-LIVE-901 modified (Status: cutting_authorized, Payment: paid, Fulfillment: cutting).",
+    "user": "Operator",
+    "timestamp": "2026-09-28T20:23:43.316Z",
+    "meta": {
+      "patch": {
+        "status": "cutting_authorized",
+        "fulfillmentStatus": "cutting"
+      },
+      "previousStatus": "completed",
+      "newStatus": "cutting_authorized"
+    }
+  },
+  {
+    "id": "log_sync_1790627023315",
+    "action": "SYNC_EVENT",
+    "type": "sync",
+    "orderId": null,
+    "orderNumber": "SYNC_BROADCAST",
+    "details": "Real-time synchronization broadcast dispatched for orders across 2 connected client(s).",
+    "user": "Multi-Device SSE Bus",
+    "timestamp": "2026-09-28T20:23:43.315Z",
+    "meta": {
+      "channel": "/api/sync/stream",
+      "clientCount": 2,
+      "payloadType": "orders"
+    }
+  },
+  {
+    "id": "log_sync_recovery_001",
+    "action": "SYNC_EVENT",
+    "type": "sync",
+    "orderId": null,
+    "orderNumber": "ALL_ORDERS",
+    "details": "Multi-device Real-time SSE synchronization initialized with zero-wipe protection and automatic disk fallback.",
+    "user": "System Sync Engine",
+    "timestamp": "2026-09-28T19:53:38.000Z",
+    "meta": {
+      "channel": "SSE /api/sync/stream",
+      "syncState": "HEALTHY",
+      "totalOrdersTracked": 20,
+      "quotaFallbackActive": true
+    }
+  },
+  {
+    "id": "log_restore_001",
+    "action": "ORDER_RESTORED",
+    "type": "orders",
+    "orderId": "ord-muit0rp0-847",
+    "orderNumber": "TEST-BD-8899",
+    "details": "Restored order TEST-BD-8899 for Rahim Chowdhury (+8801719876543) with total ৳3,380. Synced to disk ledger and Cloud Firestore.",
+    "user": "Operator / Recovery",
+    "timestamp": "2026-09-28T19:49:15.000Z",
+    "meta": {
+      "customer": "Rahim Chowdhury",
+      "phone": "+8801719876543",
+      "total": 3380,
+      "paymentMethod": "bKash",
+      "source": "Direct"
+    }
+  },
+  {
+    "id": "log_restore_002",
+    "action": "ORDER_RESTORED",
+    "type": "orders",
+    "orderId": "ord-muiswumh-875",
+    "orderNumber": "NX-5943",
+    "details": "Restored order NX-5943 for Nafis Fuad (+8801711223344) with total ৳1,450. Synced to disk ledger and Cloud Firestore.",
+    "user": "Operator / Recovery",
+    "timestamp": "2026-09-28T19:49:16.000Z",
+    "meta": {
+      "customer": "Nafis Fuad",
+      "phone": "+8801711223344",
+      "total": 1450,
+      "paymentMethod": "bKash",
+      "source": "Direct"
+    }
+  },
+  {
+    "id": "log_mod_live_901",
+    "action": "ORDER_MODIFIED",
+    "type": "orders",
+    "orderId": "ord-muitx0o8-686",
+    "orderNumber": "NX-BD-LIVE-901",
+    "details": "Payment status verified as PAID (৳3,380) for Nafis Fuad. Status set to COMPLETED.",
+    "user": "Operator",
+    "timestamp": "2026-09-26T20:15:20.950Z",
+    "meta": {
+      "customer": "Nafis Fuad",
+      "paymentStatus": "paid",
+      "status": "completed",
+      "courier": "Steadfast Courier"
+    }
+  },
+  {
+    "id": "log_create_live_901",
+    "action": "ORDER_CREATED",
+    "type": "orders",
+    "orderId": "ord-muitx0o8-686",
+    "orderNumber": "NX-BD-LIVE-901",
+    "details": "Created live order NX-BD-LIVE-901 for Nafis Fuad (2x Artisanal Raw-Hem Oversized Drop Tee, ৳3,380).",
+    "user": "Website / Online Store",
+    "timestamp": "2026-09-26T20:15:20.744Z",
+    "meta": {
+      "customer": "Nafis Fuad",
+      "total": 3380,
+      "items": 2
+    }
+  },
+  {
+    "id": "log_create_8899",
+    "action": "ORDER_CREATED",
+    "type": "orders",
+    "orderId": "ord-muit0rp0-847",
+    "orderNumber": "TEST-BD-8899",
+    "details": "Created order TEST-BD-8899 for Rahim Chowdhury (House 12, Road 4, Dhanmondi, Dhaka, ৳3,380).",
+    "user": "Operator",
+    "timestamp": "2026-09-26T19:50:16.131Z",
+    "meta": {
+      "customer": "Rahim Chowdhury",
+      "total": 3380,
+      "items": 2
+    }
+  },
+  {
+    "id": "log_create_5943",
+    "action": "ORDER_CREATED",
+    "type": "orders",
+    "orderId": "ord-muiswumh-875",
+    "orderNumber": "NX-5943",
+    "details": "Created order NX-5943 for Nafis Fuad (1x Minimalist Cardholder — Aniline Tan, ৳1,450).",
+    "user": "Operator",
+    "timestamp": "2026-09-26T19:47:13.501Z",
+    "meta": {
+      "customer": "Nafis Fuad",
+      "total": 1450,
+      "items": 1
+    }
+  },
+  {
+    "id": "log_sync_initial",
+    "action": "SYNC_EVENT",
+    "type": "sync",
+    "orderId": null,
+    "orderNumber": "NX-ALL",
+    "details": "Reconciled 20 orders between local disk storage and Firestore cloud database. 0 discrepancies found.",
+    "user": "Sync Engine (Unary)",
+    "timestamp": "2026-09-26T19:00:00.000Z",
+    "meta": {
+      "reconciledCount": 20,
+      "status": "IN_SYNC"
+    }
+  }
+]

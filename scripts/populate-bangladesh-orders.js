@@ -9,6 +9,231 @@ const __dirname = path.dirname(__filename);
 
 export const bangladeshD2COrders = [
   {
+    id: "ord-muit0rp0-847",
+    orderNumber: "TEST-BD-8899",
+    source: "Direct",
+    customerId: "cust-muit0rpf",
+    customerName: "Rahim Chowdhury",
+    phone: "+8801719876543",
+    email: "rahim.chowdhury@gmail.com",
+    customerSnapshot: {
+      id: "cust-muit0rpf",
+      name: "Rahim Chowdhury",
+      phone: "+8801719876543",
+      canonicalPhone: "+8801719876543",
+      rawPhone: "+8801719876543",
+      email: "rahim.chowdhury@gmail.com",
+      address: "House 12, Road 4, Dhanmondi, Dhaka",
+      city: "Dhaka",
+      country: "BD",
+      currency: "BDT"
+    },
+    shippingAddress: {
+      name: "Rahim Chowdhury",
+      phone: "+8801719876543",
+      address1: "House 12, Road 4, Dhanmondi, Dhaka",
+      line1: "House 12, Road 4, Dhanmondi, Dhaka",
+      city: "Dhaka",
+      country: "BD"
+    },
+    lineItems: [
+      {
+        productId: "prod-tee-02",
+        variantId: "default",
+        title: "Artisanal Raw-Hem Oversized Drop Tee",
+        sku: "HH-TEE-02-L",
+        quantity: 2,
+        price: 1650,
+        total: 3300
+      }
+    ],
+    items: [
+      {
+        productId: "prod-tee-02",
+        variantId: "default",
+        title: "Artisanal Raw-Hem Oversized Drop Tee",
+        sku: "HH-TEE-02-L",
+        quantity: 2,
+        price: 1650,
+        lineTotal: 3300
+      }
+    ],
+    subtotal: 3300,
+    shipping: 80,
+    discount: 0,
+    tax: 0,
+    total: 3380,
+    paidAmount: 3380,
+    dueAmount: 0,
+    currency: "BDT",
+    paymentStatus: "paid",
+    paymentMethod: "bKash",
+    fulfillmentStatus: "fulfilled",
+    status: "completed",
+    attributed: false,
+    attributionReason: null,
+    attributionStatus: "NOT TRACKED",
+    timeline: [
+      {
+        event: "Order placed (2 items, ৳3,380)",
+        at: "2026-09-26T19:50:16.131Z",
+        by: "Operator"
+      }
+    ],
+    createdAt: "2026-09-26T19:50:16.131Z",
+    updatedAt: "2026-09-26T19:50:16.131Z"
+  },
+  {
+    id: "ord-muitx0o8-686",
+    orderNumber: "NX-BD-LIVE-901",
+    source: "Direct",
+    customerId: "cust-muiswusd",
+    customerName: "Nafis Fuad",
+    phone: "+8801711223344",
+    email: "nafis.fuad@bangladesh.bd",
+    customerSnapshot: {
+      id: "cust-muiswusd",
+      name: "Nafis Fuad",
+      phone: "+8801711223344",
+      canonicalPhone: "+8801711223344",
+      rawPhone: "+8801711223344",
+      email: "nafis.fuad@bangladesh.bd",
+      address: "Banani Road 11, Dhaka",
+      city: "Dhaka",
+      country: "BD",
+      currency: "BDT"
+    },
+    shippingAddress: {
+      name: "Nafis Fuad",
+      phone: "+8801711223344",
+      address1: "Banani Road 11, Dhaka",
+      line1: "Banani Road 11, Dhaka",
+      city: "Dhaka",
+      country: "BD"
+    },
+    lineItems: [
+      {
+        productId: "prod-tee-02",
+        variantId: "default",
+        title: "Artisanal Raw-Hem Oversized Drop Tee",
+        sku: "HH-TEE-02-L",
+        quantity: 2,
+        price: 1650,
+        total: 3300
+      }
+    ],
+    items: [
+      {
+        productId: "prod-tee-02",
+        variantId: "default",
+        title: "Artisanal Raw-Hem Oversized Drop Tee",
+        sku: "HH-TEE-02-L",
+        quantity: 2,
+        price: 1650,
+        lineTotal: 3300
+      }
+    ],
+    subtotal: 3300,
+    shipping: 80,
+    discount: 0,
+    tax: 0,
+    total: 3380,
+    paidAmount: 3380,
+    dueAmount: 0,
+    currency: "BDT",
+    paymentStatus: "paid",
+    paymentMethod: "bKash",
+    fulfillmentStatus: "fulfilled",
+    status: "completed",
+    attributed: false,
+    attributionReason: null,
+    attributionStatus: "NOT TRACKED",
+    timeline: [
+      {
+        event: "Order placed (2 items, ৳3,380)",
+        at: "2026-09-26T20:15:20.744Z",
+        by: "Operator"
+      }
+    ],
+    createdAt: "2026-09-26T20:15:20.744Z",
+    updatedAt: "2026-09-26T20:15:20.950Z"
+  },
+  {
+    id: "ord-muiswumh-875",
+    orderNumber: "NX-5943",
+    source: "Direct",
+    customerId: "cust-muiswusd",
+    customerName: "Nafis Fuad",
+    phone: "+8801711223344",
+    email: "nafis.fuad@bangladesh.bd",
+    customerSnapshot: {
+      id: "cust-muiswusd",
+      name: "Nafis Fuad",
+      phone: "+8801711223344",
+      canonicalPhone: "+8801711223344",
+      rawPhone: "+8801711223344",
+      email: "nafis.fuad@bangladesh.bd",
+      address: "Banani Road 11, Dhaka",
+      city: "Dhaka",
+      country: "BD",
+      currency: "BDT"
+    },
+    shippingAddress: {
+      name: "Nafis Fuad",
+      phone: "+8801711223344",
+      address1: "Banani Road 11, Dhaka",
+      line1: "Banani Road 11, Dhaka",
+      city: "Dhaka",
+      country: "BD"
+    },
+    lineItems: [
+      {
+        productId: "prod-crd-02",
+        variantId: "default",
+        title: "Minimalist Cardholder — Aniline Tan",
+        sku: "HH-CRD-02",
+        quantity: 1,
+        price: 1450,
+        total: 1450
+      }
+    ],
+    items: [
+      {
+        productId: "prod-crd-02",
+        variantId: "default",
+        title: "Minimalist Cardholder — Aniline Tan",
+        sku: "HH-CRD-02",
+        quantity: 1,
+        price: 1450,
+        lineTotal: 1450
+      }
+    ],
+    subtotal: 1450,
+    shipping: 0,
+    discount: 0,
+    tax: 0,
+    total: 1450,
+    paidAmount: 1450,
+    dueAmount: 0,
+    currency: "BDT",
+    paymentStatus: "paid",
+    paymentMethod: "bKash",
+    fulfillmentStatus: "fulfilled",
+    status: "completed",
+    attributed: false,
+    attributionReason: null,
+    attributionStatus: "NOT TRACKED",
+    timeline: [
+      {
+        event: "Order placed (1 item, ৳1,450)",
+        at: "2026-09-26T19:47:13.501Z",
+        by: "Operator"
+      }
+    ],
+    createdAt: "2026-09-26T19:47:13.501Z",
+    updatedAt: "2026-09-26T19:47:13.501Z"
+  },
+  {
     id: "ord-1049",
     orderNumber: "NX-1049",
     source: "Online Store (D2C)",

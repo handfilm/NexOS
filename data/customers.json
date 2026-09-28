@@ -1,5 +1,53 @@
 [
   {
+    "id": "cust-mulnzmov",
+    "name": "Sync Test Customer",
+    "companyName": "Sync Test Customer",
+    "contactPerson": "Sync Test Customer",
+    "phone": "+8801700112233",
+    "canonicalPhone": "+8801700112233",
+    "rawPhone": "+8801700112233",
+    "email": "sync.test@handsandhead.com",
+    "country": "BD",
+    "currency": "BDT",
+    "totalSpent": 1450,
+    "lifetimeValue": 1450,
+    "totalOrders": 1,
+    "ordersCount": 1,
+    "aov": 1450,
+    "firstOrderDate": "2026-09-28T19:52:43.423Z",
+    "lastOrderDate": "2026-09-28T19:52:43.423Z",
+    "tags": [
+      "retail-customer"
+    ],
+    "purchasedSkus": [
+      "HH-CRD-02"
+    ],
+    "purchasedCategories": [],
+    "purchaseHistory": [
+      {
+        "orderId": "ord-mulnzmit-702",
+        "orderNumber": "NX-SYNC-TEST-001",
+        "total": 1450,
+        "date": "2026-09-28T19:52:43.423Z",
+        "itemsCount": 1
+      }
+    ],
+    "requiresReview": false,
+    "reviewReason": null,
+    "addresses": [
+      {
+        "line1": "",
+        "city": "Dhaka",
+        "country": "BD",
+        "isDefault": true
+      }
+    ],
+    "notes": [],
+    "createdAt": "2026-09-28T19:52:43.423Z",
+    "updatedAt": "2026-09-28T19:52:43.423Z"
+  },
+  {
     "id": "cust-muit0rpf",
     "name": "Rahim Chowdhury",
     "companyName": "Rahim Chowdhury",
