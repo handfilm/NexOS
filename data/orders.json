@@ -1,5 +1,1733 @@
 [
   {
+    "id": "sPwiZjDoEHKSrPgaR1DL",
+    "updatedAt": "2026-09-28T23:48:54.930Z",
+    "total": 2450,
+    "storeId": "default",
+    "discountTotal": 0,
+    "campaignId": null,
+    "paymentMethod": "cash",
+    "lineItems": [
+      {
+        "price": 2450,
+        "sku": "HH-TEE-03-M",
+        "productId": "prod-tee-03",
+        "title": "Architectural Cutout Leather-Pocket Tee",
+        "quantity": 1,
+        "image": "",
+        "variantId": "default"
+      }
+    ],
+    "source": "Direct",
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "customerSnapshot": {
+      "id": "cust-mulwfdf5",
+      "name": "Walk-in Customer",
+      "currency": "BDT",
+      "phone": "",
+      "country": "BD",
+      "email": "",
+      "companyName": "Walk-in Customer",
+      "address": "",
+      "canonicalPhone": null,
+      "rawPhone": null
+    },
+    "taxTotal": 0,
+    "customerId": "cust-mulwfdf5",
+    "attributed": false,
+    "tax": 0,
+    "fulfillmentStatus": "unfulfilled",
+    "timeline": [
+      {
+        "by": "Merchant Admin",
+        "at": "2026-09-28T23:48:53.325Z",
+        "event": "Order placed (1 items, ৳2,450)"
+      }
+    ],
+    "discount": 0,
+    "dueAmount": 0,
+    "status": "open",
+    "subtotal": 2450,
+    "orderNumber": "HH-595044",
+    "notes": "",
+    "shipping": 0,
+    "currency": "BDT",
+    "campaignName": null,
+    "paidAmount": 2450,
+    "createdAt": "2026-09-28T23:48:53.325Z",
+    "paymentStatus": "paid",
+    "shippingTotal": 0,
+    "billingAddress": null,
+    "shippingAddress": {
+      "country": "BD",
+      "line1": "",
+      "city": "Dhaka"
+    }
+  },
+  {
+    "id": "ord-1791397019921",
+    "discountTotal": 0,
+    "paymentMethod": "COD",
+    "createdAt": "2026-10-07T18:17:03.941Z",
+    "status": "open",
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "paidAmount": 0,
+    "orderNumber": "HH-934029",
+    "subtotal": 2550,
+    "total": 2620,
+    "discount": 0,
+    "dueAmount": 2620,
+    "fulfillmentStatus": "unfulfilled",
+    "shippingAddress": {
+      "country": "BD",
+      "line1": "Hosna Center (4th Floor), 106 Gulshan Avenue, Dhaka - 1212",
+      "city": "Dhaka"
+    },
+    "currency": "BDT",
+    "shipping": 70,
+    "campaignName": null,
+    "tax": 0,
+    "attributed": false,
+    "source": "Direct",
+    "taxTotal": 0,
+    "timeline": [
+      {
+        "at": "2026-10-07T18:17:03.941Z",
+        "event": "Order placed (1 items, ৳2,620)",
+        "by": "Merchant Admin"
+      }
+    ],
+    "customerId": "cust-1791397019921",
+    "storeId": "default",
+    "deliveryCharge": 70,
+    "lineItems": [
+      {
+        "title": "HUGO PENNY LOAFER BLACK-44",
+        "price": 2550,
+        "quantity": 1,
+        "variantId": "default",
+        "productId": "8hvB2PNpICbHP8VvuIEv",
+        "sku": "SKU-GEN",
+        "image": ""
+      }
+    ],
+    "billingAddress": null,
+    "campaignId": null,
+    "notes": "",
+    "shippingTotal": 70,
+    "paymentStatus": "unpaid",
+    "updatedAt": "2026-10-07T18:17:05.149Z",
+    "customerSnapshot": {
+      "canonicalPhone": "+8801938603211",
+      "address": "Hosna Center (4th Floor), 106 Gulshan Avenue, Dhaka - 1212",
+      "phone": "+8801938603211",
+      "currency": "BDT",
+      "area": "",
+      "companyName": "Asadur Rahman Turzo",
+      "rawPhone": "01938603211",
+      "id": "cust-1791397019921",
+      "name": "Asadur Rahman Turzo",
+      "district": "Dhaka",
+      "email": "",
+      "country": "BD"
+    }
+  },
+  {
+    "id": "ord-1791376919042",
+    "subtotal": 650,
+    "discount": 0,
+    "notes": "",
+    "currency": "BDT",
+    "shipping": 70,
+    "storeId": "default",
+    "updatedAt": "2026-10-07T12:42:03.394Z",
+    "campaignName": null,
+    "orderNumber": "HH-800607",
+    "paidAmount": 0,
+    "discountTotal": 0,
+    "lineItems": [
+      {
+        "productId": "rjj0TAyehUEXScpOsnzx",
+        "price": 650,
+        "title": "NORTH FACE RINGER TEE-L",
+        "quantity": 1,
+        "sku": "SKU-GEN",
+        "image": "/uploads/prod-1791376833462-830926866_1456422179681234_258.jpg",
+        "variantId": "default"
+      }
+    ],
+    "paymentMethod": "COD",
+    "source": "Direct",
+    "total": 720,
+    "createdAt": "2026-10-07T12:42:02.888Z",
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "paymentStatus": "unpaid",
+    "shippingTotal": 70,
+    "deliveryCharge": 70,
+    "customerSnapshot": {
+      "canonicalPhone": "+8801705193511",
+      "currency": "BDT",
+      "name": "Jaim Ehsan",
+      "companyName": "Jaim Ehsan",
+      "country": "BD",
+      "phone": "+8801705193511",
+      "id": "cust-1791376919042",
+      "address": "Address: House-42, road-8,  block-M,Banasree,Rampura,Dhaka",
+      "district": "Dhaka",
+      "email": "",
+      "area": "",
+      "rawPhone": "01705193511"
+    },
+    "campaignId": null,
+    "fulfillmentStatus": "unfulfilled",
+    "billingAddress": null,
+    "customerId": "cust-1791376919042",
+    "dueAmount": 720,
+    "status": "open",
+    "taxTotal": 0,
+    "shippingAddress": {
+      "city": "Dhaka",
+      "country": "BD",
+      "line1": "Address: House-42, road-8,  block-M,Banasree,Rampura,Dhaka"
+    },
+    "tax": 0,
+    "timeline": [
+      {
+        "at": "2026-10-07T12:42:02.888Z",
+        "by": "Merchant Admin",
+        "event": "Order placed (1 items, ৳720)"
+      }
+    ],
+    "attributed": false
+  },
+  {
+    "id": "ord-1791376794658",
+    "paidAmount": 0,
+    "orderNumber": "HH-957952",
+    "shippingAddress": {
+      "country": "BD",
+      "line1": "285/4 East kazipara 9 no goli",
+      "city": "Dhaka"
+    },
+    "attributionStatus": "NOT TRACKED",
+    "attributionReason": null,
+    "billingAddress": null,
+    "timeline": [
+      {
+        "event": "Order placed (2 items, ৳1,770)",
+        "at": "2026-10-07T12:39:58.630Z",
+        "by": "Merchant Admin"
+      }
+    ],
+    "deliveryCharge": 70,
+    "lineItems": [
+      {
+        "variantId": "default",
+        "title": "SPIDER MAN DEEP DYING TEE-XXL",
+        "price": 850,
+        "image": "/uploads/prod-1791376680969-835676490_1824162422102680_204.jpg",
+        "sku": "SKU-GEN",
+        "quantity": 1,
+        "productId": "9yBnJ69y4ABmJkDGRhZ3"
+      },
+      {
+        "variantId": "default",
+        "image": "/uploads/prod-1790427724319-818334130_1409049133913674_116.jpg",
+        "title": "LEVIS DEEP DYING TEE OCSAN BLUE",
+        "price": 850,
+        "productId": "jtrvFSmGgGzpiUW3KlGt",
+        "quantity": 1,
+        "sku": "SKU-GEN"
+      }
+    ],
+    "paymentMethod": "COD",
+    "discountTotal": 0,
+    "campaignName": null,
+    "fulfillmentStatus": "unfulfilled",
+    "storeId": "default",
+    "taxTotal": 0,
+    "notes": "",
+    "status": "open",
+    "updatedAt": "2026-10-07T12:39:59.381Z",
+    "customerId": "cust-1791376794658",
+    "currency": "BDT",
+    "shipping": 70,
+    "paymentStatus": "unpaid",
+    "shippingTotal": 70,
+    "subtotal": 1700,
+    "tax": 0,
+    "createdAt": "2026-10-07T12:39:58.630Z",
+    "attributed": false,
+    "discount": 0,
+    "source": "Direct",
+    "customerSnapshot": {
+      "country": "BD",
+      "email": "",
+      "district": "Dhaka",
+      "rawPhone": "01738911143",
+      "companyName": "Sakib Alam Jim",
+      "name": "Sakib Alam Jim",
+      "canonicalPhone": "+8801738911143",
+      "id": "cust-1791376794658",
+      "currency": "BDT",
+      "area": "",
+      "address": "285/4 East kazipara 9 no goli",
+      "phone": "+8801738911143"
+    },
+    "total": 1770,
+    "dueAmount": 1770,
+    "campaignId": null
+  },
+  {
+    "id": "ord-1791376575716",
+    "campaignId": null,
+    "shipping": 70,
+    "currency": "BDT",
+    "deliveryCharge": 70,
+    "lineItems": [
+      {
+        "productId": "CeO69mCWkvra0anF83iZ",
+        "quantity": 1,
+        "image": "/uploads/prod-1791376477596-835355641_4729695070591579_735.jpg",
+        "sku": "SKU-GEN",
+        "price": 1450,
+        "title": "HUGO ACID TROUSER-M",
+        "variantId": "default"
+      }
+    ],
+    "status": "open",
+    "discount": 0,
+    "total": 1520,
+    "updatedAt": "2026-10-07T12:36:19.898Z",
+    "subtotal": 1450,
+    "campaignName": null,
+    "attributed": false,
+    "shippingAddress": {
+      "country": "BD",
+      "line1": "Address: Tolarbag 2 no gate , mirpur 1. Mob:",
+      "city": "Dhaka"
+    },
+    "storeId": "default",
+    "paymentMethod": "COD",
+    "tax": 0,
+    "orderNumber": "HH-934737",
+    "discountTotal": 0,
+    "billingAddress": null,
+    "customerId": "cust-1791376575716",
+    "shippingTotal": 70,
+    "paymentStatus": "unpaid",
+    "source": "Direct",
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "notes": "",
+    "dueAmount": 1520,
+    "customerSnapshot": {
+      "district": "Dhaka",
+      "phone": "+8801711400487",
+      "area": "",
+      "canonicalPhone": "+8801711400487",
+      "rawPhone": "01711400487",
+      "country": "BD",
+      "companyName": "Ruban",
+      "name": "Ruban",
+      "address": "Address: Tolarbag 2 no gate , mirpur 1. Mob:",
+      "currency": "BDT",
+      "id": "cust-1791376575716",
+      "email": ""
+    },
+    "timeline": [
+      {
+        "by": "Merchant Admin",
+        "at": "2026-10-07T12:36:19.363Z",
+        "event": "Order placed (1 items, ৳1,520)"
+      }
+    ],
+    "paidAmount": 0,
+    "taxTotal": 0,
+    "fulfillmentStatus": "unfulfilled",
+    "createdAt": "2026-10-07T12:36:19.363Z"
+  },
+  {
+    "id": "ord-1791376427077",
+    "discount": 0,
+    "fulfillmentStatus": "unfulfilled",
+    "createdAt": "2026-10-07T12:33:51.381Z",
+    "subtotal": 850,
+    "storeId": "default",
+    "notes": "",
+    "orderNumber": "HH-701824",
+    "campaignId": null,
+    "shipping": 70,
+    "currency": "BDT",
+    "deliveryCharge": 70,
+    "discountTotal": 0,
+    "status": "open",
+    "paymentMethod": "COD",
+    "dueAmount": 920,
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "billingAddress": null,
+    "customerId": "cust-1791376427077",
+    "attributed": false,
+    "campaignName": null,
+    "tax": 0,
+    "total": 920,
+    "customerSnapshot": {
+      "canonicalPhone": "+8801711804728",
+      "id": "cust-1791376427077",
+      "address": "Opposite of dc office/jela porishod  Bura buri hotel er golli te,,beside rosulbag mosjid,azad fisheries,Narayanganj",
+      "area": "",
+      "email": "",
+      "companyName": "Naima akbar",
+      "currency": "BDT",
+      "rawPhone": "+880 1711804728",
+      "country": "BD",
+      "phone": "+8801711804728",
+      "district": "Dhaka",
+      "name": "Naima akbar"
+    },
+    "shippingTotal": 70,
+    "paymentStatus": "unpaid",
+    "paidAmount": 0,
+    "updatedAt": "2026-10-07T12:33:52.097Z",
+    "shippingAddress": {
+      "country": "BD",
+      "line1": "Opposite of dc office/jela porishod  Bura buri hotel er golli te,,beside rosulbag mosjid,azad fisheries,Narayanganj",
+      "city": "Dhaka"
+    },
+    "taxTotal": 0,
+    "lineItems": [
+      {
+        "sku": "SKU-GEN",
+        "price": 850,
+        "title": "HUGO DEEP DYING TEE BLACK -XXL",
+        "productId": "IbbJnpmUu7Tr5DXJoKcK",
+        "image": "/uploads/prod-1790600150825-Gemini_Generated_Image_e1qb5he.jpg",
+        "quantity": 1,
+        "variantId": "default"
+      }
+    ],
+    "source": "Direct",
+    "timeline": [
+      {
+        "at": "2026-10-07T12:33:51.381Z",
+        "by": "Merchant Admin",
+        "event": "Order placed (1 items, ৳920)"
+      }
+    ]
+  },
+  {
+    "id": "ord-1791376259063",
+    "campaignId": null,
+    "billingAddress": null,
+    "customerSnapshot": {
+      "address": "District : Khagrachari  Thana : Dighinala  Location : Banggali Parar bitor Call : +",
+      "rawPhone": "8801880827367",
+      "companyName": "Nelson",
+      "area": "",
+      "email": "",
+      "district": "Other",
+      "canonicalPhone": "+8801880827367",
+      "phone": "+8801880827367",
+      "currency": "BDT",
+      "name": "Nelson",
+      "country": "BD",
+      "id": "cust-1791376259063"
+    },
+    "taxTotal": 0,
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "notes": "",
+    "timeline": [
+      {
+        "event": "Order placed (1 items, ৳800)",
+        "by": "Merchant Admin",
+        "at": "2026-10-07T12:31:02.793Z"
+      }
+    ],
+    "attributed": false,
+    "updatedAt": "2026-10-07T12:31:03.686Z",
+    "status": "open",
+    "deliveryCharge": 150,
+    "lineItems": [
+      {
+        "variantId": "default",
+        "title": "PUMA WHITE TEE-XL",
+        "price": 650,
+        "sku": "SKU-GEN",
+        "quantity": 1,
+        "productId": "k6jBD46Qknw88mbDfRQ8",
+        "image": "/uploads/prod-1791376162228-835595686_2011062040280413_606.jpg"
+      }
+    ],
+    "storeId": "default",
+    "fulfillmentStatus": "unfulfilled",
+    "shippingTotal": 150,
+    "customerId": "cust-1791376259063",
+    "paymentStatus": "unpaid",
+    "paymentMethod": "COD",
+    "createdAt": "2026-10-07T12:31:02.793Z",
+    "discountTotal": 0,
+    "tax": 0,
+    "total": 800,
+    "subtotal": 650,
+    "dueAmount": 800,
+    "discount": 0,
+    "paidAmount": 0,
+    "orderNumber": "HH-578087",
+    "source": "Direct",
+    "shippingAddress": {
+      "city": "Dhaka",
+      "country": "BD",
+      "line1": "District : Khagrachari  Thana : Dighinala  Location : Banggali Parar bitor Call : +"
+    },
+    "campaignName": null,
+    "shipping": 150,
+    "currency": "BDT"
+  },
+  {
+    "id": "ord-1791206323666",
+    "paymentStatus": "unpaid",
+    "updatedAt": "2026-10-05T13:18:48.759Z",
+    "shippingTotal": 70,
+    "tax": 0,
+    "billingAddress": null,
+    "lineItems": [
+      {
+        "sku": "SKU-GEN",
+        "image": "/uploads/prod-1791206178556-Gemini_Generated_Image_6rulru6.jpg",
+        "productId": "2mVt0d5w3xeM19w3t8zo",
+        "quantity": 1,
+        "price": 800,
+        "variantId": "default",
+        "title": "NIKE AIR DEEP DYING -L"
+      },
+      {
+        "price": 800,
+        "title": "TOMMY DEEP DYING OCSAN BLUE",
+        "sku": "SKU-GEN",
+        "variantId": "default",
+        "image": "/uploads/prod-1790427915706-80dc08ee-b52a-49a6-b6a5-63c78e.jpg",
+        "quantity": 1,
+        "productId": "W7cFaqi2HZGmsCZvGK7A"
+      }
+    ],
+    "attributionStatus": "NOT TRACKED",
+    "attributionReason": null,
+    "customerSnapshot": {
+      "name": "Mohiuddin Liton",
+      "companyName": "Mohiuddin Liton",
+      "currency": "BDT",
+      "phone": "+8801914355600",
+      "country": "BD",
+      "district": "Dhaka",
+      "email": "",
+      "area": "",
+      "address": "1 no jaker super market ,gulestan, dhaka. .",
+      "canonicalPhone": "+8801914355600",
+      "rawPhone": "01914355600",
+      "id": "cust-1791206323666"
+    },
+    "discount": 0,
+    "subtotal": 1600,
+    "fulfillmentStatus": "unfulfilled",
+    "currency": "BDT",
+    "shipping": 70,
+    "campaignName": null,
+    "deliveryCharge": 70,
+    "paidAmount": 0,
+    "status": "open",
+    "notes": "",
+    "taxTotal": 0,
+    "storeId": "default",
+    "dueAmount": 1670,
+    "campaignId": null,
+    "orderNumber": "HH-702685",
+    "timeline": [
+      {
+        "event": "Order placed (2 items, ৳1,670)",
+        "by": "Merchant Admin",
+        "at": "2026-10-05T13:18:46.863Z"
+      }
+    ],
+    "source": "Direct",
+    "createdAt": "2026-10-05T13:18:46.863Z",
+    "attributed": false,
+    "customerId": "cust-1791206323666",
+    "shippingAddress": {
+      "city": "Dhaka",
+      "line1": "1 no jaker super market ,gulestan, dhaka. .",
+      "country": "BD"
+    },
+    "total": 1670,
+    "discountTotal": 0,
+    "paymentMethod": "COD"
+  },
+  {
+    "id": "ord-1791203333444",
+    "campaignId": null,
+    "orderNumber": "HH-945781",
+    "dueAmount": 2500,
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "total": 2500,
+    "customerSnapshot": {
+      "canonicalPhone": "+8801713387500",
+      "id": "cust-1791203333444",
+      "area": "",
+      "address": "HOUSE 70, ROAD 15, BLOCK C BANANI DHAKA",
+      "currency": "BDT",
+      "email": "",
+      "companyName": "Jewel",
+      "rawPhone": "01713387500",
+      "country": "BD",
+      "phone": "+8801713387500",
+      "district": "Dhaka",
+      "name": "Jewel"
+    },
+    "shippingTotal": 0,
+    "paymentStatus": "unpaid",
+    "attributed": false,
+    "createdAt": "2026-10-05T12:28:56.744Z",
+    "discount": 0,
+    "fulfillmentStatus": "unfulfilled",
+    "subtotal": 2500,
+    "campaignName": null,
+    "currency": "BDT",
+    "shipping": 0,
+    "status": "open",
+    "customerId": "cust-1791203333444",
+    "taxTotal": 0,
+    "storeId": "default",
+    "updatedAt": "2026-10-05T12:28:58.533Z",
+    "deliveryCharge": 0,
+    "tax": 0,
+    "shippingAddress": {
+      "city": "Dhaka",
+      "line1": "HOUSE 70, ROAD 15, BLOCK C BANANI DHAKA",
+      "country": "BD"
+    },
+    "lineItems": [
+      {
+        "image": "/uploads/prod-1789937841143-809287205_1093696629777887_723.jpg",
+        "quantity": 1,
+        "sku": "SKU-GEN",
+        "variantId": "default",
+        "productId": "7lTYOZQYMC3HtZnQznet",
+        "price": 1250,
+        "title": "Adidas Mens Trouser-Black"
+      },
+      {
+        "price": 1250,
+        "productId": "Zn8prKVRh4JB9F1GKiLp",
+        "title": "HUGO black Trouser-L",
+        "sku": "HH-TST-01",
+        "quantity": 1,
+        "image": "/uploads/prod-1791203033456-831673586_1468399181773493_550.jpg",
+        "variantId": "default"
+      }
+    ],
+    "timeline": [
+      {
+        "at": "2026-10-05T12:28:56.744Z",
+        "event": "Order placed (2 items, ৳2,500)",
+        "by": "Merchant Admin"
+      }
+    ],
+    "notes": "",
+    "discountTotal": 0,
+    "source": "Direct",
+    "paymentMethod": "COD",
+    "paidAmount": 0,
+    "billingAddress": null
+  },
+  {
+    "id": "ord-1791202889490",
+    "taxTotal": 0,
+    "lineItems": [
+      {
+        "image": "/uploads/prod-1791202741142-836276357_29818960664371062_85.jpg",
+        "productId": "9xm17BfDRgZLeCCuSdks",
+        "sku": "SKU-GEN",
+        "quantity": 1,
+        "variantId": "default",
+        "price": 650,
+        "title": "HUGO Boss Black tee-L"
+      }
+    ],
+    "notes": "",
+    "customerSnapshot": {
+      "phone": "+8801766651445",
+      "rawPhone": "01766651445",
+      "area": "",
+      "companyName": "Jame",
+      "district": "Other",
+      "canonicalPhone": "+8801766651445",
+      "address": "Jame  Gazipur, konabari , titash garments er pase",
+      "name": "Jame",
+      "country": "BD",
+      "id": "cust-1791202889490",
+      "email": "",
+      "currency": "BDT"
+    },
+    "fulfillmentStatus": "unfulfilled",
+    "orderNumber": "HH-425817",
+    "updatedAt": "2026-10-05T12:21:34.533Z",
+    "campaignId": null,
+    "discountTotal": 0,
+    "timeline": [
+      {
+        "event": "Order placed (1 items, ৳750)",
+        "at": "2026-10-05T12:21:32.713Z",
+        "by": "Merchant Admin"
+      }
+    ],
+    "paymentMethod": "COD",
+    "customerId": "cust-1791202889490",
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "storeId": "default",
+    "attributed": false,
+    "source": "Direct",
+    "tax": 0,
+    "billingAddress": null,
+    "total": 750,
+    "dueAmount": 750,
+    "paymentStatus": "unpaid",
+    "discount": 0,
+    "status": "open",
+    "shippingTotal": 100,
+    "shippingAddress": {
+      "line1": "Jame  Gazipur, konabari , titash garments er pase",
+      "country": "BD",
+      "city": "Dhaka"
+    },
+    "subtotal": 650,
+    "paidAmount": 0,
+    "currency": "BDT",
+    "shipping": 100,
+    "createdAt": "2026-10-05T12:21:32.713Z",
+    "campaignName": null,
+    "deliveryCharge": 100
+  },
+  {
+    "id": "ord-1791034162884",
+    "subtotal": 2600,
+    "tax": 0,
+    "discount": 0,
+    "shippingTotal": 120,
+    "paidAmount": 0,
+    "dueAmount": 2720,
+    "paymentStatus": "unpaid",
+    "storeId": "default",
+    "fulfillmentStatus": "unfulfilled",
+    "billingAddress": null,
+    "shipping": 120,
+    "currency": "BDT",
+    "notes": "",
+    "status": "open",
+    "deliveryCharge": 120,
+    "shippingAddress": {
+      "city": "Dhaka",
+      "country": "BD",
+      "line1": "Housing B 116 kushtia sadar , kushtia"
+    },
+    "createdAt": "2026-10-03T13:29:26.276Z",
+    "customerSnapshot": {
+      "name": "AB Jibon",
+      "companyName": "AB Jibon",
+      "address": "Housing B 116 kushtia sadar , kushtia",
+      "phone": "+8801877883436",
+      "currency": "BDT",
+      "email": "",
+      "rawPhone": "01877883436",
+      "id": "cust-1791034162884",
+      "area": "",
+      "canonicalPhone": "+8801877883436",
+      "district": "Other",
+      "country": "BD"
+    },
+    "orderNumber": "HH-728727",
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "lineItems": [
+      {
+        "price": 650,
+        "sku": "SKU-GEN",
+        "productId": "XwrfmBZ0U8KWXOtKQMZn",
+        "title": "U Q BOTTLE GREEN TEE-L",
+        "image": "/uploads/prod-1791034059738-825261404_2107184690150828_889.jpg",
+        "variantId": "default",
+        "quantity": 1
+      },
+      {
+        "sku": "SKU-GEN",
+        "price": 650,
+        "variantId": "default",
+        "title": "AMIIRI BLACK TEE -L",
+        "image": "/uploads/prod-1791033969121-825260224_1436436438387137_548.jpg",
+        "quantity": 2,
+        "productId": "MuAEzQ0qialF5GbFzovP"
+      },
+      {
+        "productId": "jSQPBpXU6ULf0XEVIj0H",
+        "image": "/uploads/prod-1791034015219-828647773_4523607301244521_306.jpg",
+        "quantity": 1,
+        "sku": "SKU-GEN",
+        "title": "ADIDAS BLACK TEE-L",
+        "price": 650,
+        "variantId": "default"
+      }
+    ],
+    "campaignName": null,
+    "source": "Direct",
+    "attributed": false,
+    "total": 2720,
+    "updatedAt": "2026-10-03T13:29:26.959Z",
+    "customerId": "cust-1791034162884",
+    "campaignId": null,
+    "taxTotal": 0,
+    "discountTotal": 0,
+    "paymentMethod": "COD",
+    "timeline": [
+      {
+        "by": "Merchant Admin",
+        "at": "2026-10-03T13:29:26.276Z",
+        "event": "Order placed (3 items, ৳2,720)"
+      }
+    ]
+  },
+  {
+    "id": "ord-1791033849374",
+    "taxTotal": 0,
+    "shippingAddress": {
+      "city": "Dhaka",
+      "country": "BD",
+      "line1": "28, Meherun Villa, Bhuiyan Bari koborsthan r pashe, in between Kawlar bazar & Hazi Camp"
+    },
+    "campaignId": null,
+    "timeline": [
+      {
+        "event": "Order placed (1 items, ৳2,620)",
+        "by": "Merchant Admin",
+        "at": "2026-10-03T13:24:12.916Z"
+      }
+    ],
+    "status": "open",
+    "storeId": "default",
+    "paymentStatus": "unpaid",
+    "customerSnapshot": {
+      "district": "Dhaka",
+      "area": "",
+      "rawPhone": "01717667734",
+      "email": "",
+      "country": "BD",
+      "canonicalPhone": "+8801717667734",
+      "name": "ISHTIAK AHMED",
+      "address": "28, Meherun Villa, Bhuiyan Bari koborsthan r pashe, in between Kawlar bazar & Hazi Camp",
+      "phone": "+8801717667734",
+      "currency": "BDT",
+      "id": "cust-1791033849374",
+      "companyName": "ISHTIAK AHMED"
+    },
+    "updatedAt": "2026-10-03T13:24:13.121Z",
+    "shippingTotal": 70,
+    "customerId": "cust-1791033849374",
+    "lineItems": [
+      {
+        "image": "/uploads/prod-1791033757474-Gemini_Generated_Image_tg8c4mt.jpg",
+        "variantId": "default",
+        "quantity": 1,
+        "productId": "YAFUCgvqxoWxP2rsOE5Q",
+        "title": "Hugo penny loafer-41",
+        "price": 2550,
+        "sku": "SKU-GEN"
+      }
+    ],
+    "attributed": false,
+    "total": 2620,
+    "orderNumber": "HH-805466",
+    "fulfillmentStatus": "unfulfilled",
+    "source": "Direct",
+    "createdAt": "2026-10-03T13:24:12.916Z",
+    "campaignName": null,
+    "tax": 0,
+    "billingAddress": null,
+    "discountTotal": 0,
+    "paymentMethod": "COD",
+    "dueAmount": 2620,
+    "discount": 0,
+    "deliveryCharge": 70,
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "paidAmount": 0,
+    "subtotal": 2550,
+    "notes": "",
+    "currency": "BDT",
+    "shipping": 70
+  },
+  {
+    "id": "ord-1791033666103",
+    "campaignName": null,
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "dueAmount": 720,
+    "total": 720,
+    "attributed": false,
+    "customerId": "cust-1791033666103",
+    "tax": 0,
+    "timeline": [
+      {
+        "event": "Order placed (1 items, ৳720)",
+        "at": "2026-10-03T13:21:09.807Z",
+        "by": "Merchant Admin"
+      }
+    ],
+    "discountTotal": 0,
+    "paymentMethod": "COD",
+    "customerSnapshot": {
+      "canonicalPhone": "+8801721211871",
+      "name": "Ethan Arion Tanim",
+      "currency": "BDT",
+      "address": "mirpur 1 block g house 3 road 4",
+      "phone": "+8801721211871",
+      "country": "BD",
+      "email": "",
+      "rawPhone": "01721211871",
+      "id": "cust-1791033666103",
+      "area": "",
+      "district": "Dhaka",
+      "companyName": "Ethan Arion Tanim"
+    },
+    "createdAt": "2026-10-03T13:21:09.807Z",
+    "source": "Direct",
+    "campaignId": null,
+    "fulfillmentStatus": "unfulfilled",
+    "taxTotal": 0,
+    "notes": "",
+    "shippingAddress": {
+      "country": "BD",
+      "line1": "mirpur 1 block g house 3 road 4",
+      "city": "Dhaka"
+    },
+    "currency": "BDT",
+    "shipping": 70,
+    "updatedAt": "2026-10-03T13:21:10.026Z",
+    "orderNumber": "HH-282374",
+    "subtotal": 650,
+    "storeId": "default",
+    "paymentStatus": "unpaid",
+    "lineItems": [
+      {
+        "productId": "Mb4WJ7RCxMfdQ2ENaE0o",
+        "price": 650,
+        "quantity": 1,
+        "title": "Nike off white tee-White",
+        "sku": "SKU-GEN",
+        "image": "/uploads/prod-1790426180014-819286092_1750579172664848_741.jpg",
+        "variantId": "default"
+      }
+    ],
+    "shippingTotal": 70,
+    "deliveryCharge": 70,
+    "discount": 0,
+    "paidAmount": 0,
+    "billingAddress": null,
+    "status": "open"
+  },
+  {
+    "id": "ord-1791033555580",
+    "source": "Direct",
+    "dueAmount": 1370,
+    "paymentMethod": "COD",
+    "discountTotal": 0,
+    "shippingAddress": {
+      "line1": "Lalmatia,Block:E,House:3/9, Flat:5B Dhaka:1207 Mobile:",
+      "country": "BD",
+      "city": "Dhaka"
+    },
+    "deliveryCharge": 70,
+    "customerSnapshot": {
+      "rawPhone": "01811477507",
+      "id": "cust-1791033555580",
+      "phone": "+8801811477507",
+      "district": "Dhaka",
+      "area": "",
+      "country": "BD",
+      "address": "Lalmatia,Block:E,House:3/9, Flat:5B Dhaka:1207 Mobile:",
+      "canonicalPhone": "+8801811477507",
+      "companyName": "Md.Fazle Bari (Rasel)",
+      "email": "",
+      "name": "Md.Fazle Bari (Rasel)",
+      "currency": "BDT"
+    },
+    "notes": "",
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "billingAddress": null,
+    "createdAt": "2026-10-03T13:19:19.460Z",
+    "shipping": 70,
+    "currency": "BDT",
+    "paidAmount": 0,
+    "fulfillmentStatus": "unfulfilled",
+    "subtotal": 1300,
+    "discount": 0,
+    "timeline": [
+      {
+        "event": "Order placed (2 items, ৳1,370)",
+        "at": "2026-10-03T13:19:19.460Z",
+        "by": "Merchant Admin"
+      }
+    ],
+    "campaignId": null,
+    "updatedAt": "2026-10-03T13:19:19.691Z",
+    "orderNumber": "HH-752856",
+    "total": 1370,
+    "taxTotal": 0,
+    "lineItems": [
+      {
+        "sku": "SKU-GEN",
+        "image": "/uploads/prod-1791033445790-830562415_1600474601776446_121.jpg",
+        "quantity": 1,
+        "variantId": "default",
+        "productId": "vLTQayYJ1RVAEdyK2JrX",
+        "price": 650,
+        "title": "Nike barce tee-S"
+      },
+      {
+        "image": "/uploads/prod-1791033389811-829647084_1830214811327262_507.jpg",
+        "quantity": 1,
+        "sku": "SKU-GEN",
+        "variantId": "default",
+        "productId": "c5KZmbsyTUWlMcwpIbVG",
+        "price": 650,
+        "title": "H&M pink tshirt-S"
+      }
+    ],
+    "status": "open",
+    "attributed": false,
+    "campaignName": null,
+    "tax": 0,
+    "storeId": "default",
+    "shippingTotal": 70,
+    "paymentStatus": "unpaid",
+    "customerId": "cust-1791033555580"
+  },
+  {
+    "id": "ord-1791033358945",
+    "paidAmount": 0,
+    "shipping": 70,
+    "currency": "BDT",
+    "orderNumber": "HH-522003",
+    "status": "open",
+    "shippingAddress": {
+      "city": "Dhaka",
+      "line1": "Grand building 12 floor 6th flat c3 rupayan city centre uttara ph",
+      "country": "BD"
+    },
+    "subtotal": 850,
+    "deliveryCharge": 70,
+    "discount": 0,
+    "attributionStatus": "NOT TRACKED",
+    "attributionReason": null,
+    "customerSnapshot": {
+      "country": "BD",
+      "canonicalPhone": "+8801820200008",
+      "currency": "BDT",
+      "area": "",
+      "email": "",
+      "id": "cust-1791033358945",
+      "phone": "+8801820200008",
+      "rawPhone": "01820200008",
+      "address": "Grand building 12 floor 6th flat c3 rupayan city centre uttara ph",
+      "name": "Ferdous Rajiv",
+      "district": "Dhaka",
+      "companyName": "Ferdous Rajiv"
+    },
+    "campaignName": null,
+    "billingAddress": null,
+    "updatedAt": "2026-10-03T13:16:03.029Z",
+    "total": 920,
+    "fulfillmentStatus": "unfulfilled",
+    "lineItems": [
+      {
+        "quantity": 1,
+        "title": "ARMANY EXCHANGE DEEP DYING TEE-M",
+        "variantId": "default",
+        "price": 850,
+        "sku": "SKU-GEN",
+        "image": "/uploads/prod-1791033188872-808374254_946172907967136_7730.jpg",
+        "productId": "SpirHzxo2QfTgI5pPHWJ"
+      }
+    ],
+    "shippingTotal": 70,
+    "paymentStatus": "unpaid",
+    "paymentMethod": "COD",
+    "tax": 0,
+    "discountTotal": 0,
+    "createdAt": "2026-10-03T13:16:02.898Z",
+    "customerId": "cust-1791033358945",
+    "source": "Direct",
+    "storeId": "default",
+    "attributed": false,
+    "timeline": [
+      {
+        "by": "Merchant Admin",
+        "at": "2026-10-03T13:16:02.898Z",
+        "event": "Order placed (1 items, ৳920)"
+      }
+    ],
+    "notes": "",
+    "dueAmount": 920,
+    "campaignId": null,
+    "taxTotal": 0
+  },
+  {
+    "id": "ord-1790600426606",
+    "subtotal": 4000,
+    "discount": 0,
+    "trackingNumber": "",
+    "notes": "",
+    "fulfillmentNote": "",
+    "currency": "BDT",
+    "shipping": 80,
+    "courierPartner": "Steadfast Courier",
+    "updatedAt": "2026-09-30T21:55:02.251Z",
+    "campaignName": null,
+    "orderNumber": "HH-862427",
+    "paidAmount": 0,
+    "lineItems": [
+      {
+        "price": 850,
+        "title": "HUGO DEEP DYING TEE BLACK -XXL",
+        "productId": "IbbJnpmUu7Tr5DXJoKcK",
+        "sku": "SKU-GEN",
+        "variantId": "default",
+        "image": "/uploads/prod-1790600150825-Gemini_Generated_Image_e1qb5he.jpg",
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "variantId": "default",
+        "price": 850,
+        "title": "FEAR OF GOD DEEP DYING YEE-XXL",
+        "sku": "SKU-GEN",
+        "productId": "XI8HEHOL6Mchqfn587Gb",
+        "image": "/uploads/prod-1790600071790-Gemini_Generated_Image_lkj3z9l.jpg"
+      },
+      {
+        "productId": "4CftRIgFEnW32r8vHmUq",
+        "quantity": 1,
+        "sku": "SKU-GEN",
+        "image": "/uploads/prod-1790600205642-579082916_1310202381122249_674.jpg",
+        "price": 850,
+        "title": "PUMA ACID WASH TEE BLACK-XXL",
+        "variantId": "default"
+      },
+      {
+        "title": "HUGO TROUSER BLACK WASIT-40",
+        "productId": "mjvDxFWXdZgW61Bk2iSo",
+        "price": 1450,
+        "image": "/uploads/prod-1790600270648-825261045_1051618957507257_851.jpg",
+        "variantId": "default",
+        "sku": "SKU-GEN",
+        "quantity": 1
+      }
+    ],
+    "paymentMethod": "COD",
+    "consignmentId": "",
+    "source": "Direct",
+    "dispatchNote": "",
+    "courier": "Steadfast Courier",
+    "createdAt": "2026-09-28T13:00:29.293Z",
+    "total": 4080,
+    "paymentStatus": "pending",
+    "attributionStatus": "NOT TRACKED",
+    "attributionReason": null,
+    "customerSnapshot": {
+      "phone": "+8801741908819",
+      "id": "cust-1790600426606",
+      "rawPhone": "+880 17 4190 8819",
+      "country": "BD",
+      "canonicalPhone": "+8801741908819",
+      "currency": "BDT",
+      "address": "House 6 road 1 block B Pinkcity housing society Basundhara 300 feet Duplex housing society",
+      "name": "Samia Ahana",
+      "email": ""
+    },
+    "campaignId": null,
+    "fulfillmentStatus": "delivered",
+    "customerId": "cust-1790600426606",
+    "dueAmount": 4080,
+    "status": "completed",
+    "shippingAddress": {
+      "country": "BD",
+      "city": "Dhaka",
+      "line1": "House 6 road 1 block B Pinkcity housing society Basundhara 300 feet Duplex housing society"
+    },
+    "tax": 0,
+    "timeline": [
+      {
+        "at": "2026-09-28T13:00:29.293Z",
+        "by": "Merchant Admin",
+        "event": "Order placed (4 items, ৳4,080)"
+      },
+      {
+        "at": "2026-09-30T21:54:59.911Z",
+        "event": "Status changed to COMPLETED",
+        "by": "Operator"
+      },
+      {
+        "event": "Payment marked PENDING",
+        "at": "2026-09-30T21:54:59.911Z",
+        "by": "Operator"
+      },
+      {
+        "at": "2026-09-30T21:54:59.911Z",
+        "by": "Operator",
+        "event": "Fulfillment marked DELIVERED"
+      }
+    ],
+    "attributed": false
+  },
+  {
+    "id": "ord-1790599984866",
+    "lineItems": [
+      {
+        "quantity": 1,
+        "productId": "GnHYzmLIS1NiSVM2XJIG",
+        "image": "/uploads/prod-1790599880830-825311184_911488528486343_1864.jpg",
+        "variantId": "default",
+        "title": "ADIDAS CHEST LOGO TEE BLACK-XL",
+        "sku": "SKU-GEN",
+        "price": 650
+      },
+      {
+        "variantId": "default",
+        "image": "/uploads/prod-1790426725761-810350484_28639251262372300_63.jpg",
+        "title": "PUMA BIG CHEST PRINT TEE",
+        "quantity": 1,
+        "price": 650,
+        "productId": "jfuOML3B9DRdKbBlCU4j",
+        "sku": "SKU-GEN"
+      }
+    ],
+    "updatedAt": "2026-09-28T12:53:10.288Z",
+    "paymentStatus": "unpaid",
+    "source": "Direct",
+    "timeline": [
+      {
+        "by": "Merchant Admin",
+        "at": "2026-09-28T12:53:07.556Z",
+        "event": "Order placed (2 items, ৳1,300)"
+      }
+    ],
+    "notes": "",
+    "paidAmount": 0,
+    "campaignName": null,
+    "fulfillmentStatus": "unfulfilled",
+    "customerSnapshot": {
+      "id": "cust-1790599984866",
+      "currency": "BDT",
+      "country": "BD",
+      "canonicalPhone": "+8801676809965",
+      "phone": "+8801676809965",
+      "name": "Raad Ahmed",
+      "email": "",
+      "address": "Manikganj,Sadar, gongadhor potti 1800",
+      "rawPhone": "01676809965"
+    },
+    "status": "open",
+    "dueAmount": 1300,
+    "campaignId": null,
+    "discount": 0,
+    "total": 1300,
+    "customerId": "cust-1790599984866",
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "subtotal": 1300,
+    "paymentMethod": "COD",
+    "orderNumber": "HH-472492",
+    "shippingAddress": {
+      "country": "BD",
+      "line1": "Manikganj,Sadar, gongadhor potti 1800",
+      "city": "Dhaka"
+    },
+    "currency": "BDT",
+    "shipping": 0,
+    "createdAt": "2026-09-28T12:53:07.556Z",
+    "attributed": false,
+    "tax": 0
+  },
+  {
+    "id": "ord-1790599736794",
+    "currency": "BDT",
+    "shipping": 0,
+    "source": "Direct",
+    "customerSnapshot": {
+      "address": "Chowmuhani Begumganj Noakhali",
+      "name": "Ayan Ahmed",
+      "email": "",
+      "currency": "BDT",
+      "canonicalPhone": "+8801329601920",
+      "id": "cust-1790599736794",
+      "country": "BD",
+      "phone": "+8801329601920",
+      "rawPhone": "01329601920"
+    },
+    "fulfillmentStatus": "unfulfilled",
+    "discount": 0,
+    "dueAmount": 3000,
+    "subtotal": 3000,
+    "paymentStatus": "unpaid",
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "total": 3000,
+    "createdAt": "2026-09-28T12:48:59.486Z",
+    "paidAmount": 0,
+    "lineItems": [
+      {
+        "variantId": "default",
+        "sku": "SKU-GEN",
+        "image": "/uploads/prod-1790599521183-823848880_1101617618871459_290.jpg",
+        "quantity": 2,
+        "price": 600,
+        "title": "LV WHITE TEE-M",
+        "productId": "cBMvybQ7WgrCMCqYJDtw"
+      },
+      {
+        "title": "TOMMY WHITE TEE-M",
+        "price": 600,
+        "productId": "VkLJq7QLefcxYwmZ2bQm",
+        "quantity": 1,
+        "sku": "SKU-GEN",
+        "image": "/uploads/prod-1790599440062-818074698_2187381175525618_711.jpg",
+        "variantId": "default"
+      },
+      {
+        "productId": "ymGDakFEXXYG4pu9EOTY",
+        "quantity": 2,
+        "sku": "SKU-GEN",
+        "image": "/uploads/prod-1790599400828-817741693_2284481275733343_278.jpg",
+        "price": 600,
+        "title": "OFF WHITE BLACK TEE-M",
+        "variantId": "default"
+      }
+    ],
+    "campaignId": null,
+    "updatedAt": "2026-09-28T12:49:02.198Z",
+    "status": "open",
+    "paymentMethod": "COD",
+    "shippingAddress": {
+      "country": "BD",
+      "city": "Dhaka",
+      "line1": "Chowmuhani Begumganj Noakhali"
+    },
+    "orderNumber": "HH-515877",
+    "timeline": [
+      {
+        "event": "Order placed (3 items, ৳3,000)",
+        "at": "2026-09-28T12:48:59.486Z",
+        "by": "Merchant Admin"
+      }
+    ],
+    "attributed": false,
+    "customerId": "cust-1790599736794",
+    "notes": "",
+    "campaignName": null,
+    "tax": 0
+  },
+  {
+    "id": "ord-1790599288037",
+    "campaignId": null,
+    "dueAmount": 1600,
+    "paymentStatus": "unpaid",
+    "currency": "BDT",
+    "shipping": 0,
+    "attributed": false,
+    "createdAt": "2026-09-28T12:41:30.742Z",
+    "notes": "",
+    "discount": 0,
+    "customerId": "cust-1790599288037",
+    "status": "open",
+    "customerSnapshot": {
+      "phone": "+8801814989271",
+      "rawPhone": "01814989271",
+      "canonicalPhone": "+8801814989271",
+      "address": "Chittagong kornel hatt munshipara pahartoli tana number 01814989271.",
+      "id": "cust-1790599288037",
+      "country": "BD",
+      "currency": "BDT",
+      "email": "",
+      "name": "SALMAN"
+    },
+    "subtotal": 1600,
+    "orderNumber": "HH-689980",
+    "tax": 0,
+    "updatedAt": "2026-09-28T12:41:33.484Z",
+    "timeline": [
+      {
+        "at": "2026-09-28T12:41:30.742Z",
+        "event": "Order placed (2 items, ৳1,600)",
+        "by": "Merchant Admin"
+      }
+    ],
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "lineItems": [
+      {
+        "productId": "QdnM46bBeVr2kPhxHmGn",
+        "title": "NIKE AIR DEEP DYING TEE BLUE-XL",
+        "price": 800,
+        "image": "/uploads/prod-1790599165066-818043291_28598504626449889_48.jpg",
+        "sku": "SKU-GEN",
+        "variantId": "default",
+        "quantity": 1
+      },
+      {
+        "productId": "cq7Y3ZbDu8Mfy6LpOnm1",
+        "title": "ADIDAS DEEP DYING TEE-XL",
+        "quantity": 1,
+        "price": 800,
+        "sku": "SKU-GEN",
+        "variantId": "default",
+        "image": "/uploads/prod-1790599111435-818043291_2765859150482495_314.jpg"
+      }
+    ],
+    "campaignName": null,
+    "fulfillmentStatus": "unfulfilled",
+    "source": "Direct",
+    "paymentMethod": "COD",
+    "shippingAddress": {
+      "line1": "Chittagong kornel hatt munshipara pahartoli tana number 01814989271.",
+      "country": "BD",
+      "city": "Dhaka"
+    },
+    "paidAmount": 0,
+    "total": 1600
+  },
+  {
+    "id": "ord-1790598913704",
+    "updatedAt": "2026-09-28T12:35:19.120Z",
+    "lineItems": [
+      {
+        "price": 2550,
+        "variantId": "default",
+        "sku": "SKU-GEN",
+        "title": "HUGO PENNY LOAFER BLACK-44",
+        "quantity": 1,
+        "image": "",
+        "productId": "8hvB2PNpICbHP8VvuIEv"
+      }
+    ],
+    "fulfillmentStatus": "unfulfilled",
+    "orderNumber": "HH-964391",
+    "paidAmount": 0,
+    "subtotal": 2550,
+    "status": "open",
+    "discount": 0,
+    "total": 2620,
+    "attributionStatus": "NOT TRACKED",
+    "attributionReason": null,
+    "paymentMethod": "COD",
+    "currency": "BDT",
+    "shipping": 70,
+    "paymentStatus": "unpaid",
+    "dueAmount": 2620,
+    "campaignId": null,
+    "campaignName": null,
+    "timeline": [
+      {
+        "event": "Order placed (1 items, ৳2,620)",
+        "at": "2026-09-28T12:35:16.389Z",
+        "by": "Merchant Admin"
+      }
+    ],
+    "tax": 0,
+    "customerSnapshot": {
+      "rawPhone": "01771118807",
+      "id": "cust-1790598913704",
+      "country": "BD",
+      "email": "",
+      "address": "House 16, rd 16/a Gulshan 1",
+      "phone": "+8801771118807",
+      "canonicalPhone": "+8801771118807",
+      "currency": "BDT",
+      "name": "Shahrier Akbar"
+    },
+    "createdAt": "2026-09-28T12:35:16.389Z",
+    "customerId": "cust-1790598913704",
+    "notes": "",
+    "attributed": false,
+    "source": "Direct",
+    "shippingAddress": {
+      "city": "Dhaka",
+      "line1": "House 16, rd 16/a Gulshan 1",
+      "country": "BD"
+    }
+  },
+  {
+    "id": "ord-1790598760458",
+    "status": "open",
+    "orderNumber": "HH-797527",
+    "dueAmount": 2620,
+    "campaignId": null,
+    "timeline": [
+      {
+        "event": "Order placed (1 items, ৳2,620)",
+        "at": "2026-09-28T12:32:43.177Z",
+        "by": "Merchant Admin"
+      }
+    ],
+    "paymentMethod": "COD",
+    "notes": "",
+    "customerId": "cust-1790598760458",
+    "createdAt": "2026-09-28T12:32:43.177Z",
+    "attributed": false,
+    "lineItems": [
+      {
+        "image": "",
+        "productId": "kjSkaks7VFiGVh7k9lHV",
+        "quantity": 1,
+        "variantId": "default",
+        "sku": "SKU-GEN",
+        "title": "HUGO PENNY LOAFER BLACK-43",
+        "price": 2550
+      }
+    ],
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "customerSnapshot": {
+      "phone": "+8801711898661",
+      "currency": "BDT",
+      "address": "Shafwat Adnan Alam  Apt: B5, house: 43, road: 23, block: B, banani",
+      "id": "cust-1790598760458",
+      "canonicalPhone": "+8801711898661",
+      "country": "BD",
+      "rawPhone": "01711898661",
+      "name": "Shafwat Adnan Alam",
+      "email": ""
+    },
+    "shippingAddress": {
+      "country": "BD",
+      "city": "Dhaka",
+      "line1": "Shafwat Adnan Alam  Apt: B5, house: 43, road: 23, block: B, banani"
+    },
+    "updatedAt": "2026-09-28T12:32:45.919Z",
+    "paymentStatus": "unpaid",
+    "source": "Direct",
+    "paidAmount": 0,
+    "subtotal": 2550,
+    "total": 2620,
+    "discount": 0,
+    "fulfillmentStatus": "unfulfilled",
+    "tax": 0,
+    "campaignName": null,
+    "shipping": 70,
+    "currency": "BDT"
+  },
+  {
+    "id": "nixikXtmQG2sBgUnC4XV",
+    "discountTotal": 0,
+    "customerSnapshot": {
+      "canonicalPhone": null,
+      "name": "Walk-in Customer",
+      "country": "BD",
+      "phone": "",
+      "rawPhone": null,
+      "id": "cust-mulwomry",
+      "currency": "BDT",
+      "companyName": "Walk-in Customer",
+      "email": "",
+      "address": ""
+    },
+    "discount": 0,
+    "lineItems": [
+      {
+        "price": 2450,
+        "title": "Architectural Cutout Leather-Pocket Tee",
+        "variantId": "default",
+        "sku": "HH-TEE-03-M",
+        "quantity": 1,
+        "productId": "prod-tee-03",
+        "image": ""
+      }
+    ],
+    "paymentMethod": "cash",
+    "subtotal": 2450,
+    "customerId": "cust-mulwomry",
+    "fulfillmentStatus": "unfulfilled",
+    "updatedAt": "2026-09-28T23:56:06.987Z",
+    "attributed": false,
+    "currency": "BDT",
+    "shipping": 0,
+    "orderNumber": "HH-330473",
+    "attributionStatus": "NOT TRACKED",
+    "attributionReason": null,
+    "tax": 0,
+    "campaignId": null,
+    "source": "Direct",
+    "total": 2450,
+    "paidAmount": 2450,
+    "shippingAddress": {
+      "line1": "",
+      "country": "BD",
+      "city": "Dhaka"
+    },
+    "dueAmount": 0,
+    "taxTotal": 0,
+    "storeId": "default",
+    "status": "open",
+    "notes": "",
+    "createdAt": "2026-09-28T23:56:06.153Z",
+    "shippingTotal": 0,
+    "paymentStatus": "paid",
+    "campaignName": null,
+    "billingAddress": null,
+    "timeline": [
+      {
+        "at": "2026-09-28T23:56:06.153Z",
+        "by": "Merchant Admin",
+        "event": "Order placed (1 items, ৳2,450)"
+      }
+    ]
+  },
+  {
+    "id": "ib6ICliWMRUPrkkrv8D8",
+    "taxTotal": 0,
+    "createdAt": "2026-09-27T20:04:57.570Z",
+    "customerSnapshot": {
+      "companyName": "Walk-in Customer",
+      "id": "cust-muk8zl58",
+      "email": "",
+      "country": "BD",
+      "rawPhone": null,
+      "phone": "",
+      "currency": "BDT",
+      "address": "",
+      "name": "Walk-in Customer",
+      "canonicalPhone": null
+    },
+    "fulfillmentStatus": "unfulfilled",
+    "timeline": [
+      {
+        "event": "Order placed (1 items, ৳2,450)",
+        "by": "Merchant Admin",
+        "at": "2026-09-27T20:04:57.570Z"
+      }
+    ],
+    "paymentStatus": "paid",
+    "storeId": "default",
+    "billingAddress": null,
+    "paidAmount": 2450,
+    "shippingTotal": 0,
+    "tax": 0,
+    "dueAmount": 0,
+    "source": "Direct",
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "notes": "",
+    "campaignName": null,
+    "campaignId": null,
+    "shippingAddress": {
+      "country": "BD",
+      "line1": "",
+      "city": "Dhaka"
+    },
+    "discountTotal": 0,
+    "paymentMethod": "cash",
+    "updatedAt": "2026-09-27T20:05:01.125Z",
+    "discount": 0,
+    "orderNumber": "HH-986736",
+    "customerId": "cust-muk8zl58",
+    "subtotal": 2450,
+    "attributed": false,
+    "currency": "BDT",
+    "shipping": 0,
+    "lineItems": [
+      {
+        "price": 2450,
+        "sku": "HH-TEE-03-M",
+        "productId": "prod-tee-03",
+        "title": "Architectural Cutout Leather-Pocket Tee",
+        "quantity": 1,
+        "variantId": "default",
+        "image": ""
+      }
+    ],
+    "status": "open",
+    "total": 2450
+  },
+  {
+    "id": "G9Bx5mmBEmlB0trBZkGI",
+    "createdAt": "2026-09-28T23:49:33.402Z",
+    "taxTotal": 0,
+    "discountTotal": 0,
+    "paymentMethod": "cash",
+    "timeline": [
+      {
+        "by": "Merchant Admin",
+        "at": "2026-09-28T23:49:33.402Z",
+        "event": "Order placed (1 items, ৳1,450)"
+      }
+    ],
+    "status": "open",
+    "paidAmount": 1450,
+    "dueAmount": 0,
+    "campaignName": null,
+    "total": 1450,
+    "source": "Direct",
+    "billingAddress": null,
+    "shippingAddress": {
+      "country": "BD",
+      "city": "Dhaka",
+      "line1": ""
+    },
+    "campaignId": null,
+    "storeId": "default",
+    "orderNumber": "HH-807853",
+    "attributionReason": null,
+    "attributionStatus": "NOT TRACKED",
+    "tax": 0,
+    "updatedAt": "2026-09-28T23:49:35.022Z",
+    "subtotal": 1450,
+    "discount": 0,
+    "customerId": "cust-mulwg8cj",
+    "lineItems": [
+      {
+        "variantId": "default",
+        "sku": "HH-CRD-02",
+        "quantity": 1,
+        "image": "",
+        "price": 1450,
+        "title": "Minimalist Cardholder — Aniline Tan",
+        "productId": "prod-crd-02"
+      }
+    ],
+    "shippingTotal": 0,
+    "paymentStatus": "paid",
+    "attributed": false,
+    "fulfillmentStatus": "unfulfilled",
+    "customerSnapshot": {
+      "companyName": "Walk-in Customer",
+      "name": "Walk-in Customer",
+      "currency": "BDT",
+      "address": "",
+      "phone": "",
+      "id": "cust-mulwg8cj",
+      "canonicalPhone": null,
+      "country": "BD",
+      "email": "",
+      "rawPhone": null
+    },
+    "shipping": 0,
+    "currency": "BDT",
+    "notes": ""
+  },
+  {
     "id": "ord-muitx0o8-686",
     "attributed": false,
     "attributionReason": null,

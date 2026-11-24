@@ -88,6 +88,8 @@ export interface SupplierRecord {
   certifications?: string[];
   exportMarkets?: string[];
   machineryLines?: string;
+  totalLines?: number;
+  productSpecializations?: string[];
   complianceScore?: number;
   rating?: number;
   epbId?: string;
@@ -3034,7 +3036,9 @@ admin.handsandhead.com`);
                             <div className="font-semibold text-slate-900 group-hover:text-amber-800 transition flex items-center gap-1.5 text-sm">
                               <span>{s.companyName}</span>
                               {s.isVerified && (
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" title="EPB & BGMEA Verified" />
+                                <span title="EPB & BGMEA Verified" className="inline-flex shrink-0">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                </span>
                               )}
                             </div>
                             <span className="text-[11px] font-mono text-slate-400 truncate max-w-[260px]">
@@ -4358,3 +4362,4 @@ admin.handsandhead.com`);
 };
 
 export default SuppliersManagementDashboard;
+// END OF FILE: src/components/SuppliersManagementDashboard.tsx

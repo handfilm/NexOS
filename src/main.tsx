@@ -458,6 +458,15 @@ if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('nexus:open-logistics', { detail: { order } }));
     };
   }
+  (window as any).openLogistics = (window as any).openLogisticsSettlementHub;
+  (window as any).openAIAssistant = (prod?: any) => {
+    window.dispatchEvent(new CustomEvent('nexus:open-assistant', { detail: { product: prod } }));
+  };
+  (window as any).openAssistant = (window as any).openAIAssistant;
+  (window as any).openFederatedCatalog = () => {
+    window.dispatchEvent(new CustomEvent('nexus:navigate', { detail: 'FEDERATED_CATALOG' }));
+  };
+  (window as any).openCatalogGrid = (window as any).openFederatedCatalog;
 
   // Factory SLA Floor Tracker renderers (all naming variants)
   (window as any).render.FactorySlaFloorTracker = renderFactorySlaComponent;
@@ -481,6 +490,8 @@ if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('nexus:open-factory-sla', { detail: { poNumber } }));
     };
   }
+  (window as any).openFactorySla = (window as any).openFactorySlaFloorTracker;
+  (window as any).openFactorySLA = (window as any).openFactorySlaFloorTracker;
 
   // Autonomous Agent Fleet renderers (all naming variants)
   (window as any).render.AgentAutonomousFleet = renderAgentFleetComponent;

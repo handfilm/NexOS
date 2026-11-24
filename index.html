@@ -248,6 +248,27 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
     </div>
   </div>
 
+  <!-- Live Dual-Site Mirror Health Pill -->
+  <button
+    type="button"
+    id="dualSiteHealthPill"
+    class="dual-site-health-pill"
+    onclick="window.openSystemBackupVault ? window.openSystemBackupVault('vault') : window.dispatchEvent(new CustomEvent('nexus:open-backup-vault', { detail: { tab: 'vault' } }))"
+    title="Dual-Site Mirror Health &amp; 1-Click Backup Vault"
+  >
+    <span class="dshp-seg">
+      <span class="dshp-k">PRIMARY:</span>
+      <span class="dshp-h">admin.handsandhead.com</span>
+      <span class="dshp-dot" id="dshpPrimaryDot"></span>
+    </span>
+    <span class="dshp-sep">|</span>
+    <span class="dshp-seg">
+      <span class="dshp-k">BACKUP:</span>
+      <span class="dshp-h">handsandhead.ai.studio</span>
+      <span class="dshp-dot" id="dshpBackupDot"></span>
+    </span>
+  </button>
+
   <div class="tbar-right">
     <!-- Consolidated Operations Dropdown Menu -->
     <div class="operations-dropdown-wrap" id="operationsDropdownWrap">
@@ -650,3 +671,4 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
 
 </body>
 </html>
+<!-- END OF FILE: index.html -->

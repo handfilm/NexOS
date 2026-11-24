@@ -1515,20 +1515,20 @@ export const TechPackPOEngine: React.FC<TechPackPOEngineProps> = ({
                     buyerName: activeBuyer.name || 'Valued Buyer',
                     buyerPhone: activeBuyer.phone || '',
                     companyName: activeBuyer.companyName || '',
-                    deliveryAddress: activeBuyer.address || 'Dhaka, Bangladesh',
+                    deliveryAddress: activeBuyer.country || 'Dhaka, Bangladesh',
                     styleName: styleName || category,
                     category,
                     quantity: totalQuantity,
                     unitFobPrice: unitPrice,
                     currency,
                     orderTotal: totalOrderValue,
-                    weightKg: totalEstimatedWeightKg,
+                    weightKg: Math.max(1, Number((totalQuantity * 0.45).toFixed(1))),
                     advancePct: 50,
                     advanceRequired: Math.round((totalOrderValue * 50) / 100),
                     advancePaid: 0,
                     balanceDue: totalOrderValue,
                     codAmount: totalOrderValue,
-                    notes: `Fabric/Leather: ${fabricLeatherType} | Color: ${colorway} | PO: ${poNumber}`
+                    notes: `Fabric/Leather: ${material} | Color: ${selectedColorways.join(', ')} | PO: ${poNumber}`
                   };
                   if (typeof (window as any).openLogisticsSettlementHub === 'function') {
                     (window as any).openLogisticsSettlementHub(currentSpecData);
@@ -1569,3 +1569,4 @@ export const TechPackPOEngine: React.FC<TechPackPOEngineProps> = ({
 };
 
 export default TechPackPOEngine;
+// END OF FILE: src/components/TechPackPOEngine.tsx

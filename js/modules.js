@@ -1743,12 +1743,16 @@
     `;
   };
   
-  // Updated Brand App Links
-  window.render.RAWxOS         = () => window.location.href = "https://handfilm.github.io/RAWxOS/";
-  window.render.NexOS          = () => window.location.href = "https://handfilm.github.io/portal/os/2/";
-  window.render.HANDFILM       = () => window.location.href = "https://handfilm.myshopify.com/";
-  window.render.CustomApps     = () => window.location.href = "https://handfilm.github.io/portal/";
-  window.render.EnterpriseApps = () => window.location.href = "https://handfilm.github.io/nexus/os/hub/";
+  // Updated Brand App Links (Using in-app overlay rather than breaking out of page)
+  window.render.RAWxOS         = (container) => openPortalOverlay("https://handfilm.github.io/RAWxOS/", "RAWxOS", "Ergonomic Luxury Leather");
+  window.render.NexOS          = (container) => openPortalOverlay("https://handfilm.github.io/portal/os/2/", "NexOS", "Web OS Terminal");
+  window.render.HANDFILM       = (container) => openPortalOverlay("https://handfilm.myshopify.com/", "HAND FILM", "Storefront");
+  if (!window.render.CustomApps || typeof window.render.CustomApps !== 'function') {
+    window.render.CustomApps   = (container) => openPortalOverlay("https://handfilm.github.io/portal/", "Custom Apps", "App Suite");
+  }
+  if (!window.render.EnterpriseApps || typeof window.render.EnterpriseApps !== 'function') {
+    window.render.EnterpriseApps = window.render.CustomApps;
+  }
 
 
   /* ═══════════════════════════════════════════════════════════

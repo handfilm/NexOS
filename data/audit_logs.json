@@ -1,5 +1,35 @@
 [
   {
+    "id": "log_sync_1795527197427",
+    "action": "SYNC_EVENT",
+    "type": "sync",
+    "orderId": null,
+    "orderNumber": "SYNC_BROADCAST",
+    "details": "Real-time synchronization broadcast dispatched for orders across 1 connected client(s).",
+    "user": "Multi-Device SSE Bus",
+    "timestamp": "2026-11-24T13:33:17.427Z",
+    "meta": {
+      "channel": "/api/sync/stream",
+      "clientCount": 1,
+      "payloadType": "orders"
+    }
+  },
+  {
+    "id": "log_sync_1795526084947",
+    "action": "SYNC_EVENT",
+    "type": "sync",
+    "orderId": null,
+    "orderNumber": "SYNC_BROADCAST",
+    "details": "Real-time synchronization broadcast dispatched for orders across 0 connected client(s).",
+    "user": "Multi-Device SSE Bus",
+    "timestamp": "2026-11-24T13:14:44.947Z",
+    "meta": {
+      "channel": "/api/sync/stream",
+      "clientCount": 0,
+      "payloadType": "orders"
+    }
+  },
+  {
     "id": "log_1790627029868_1uy0o",
     "action": "ORDER_MODIFIED",
     "type": "orders",

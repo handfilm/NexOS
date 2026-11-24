@@ -293,8 +293,9 @@ export async function searchFederatedCatalog(
   options: SearchOptions,
   catalogFallback: FederatedProduct[] = []
 ): Promise<SearchResult> {
-  const searchEndpoint = process.env.TYPESENSE_SEARCH_ENDPOINT || process.env.VITE_SEARCH_ENDPOINT;
-  const searchApiKey = process.env.TYPESENSE_SEARCH_KEY || process.env.VITE_SEARCH_API_KEY;
+  const runtimeEnv = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
+  const searchEndpoint = runtimeEnv?.TYPESENSE_SEARCH_ENDPOINT || runtimeEnv?.VITE_SEARCH_ENDPOINT;
+  const searchApiKey = runtimeEnv?.TYPESENSE_SEARCH_KEY || runtimeEnv?.VITE_SEARCH_API_KEY;
 
   if (searchEndpoint && searchApiKey) {
     try {
@@ -421,3 +422,4 @@ function parseTypesenseFacets(rawFacets: any[] = []): {
 
   return { categories, origins };
 }
+// END OF FILE: src/services/catalogService.ts

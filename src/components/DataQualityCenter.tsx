@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
 export interface DuplicateGroup {
-  phone: string;
+  key?: string;
+  phone?: string;
   count: number;
   customers: Array<{
     id: string;
     name: string;
     phone: string;
+    email?: string;
     totalSpent?: number;
     totalOrders?: number;
+    ordersCount?: number;
     createdAt?: string;
   }>;
 }
@@ -16,29 +19,39 @@ export interface DuplicateGroup {
 export interface UnnormalizedPhoneItem {
   id: string;
   name: string;
-  rawPhone: string;
-  suggestedCanonical: string;
-  requiresReview: boolean;
+  rawPhone?: string;
+  phone?: string;
+  country?: string;
+  suggestedCanonical?: string;
+  requiresReview?: boolean;
 }
 
 export interface ProductMissingMediaItem {
   id: string;
   title: string;
-  price: number;
-  hasImages: boolean;
+  price?: number;
+  hasImages?: boolean;
+  category?: string;
+  sku?: string;
 }
 
 export interface OrphanOrderItem {
   id: string;
   orderNumber: string;
-  buyerName: string;
-  phone: string;
-  total: number;
+  buyerName?: string;
+  phone?: string;
+  customerId?: string;
+  total?: number;
+  totalAmount?: number;
   createdAt: string;
 }
 
 export interface AuditSummary {
-  duplicateGroupsCount: number;
+  totalCustomers?: number;
+  totalProducts?: number;
+  totalOrders?: number;
+  duplicateGroupsCount?: number;
+  duplicateCustomerGroups?: number;
   unnormalizedPhonesCount: number;
   productsMissingMediaCount: number;
   orphanOrdersCount: number;
@@ -745,3 +758,4 @@ export const DataQualityCenter: React.FC = () => {
     </div>
   );
 };
+// END OF FILE: src/components/DataQualityCenter.tsx

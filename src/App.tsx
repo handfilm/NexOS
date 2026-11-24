@@ -14,6 +14,9 @@ import { FederatedCatalogHub } from './components/FederatedCatalogHub';
 import { CatalogGrid } from './components/CatalogGrid';
 import { Orders } from './components/Orders';
 import { ProductAssistantChat } from './components/ai-product-assistant';
+import { SystemBackupVaultModal } from './components/modals/SystemBackupVaultModal';
+import { DualSiteHealthPill } from './components/DualSiteHealthPill';
+import { nexusSyncClient } from './services/api/nexusSyncClient';
 import { Product } from './services/nexusApi';
 import { Warehouse, Factory, Building2, Layers, ShieldCheck, Truck, FileText, Mic, Coins, ArrowLeft, ExternalLink, Network, Sparkles, MessageSquare } from 'lucide-react';
 import { ExtractedPOSpec } from './components/VoicePOIngestion';
@@ -72,6 +75,8 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
   const [isSourcingEscrowOpen, setIsSourcingEscrowOpen] = useState<boolean>(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState<boolean>(false);
   const [assistantProduct, setAssistantProduct] = useState<Product | null>(null);
+  const [isBackupVaultOpen, setIsBackupVaultOpen] = useState<boolean>(false);
+  const [backupVaultInitialTab, setBackupVaultInitialTab] = useState<'vault' | 'endpoints' | 'roas'>('vault');
 
   // Selection parameters
   const [preSelectedCustomer, setPreSelectedCustomer] = useState<any | null>(null);
@@ -414,12 +419,27 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     };
   }, [reconcileOrders, syncOrdersToGlobals]);
 
+  // Start Dual-Site Primary/Backup Mirror Health Monitor (3500ms failover telemetry)
+  useEffect(() => {
+    nexusSyncClient.startHealthMonitor(30000);
+    return () => {
+      nexusSyncClient.stopHealthMonitor();
+    };
+  }, []);
+
   // Synchronize active module state with body and containers for smooth scrolling
   useEffect(() => {
-    const isModuleActive = currentRoute !== 'DEFAULT';
+    const isModuleActive = currentRoute !== 'DEFAULT' || isBackupVaultOpen;
     if (typeof document !== 'undefined') {
       const bodyEl = document.getElementById('body');
       const rootEl = document.getElementById('react-app-root');
+
+      if (isBackupVaultOpen && currentRoute === 'DEFAULT') {
+        if (rootEl) {
+          rootEl.style.display = 'block';
+        }
+        return;
+      }
 
       if (isModuleActive) {
         document.body.classList.add('has-active-module');
@@ -436,7 +456,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         }
       }
     }
-  }, [currentRoute]);
+  }, [currentRoute, isBackupVaultOpen]);
 
   // Listen to popstate, hashchange, and nexus:navigate events
   useEffect(() => {
@@ -563,6 +583,15 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     setPreSelectedEscrowPo(null);
   }, []);
 
+  const openBackupVault = useCallback((tab: 'vault' | 'endpoints' | 'roas' = 'vault') => {
+    setBackupVaultInitialTab(tab);
+    setIsBackupVaultOpen(true);
+  }, []);
+
+  const closeBackupVault = useCallback(() => {
+    setIsBackupVaultOpen(false);
+  }, []);
+
   const handleVoiceSpecExtracted = useCallback((spec: ExtractedPOSpec) => {
     setLastExtractedSpec(spec);
     setIsVoiceIngestOpen(false);
@@ -580,17 +609,34 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
   // Global window listeners & hash routing bridges
   useEffect(() => {
     (window as any).openTechPackPOEngine = (cust?: any) => openTechPack(cust);
+    (window as any).openTechPack = (cust?: any) => openTechPack(cust);
     (window as any).closeTechPackPOEngine = () => closeTechPack();
     (window as any).openVoicePOIngestion = () => openVoiceIngest();
+    (window as any).openVoiceIngest = () => openVoiceIngest();
     (window as any).closeVoicePOIngestion = () => closeVoiceIngest();
     (window as any).openLogisticsSettlementHub = (order?: any) => openLogistics(order);
+    (window as any).openLogistics = (order?: any) => openLogistics(order);
     (window as any).closeLogisticsSettlementHub = () => closeLogistics();
     (window as any).openFactorySlaFloorTracker = (poNumber?: string) => openFactorySla(poNumber);
+    (window as any).openFactorySla = (poNumber?: string) => openFactorySla(poNumber);
+    (window as any).openFactorySLA = (poNumber?: string) => openFactorySla(poNumber);
     (window as any).closeFactorySlaFloorTracker = () => closeFactorySla();
     (window as any).openB2BDealEngine = () => openB2BDeal();
+    (window as any).openB2B = () => openB2BDeal();
     (window as any).openProductionFloorBridge = () => openFloorBridge();
+    (window as any).openFloorBridge = () => openFloorBridge();
     (window as any).openVaultReorderEngine = () => openVault();
+    (window as any).openVault = () => openVault();
     (window as any).openSourcingEscrow = (po?: string) => openSourcingEscrow(po);
+    (window as any).openEnterpriseSourcing = (po?: string) => openSourcingEscrow(po);
+    (window as any).openCorporateSupplies = () => setCurrentRoute('CORPORATESUPPLIES');
+    (window as any).openAIAssistant = (prod?: Product) => {
+      if (prod) setAssistantProduct(prod);
+      setIsAssistantOpen(true);
+    };
+    (window as any).openAssistant = (window as any).openAIAssistant;
+    (window as any).openFederatedCatalog = () => setCurrentRoute('FEDERATED_CATALOG');
+    (window as any).openCatalogGrid = (window as any).openFederatedCatalog;
     (window as any).openSuppliersManagement = () => {
       if (typeof window !== 'undefined' && window.location.pathname !== '/admin/suppliers') {
         try {
@@ -599,6 +645,9 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       }
       setCurrentRoute('SUPPLIERS');
     };
+    (window as any).openSystemBackupVault = (tab?: 'vault' | 'endpoints' | 'roas') => openBackupVault(tab || 'vault');
+    (window as any).openBackupVault = (tab?: 'vault' | 'endpoints' | 'roas') => openBackupVault(tab || 'vault');
+    (window as any).NexusSyncClient = nexusSyncClient;
 
     (window as any).NexusApp = {
       openTechPack,
@@ -615,6 +664,8 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       closeFloorBridge,
       openVault,
       closeVault,
+      openBackupVault,
+      closeBackupVault,
       openSourcingEscrow,
       closeSourcingEscrow,
       openFederatedCatalog: () => setCurrentRoute('FEDERATED_CATALOG'),
@@ -706,6 +757,12 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       }
     };
 
+    const handleOpenBackupVaultEvent = (e: Event) => {
+      const customEvt = e as CustomEvent<{ tab?: 'vault' | 'endpoints' | 'roas' }>;
+      const tab = customEvt.detail?.tab;
+      openBackupVault(tab === 'endpoints' || tab === 'roas' ? tab : 'vault');
+    };
+
     window.addEventListener('nexus:open-techpack', handleOpenTechPackEvent);
     window.addEventListener('nexus:open-voice', handleOpenVoiceEvent);
     window.addEventListener('nexus:open-corporate-supplies', handleOpenCorporateEvent);
@@ -716,6 +773,7 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
     window.addEventListener('nexus:open-floor-bridge', handleOpenFloorBridgeEvent);
     window.addEventListener('nexus:open-vault', handleOpenVaultEvent);
     window.addEventListener('nexus:open-vault-reorder', handleOpenVaultEvent);
+    window.addEventListener('nexus:open-backup-vault', handleOpenBackupVaultEvent);
     window.addEventListener('nexus:open-sourcing-escrow', handleOpenSourcingEscrowEvent);
     window.addEventListener('nexus:navigate', handleNavigateEvent);
     window.addEventListener('hashchange', handleHashChange);
@@ -732,12 +790,13 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
       window.removeEventListener('nexus:open-floor-bridge', handleOpenFloorBridgeEvent);
       window.removeEventListener('nexus:open-vault', handleOpenVaultEvent);
       window.removeEventListener('nexus:open-vault-reorder', handleOpenVaultEvent);
+      window.removeEventListener('nexus:open-backup-vault', handleOpenBackupVaultEvent);
       window.removeEventListener('nexus:open-sourcing-escrow', handleOpenSourcingEscrowEvent);
       window.removeEventListener('nexus:navigate', handleNavigateEvent);
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, openLogistics, closeLogistics, openFactorySla, closeFactorySla, openB2BDeal, closeB2BDeal, openFloorBridge, closeFloorBridge, openVault, closeVault, openSourcingEscrow, closeSourcingEscrow, isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, isFactorySlaOpen, isB2BDealOpen, isFloorBridgeOpen, isVaultOpen, isSourcingEscrowOpen, isAssistantOpen, currentRoute, lastExtractedSpec, customers, products, orders]);
+  }, [openTechPack, closeTechPack, openVoiceIngest, closeVoiceIngest, openLogistics, closeLogistics, openFactorySla, closeFactorySla, openB2BDeal, closeB2BDeal, openFloorBridge, closeFloorBridge, openVault, closeVault, openBackupVault, closeBackupVault, openSourcingEscrow, closeSourcingEscrow, isTechPackOpen, isVoiceIngestOpen, isLogisticsOpen, isFactorySlaOpen, isB2BDealOpen, isFloorBridgeOpen, isVaultOpen, isBackupVaultOpen, isSourcingEscrowOpen, isAssistantOpen, currentRoute, lastExtractedSpec, customers, products, orders]);
 
   // Tab-based navigation helper for modular views
   const renderTabNav = (activeTab: string) => {
@@ -786,8 +845,9 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
             </div>
           </div>
 
-          {/* External Global Channels */}
+          {/* External Global Channels & Dual-Site Health Pill */}
           <div className="flex items-center gap-1.5 shrink-0">
+            <DualSiteHealthPill onOpenVault={() => openBackupVault('vault')} variant="dark-nav" />
             <a
               href="https://rmg.handsandhead.com"
               target="_blank"
@@ -1335,6 +1395,13 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
         </div>
       )}
 
+      {/* ── Dual-Site Backup & Mirror Vault Modal ── */}
+      <SystemBackupVaultModal
+        isOpen={isBackupVaultOpen}
+        onClose={closeBackupVault}
+        initialTab={backupVaultInitialTab}
+      />
+
       {/* ── Floating AI Sourcing Advisor Launcher ── */}
       <button
         id="nexus_floating_ai_assistant_btn"
@@ -1356,3 +1423,4 @@ export const App: React.FC<AppProps> = ({ className = '', initialRoute = 'DEFAUL
 };
 
 export default App;
+// END OF FILE: src/App.tsx

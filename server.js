@@ -4,7 +4,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
 import * as XLSX from 'xlsx';
-import { randomUUID } from 'crypto';
+import { randomUUID, randomBytes, scryptSync, timingSafeEqual, createHash } from 'crypto';
 import { z } from 'zod';
 import { prisma } from './lib/prisma.ts';
 import {
@@ -28,31 +28,59 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Global CORS & Pre-Flight Middleware for Standalone Frontends & Public APIs
-const ALLOWED_CORS_ORIGINS = [
+// Global Multi-Origin CORS & Pre-Flight Middleware for Dual-Site Mirror & Subdomains
+const EXACT_ALLOWED_CORS_ORIGINS = new Set([
+  'https://admin.handsandhead.com',
+  'https://handsandhead.ai.studio',
+  'https://handsandhead.com',
+  'https://www.handsandhead.com',
+  'https://storyboard.handsandhead.com',
+  'https://d2c.handsandhead.com',
   'https://b2b.handsandhead.com',
-  'http://localhost:3000',
-  'http://localhost:5173',
+]);
+
+const ALLOWED_HTTPS_CORS_SUFFIXES = [
+  '.handsandhead.com',
+  '.aistudio.google.com',
+  '.github.io',
+  '.pages.dev',
 ];
+
+function isCorsOriginAllowed(originHeader) {
+  if (!originHeader || typeof originHeader !== 'string') return false;
+  const trimmed = originHeader.trim();
+  if (EXACT_ALLOWED_CORS_ORIGINS.has(trimmed)) return true;
+  try {
+    const parsed = new URL(trimmed);
+    const host = parsed.hostname.toLowerCase();
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      if (host === 'localhost' || host === '127.0.0.1' || host === '[::1]') {
+        return true;
+      }
+    }
+    if (parsed.protocol !== 'https:') return false;
+    return ALLOWED_HTTPS_CORS_SUFFIXES.some((suffix) => host.endsWith(suffix) && host.length > suffix.length);
+  } catch {
+    return false;
+  }
+}
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  const isMarketplaceOrSuppliers = req.path.startsWith('/api/marketplace') || req.path.startsWith('/api/suppliers');
+  res.setHeader('Vary', 'Origin');
 
-  if (isMarketplaceOrSuppliers || (origin && (ALLOWED_CORS_ORIGINS.includes(origin) || origin.endsWith('.handsandhead.com')))) {
-    const allowedOrigin = origin && (ALLOWED_CORS_ORIGINS.includes(origin) || origin.endsWith('.handsandhead.com'))
-      ? origin
-      : 'https://b2b.handsandhead.com';
-
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  if (origin && isCorsOriginAllowed(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-NexOS-Source, X-NexOS-Mirror');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Max-Age', '86400');
 
     if (req.method === 'OPTIONS') {
       return res.status(204).end();
     }
+  } else if (req.method === 'OPTIONS') {
+    return res.status(403).end();
   }
   next();
 });
@@ -5115,6 +5143,538 @@ app.get('/api/config/maps', (req, res) => {
   res.json({ ok: true, apiKey });
 });
 
+/* ═══════════════════════════════════════════════════════════════════════
+   DUAL-SITE MIRROR, 10-CLIP AD ROAS & 1-CLICK BACKUP VAULT ENDPOINTS
+   Mirrors Cloudflare Worker (worker.ts) D1 + R2 API contract locally
+   ═══════════════════════════════════════════════════════════════════════ */
+const FUNNEL_EVENTS_FILE = path.join(DATA_DIR, 'funnel_events.json');
+const AD_SPEND_DAILY_FILE = path.join(DATA_DIR, 'ad_spend_daily.json');
+const R2_MIRROR_ROOT = path.resolve(DATA_DIR, 'r2_backups');
+const R2_BACKUPS_DIR = path.resolve(R2_MIRROR_ROOT, 'backups');
+const VALID_BACKUP_KEY_RE = /^backups\/nexos-backup-\d{4}-\d{2}-\d{2}-\d{4}(?:-[a-zA-Z0-9]{1,8})?\.json$/;
+
+if (!fs.existsSync(R2_BACKUPS_DIR)) {
+  fs.mkdirSync(R2_BACKUPS_DIR, { recursive: true });
+}
+
+// Initialize 10-Clip Ad ROAS ledger files non-destructively if missing
+if (!fs.existsSync(AD_SPEND_DAILY_FILE)) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const initialClips = [
+    { id: 'ad-c01', spend_date: todayStr, clip_id: 'CLIP-01', clip_title: 'RAWx Full-Grain Bifold Craft Reel', channel: 'Meta Reels', spend_bdt: 4200, impressions: 38400, clicks: 1290, purchases: 19, attributed_revenue_bdt: 28500, updated_at: new Date().toISOString() },
+    { id: 'ad-c02', spend_date: todayStr, clip_id: 'CLIP-02', clip_title: 'Dhaka Tannery to Atelier 15s Cut', channel: 'Meta Reels', spend_bdt: 3600, impressions: 31200, clicks: 1040, purchases: 14, attributed_revenue_bdt: 22400, updated_at: new Date().toISOString() },
+    { id: 'ad-c03', spend_date: todayStr, clip_id: 'CLIP-03', clip_title: 'Heavyweight 320GSM Tee Drop Storyboard', channel: 'Instagram Stories', spend_bdt: 3100, impressions: 27900, clicks: 910, purchases: 13, attributed_revenue_bdt: 18850, updated_at: new Date().toISOString() },
+    { id: 'ad-c04', spend_date: todayStr, clip_id: 'CLIP-04', clip_title: 'HANDFILM Studio Unboxing Hook', channel: 'TikTok Spark', spend_bdt: 2800, impressions: 42100, clicks: 1120, purchases: 11, attributed_revenue_bdt: 16500, updated_at: new Date().toISOString() },
+    { id: 'ad-c05', spend_date: todayStr, clip_id: 'CLIP-05', clip_title: 'Passport Travel Folio Executive Cut', channel: 'Meta Feed', spend_bdt: 2450, impressions: 19500, clicks: 680, purchases: 7, attributed_revenue_bdt: 14700, updated_at: new Date().toISOString() },
+    { id: 'ad-c06', spend_date: todayStr, clip_id: 'CLIP-06', clip_title: 'B2B Export Leather Swatch Showcase', channel: 'LinkedIn Video', spend_bdt: 3900, impressions: 14200, clicks: 410, purchases: 4, attributed_revenue_bdt: 24000, updated_at: new Date().toISOString() },
+    { id: 'ad-c07', spend_date: todayStr, clip_id: 'CLIP-07', clip_title: 'Corporate Gift Box Engraving Timelapse', channel: 'Meta Reels', spend_bdt: 2100, impressions: 21800, clicks: 720, purchases: 6, attributed_revenue_bdt: 13200, updated_at: new Date().toISOString() },
+    { id: 'ad-c08', spend_date: todayStr, clip_id: 'CLIP-08', clip_title: 'Arutemika Vegetable-Tan Saddle Stitch', channel: 'YouTube Shorts', spend_bdt: 1950, impressions: 26300, clicks: 640, purchases: 5, attributed_revenue_bdt: 10900, updated_at: new Date().toISOString() },
+    { id: 'ad-c09', spend_date: todayStr, clip_id: 'CLIP-09', clip_title: 'RAWx Heritage Belt Buckling ASMR', channel: 'Instagram Reels', spend_bdt: 1800, impressions: 24900, clicks: 615, purchases: 5, attributed_revenue_bdt: 9250, updated_at: new Date().toISOString() },
+    { id: 'ad-c10', spend_date: todayStr, clip_id: 'CLIP-10', clip_title: 'D2C Eid Express Dhaka Same-Day Hook', channel: 'Meta Reels', spend_bdt: 2200, impressions: 29100, clicks: 890, purchases: 8, attributed_revenue_bdt: 12800, updated_at: new Date().toISOString() },
+  ];
+  safeWriteJson(AD_SPEND_DAILY_FILE, initialClips);
+}
+
+if (!fs.existsSync(FUNNEL_EVENTS_FILE)) {
+  const nowIso = new Date().toISOString();
+  safeWriteJson(FUNNEL_EVENTS_FILE, [
+    { id: 'fe-01', clip_id: 'CLIP-01', clip_title: 'RAWx Full-Grain Bifold Craft Reel', subdomain: 'd2c.handsandhead.com', event_type: 'purchase', session_id: 'sess-01', order_id: 'NX-901', revenue_bdt: 2850, metadata_json: '{}', created_at: nowIso },
+    { id: 'fe-02', clip_id: 'CLIP-02', clip_title: 'Dhaka Tannery to Atelier 15s Cut', subdomain: 'storyboard.handsandhead.com', event_type: 'checkout', session_id: 'sess-02', order_id: 'NX-902', revenue_bdt: 3200, metadata_json: '{}', created_at: nowIso },
+  ]);
+}
+
+// Server-side Vault Auth (process.env.NEXOS_BACKUP_TOKEN overrides first-run scrypt claim)
+let claimedVaultHash = null; // { salt: string, hashHex: string }
+const activeVaultSessionTokens = new Set();
+
+function safeConstantTimeCompare(a, b) {
+  const bufA = Buffer.from(String(a || ''), 'utf8');
+  const bufB = Buffer.from(String(b || ''), 'utf8');
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
+function verifyServerBackupAuth(req) {
+  const authHeader = req.headers.authorization || '';
+  if (!authHeader.startsWith('Bearer ')) {
+    return { ok: false, status: 401, error: 'Missing Authorization: Bearer token for Backup Vault.' };
+  }
+  const provided = authHeader.slice('Bearer '.length).trim();
+  if (!provided) {
+    return { ok: false, status: 401, error: 'Empty Bearer token.' };
+  }
+
+  const envToken = (process.env.NEXOS_BACKUP_TOKEN || '').trim();
+  if (envToken) {
+    if (safeConstantTimeCompare(provided, envToken)) {
+      return { ok: true };
+    }
+    return { ok: false, status: 401, error: 'Invalid NEXOS_BACKUP_TOKEN.' };
+  }
+
+  if (activeVaultSessionTokens.has(provided)) {
+    return { ok: true };
+  }
+
+  return { ok: false, status: 401, error: 'Vault locked. Claim or unlock your Vault Passphrase first.' };
+}
+
+function formatBackupStampUtc(date) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}-${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}`;
+}
+
+function buildLocalCloudBackupSnapshot() {
+  const orders = safeReadJson(ORDERS_FILE, []).filter((o) => o && !o.archived && !o.isMock);
+  const funnelEvents = safeReadJson(FUNNEL_EVENTS_FILE, []);
+  const adSpendDaily = safeReadJson(AD_SPEND_DAILY_FILE, []);
+  const products = safeReadJson(PRODUCTS_FILE, []);
+
+  const uploadsDir = path.resolve(__dirname, 'uploads');
+  const r2MediaManifest = [];
+  if (fs.existsSync(uploadsDir)) {
+    for (const fileName of fs.readdirSync(uploadsDir)) {
+      const fullPath = path.join(uploadsDir, fileName);
+      try {
+        const stat = fs.statSync(fullPath);
+        if (stat.isFile()) {
+          r2MediaManifest.push({
+            key: `uploads/${fileName}`,
+            size: stat.size,
+            etag: createHash('sha256').update(`${fileName}:${stat.size}:${stat.mtimeMs}`).digest('hex').slice(0, 16),
+            uploaded: stat.mtime.toISOString(),
+            contentType: fileName.endsWith('.png') ? 'image/png' : fileName.endsWith('.jpg') ? 'image/jpeg' : 'application/octet-stream',
+          });
+        }
+      } catch {
+        // Skip unreadable entries
+      }
+    }
+  }
+
+  return {
+    schemaVersion: 'nexos-backup-v2',
+    generatedAt: new Date().toISOString(),
+    sourceNode: 'handsandhead.ai.studio',
+    tables: {
+      orders,
+      funnel_events: funnelEvents,
+      ad_spend_daily: adSpendDaily,
+      products,
+    },
+    r2MediaManifest,
+    counts: {
+      orders: orders.length,
+      funnel_events: funnelEvents.length,
+      ad_spend_daily: adSpendDaily.length,
+      products: products.length,
+      r2Media: r2MediaManifest.length,
+    },
+  };
+}
+
+function listLocalR2Snapshots() {
+  if (!fs.existsSync(R2_BACKUPS_DIR)) return [];
+  const entries = fs.readdirSync(R2_BACKUPS_DIR);
+  const results = [];
+  for (const fileName of entries) {
+    const key = `backups/${fileName}`;
+    if (!VALID_BACKUP_KEY_RE.test(key)) continue;
+    const resolved = path.resolve(R2_MIRROR_ROOT, key);
+    if (!resolved.startsWith(R2_BACKUPS_DIR + path.sep)) continue;
+    try {
+      const stat = fs.statSync(resolved);
+      if (!stat.isFile()) continue;
+      let recordCounts;
+      try {
+        const parsed = JSON.parse(fs.readFileSync(resolved, 'utf8'));
+        if (parsed && parsed.counts) {
+          recordCounts = parsed.counts;
+        }
+      } catch {
+        recordCounts = undefined;
+      }
+      results.push({
+        key,
+        fileName,
+        size: stat.size,
+        uploaded: stat.mtime.toISOString(),
+        etag: createHash('sha256').update(`${key}:${stat.size}:${stat.mtimeMs}`).digest('hex').slice(0, 16),
+        recordCounts,
+      });
+    } catch {
+      // Skip unreadable file
+    }
+  }
+  results.sort((a, b) => b.uploaded.localeCompare(a.uploaded));
+  return results;
+}
+
+function upsertJsonTableById(filePath, incomingRows, idField = 'id') {
+  const existing = safeReadJson(filePath, []);
+  const byId = new Map();
+  for (const row of existing) {
+    if (row && row[idField]) {
+      byId.set(String(row[idField]), row);
+    }
+  }
+  let upserted = 0;
+  for (const row of incomingRows) {
+    if (!row || typeof row !== 'object') continue;
+    const key = String(row[idField] || row.orderNumber || row.sku || '').trim();
+    if (!key) continue;
+    byId.set(key, { ...(byId.get(key) || {}), ...row, [idField]: key });
+    upserted += 1;
+  }
+  safeWriteJson(filePath, Array.from(byId.values()));
+  return upserted;
+}
+
+function computeExpressTenClipRoas(adSpendRows, funnelRows) {
+  const map = new Map();
+  for (const row of adSpendRows) {
+    const clipId = String(row.clip_id || row.clipId || 'CLIP-01');
+    const existing = map.get(clipId) || {
+      clipId,
+      clipTitle: String(row.clip_title || row.clipTitle || clipId),
+      channel: String(row.channel || 'Meta Reels'),
+      spendBdt: 0,
+      attributedRevenueBdt: 0,
+      impressions: 0,
+      clicks: 0,
+      purchases: 0,
+      funnelViews: 0,
+      funnelCheckouts: 0,
+    };
+    existing.spendBdt += Number(row.spend_bdt ?? row.spendBdt ?? 0);
+    existing.attributedRevenueBdt += Number(row.attributed_revenue_bdt ?? row.attributedRevenueBdt ?? 0);
+    existing.impressions += Number(row.impressions ?? 0);
+    existing.clicks += Number(row.clicks ?? 0);
+    existing.purchases += Number(row.purchases ?? 0);
+    map.set(clipId, existing);
+  }
+  for (const evt of funnelRows) {
+    const clipId = String(evt.clip_id || evt.clipId || '');
+    if (!clipId) continue;
+    const existing = map.get(clipId);
+    if (existing) {
+      if (evt.event_type === 'view' || evt.event_type === 'clip_play') existing.funnelViews += 1;
+      if (evt.event_type === 'checkout' || evt.event_type === 'purchase') existing.funnelCheckouts += 1;
+    }
+  }
+  const clips = Array.from(map.values())
+    .map((c) => ({
+      ...c,
+      roas: c.spendBdt > 0 ? Number((c.attributedRevenueBdt / c.spendBdt).toFixed(2)) : 0,
+    }))
+    .sort((a, b) => b.roas - a.roas)
+    .slice(0, 10);
+  const totalSpendBdt = clips.reduce((s, c) => s + c.spendBdt, 0);
+  const totalRevenueBdt = clips.reduce((s, c) => s + c.attributedRevenueBdt, 0);
+  const blendedRoas = totalSpendBdt > 0 ? Number((totalRevenueBdt / totalSpendBdt).toFixed(2)) : 0;
+  return { clips, totalSpendBdt, totalRevenueBdt, blendedRoas };
+}
+
+app.get('/api/dashboard/summary', (req, res) => {
+  try {
+    const orders = safeReadJson(ORDERS_FILE, []).filter((o) => o && !o.archived && !o.isMock);
+    const products = safeReadJson(PRODUCTS_FILE, []);
+    const adSpendRows = safeReadJson(AD_SPEND_DAILY_FILE, []);
+    const funnelRows = safeReadJson(FUNNEL_EVENTS_FILE, []);
+    const todayIso = new Date().toISOString().slice(0, 10);
+
+    const salesToday = orders
+      .filter((o) => String(o.createdAt || o.created_at || '').startsWith(todayIso))
+      .reduce((sum, o) => sum + Number(o.total || 0), 0);
+    const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+    const pendingOrders = orders.filter((o) => o.status !== 'completed' && o.fulfillmentStatus !== 'fulfilled').length;
+    const completedToday = orders.filter(
+      (o) => String(o.createdAt || o.created_at || '').startsWith(todayIso) && (o.status === 'completed' || o.fulfillmentStatus === 'fulfilled')
+    ).length;
+
+    res.json({
+      ok: true,
+      node: 'handsandhead.ai.studio',
+      generatedAt: new Date().toISOString(),
+      metrics: {
+        salesToday,
+        totalRevenue,
+        totalOrders: orders.length,
+        pendingOrders,
+        completedToday,
+        activeProducts: products.length,
+      },
+      tenClipAdRoas: computeExpressTenClipRoas(adSpendRows, funnelRows),
+      recentOrders: orders.slice(0, 25),
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/api/catalog/public', (req, res) => {
+  try {
+    const category = String(req.query.category || '').trim().toLowerCase();
+    const limit = Math.min(200, Math.max(1, parseInt(String(req.query.limit || '100'), 10) || 100));
+    let items = safeReadJson(PRODUCTS_FILE, []).filter((p) => (p.status || 'active').toLowerCase() === 'active');
+    if (category) {
+      items = items.filter((p) => String(p.category || p.productType || '').toLowerCase() === category);
+    }
+    res.json({ ok: true, node: 'handsandhead.ai.studio', count: items.slice(0, limit).length, items: items.slice(0, limit) });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/orders/pre-create', (req, res) => {
+  try {
+    const body = req.body || {};
+    const nowIso = new Date().toISOString();
+    const id = String(body.id || `ord-${Date.now().toString(36)}-${randomUUID().slice(0, 6)}`);
+    const orderNumber = String(body.orderNumber || body.order_number || `NX-${Math.floor(1000 + Math.random() * 9000)}`);
+    const record = {
+      id,
+      orderNumber,
+      customerName: String(body.customerName || body.customer_name || 'Direct Buyer'),
+      customerPhone: String(body.customerPhone || body.customer_phone || body.phone || ''),
+      customerEmail: String(body.customerEmail || body.customer_email || ''),
+      subdomainSource: String(body.subdomainSource || body.subdomain_source || req.headers.origin || 'handsandhead.ai.studio'),
+      status: String(body.status || 'open'),
+      paymentStatus: String(body.paymentStatus || body.payment_status || 'pending'),
+      fulfillmentStatus: String(body.fulfillmentStatus || body.fulfillment_status || 'unfulfilled'),
+      total: Number(body.total || 0),
+      amountPaid: Number(body.amountPaid || body.amount_paid || 0),
+      currency: String(body.currency || 'BDT'),
+      items: Array.isArray(body.items) ? body.items : [],
+      shippingAddress: String(body.shippingAddress || body.shipping_address || ''),
+      clipId: String(body.clipId || body.clip_id || ''),
+      utmCampaign: String(body.utmCampaign || body.utm_campaign || ''),
+      createdAt: String(body.createdAt || body.created_at || nowIso),
+      updatedAt: nowIso,
+    };
+    upsertJsonTableById(ORDERS_FILE, [record], 'id');
+    broadcastSync('orders', { action: 'pre-create', id });
+    res.status(201).json({ ok: true, node: 'handsandhead.ai.studio', item: record });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.patch('/api/orders/:id/status', (req, res) => {
+  try {
+    const orderId = String(req.params.id || '');
+    const body = req.body || {};
+    const orders = safeReadJson(ORDERS_FILE, []);
+    const idx = orders.findIndex((o) => o && (o.id === orderId || o.orderNumber === orderId));
+    if (idx === -1) {
+      return res.status(404).json({ ok: false, error: `Order not found: ${orderId}` });
+    }
+    const existing = orders[idx];
+    const updated = {
+      ...existing,
+      status: body.status !== undefined ? String(body.status) : existing.status,
+      paymentStatus: body.paymentStatus !== undefined ? String(body.paymentStatus) : body.payment_status !== undefined ? String(body.payment_status) : existing.paymentStatus,
+      fulfillmentStatus: body.fulfillmentStatus !== undefined ? String(body.fulfillmentStatus) : body.fulfillment_status !== undefined ? String(body.fulfillment_status) : existing.fulfillmentStatus,
+      amountPaid: body.amountPaid !== undefined ? Number(body.amountPaid) : body.amount_paid !== undefined ? Number(body.amount_paid) : existing.amountPaid,
+      updatedAt: new Date().toISOString(),
+    };
+    orders[idx] = updated;
+    safeWriteJson(ORDERS_FILE, orders);
+    broadcastSync('orders', { action: 'status-patch', id: updated.id });
+    res.json({ ok: true, node: 'handsandhead.ai.studio', item: updated });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/sync/drive-product', (req, res) => {
+  try {
+    const body = req.body || {};
+    const title = String(body.title || '').trim();
+    if (!title) {
+      return res.status(400).json({ ok: false, error: 'Product title is required.' });
+    }
+    const nowIso = new Date().toISOString();
+    const id = String(body.id || `prod-${Date.now().toString(36)}`);
+    const product = {
+      id,
+      sku: String(body.sku || id.toUpperCase()),
+      title,
+      handle: String(body.handle || title.toLowerCase().replace(/[^a-z0-9]+/g, '-')),
+      category: String(body.category || 'General'),
+      productType: String(body.category || 'General'),
+      brand: String(body.brand || 'HANDS & HEAD'),
+      status: String(body.status || 'active'),
+      retailPrice: Number(body.retailPrice ?? body.retail_price ?? 0),
+      wholesalePrice: Number(body.wholesalePrice ?? body.wholesale_price ?? 0),
+      currency: String(body.currency || 'BDT'),
+      totalInventory: Math.round(Number(body.stockQty ?? body.stock_qty ?? 0)),
+      images: Array.isArray(body.images) ? body.images : [],
+      driveFileId: String(body.driveFileId || body.drive_file_id || ''),
+      sourceSubdomain: String(body.sourceSubdomain || body.source_subdomain || 'admin.handsandhead.com'),
+      updatedAt: nowIso,
+    };
+    upsertJsonTableById(PRODUCTS_FILE, [product], 'id');
+    broadcastSync('products', { action: 'drive-sync', id });
+    res.json({ ok: true, node: 'handsandhead.ai.studio', item: product });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/api/backup/auth/status', (req, res) => {
+  const configuredViaEnv = Boolean((process.env.NEXOS_BACKUP_TOKEN || '').trim());
+  const authCheck = verifyServerBackupAuth(req);
+  res.json({
+    ok: true,
+    configuredViaEnv,
+    claimed: configuredViaEnv || claimedVaultHash !== null,
+    requiresFirstRunClaim: !configuredViaEnv && claimedVaultHash === null,
+    authenticated: authCheck.ok,
+  });
+});
+
+app.post('/api/backup/auth/claim', (req, res) => {
+  const passphrase = String(req.body?.passphrase || '').trim();
+  if (passphrase.length < 6) {
+    return res.status(400).json({ ok: false, error: 'Passphrase must be at least 6 characters.' });
+  }
+
+  const envToken = (process.env.NEXOS_BACKUP_TOKEN || '').trim();
+  if (envToken) {
+    if (!safeConstantTimeCompare(passphrase, envToken)) {
+      return res.status(401).json({ ok: false, error: 'Invalid NEXOS_BACKUP_TOKEN.' });
+    }
+    return res.json({ ok: true, mode: 'env-token', token: envToken });
+  }
+
+  if (claimedVaultHash === null) {
+    const salt = randomBytes(16).toString('hex');
+    const hashHex = scryptSync(passphrase, salt, 32).toString('hex');
+    claimedVaultHash = { salt, hashHex };
+    const sessionToken = randomBytes(32).toString('hex');
+    activeVaultSessionTokens.add(sessionToken);
+    return res.json({ ok: true, mode: 'claimed', token: sessionToken });
+  }
+
+  const candidateHex = scryptSync(passphrase, claimedVaultHash.salt, 32).toString('hex');
+  if (!safeConstantTimeCompare(candidateHex, claimedVaultHash.hashHex)) {
+    return res.status(401).json({ ok: false, error: 'Incorrect Vault Passphrase.' });
+  }
+
+  const sessionToken = randomBytes(32).toString('hex');
+  activeVaultSessionTokens.add(sessionToken);
+  return res.json({ ok: true, mode: 'verified', token: sessionToken });
+});
+
+app.get('/api/backup/export', (req, res) => {
+  const auth = verifyServerBackupAuth(req);
+  if (!auth.ok) {
+    return res.status(auth.status).json({ ok: false, error: auth.error });
+  }
+  const snapshot = buildLocalCloudBackupSnapshot();
+  const stamp = formatBackupStampUtc(new Date());
+  res.setHeader('Content-Disposition', `attachment; filename="nexos-backup-${stamp}.json"`);
+  res.json({ ok: true, snapshot });
+});
+
+app.post('/api/backup/restore', (req, res) => {
+  const auth = verifyServerBackupAuth(req);
+  if (!auth.ok) {
+    return res.status(auth.status).json({ ok: false, error: auth.error });
+  }
+  try {
+    const root = req.body && req.body.snapshot ? req.body.snapshot : req.body;
+    if (!root || typeof root !== 'object') {
+      return res.status(400).json({ ok: false, error: 'Invalid backup snapshot payload.' });
+    }
+    const tables = root.tables && typeof root.tables === 'object' ? root.tables : root;
+    const restored = {
+      orders: Array.isArray(tables.orders) ? upsertJsonTableById(ORDERS_FILE, tables.orders, 'id') : 0,
+      funnel_events: Array.isArray(tables.funnel_events) ? upsertJsonTableById(FUNNEL_EVENTS_FILE, tables.funnel_events, 'id') : 0,
+      ad_spend_daily: Array.isArray(tables.ad_spend_daily) ? upsertJsonTableById(AD_SPEND_DAILY_FILE, tables.ad_spend_daily, 'id') : 0,
+      products: Array.isArray(tables.products) ? upsertJsonTableById(PRODUCTS_FILE, tables.products, 'id') : 0,
+    };
+    broadcastSync('orders', { action: 'backup-restore', restored });
+    res.json({ ok: true, restoredAt: new Date().toISOString(), node: 'handsandhead.ai.studio', restored });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/backup/snapshot-r2', (req, res) => {
+  const auth = verifyServerBackupAuth(req);
+  if (!auth.ok) {
+    return res.status(auth.status).json({ ok: false, error: auth.error });
+  }
+  try {
+    const now = new Date();
+    const snapshot = buildLocalCloudBackupSnapshot();
+    const key = `backups/nexos-backup-${formatBackupStampUtc(now)}.json`;
+    if (!VALID_BACKUP_KEY_RE.test(key)) {
+      return res.status(400).json({ ok: false, error: 'Invalid backup key generated.' });
+    }
+    const targetPath = path.resolve(R2_MIRROR_ROOT, key);
+    if (!targetPath.startsWith(R2_BACKUPS_DIR + path.sep)) {
+      return res.status(400).json({ ok: false, error: 'Backup path outside vault boundary.' });
+    }
+    fs.mkdirSync(R2_BACKUPS_DIR, { recursive: true });
+    const serialized = JSON.stringify(snapshot, null, 2);
+    fs.writeFileSync(targetPath, serialized, 'utf8');
+    const snapshots = listLocalR2Snapshots();
+    res.json({
+      ok: true,
+      savedKey: key,
+      size: Buffer.byteLength(serialized, 'utf8'),
+      uploaded: now.toISOString(),
+      counts: snapshot.counts,
+      snapshots,
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/api/backup/snapshots', (req, res) => {
+  const auth = verifyServerBackupAuth(req);
+  if (!auth.ok) {
+    return res.status(auth.status).json({ ok: false, error: auth.error });
+  }
+  res.json({ ok: true, snapshots: listLocalR2Snapshots() });
+});
+
+app.post('/api/backup/restore-r2', (req, res) => {
+  const auth = verifyServerBackupAuth(req);
+  if (!auth.ok) {
+    return res.status(auth.status).json({ ok: false, error: auth.error });
+  }
+  try {
+    const key = String(req.body?.key || '').trim();
+    if (!VALID_BACKUP_KEY_RE.test(key)) {
+      return res.status(400).json({ ok: false, error: 'Invalid R2 backup snapshot key.' });
+    }
+    const resolved = path.resolve(R2_MIRROR_ROOT, key);
+    if (!resolved.startsWith(R2_BACKUPS_DIR + path.sep)) {
+      return res.status(400).json({ ok: false, error: 'Backup key outside vault directory.' });
+    }
+    if (!fs.existsSync(resolved)) {
+      return res.status(404).json({ ok: false, error: `Snapshot not found: ${key}` });
+    }
+    const parsed = JSON.parse(fs.readFileSync(resolved, 'utf8'));
+    const tables = parsed.tables && typeof parsed.tables === 'object' ? parsed.tables : parsed;
+    const restored = {
+      orders: Array.isArray(tables.orders) ? upsertJsonTableById(ORDERS_FILE, tables.orders, 'id') : 0,
+      funnel_events: Array.isArray(tables.funnel_events) ? upsertJsonTableById(FUNNEL_EVENTS_FILE, tables.funnel_events, 'id') : 0,
+      ad_spend_daily: Array.isArray(tables.ad_spend_daily) ? upsertJsonTableById(AD_SPEND_DAILY_FILE, tables.ad_spend_daily, 'id') : 0,
+      products: Array.isArray(tables.products) ? upsertJsonTableById(PRODUCTS_FILE, tables.products, 'id') : 0,
+    };
+    broadcastSync('orders', { action: 'backup-restore-r2', key, restored });
+    res.json({ ok: true, restoredKey: key, restoredAt: new Date().toISOString(), restored });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.use(express.static(__dirname, {
   etag: false,
   lastModified: false,
@@ -5167,4 +5727,5 @@ if (cloudRunPort !== internalPort) {
     console.warn('[NexOS] Non-fatal secondary listen attempt:', listenErr.message);
   }
 }
+// END OF FILE: server.js
 

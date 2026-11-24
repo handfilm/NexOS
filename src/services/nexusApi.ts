@@ -94,6 +94,8 @@ export interface Order {
   paymentMethod?: string;
   items: OrderItem[];
   shippingAddress?: string;
+  isMock?: boolean;
+  archived?: boolean;
   createdAt: string;
   updatedAt?: string;
 }
@@ -497,3 +499,4 @@ export function subscribeToBuyerOrders(
     return () => {};
   }
 }
+// END OF FILE: src/services/nexusApi.ts

@@ -55,8 +55,8 @@
     },
     {
       id: 'quick_access',
-      title: 'Quick Access Rail',
-      subtitle: 'One-Touch Module Launchpad',
+      title: 'Quick Access Launchpad',
+      subtitle: 'One-Touch Ecosystem & App Suite Launchpad',
       category: 'Navigation',
       icon: `<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;"><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 010 20M2 12h20"/></svg>`,
       defaultPinned: true,

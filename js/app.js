@@ -1476,9 +1476,44 @@ async function renderLiteHome(b) {
           <div class="sec-h" style="padding-top:10px;">
             <span class="sec-h-label">Live Terminal Metrics</span>
             <div style="display:flex;gap:10px;align-items:center;">
-              <div class="neu-toggle-wrap on" id="syncToggle" onclick="this.classList.toggle('on');this.classList.toggle('off');toast(this.classList.contains('on')?'Live Sync: Active':'Live Sync: Paused');">
-                <div class="neu-toggle-track"><div class="neu-toggle-thumb"></div></div>
-                <span class="neu-toggle-label">Sync</span>
+              <div class="sync-popover-wrap" id="syncPopoverWrap">
+                <div class="neu-toggle-wrap on" id="syncToggle" onclick="this.classList.toggle('on');this.classList.toggle('off');toast(this.classList.contains('on')?'Live Sync: Active':'Live Sync: Paused');">
+                  <div class="neu-toggle-track"><div class="neu-toggle-thumb"></div></div>
+                  <span class="neu-toggle-label">Sync</span>
+                </div>
+                <button
+                  type="button"
+                  class="sync-popover-chevron"
+                  onclick="window.toggleSyncMirrorPopover && window.toggleSyncMirrorPopover(event)"
+                  title="Dual-Site Mirror Status &amp; Backup Vault"
+                  aria-label="Open Sync &amp; Backup Vault Popover"
+                >▾</button>
+                <div class="sync-popover-menu" id="syncMirrorPopover" style="display:none;" onclick="event.stopPropagation()">
+                  <div class="sync-popover-head">
+                    <span>Dual-Site Mirror</span>
+                    <span style="color:var(--ok);">3500ms Failover</span>
+                  </div>
+                  <div class="sync-popover-node-row">
+                    <span>PRIMARY: admin.handsandhead.com</span>
+                    <span class="dshp-dot online" id="syncPopoverPrimaryDot" style="width:7px;height:7px;border-radius:50%;display:inline-block;"></span>
+                  </div>
+                  <div class="sync-popover-node-row">
+                    <span>BACKUP: handsandhead.ai.studio</span>
+                    <span class="dshp-dot online" id="syncPopoverBackupDot" style="width:7px;height:7px;border-radius:50%;display:inline-block;"></span>
+                  </div>
+                  <button type="button" class="sync-popover-action primary" onclick="window.closeSyncMirrorPopover && window.closeSyncMirrorPopover(); window.openSystemBackupVault ? window.openSystemBackupVault('vault') : window.dispatchEvent(new CustomEvent('nexus:open-backup-vault', { detail: { tab: 'vault' } }));">
+                    <span>🛡 Backup &amp; Mirror Vault</span>
+                    <span>→</span>
+                  </button>
+                  <button type="button" class="sync-popover-action" onclick="window.closeSyncMirrorPopover && window.closeSyncMirrorPopover(); window.openSystemBackupVault ? window.openSystemBackupVault('endpoints') : window.dispatchEvent(new CustomEvent('nexus:open-backup-vault', { detail: { tab: 'endpoints' } }));">
+                    <span>🌐 Test 6 Subdomains &amp; RAWx</span>
+                    <span>→</span>
+                  </button>
+                  <button type="button" class="sync-popover-action" onclick="window.closeSyncMirrorPopover && window.closeSyncMirrorPopover(); window.openSystemBackupVault ? window.openSystemBackupVault('roas') : window.dispatchEvent(new CustomEvent('nexus:open-backup-vault', { detail: { tab: 'roas' } }));">
+                    <span>📈 10-Clip Ad ROAS Sync</span>
+                    <span>→</span>
+                  </button>
+                </div>
               </div>
               <span class="sec-h-action" onclick="render()">↻</span>
             </div>
@@ -1580,59 +1615,186 @@ async function renderLiteHome(b) {
 
       case 'quick_access':
         contentHtml = `
-          <div class="sec-h" style="padding-top:10px;"><span class="sec-h-label">Quick Access Launchpad</span></div>
+          <div class="sec-h" style="padding-top:10px;display:flex;justify-content:space-between;align-items:center;">
+            <span class="sec-h-label">Quick Access Launchpad · All Ecosystem Apps</span>
+            <span style="font-family:var(--mono);font-size:9.5px;color:var(--gold-dim);text-transform:uppercase;letter-spacing:1px;">One-Touch Navigation</span>
+          </div>
           <div class="action-rail">
+            <!-- 1. Logistics & Buyer Orders Settlement Hub -->
+            <button class="action-node" onclick="window.openLogisticsSettlementHub ? window.openLogisticsSettlementHub() : openAppModule('Logistics')" title="Open Logistics & Buyer Orders Ledger (Live Run-Sheet, D3 Trends, Force Re-sync & Settlement)" style="border-color:rgba(255,107,0,0.45);background:rgba(255,107,0,0.06);">
+              <div class="action-icon" style="color:#FF6B00;">${I.truck}</div>
+              <div class="action-label" style="color:#FF6B00;font-weight:800;">Logistics</div>
+              ${((window.orders && window.orders.length) || (s && s.pending > 0)) ? `<div class="action-badge" style="background:#FF6B00;box-shadow:0 0 8px #FF6B00;" title="Active Orders Queue"></div>` : ''}
+            </button>
+
+            <!-- 2. Verified Garment Exporters & Suppliers Registry -->
+            <button class="action-node" onclick="window.openSuppliersManagement ? window.openSuppliersManagement() : openAppModule('Suppliers')" title="Open Verified Garment Exporters & Suppliers Registry (400+ Factories, Map & Bonded Status)" style="border-color:rgba(217,119,6,0.45);background:rgba(217,119,6,0.06);">
+              <div class="action-icon" style="color:#D97706;">${I.warehouse}</div>
+              <div class="action-label" style="color:#D97706;font-weight:800;">Suppliers</div>
+              <div class="action-badge" style="background:#D97706;box-shadow:0 0 8px #D97706;" title="400+ Verified Exporters"></div>
+            </button>
+
+            <!-- 3. B2B Deal & Revenue Engine -->
             <button class="action-node" onclick="window.openB2BDealEngine ? window.openB2BDealEngine() : openAppModule('B2BDealEngine')" title="Open B2B Deal & Revenue Engine" style="border-color:rgba(255,85,0,0.45);background:rgba(255,85,0,0.06);">
-              <div class="action-icon" style="color:#FF5500;">⚡</div><div class="action-label" style="color:#FF5500;font-weight:800;">B2B Deals</div>
+              <div class="action-icon" style="color:#FF5500;">⚡</div>
+              <div class="action-label" style="color:#FF5500;font-weight:800;">B2B Deals</div>
             </button>
+
+            <!-- 4. Production Floor & Settlement Bridge -->
             <button class="action-node" onclick="window.openProductionFloorBridge ? window.openProductionFloorBridge() : openAppModule('ProductionFloorBridge')" title="Open Production Floor & Settlement Bridge" style="border-color:rgba(0,229,255,0.45);background:rgba(0,229,255,0.06);">
-              <div class="action-icon" style="color:#00E5FF;">🏭</div><div class="action-label" style="color:#00E5FF;font-weight:800;">Floor Bridge</div>
+              <div class="action-icon" style="color:#00E5FF;">${I.factory}</div>
+              <div class="action-label" style="color:#00E5FF;font-weight:800;">Floor Bridge</div>
             </button>
-            <button class="action-node" onclick="window.openVaultReorderEngine ? window.openVaultReorderEngine() : openAppModule('VaultAndReorderEngine')" title="Open Vault & Reorder Engine" style="border-color:rgba(0,229,153,0.45);background:rgba(0,229,153,0.06);">
-              <div class="action-icon" style="color:#00E599;">💎</div><div class="action-label" style="color:#00E599;font-weight:800;">Vault &amp; Reorder</div>
+
+            <!-- 5. Vault & Reorder Engine -->
+            <button class="action-node" onclick="window.openVaultReorderEngine ? window.openVaultReorderEngine() : openAppModule('VaultAndReorderEngine')" title="Open Vault & Reorder Engine (B2B Repeat Contracts & Stock Archives)" style="border-color:rgba(0,229,153,0.45);background:rgba(0,229,153,0.06);">
+              <div class="action-icon" style="color:#00E599;">💎</div>
+              <div class="action-label" style="color:#00E599;font-weight:800;">Vault &amp; Reorder</div>
             </button>
+
+            <!-- 6. Factory Floor SLA & Milestone Tracker -->
+            <button class="action-node" onclick="window.openFactorySlaFloorTracker ? window.openFactorySlaFloorTracker() : openAppModule('FactorySla')" title="Open Factory SLA & Production Floor Tracker" style="border-color:rgba(234,179,8,0.45);background:rgba(234,179,8,0.06);">
+              <div class="action-icon" style="color:#EAB308;">${I.hammer}</div>
+              <div class="action-label" style="color:#EAB308;font-weight:800;">Factory SLA</div>
+            </button>
+
+            <!-- 7. Enterprise Sourcing & Factory Escrow -->
+            <button class="action-node" onclick="window.openSourcingEscrow ? window.openSourcingEscrow() : openAppModule('EnterpriseSourcingAndFactoryEscrow')" title="Open Enterprise Sourcing & Factory Escrow" style="border-color:rgba(168,85,247,0.45);background:rgba(168,85,247,0.06);">
+              <div class="action-icon" style="color:#A855F7;">${I.lock}</div>
+              <div class="action-label" style="color:#A855F7;font-weight:800;">Escrow</div>
+            </button>
+
+            <!-- 8. Tech-Pack PO Engine -->
             <button class="action-node" onclick="window.openTechPackPOEngine ? window.openTechPackPOEngine() : openAppModule('TechPackPO')" title="Open Tech-Pack PO Engine" style="border-color:rgba(217,119,6,0.35);">
-              <div class="action-icon" style="color:var(--gold);">📋</div><div class="action-label" style="color:var(--gold);font-weight:700;">Tech-Pack</div>
+              <div class="action-icon" style="color:var(--gold);">📋</div>
+              <div class="action-label" style="color:var(--gold);font-weight:700;">Tech-Pack</div>
             </button>
-            <button class="action-node" onclick="window.openVoicePOIngestion ? window.openVoicePOIngestion() : openAppModule('VoiceIngest')" title="Open Voice PO Ingestion & Audio AI Dock" style="border-color:rgba(255,91,53,0.35);">
-              <div class="action-icon" style="color:var(--coral);">🎙️</div><div class="action-label" style="color:var(--coral);font-weight:700;">Voice PO</div>
+
+            <!-- 9. Voice PO Ingestion & Audio AI Dock -->
+            <button class="action-node" onclick="window.openVoicePOIngestion ? window.openVoicePOIngestion() : openAppModule('VoiceIngest')" title="Open Voice PO Ingestion & Audio AI Dock (Gemini Flash Voice PO Ingestion)" style="border-color:rgba(255,91,53,0.35);">
+              <div class="action-icon" style="color:var(--coral);">🎙️</div>
+              <div class="action-label" style="color:var(--coral);font-weight:700;">Voice PO</div>
             </button>
-            <button class="action-node" onclick="(window.VoiceEngine?.toggle ? window.VoiceEngine.toggle() : null)">
-              <div class="action-icon" style="color:var(--coral);">${I.mic}</div><div class="action-label">Voice</div>
+
+            <!-- 10. Quick Sale 2.0 POS -->
+            <button class="action-node" onclick="window.openQuickSale ? window.openQuickSale() : openAppModule('QuickSale')" title="Open Instant Quick Sale 2.0 POS (bKash/Nagad/Cash POS)" style="border-color:rgba(226,184,102,0.45);background:rgba(226,184,102,0.06);">
+              <div class="action-icon" style="color:var(--gold);">${I.orders}</div>
+              <div class="action-label" style="color:var(--gold);font-weight:800;">Quick Sale</div>
             </button>
-            <button class="action-node" onclick="startCamera()">
-              <div class="action-icon">${I.cam}</div><div class="action-label">Capture</div>
+
+            <!-- 11. AI Sourcing & Supply Chain Advisor -->
+            <button class="action-node" onclick="window.openAIAssistant ? window.openAIAssistant() : openAppModule('NexAI')" title="Open Gemini AI Sourcing & Supply Chain Advisor" style="border-color:rgba(249,115,22,0.45);background:rgba(249,115,22,0.06);">
+              <div class="action-icon" style="color:#F97316;">${I.ai}</div>
+              <div class="action-label" style="color:#F97316;font-weight:800;">AI Advisor</div>
             </button>
-            <button class="action-node" onclick="openAppModule('Products')">
-              <div class="action-icon">${I.tag}</div><div class="action-label">Products</div>
+
+            <!-- 12. Corporate Supplies & B2B Custom Merch -->
+            <button class="action-node" onclick="window.openCorporateSupplies ? window.openCorporateSupplies() : openAppModule('CorporateSupplies')" title="Open Corporate Supplies & B2B Merchandising" style="border-color:rgba(59,130,246,0.35);">
+              <div class="action-icon" style="color:#3B82F6;">${I.store}</div>
+              <div class="action-label" style="color:#3B82F6;font-weight:700;">Corporate</div>
             </button>
-            <button class="action-node" onclick="openAppModule('Accounting')">
-              <div class="action-icon" style="color:var(--gold);">${I.wallet}</div><div class="action-label">Accounting</div>
+
+            <!-- 13. WhatsApp Broadcast Studio -->
+            <button class="action-node" onclick="window.openWhatsAppCampaignStudio ? window.openWhatsAppCampaignStudio() : openAppModule('WhatsAppStudio')" title="Open WhatsApp Broadcast Studio (Reach 15,000+ Retail Buyers)" style="border-color:rgba(34,197,94,0.4);background:rgba(34,197,94,0.06);">
+              <div class="action-icon" style="color:#22C55E;">${I.megaphone}</div>
+              <div class="action-label" style="color:#22C55E;font-weight:700;">WhatsApp</div>
             </button>
-            <button class="action-node" onclick="openAppModule('EUPortal')">
-              <div class="action-icon">${I.eu}</div><div class="action-label">EU Portal</div>
+
+            <!-- 14. Voice Operator Engine -->
+            <button class="action-node" onclick="(window.VoiceEngine && typeof window.VoiceEngine.toggle === 'function') ? window.VoiceEngine.toggle() : (window.openVoicePOIngestion ? window.openVoicePOIngestion() : openAppModule('VoiceIngest'))" title="Toggle Voice Command Assistant & Microphone Operator">
+              <div class="action-icon" style="color:var(--coral);">${I.mic}</div>
+              <div class="action-label">Voice</div>
             </button>
-            <button class="action-node" onclick="openAppModule('Analytics')">
-              <div class="action-icon">${I.chart}</div><div class="action-label">Analytics</div>
+
+            <!-- 15. Optical Scanner & Camera -->
+            <button class="action-node" onclick="typeof window.startCamera === 'function' ? window.startCamera('barcode') : openAppModule('Capture')" title="Open Optical Hangtag & Barcode Scanner">
+              <div class="action-icon">${I.cam}</div>
+              <div class="action-label">Capture</div>
             </button>
-            <button class="action-node" onclick="openAppModule('QuoteBuilder')">
-              <div class="action-icon">${I.doc}</div><div class="action-label">Quote</div>
+
+            <!-- 16. Products Catalog & Stock Matrix -->
+            <button class="action-node" onclick="openAppModule('Products')" title="Open Master Product Catalog & SKU Matrix">
+              <div class="action-icon">${I.tag}</div>
+              <div class="action-label">Products</div>
             </button>
-            <button class="action-node" onclick="openAppModule('CRM')">
-              <div class="action-icon">${I.users}</div><div class="action-label">CRM</div>
+
+            <!-- 17. Accounting ERP Sync -->
+            <button class="action-node" onclick="openAppModule('Accounting')" title="Open Accounting ERP Sync (account.handsandhead.com)">
+              <div class="action-icon" style="color:var(--gold);">${I.wallet}</div>
+              <div class="action-label">Accounting</div>
             </button>
-            <button class="action-node" onclick="openAppModule('Inventory')">
-              <div class="action-icon">${I.box}</div><div class="action-label">Stock</div>
+
+            <!-- 18. EU Buyer Portal -->
+            <button class="action-node" onclick="openAppModule('EUPortal')" title="Open EU Buyer Portal & Trade Regulations">
+              <div class="action-icon">${I.eu}</div>
+              <div class="action-label">EU Portal</div>
+            </button>
+
+            <!-- 19. Analytics & Forecasting -->
+            <button class="action-node" onclick="openAppModule('Analytics')" title="Open Sales Analytics, Profit Margins & Volume Forecasts">
+              <div class="action-icon">${I.chart}</div>
+              <div class="action-label">Analytics</div>
+            </button>
+
+            <!-- 20. B2B Quote Builder -->
+            <button class="action-node" onclick="openAppModule('QuoteBuilder')" title="Open B2B Quotation & Proforma Generator">
+              <div class="action-icon">${I.doc}</div>
+              <div class="action-label">Quote</div>
+            </button>
+
+            <!-- 21. Buyer CRM & 360 Profiles -->
+            <button class="action-node" onclick="openAppModule('CRM')" title="Open Buyer CRM & 360-Degree Customer History">
+              <div class="action-icon">${I.users}</div>
+              <div class="action-label">CRM</div>
+            </button>
+
+            <!-- 22. Inventory Stock Matrix -->
+            <button class="action-node" onclick="openAppModule('Inventory')" title="Open Multi-Warehouse Stock & Materials Inventory">
+              <div class="action-icon">${I.box}</div>
+              <div class="action-label">Stock</div>
               ${(s.pending||0)>0?'<div class="action-badge"></div>':''}
             </button>
-            <button class="action-node" onclick="openAppModule('Tracking')">
-              <div class="action-icon">${I.truck}</div><div class="action-label">Track</div>
+
+            <!-- 23. Shipment Tracking -->
+            <button class="action-node" onclick="openAppModule('Tracking')" title="Open Courier Consignment Tracking (Steadfast, Pathao, Paperfly)">
+              <div class="action-icon">${I.truck}</div>
+              <div class="action-label">Track</div>
             </button>
-            <button class="action-node" onclick="openAppModule('PortalArutemika')">
-              <div class="action-icon">${I.leather}</div><div class="action-label">Leather</div>
+
+            <!-- 24. Arutemika Leather EU Portal -->
+            <button class="action-node" onclick="openAppModule('PortalArutemika')" title="Open Arutemika Leather EU Export Portal (In-App Atelier)">
+              <div class="action-icon" style="color:#d97706;">${I.leather}</div>
+              <div class="action-label">Leather EU</div>
             </button>
-            <button class="action-node" onclick="openAppModule('PortalRMG')">
-              <div class="action-icon">${I.rmg}</div><div class="action-label">RMG</div>
+
+            <!-- 25. Hands & Head RMG Export Portal -->
+            <button class="action-node" onclick="openAppModule('PortalRMG')" title="Open Hands & Head RMG Apparel Export Portal (In-App Manufacturing Hub)">
+              <div class="action-icon" style="color:#0284c7;">${I.rmg}</div>
+              <div class="action-label">RMG Apparel</div>
+            </button>
+
+            <!-- 26. Shopify Omnichannel Suite -->
+            <button class="action-node" onclick="openAppModule('ShopifySuite')" title="Open Shopify Omnichannel & B2B Draft Orders Suite" style="border-color:rgba(150,195,62,0.35);">
+              <div class="action-icon" style="color:#96bf48;">${I.store}</div>
+              <div class="action-label">Shopify</div>
+            </button>
+
+            <!-- 27. Custom Apps & Pages Studio -->
+            <button class="action-node" onclick="openAppModule('CustomApps')" title="Open Custom Apps & Pages Studio (Atelier Drops & Micro-Frontends)">
+              <div class="action-icon" style="color:var(--ink-2);">${I.grid}</div>
+              <div class="action-label">App Studio</div>
+            </button>
+
+            <!-- 28. D2C Storefront (shop.handsandhead.com) -->
+            <button class="action-node" onclick="openAppModule('FrontEnd')" title="Open D2C Online Storefront (shop.handsandhead.com)">
+              <div class="action-icon" style="color:var(--gold);">${I.globe}</div>
+              <div class="action-label">Storefront</div>
+            </button>
+
+            <!-- 29. Admin Control Center & Audit Ledger -->
+            <button class="action-node" onclick="openAppModule('AdminCenter')" title="Open System Audit Logs & Admin Control Center">
+              <div class="action-icon" style="color:var(--coral);">${I.gear}</div>
+              <div class="action-label">Admin</div>
             </button>
           </div>
         `;
@@ -2428,6 +2590,7 @@ const NAV_SECTIONS = [
       { label: "Portal Launcher", icon: I.link, url: "https://handfilm.github.io/portal/", desc: "Universal gateway for B2B brand portals", ext: "LAUNCHER" },
       { label: "RAWxOS", icon: I.spark, url: "https://handfilm.github.io/RAWxOS/", desc: "Raw materials, tanning & chemical ledger OS", ext: "RAW" },
       { label: "HANDFILM", icon: I.cam, url: "https://handfilm.myshopify.com/", desc: "Official Shopify flagship studio", ext: "SHOPIFY" },
+      { label: "Backup & Mirror Vault", icon: I.shield || I.spark, fn: "window.openSystemBackupVault ? window.openSystemBackupVault('vault') : window.dispatchEvent(new CustomEvent('nexus:open-backup-vault', { detail: { tab: 'vault' } }))", desc: "Dual-site sync, 1-click D1/IDB JSON backup & Cloudflare R2 restore points", ext: "VAULT", extClass: "gold" },
       { label: "H&H Nexus Website", icon: I.globe, url: "https://www.handsandhead.com/", desc: "Official corporate website & brand portfolio", ext: "WEB" }
     ]
   },
@@ -2654,7 +2817,19 @@ const MODULE_MAP = {
   "PriceRules": "ShopifySuite",
   "WhatsAppStudio": "WhatsAppStudio",
   "WhatsApp Broadcast": "WhatsAppStudio",
-  "WhatsApp Broadcast Studio": "WhatsAppStudio"
+  "WhatsApp Broadcast Studio": "WhatsAppStudio",
+  "QuickSale": "QuickSale",
+  "Quick Sale": "QuickSale",
+  "POS": "QuickSale",
+  "Quick Sale POS": "QuickSale",
+  "AdminCenter": "AdminCenter",
+  "Admin Center": "AdminCenter",
+  "Audit": "AdminCenter",
+  "AuditLogs": "AdminCenter",
+  "AIAssistant": "NexAI",
+  "AI Advisor": "NexAI",
+  "FederatedCatalog": "Products",
+  "Federated Catalog": "Products"
 };
 
 let _drawerFilterQuery = "";
@@ -2989,14 +3164,11 @@ function openAppModule(appName) {
     }
   }
 
-  if (modKey === "PortalRMG" || modKey === "RMG" || modKey === "rmg") {
-    window.open("https://rmg.handsandhead.com", "_blank", "noopener,noreferrer");
-    return;
-  }
-
-  if (modKey === "PortalArutemika" || modKey === "Arutemika" || modKey === "arutemika") {
-    window.open("https://arutemika.com", "_blank", "noopener,noreferrer");
-    return;
+  if (modKey === "QuickSale" || modKey === "quicksale" || modKey === "POS" || modKey === "pos") {
+    if (typeof window.openQuickSale === "function") {
+      window.openQuickSale();
+      return;
+    }
   }
 
   const b = document.getElementById("body");
@@ -3129,6 +3301,36 @@ function openAppModule(appName) {
       if (window.render && typeof window.render.Suppliers === "function") return window.render.Suppliers;
       if (window.render && typeof window.render.SuppliersManagement === "function") return window.render.SuppliersManagement;
       if (typeof window.renderSuppliersManagementComponent === "function") return window.renderSuppliersManagementComponent;
+    }
+
+    // Explicit fallback for Admin Control Center & Audit
+    if (modKey.toLowerCase().includes("admin") || modKey.toLowerCase().includes("audit")) {
+      if (typeof window.renderAdminCenter === "function") return window.renderAdminCenter;
+      if (window.render && typeof window.render.AdminCenter === "function") return window.render.AdminCenter;
+    }
+
+    // Explicit fallback for Custom Apps & Pages Studio
+    if (modKey.toLowerCase().includes("customapp") || modKey.toLowerCase().includes("enterpriseapp")) {
+      if (window.render && typeof window.render.CustomApps === "function") return window.render.CustomApps;
+      if (window.render && typeof window.render.EnterpriseApps === "function") return window.render.EnterpriseApps;
+    }
+
+    // Explicit fallback for Shopify Omnichannel Suite
+    if (modKey.toLowerCase().includes("shopify")) {
+      if (window.render && typeof window.render.ShopifySuite === "function") return window.render.ShopifySuite;
+    }
+
+    // Explicit fallback for WhatsApp Broadcast Studio
+    if (modKey.toLowerCase().includes("whatsapp")) {
+      if (window.render && typeof window.render.WhatsAppStudio === "function") return window.render.WhatsAppStudio;
+    }
+
+    // Explicit fallback for RMG & Arutemika In-App Portals
+    if (modKey === "PortalRMG" || modKey === "RMG" || modKey === "rmg") {
+      if (window.render && typeof window.render.PortalRMG === "function") return window.render.PortalRMG;
+    }
+    if (modKey === "PortalArutemika" || modKey === "Arutemika" || modKey === "arutemika") {
+      if (window.render && typeof window.render.PortalArutemika === "function") return window.render.PortalArutemika;
     }
 
     if (modKey === "Accounting" && typeof window.renderAccounting === "function") return window.renderAccounting;
@@ -4697,3 +4899,47 @@ if (typeof window !== "undefined" && window.NexEvents) {
 if (typeof window !== "undefined" && window.SyncEngine) {
   window.SyncEngine.init();
 }
+
+// ── Sync Toggle Popover & Live Dual-Site Health Pill Bridge ──
+window.toggleSyncMirrorPopover = function(evt) {
+  if (evt && typeof evt.stopPropagation === "function") evt.stopPropagation();
+  const pop = document.getElementById("syncMirrorPopover");
+  if (!pop) return;
+  const isVisible = pop.style.display === "block";
+  pop.style.display = isVisible ? "none" : "block";
+};
+
+window.closeSyncMirrorPopover = function() {
+  const pop = document.getElementById("syncMirrorPopover");
+  if (pop) pop.style.display = "none";
+};
+
+if (typeof document !== "undefined") {
+  document.addEventListener("click", function(evt) {
+    const wrap = document.getElementById("syncPopoverWrap");
+    const pop = document.getElementById("syncMirrorPopover");
+    if (pop && wrap && !wrap.contains(evt.target)) {
+      pop.style.display = "none";
+    }
+  });
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("nexus:dual-health-update", function(evt) {
+    const state = evt && evt.detail;
+    if (!state) return;
+    const applyDot = function(el, status) {
+      if (!el) return;
+      el.classList.remove("online", "degraded", "offline");
+      if (status === "online" || status === "degraded" || status === "offline") {
+        el.classList.add(status);
+      }
+      el.style.background = status === "online" ? "#10B981" : status === "degraded" ? "#F59E0B" : status === "offline" ? "#EF4444" : "#38BDF8";
+    };
+    applyDot(document.getElementById("dshpPrimaryDot"), state.primary && state.primary.status);
+    applyDot(document.getElementById("dshpBackupDot"), state.backup && state.backup.status);
+    applyDot(document.getElementById("syncPopoverPrimaryDot"), state.primary && state.primary.status);
+    applyDot(document.getElementById("syncPopoverBackupDot"), state.backup && state.backup.status);
+  });
+}
+// END OF FILE: js/app.js

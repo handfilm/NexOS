@@ -14,6 +14,26 @@ import {
 } from 'firebase/firestore';
 import { db as sharedDb } from './firebase';
 
+export interface ProductRecord {
+  id: string;
+  sku?: string;
+  title?: string;
+  [key: string]: unknown;
+}
+
+export interface OrderRecord {
+  id: string;
+  orderNumber?: string;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+export interface CustomerRecord {
+  id: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
 export const firebaseConfig = {
   apiKey: "AIzaSyAU9sICCVDeZB8Ht-IirF_3vXLYb6Nap8k",
   authDomain: "grounded-trail-1dtd0.firebaseapp.com",
@@ -301,7 +321,10 @@ export async function saveCustomer(customerData: any): Promise<any> {
 /**
  * Real-time listener for Firestore `customers` collection.
  */
-export function subscribeToCustomers(callback: (customers: any[]) => void): Unsubscribe {
+export function subscribeToCustomers(
+  callback: (customers: CustomerRecord[]) => void,
+  onError?: (err: unknown) => void
+): Unsubscribe {
   const db = getDb();
   const colRef = collection(db, "customers");
 
@@ -312,6 +335,7 @@ export function subscribeToCustomers(callback: (customers: any[]) => void): Unsu
     }));
     callback(items);
   }, (err) => {
+    if (onError) onError(err);
     console.debug('[PERSISTENCE] customers onSnapshot notice (falling back to in-memory records):', err?.message);
     if (typeof window !== 'undefined') {
       const fallback = (window as any).PERMANENT_SEEDED_CUSTOMERS || (window as any).DATA?.customers || (window as any).customers || [];
@@ -325,7 +349,10 @@ export function subscribeToCustomers(callback: (customers: any[]) => void): Unsu
 /**
  * Real-time listener for Firestore `products` collection.
  */
-export function subscribeToProducts(callback: (products: any[]) => void): Unsubscribe {
+export function subscribeToProducts(
+  callback: (products: ProductRecord[]) => void,
+  onError?: (err: unknown) => void
+): Unsubscribe {
   const db = getDb();
   const colRef = collection(db, "products");
 
@@ -336,6 +363,7 @@ export function subscribeToProducts(callback: (products: any[]) => void): Unsubs
     }));
     callback(items);
   }, (err) => {
+    if (onError) onError(err);
     console.debug('[PERSISTENCE] products onSnapshot notice (falling back to in-memory records):', err?.message);
     if (typeof window !== 'undefined') {
       const fallback = (window as any).products || (window as any).DATA?.products || [];
@@ -364,7 +392,10 @@ export function isMockOrder(o: any): boolean {
 /**
  * Real-time listener for Firestore `orders` collection.
  */
-export function subscribeToOrders(callback: (orders: any[]) => void): Unsubscribe {
+export function subscribeToOrders(
+  callback: (orders: OrderRecord[]) => void,
+  onError?: (err: unknown) => void
+): Unsubscribe {
   const db = getDb();
   const colRef = collection(db, "orders");
 
@@ -402,6 +433,7 @@ export function subscribeToOrders(callback: (orders: any[]) => void): Unsubscrib
       fallbackToServer();
     }
   }, async (err) => {
+    if (onError) onError(err);
     console.debug('[PERSISTENCE] orders onSnapshot notice (falling back to server persistence):', err?.message);
     fallbackToServer();
   });
@@ -483,4 +515,5 @@ if (typeof window !== 'undefined') {
   (window as any).subscribeToProducts = subscribeToProducts;
   (window as any).subscribeToCustomers = subscribeToCustomers;
 }
+// END OF FILE: src/lib/persistence.ts
 

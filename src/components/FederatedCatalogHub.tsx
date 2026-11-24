@@ -48,11 +48,37 @@ export const FederatedCatalogHub: React.FC = () => {
         const liveItems = await fetchLiveCatalog();
         if (isMounted) {
           if (Array.isArray(liveItems) && liveItems.length > 0) {
-            const mapped: FederatedProduct[] = liveItems.map((p) => ({
+            const mapped: FederatedProduct[] = liveItems.map((p) => {
+              const basePrice = p.retailPriceUsd || p.retailPrice || 100;
+              const defaultLadder: [WholesaleTier, WholesaleTier, WholesaleTier] = [
+                { tierNumber: 1, minQuantity: 50, discountPercentage: 10, unitPriceUsd: basePrice * 0.9, totalTierCostUsd: 50 * basePrice * 0.9 },
+                { tierNumber: 2, minQuantity: 200, discountPercentage: 20, unitPriceUsd: basePrice * 0.8, totalTierCostUsd: 200 * basePrice * 0.8 },
+                { tierNumber: 3, minQuantity: 1000, discountPercentage: 35, unitPriceUsd: basePrice * 0.65, totalTierCostUsd: 1000 * basePrice * 0.65 },
+              ];
+              const rawLadder = Array.isArray(p.wholesalePriceLadder) ? p.wholesalePriceLadder : [];
+              const buildTier = (idx: 0 | 1 | 2): WholesaleTier => {
+                const raw = rawLadder[idx];
+                if (!raw) return defaultLadder[idx];
+                const tierNum = (idx + 1) as 1 | 2 | 3;
+                return {
+                  tierNumber: tierNum,
+                  minQuantity: raw.minQuantity,
+                  discountPercentage: raw.discountPercentage || defaultLadder[idx].discountPercentage,
+                  unitPriceUsd: raw.unitPriceUsd,
+                  totalTierCostUsd: raw.unitPriceUsd * raw.minQuantity,
+                };
+              };
+              const wholesalePriceLadder: [WholesaleTier, WholesaleTier, WholesaleTier] = [
+                buildTier(0),
+                buildTier(1),
+                buildTier(2),
+              ];
+              return {
               id: p.id,
               sku: p.sku,
               title: p.title,
               handle: p.handle || p.id,
+              redirectUrlPath: `/api/redirect/${encodeURIComponent(p.id)}`,
               description: p.description,
               category: p.category || 'Atelier Goods',
               origin: (p.origin === 'arutemika.com' ? 'arutemika.com' : 'shop.handsandhead.com') as any,
@@ -61,19 +87,7 @@ export const FederatedCatalogHub: React.FC = () => {
               retailPriceUsd: p.retailPriceUsd || p.retailPrice || 0,
               currency: 'USD',
               moq: p.moq || 1,
-              wholesalePriceLadder: Array.isArray(p.wholesalePriceLadder) && p.wholesalePriceLadder.length > 0
-                ? p.wholesalePriceLadder.map((tier, idx) => ({
-                    tierNumber: ((idx + 1) as 1 | 2 | 3) || 1,
-                    minQuantity: tier.minQuantity,
-                    discountPercentage: tier.discountPercentage || 15,
-                    unitPriceUsd: tier.unitPriceUsd,
-                    totalTierCostUsd: tier.unitPriceUsd * tier.minQuantity,
-                  }))
-                : [
-                    { tierNumber: 1, minQuantity: 50, discountPercentage: 10, unitPriceUsd: (p.retailPriceUsd || p.retailPrice || 100) * 0.9, totalTierCostUsd: 50 * (p.retailPriceUsd || p.retailPrice || 100) * 0.9 },
-                    { tierNumber: 2, minQuantity: 200, discountPercentage: 20, unitPriceUsd: (p.retailPriceUsd || p.retailPrice || 100) * 0.8, totalTierCostUsd: 200 * (p.retailPriceUsd || p.retailPrice || 100) * 0.8 },
-                    { tierNumber: 3, minQuantity: 1000, discountPercentage: 35, unitPriceUsd: (p.retailPriceUsd || p.retailPrice || 100) * 0.65, totalTierCostUsd: 1000 * (p.retailPriceUsd || p.retailPrice || 100) * 0.65 },
-                  ],
+              wholesalePriceLadder,
               provenance: {
                 badgeId: 'PROV-BD-ATELIER',
                 badgeLabel: 'BayXBengal Verified Atelier Sourcing',
@@ -97,7 +111,8 @@ export const FederatedCatalogHub: React.FC = () => {
               updatedAt: p.updatedAt || new Date().toISOString(),
               lastSyncedAt: new Date().toISOString(),
               featuredScore: 80,
-            }));
+              };
+            });
             setProducts(mapped);
             setSelectedProduct(mapped[0] || null);
             setHydrationSource('FIRESTORE_LIVE');
@@ -682,3 +697,4 @@ export const FederatedCatalogHub: React.FC = () => {
 };
 
 export default FederatedCatalogHub;
+// END OF FILE: src/components/FederatedCatalogHub.tsx

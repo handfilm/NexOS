@@ -466,7 +466,7 @@ export const LogisticsSettlementHub: React.FC<LogisticsSettlementHubProps> = ({
           advancePct: 50,
           advanceRequired: total * 0.5,
           advancePaid: advancePaid,
-          advanceMethod: ord.paymentMethod?.includes('bKash') ? 'bKash Merchant Pay' : 'BANK_TT',
+          advanceMethod: ord.paymentMethod?.includes('bKash') ? 'BKASH_MERCHANT' : 'BANK_TT',
           advanceReceived: advancePaid >= total * 0.5,
           advanceTxnRef: ord.advanceTxnRef || ord.transactionId || '',
           balanceDue: Math.max(0, total - advancePaid),
@@ -2959,3 +2959,4 @@ export const LogisticsSettlementHub: React.FC<LogisticsSettlementHubProps> = ({
 };
 
 export default LogisticsSettlementHub;
+// END OF FILE: src/components/LogisticsSettlementHub.tsx
