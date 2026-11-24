@@ -2172,7 +2172,10 @@ async function renderLiteHome(b) {
     <div class="hero">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <div class="hero-label">H&amp;H Nexus · Seller OS · ${mode === 'expert' ? 'Expert Mode' : 'Lite Mode'}</div>
-        <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+          <button class="btn btn-sm btn-primary roas-quick-launch-btn" onclick="window.openSystemBackupVault ? window.openSystemBackupVault('roas') : window.dispatchEvent(new CustomEvent('nexus:open-backup-vault', { detail: { tab: 'roas' } }))" style="font-size:10.5px;padding:4px 12px;font-family:var(--mono);letter-spacing:0.6px;font-weight:800;" title="Open 10-Clip Ad ROAS &amp; Live Sales Telemetry">
+            📊 10-CLIP AD ROAS
+          </button>
           <button class="btn btn-sm btn-dark" onclick="(window.DashboardEngine?.openPinAppsModal ? window.DashboardEngine.openPinAppsModal() : null)" style="font-size:10.5px;padding:4px 10px;" title="Pin your favorite apps to the dashboard">
             📌 Pin Apps
           </button>
@@ -2590,6 +2593,7 @@ const NAV_SECTIONS = [
       { label: "Portal Launcher", icon: I.link, url: "https://handfilm.github.io/portal/", desc: "Universal gateway for B2B brand portals", ext: "LAUNCHER" },
       { label: "RAWxOS", icon: I.spark, url: "https://handfilm.github.io/RAWxOS/", desc: "Raw materials, tanning & chemical ledger OS", ext: "RAW" },
       { label: "HANDFILM", icon: I.cam, url: "https://handfilm.myshopify.com/", desc: "Official Shopify flagship studio", ext: "SHOPIFY" },
+      { label: "10-Clip Ad ROAS & Live Sales", icon: I.chart || I.spark, fn: "window.openSystemBackupVault ? window.openSystemBackupVault('roas') : window.dispatchEvent(new CustomEvent('nexus:open-backup-vault', { detail: { tab: 'roas' } }))", desc: "10-clip campaign ROAS telemetry, ad spend vs live D1 sales & Bangla creatives", ext: "ROAS", extClass: "roas" },
       { label: "Backup & Mirror Vault", icon: I.shield || I.spark, fn: "window.openSystemBackupVault ? window.openSystemBackupVault('vault') : window.dispatchEvent(new CustomEvent('nexus:open-backup-vault', { detail: { tab: 'vault' } }))", desc: "Dual-site sync, 1-click D1/IDB JSON backup & Cloudflare R2 restore points", ext: "VAULT", extClass: "gold" },
       { label: "H&H Nexus Website", icon: I.globe, url: "https://www.handsandhead.com/", desc: "Official corporate website & brand portfolio", ext: "WEB" }
     ]

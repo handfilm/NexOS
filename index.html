@@ -213,21 +213,45 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
 </div>
 
 <div class="marquee-strip">
-  <div class="marquee-inner">
-    <span>H&amp;H Nexus · Seller OS</span>
-    <span>Authorized Operators Only</span>
-    <span>B2B Supply Chain Terminal</span>
-    <span>Leather Export Division</span>
-    <span>handsandhead.com</span>
-    <span>EU Buyer Channel Active</span>
-    <span>NL · DE · GB · ES Markets</span>
-    <span>H&amp;H Nexus · Seller OS</span>
-    <span>Authorized Operators Only</span>
-    <span>B2B Supply Chain Terminal</span>
-    <span>Leather Export Division</span>
-    <span>handsandhead.com</span>
-    <span>EU Buyer Channel Active</span>
-    <span>NL · DE · GB · ES Markets</span>
+  <div class="marquee-track">
+    <div class="marquee-inner">
+      <span>H&amp;H Nexus · Seller OS</span>
+      <span>Authorized Operators Only</span>
+      <span>B2B Supply Chain Terminal</span>
+      <span>Leather Export Division</span>
+      <span>handsandhead.com</span>
+      <span>EU Buyer Channel Active</span>
+      <span>NL · DE · GB · ES Markets</span>
+      <span>H&amp;H Nexus · Seller OS</span>
+      <span>Authorized Operators Only</span>
+      <span>B2B Supply Chain Terminal</span>
+      <span>Leather Export Division</span>
+      <span>handsandhead.com</span>
+      <span>EU Buyer Channel Active</span>
+      <span>NL · DE · GB · ES Markets</span>
+    </div>
+  </div>
+  <!-- Live Dual-Site Mirror Health Pill (Docked in Top Ticker Bar) -->
+  <div class="marquee-health-slot">
+    <button
+      type="button"
+      id="dualSiteHealthPill"
+      class="dual-site-health-pill marquee-health-pill"
+      onclick="window.openSystemBackupVault ? window.openSystemBackupVault('vault') : window.dispatchEvent(new CustomEvent('nexus:open-backup-vault', { detail: { tab: 'vault' } }))"
+      title="Dual-Site Mirror Health &amp; 1-Click Backup Vault"
+    >
+      <span class="dshp-seg">
+        <span class="dshp-k">PRIMARY:</span>
+        <span class="dshp-h">admin.handsandhead.com</span>
+        <span class="dshp-dot" id="dshpPrimaryDot"></span>
+      </span>
+      <span class="dshp-sep">|</span>
+      <span class="dshp-seg">
+        <span class="dshp-k">BACKUP:</span>
+        <span class="dshp-h">handsandhead.ai.studio</span>
+        <span class="dshp-dot" id="dshpBackupDot"></span>
+      </span>
+    </button>
   </div>
 </div>
 
@@ -247,27 +271,6 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
       <span class="brand-sub">Business Command Center</span>
     </div>
   </div>
-
-  <!-- Live Dual-Site Mirror Health Pill -->
-  <button
-    type="button"
-    id="dualSiteHealthPill"
-    class="dual-site-health-pill"
-    onclick="window.openSystemBackupVault ? window.openSystemBackupVault('vault') : window.dispatchEvent(new CustomEvent('nexus:open-backup-vault', { detail: { tab: 'vault' } }))"
-    title="Dual-Site Mirror Health &amp; 1-Click Backup Vault"
-  >
-    <span class="dshp-seg">
-      <span class="dshp-k">PRIMARY:</span>
-      <span class="dshp-h">admin.handsandhead.com</span>
-      <span class="dshp-dot" id="dshpPrimaryDot"></span>
-    </span>
-    <span class="dshp-sep">|</span>
-    <span class="dshp-seg">
-      <span class="dshp-k">BACKUP:</span>
-      <span class="dshp-h">handsandhead.ai.studio</span>
-      <span class="dshp-dot" id="dshpBackupDot"></span>
-    </span>
-  </button>
 
   <div class="tbar-right">
     <!-- Consolidated Operations Dropdown Menu -->
