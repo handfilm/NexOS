@@ -1802,9 +1802,6 @@ html.dark .marquee-health-slot, body.dark .marquee-health-slot {
   0%, 100% { opacity:1; transform:scale(1); }
   50% { opacity:0.4; transform:scale(1.35); }
 }
-  transform:translateY(-1px) scale(0.96);
-  box-shadow:inset 2px 2px 6px rgba(0,0,0,0.3);
-}
 .tb.cam-fab svg { width:23px; height:23px; }
 
 /* ── Modals, Sheets & Drawers (Responsive Desktop Center & Mobile Sheet) ── */
